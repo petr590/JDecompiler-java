@@ -1,0 +1,302 @@
+package x590.javaclass.type;
+
+import static x590.javaclass.util.Util.EOF_CHAR;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import x590.javaclass.ClassInfo;
+import x590.javaclass.constpool.ClassConstant;
+import x590.javaclass.exception.InvalidClassNameException;
+import x590.javaclass.io.ExtendedStringReader;
+import x590.javaclass.util.Util;
+
+/**
+ * Описывает тип java класса, самого обычного java класса
+ */
+public final class ClassType extends ReferenceType {
+	
+	/**
+	 * Определяет, какой это класс: обычный, вложенный, анонимный, package-info, module-info
+	 */
+	public enum ClassKind {
+		NONE("none", false),
+		NESTED("nested", false),
+		ANONYMOUS("anonymous", false),
+		PACKAGE_INFO("package-info", true),
+		MODULE_INFO("module-info", true);
+		
+		public final String name;
+		private final boolean isSpecial;
+		
+		private ClassKind(String name, boolean isSpecial) {
+			this.name = name;
+			this.isSpecial = isSpecial;
+		}
+		
+		public boolean isSpecial() {
+			return isSpecial;
+		}
+		
+		public boolean isPlain() {
+			return !isSpecial;
+		}
+		
+		public boolean isNested() {
+			return this == NESTED || this == ANONYMOUS;
+		}
+		
+		public boolean isAnonymous() {
+			return this == ANONYMOUS;
+		}
+		
+		public boolean isPackageInfo() {
+			return this == PACKAGE_INFO;
+		}
+		
+		public boolean isModuleInfo() {
+			return this == MODULE_INFO;
+		}
+		
+		@Override
+		public String toString() {
+			return name;
+		}
+	}
+	
+	public static final ClassType
+			OBJECT        = new ClassType("java/lang/Object"),
+			STRING        = new ClassType("java/lang/String"),
+			CLASS         = new ClassType("java/lang/Class"),
+			ENUM          = new ClassType("java/lang/Enum"),
+			THROWABLE     = new ClassType("java/lang/Throwable"),
+			EXCEPTION     = new ClassType("java/lang/Exception"),
+			METHOD_TYPE   = new ClassType("java/lang/invoke/MethodType"),
+			METHOD_HANDLE = new ClassType("java/lang/invoke/MethodHandle"),
+			
+			VOID      = new ClassType("java/lang/Void"),
+			BOOLEAN   = new ClassType("java/lang/Boolean"),
+			BYTE      = new ClassType("java/lang/Byte"),
+			CHARACTER = new ClassType("java/lang/Character"),
+			SHORT     = new ClassType("java/lang/Short"),
+			INTEGER   = new ClassType("java/lang/Integer"),
+			LONG      = new ClassType("java/lang/Long"),
+			FLOAT     = new ClassType("java/lang/Float"),
+			DOUBLE    = new ClassType("java/lang/Double");
+
+
+	protected final String
+			classEncodedName,
+			simpleName,
+			fullSimpleName,
+			packageName;
+
+	public final List<ReferenceType> parameters;
+
+	public final ClassType enclosingClass;
+	public final ClassKind kind;
+	
+	
+	private static final Map<String, ClassType> CLASS_TYPES = new HashMap<>();
+	
+	
+	public static ClassType valueOf(String encodedName) {
+		if(CLASS_TYPES.containsKey(encodedName))
+			return CLASS_TYPES.get(encodedName);
+		
+		ClassType classType = new ClassType(encodedName);
+		CLASS_TYPES.put(encodedName, classType);
+		return classType;
+	}
+	
+	
+	public ClassType(ClassConstant clazz) {
+		this(clazz.getName().getValue());
+	}
+	
+	private ClassType(String encodedName) {
+		this(new ExtendedStringReader(encodedName));
+	}
+	
+	public ClassType(ExtendedStringReader in) {
+		
+		in.mark(Integer.MAX_VALUE);
+		
+		StringBuilder
+				encodedNameBuilder = new StringBuilder(),
+				nameBuilder = new StringBuilder();
+		
+		this.parameters = new ArrayList<>();
+		
+		int nameStartPos = 0,
+			packageEndPos = 0,
+			enclosingClassNameEndPos = 0;
+		
+		// Некоторые названия классов (такие как package-info и module-info)
+		// содержат тире, и эта переменная нужна для полной проверки валидности названия
+		int dashIndex = 0;
+		
+		L: for(int i = 0;; i++) {
+			int ch = in.read();
+			
+			switch(ch) {
+				case '/' -> {
+					packageEndPos = i;
+					nameStartPos = i + 1;
+					nameBuilder.append('.');
+					encodedNameBuilder.append('/');
+					
+					// Если мы встречали тире раньше, значит, название класса невалидное
+					if(dashIndex != 0)
+						throw new InvalidClassNameException(in, dashIndex);
+					
+					continue;
+				}
+					
+				case '$' -> {
+					enclosingClassNameEndPos = i;
+					nameStartPos = i + 1;
+					nameBuilder.append('.');
+					encodedNameBuilder.append('/');
+					
+					if(dashIndex != 0)
+						throw new InvalidClassNameException(in, dashIndex);
+					
+					continue;
+				}
+					
+				case '<' -> {
+					parameters.addAll(parseParameters(in.prev()));
+					
+					switch(in.read()) {
+						case ';', EOF_CHAR -> {
+							break L;
+						}
+							
+						default -> {
+							throw new InvalidClassNameException(in, i);
+						}
+					}
+				}
+				
+				case ';', EOF_CHAR -> {
+					break L;
+				}
+				
+				// Недопустимые символы
+				case '-' -> {
+					// Если мы встречали тире раньше, значит, название класса невалидное
+					if(dashIndex != 0)
+						throw new InvalidClassNameException(in, i);
+					
+					dashIndex = i;
+				}
+				
+				case '\b', '\t', '\n', 0xB /* '\v' */, '\f', '\r',  ' ',  '!',
+					 '"',  '#',  '%',  '&',  '\'',  '(',  ')',  '*',  '+',
+					 ',',  '.',  ':',  '=',  '?',   '@',  '[',  '\\',
+					 ']',  '^',  '`',  '{',  '|',   '}',  '~',  0x7F /* DEL */ -> {
+						throw new InvalidClassNameException(in, i);
+					 }
+			}
+			
+			encodedNameBuilder.append((char)ch);
+			nameBuilder.append((char)ch);
+		}
+		
+		String encodedName = encodedNameBuilder.toString();
+		
+		this.encodedName = 'L' + encodedName + ';';
+		this.classEncodedName = encodedName;
+		this.name = nameBuilder.toString();
+		
+		String simpleName = nameBuilder.substring(nameStartPos);
+		this.packageName = nameBuilder.substring(0, packageEndPos);
+		
+		if(enclosingClassNameEndPos != 0) { // Nested class
+			boolean isAnonymous = simpleName.matches("^\\d+$");
+			this.kind = isAnonymous ? ClassKind.ANONYMOUS : ClassKind.NESTED; 
+			this.enclosingClass = new ClassType(encodedName.substring(0, enclosingClassNameEndPos));
+			
+			this.fullSimpleName = enclosingClass.fullSimpleName + (isAnonymous ? '$' : '.') + simpleName;
+			
+			if(isAnonymous) {
+				nameBuilder.setCharAt(enclosingClassNameEndPos, '$');
+				simpleName = enclosingClass.getSimpleName() + '$' + simpleName;
+			}
+			
+		} else {
+			this.enclosingClass = null;
+			this.fullSimpleName = simpleName;
+			
+			this.kind = encodedName.endsWith("/package-info") ? ClassKind.PACKAGE_INFO :
+							encodedName.endsWith("/module-info") ? ClassKind.MODULE_INFO : 
+								ClassKind.NONE;
+		}
+		
+		if(kind.isPlain() && dashIndex != 0)
+			throw new InvalidClassNameException(in, dashIndex);
+		
+		this.simpleName = simpleName;
+		
+		in.unmark();
+	}
+	
+	@Override
+	public String toString(ClassInfo classinfo) {
+		return getName(classinfo);
+	}
+	
+	@Override
+	public String toString() {
+		return "class " + (parameters.isEmpty() ? name : name +
+				"<" + parameters.stream().map(type -> type.toString()).collect(Collectors.joining(", ")) + '>');
+	}
+	
+	@Override
+	public String getName(ClassInfo classinfo) {
+		return kind.isAnonymous() ? fullSimpleName : (classinfo.imported(this) ? getSimpleName() : name) + (parameters.isEmpty() ? "" :
+			'<' + parameters.stream().map(type -> type.toString(classinfo)).collect(Collectors.joining(", ")) + ">");
+	}
+	
+	@Override
+	public final String getNameForVariable() {
+		return Util.toLowerCamelCase(getSimpleName());
+	}
+	
+	@Override
+	public String getClassEncodedName() {
+		return classEncodedName;
+	}
+
+	public String getSimpleName() {
+		return simpleName;
+	}
+
+	public String getFullSimpleName() {
+		return fullSimpleName;
+	}
+	
+	public String getPackageName() {
+		return packageName;
+	}
+	
+	public boolean isAnonymous() {
+		return kind.isAnonymous();
+	}
+	
+	
+	@Override
+	public int implicitCastStatus(Type other) {
+		return other.isPrimitive() && this == ((PrimitiveType)other).getWrapperType() ?
+				CastStatus.AUTOBOXING_STATUS : super.implicitCastStatus(other);
+	}
+	
+	@Override
+	protected boolean isSubtypeOfImpl(Type other) {
+		return other instanceof ClassType;
+	}
+}
