@@ -38,6 +38,10 @@ public abstract class Operation {
 	}
 	
 	
+	public StringifyOutputStream printFront(StringifyOutputStream out, StringifyContext context) {
+		return out.println().printIndent();
+	}
+	
 	public String getBackSeparator(StringifyContext context) {
 		return ";";
 	}

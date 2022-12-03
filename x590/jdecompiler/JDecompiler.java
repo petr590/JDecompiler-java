@@ -43,6 +43,7 @@ public class JDecompiler {
 	public final boolean shortArrayInitAllowed;
 	
 	public final boolean printBracketsAroundBitwiseOperands;
+	public final boolean canOmitCurlyBrackets;
 	
 	public static void init(String[] args) {
 		
@@ -76,6 +77,7 @@ public class JDecompiler {
 				.add(new Flag("-M", "--no-multiline-string").help("Don't multiline strings"))
 				.add(new Flag("--no-short-array-init").help("Don't use short array initialization (like int[] arr = {})"))
 				.add(new Flag("--no-print-brackets-around-bitwise-operands"))
+				.add(new Flag("--no-omit-curly-brackets"))
 				
 				
 				.parse(args);
@@ -117,6 +119,7 @@ public class JDecompiler {
 		this.shortArrayInitAllowed = !arguments.getBoolean("--no-short-array-init");
 		
 		this.printBracketsAroundBitwiseOperands = !arguments.getBoolean("--no-print-brackets-around-bitwise-operands");
+		this.canOmitCurlyBrackets = !arguments.getBoolean("--no-omit-curly-brackets");
 	}
 	
 	
@@ -180,5 +183,10 @@ public class JDecompiler {
 	
 	public boolean printBracketsAroundBitwiseOperands() {
 		return printBracketsAroundBitwiseOperands;
+	}
+	
+	
+	public boolean canOmitCurlyBrackets() {
+		return canOmitCurlyBrackets;
 	}
 }

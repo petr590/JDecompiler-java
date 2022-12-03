@@ -22,6 +22,7 @@ import x590.javaclass.instruction.GetStaticFieldInstruction;
 import x590.javaclass.instruction.IIncInstruction;
 import x590.javaclass.instruction.ILoadInstruction;
 import x590.javaclass.instruction.IStoreInstruction;
+import x590.javaclass.instruction.InstanceofInstruction;
 import x590.javaclass.instruction.Instruction;
 import x590.javaclass.instruction.Instructions;
 import x590.javaclass.instruction.InvokedynamicInstruction;
@@ -38,8 +39,23 @@ import x590.javaclass.instruction.NewInstruction;
 import x590.javaclass.instruction.PutInstanceFieldInstruction;
 import x590.javaclass.instruction.PutStaticFieldInstruction;
 import x590.javaclass.instruction.SIPushInstruction;
+import x590.javaclass.instruction.scope.GotoInstruction;
+import x590.javaclass.instruction.scope.IfAEqInstruction;
+import x590.javaclass.instruction.scope.IfANotEqInstruction;
 import x590.javaclass.instruction.scope.IfEqInstruction;
+import x590.javaclass.instruction.scope.IfGeInstruction;
+import x590.javaclass.instruction.scope.IfGtInstruction;
+import x590.javaclass.instruction.scope.IfIEqInstruction;
+import x590.javaclass.instruction.scope.IfIGeInstruction;
+import x590.javaclass.instruction.scope.IfIGtInstruction;
+import x590.javaclass.instruction.scope.IfILeInstruction;
+import x590.javaclass.instruction.scope.IfILtInstruction;
+import x590.javaclass.instruction.scope.IfINotEqInstruction;
+import x590.javaclass.instruction.scope.IfLeInstruction;
+import x590.javaclass.instruction.scope.IfLtInstruction;
+import x590.javaclass.instruction.scope.IfNonNullInstruction;
 import x590.javaclass.instruction.scope.IfNotEqInstruction;
+import x590.javaclass.instruction.scope.IfNullInstruction;
 import x590.javaclass.scope.MethodScope;
 import x590.javaclass.type.TypeSize;
 import x590.javaclass.util.Util;
@@ -109,7 +125,12 @@ public class DisassemblerContext extends Context {
 	}
 	
 	private int readShort() {
-		return bytes[pos + 1] << 8 | bytes[pos += 2];
+		return (short)((bytes[pos + 1] << 8) & 0xFF | bytes[pos += 2] & 0xFF);
+	}
+	
+	private int readInt() {
+		return  (bytes[pos + 1] << 24) & 0xFF | (bytes[pos + 2] << 16) & 0xFF |
+				(bytes[pos + 3] << 8)  & 0xFF | bytes[pos += 4] & 0xFF;
 	}
 	
 	private int readUnsignedByte() {
@@ -118,11 +139,6 @@ public class DisassemblerContext extends Context {
 	
 	private int readUnsignedShort() {
 		return readShort() & 0xFFFF;
-	}
-	
-	
-	public int getPos() {
-		return pos;
 	}
 	
 	
@@ -290,24 +306,24 @@ public class DisassemblerContext extends Context {
 			case 0x95: case 0x96: return Instructions.FCMP;
 			case 0x97: case 0x98: return Instructions.DCMP;
 			
-			case 0x99: return new IfEqInstruction(this, readShort());
-			case 0x9A: return new IfNotEqInstruction(this, readShort());
-//			case 0x9B: return new IfLtInstruction(readShort());
-//			case 0x9C: return new IfGeInstruction(readShort());
-//			case 0x9D: return new IfGtInstruction(readShort());
-//			case 0x9E: return new IfLeInstruction(readShort());
-//			case 0x9F: return new IfIEqInstruction(readShort());
-//			case 0xA0: return new IfINotEqInstruction(readShort());
-//			case 0xA1: return new IfILtInstruction(readShort());
-//			case 0xA2: return new IfIGeInstruction(readShort());
-//			case 0xA3: return new IfIGtInstruction(readShort());
-//			case 0xA4: return new IfILeInstruction(readShort());
-//			case 0xA5: return new IfAEqInstruction(readShort());
-//			case 0xA6: return new IfANotEqInstruction(readShort());
-//			case 0xA7: return new GotoInstruction(readShort());
+			case 0x99: return new IfEqInstruction(this, 	readShort());
+			case 0x9A: return new IfNotEqInstruction(this, 	readShort());
+			case 0x9B: return new IfLtInstruction(this, 	readShort());
+			case 0x9C: return new IfGeInstruction(this, 	readShort());
+			case 0x9D: return new IfGtInstruction(this, 	readShort());
+			case 0x9E: return new IfLeInstruction(this, 	readShort());
+			case 0x9F: return new IfIEqInstruction(this, 	readShort());
+			case 0xA0: return new IfINotEqInstruction(this, readShort());
+			case 0xA1: return new IfILtInstruction(this, 	readShort());
+			case 0xA2: return new IfIGeInstruction(this, 	readShort());
+			case 0xA3: return new IfIGtInstruction(this, 	readShort());
+			case 0xA4: return new IfILeInstruction(this, 	readShort());
+			case 0xA5: return new IfAEqInstruction(this, 	readShort());
+			case 0xA6: return new IfANotEqInstruction(this, readShort());
+			case 0xA7: return new GotoInstruction(this, 	readShort());
 			
-//			/*case 0xA8: return jsr(readShort());
-//			case 0xA9: return ret(readUnsignedByte());*/
+			/*case 0xA8: return jsr(readShort());
+			case 0xA9: return ret(readUnsignedByte());*/
 			
 //			case 0xAA: {
 //				skip(3 - (pos & 0x3)); // alignment by 4 bytes
@@ -333,6 +349,7 @@ public class DisassemblerContext extends Context {
 //				}
 //				return new SwitchInstruction(defaultOffset, offsetTable);
 //			}
+			
 			case 0xAC: return Instructions.IRETURN;
 			case 0xAD: return Instructions.LRETURN;
 			case 0xAE: return Instructions.FRETURN;
@@ -358,7 +375,7 @@ public class DisassemblerContext extends Context {
 			
 			case 0xBF: return Instructions.ATHROW;
 			case 0xC0: return new CheckCastInstruction(readUnsignedShort());
-//			case 0xC1: return new InstanceofInstruction(readUnsignedShort());
+			case 0xC1: return new InstanceofInstruction(readUnsignedShort());
 			
 			case 0xC2: return null; // TODO: MonitorEnter
 			case 0xC3: return null; // TODO: MonitorExit
@@ -375,23 +392,22 @@ public class DisassemblerContext extends Context {
 				case 0x39: return new DStoreInstruction(readUnsignedShort());
 				case 0x3A: return new AStoreInstruction(readUnsignedShort());
 				case 0x84: return new IIncInstruction(readUnsignedShort(), readShort());
-				//case 0xA9: return ret(readUnsignedShort());
+//				case 0xA9: return ret(readUnsignedShort());
 				default:
 					throw new IllegalOpcodeException("Illegal wide opcode 0x" + Util.hex(bytes[pos]));
 			}
 			
 			case 0xC5: return new MultiANewArrayInstruction(readUnsignedShort(), readUnsignedByte());
 			
-//			case 0xC6: return new IfNullInstruction(readShort());
-//			case 0xC7: return new IfNonNullInstruction(readShort());
-//			case 0xC8: return new GotoInstruction(readInt());
-//			/*case 0xC9: return jsr_w(readInt());
-//			case 0xCA: return breakpoint;
-//			case 0xFE: return impdep1;
-//			case 0xFF: return impdep2;*/
+			case 0xC6: return new IfNullInstruction(this, readShort());
+			case 0xC7: return new IfNonNullInstruction(this, readShort());
+			case 0xC8: return new GotoInstruction(this, readInt());
+			/*case 0xC9: return jsr_w(readInt());
+			case 0xCA: return breakpoint;
+			case 0xFE: return impdep1;
+			case 0xFF: return impdep2;*/
 			default:
-//				return null;
-				throw new IllegalOpcodeException(Util.hex2WithPrefix(bytes[getPos()]));
+				throw new IllegalOpcodeException(Util.hex2WithPrefix(bytes[pos]));
 		}
 	}
 	

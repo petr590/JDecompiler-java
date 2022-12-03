@@ -1,5 +1,7 @@
 package x590.javaclass.context;
 
+import java.util.Arrays;
+
 import x590.javaclass.constpool.ConstantPool;
 
 public abstract class Context {
@@ -26,11 +28,21 @@ public abstract class Context {
 	}
 	
 	
-	public int getIndex() {
+	public int currentIndex() {
 		return index;
 	}
 	
+	// pos смещается, когда мы читаем аргументы инструкции,
+	// поэтому возвращаем позицию по индексу из массива
+	public int currentPos() {
+		return posMap[index];
+	}
+	
+	
 	public int posToIndex(int pos) {
+		assert pos >= 0 && pos < indexMap.length && (pos == 0 || indexMap[pos] != 0) :
+			"Illegal pos " + pos + ". Index map: " + Arrays.toString(indexMap);
+		
 		return indexMap[pos];
 	}
 	

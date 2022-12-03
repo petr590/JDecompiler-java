@@ -23,7 +23,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 	public final OperationStack stack = new OperationStack();
 	private final Stack<Scope> scopeStack = new Stack<>();
 	public final List<Operation> operations;
-	public Scope currentScope;
+	protected Scope currentScope;
 	
 	private final List<Variable> locals;
 	
@@ -54,6 +54,8 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 		
 		for(Instruction instruction : instructions) {
 			
+			finalizeScopes();
+			
 			if(instruction != null) {
 				
 				Operation operation = instruction.toOperation(this);
@@ -63,10 +65,9 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 					
 					if(operation.getReturnType() == PrimitiveType.VOID) {
 						if(operation != VReturnOperation.INSTANCE) {
-							currentScope.addOperation(operation);
+							currentScope.addOperation(this, operation);
 							
 							if(operation instanceof Scope scope) {
-								currentScope.addScope(scope);
 								scopeStack.push(currentScope);
 								currentScope = scope;
 							}
@@ -76,8 +77,6 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 						stack.push(operation);
 					}
 				}
-				
-				finalizeScopes();
 				
 				index++;
 			}
@@ -89,8 +88,18 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 	}
 	
 	
+	public Scope getCurrentScope() {
+		return currentScope;
+	}
+	
+	public Scope getSuperScope() {
+		return scopeStack.peek();
+	}
+	
+	
 	private void finalizeScopes() {
 		while(index >= currentScope.endIndex && !scopeStack.isEmpty()) {
+			System.out.println(index + ": " + currentScope + " finalized");
 			currentScope = scopeStack.pop();
 		}
 	}

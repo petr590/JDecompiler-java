@@ -9,6 +9,7 @@ import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.operation.Operation;
 import x590.javaclass.type.PrimitiveType;
 import x590.javaclass.type.Type;
+import x590.jdecompiler.JDecompiler;
 
 public class Scope extends Operation {
 	
@@ -24,13 +25,13 @@ public class Scope extends Operation {
 	}
 	
 	public Scope(DecompilationContext context, int endIndex) {
-		this.startIndex = context.getIndex();
+		this.startIndex = context.currentIndex();
 		this.endIndex = endIndex;
 	}
 	
 	
 	public boolean isEmpty() {
-		return getCode().isEmpty();
+		return code.isEmpty();
 	}
 	
 	public List<Operation> getCode() {
@@ -38,16 +39,13 @@ public class Scope extends Operation {
 	}
 	
 	public Operation getOperation(int index) {
-		return getCode().get(startIndex + index);
+		return code.get(startIndex + index);
 	}
 	
-	public void addOperation(Operation operation) {
-		getCode().add(operation);
-	}
-	
-	
-	public void addScope(Scope scope) {
-		scopes.add(scope);
+	public void addOperation(DecompilationContext context, Operation operation) {
+		code.add(operation);
+		if(operation instanceof Scope)
+			scopes.add((Scope)operation);
 	}
 	
 	
@@ -61,24 +59,33 @@ public class Scope extends Operation {
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		writeHeader(out, context);
 		
-		if(getCode().isEmpty()) {
-			if(canOmitBody())
+		if(code.isEmpty()) {
+			if(canOmitCurlyBrackets())
 				out.write(';');
 			else
 				out.write(" {}");
 				
 		} else {
-			out.print(" {").increaseIndent();
-			code.forEach(operation -> out.println().printIndent().print(operation, context).print(operation.getBackSeparator(context)));
-			out.reduceIndent().println().printIndent().print('}');
+			boolean canOmitCurlyBraces = canOmitCurlyBrackets();
+			
+			if(!canOmitCurlyBraces)
+				out.write(" {");
+			
+			out.increaseIndent();
+			code.forEach(operation -> operation.printFront(out, context).print(operation, context).print(operation.getBackSeparator(context)));
+			out.reduceIndent();
+			
+			if(!canOmitCurlyBraces)
+				out.println().printIndent().print('}');
 		}
 	}
 	
 	/** 
-	 * Можно ли записать точку с запятой вместо тела скопа когда он пустой
+	 * Можно ли записать точку с запятой вместо фигурных скобок
+	 * когда скоп пустой или в нём только одна операция
 	 */
-	protected boolean canOmitBody() {
-		return true;
+	protected boolean canOmitCurlyBrackets() {
+		return code.size() <= 1 && JDecompiler.getInstance().canOmitCurlyBrackets();
 	}
 	
 	protected void writeHeader(StringifyOutputStream out, StringifyContext context) {}
@@ -92,5 +99,11 @@ public class Scope extends Operation {
 	@Override
 	public Type getReturnType() {
 		return PrimitiveType.VOID;
+	}
+	
+	
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName() + " {" + startIndex + ", " + endIndex + "}";
 	}
 }

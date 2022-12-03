@@ -12,11 +12,11 @@ public class InvokeinterfaceInstruction extends InstructionWithIndex {
 		super(index);
 		
 		if(count == 0)
-			context.warning("illegal format of instruction invokeinterface at pos 0x" + Util.hex(context.getPos()) +
+			context.warning("illegal format of instruction invokeinterface at pos 0x" + Util.hex(context.currentPos()) +
 					": by specification, third byte must not be zero");
 		
 		if(zeroByte != 0)
-			context.warning("illegal format of instruction invokeinterface at pos 0x" + Util.hex(context.getPos()) +
+			context.warning("illegal format of instruction invokeinterface at pos 0x" + Util.hex(context.currentPos()) +
 					": by specification, fourth byte must be zero");
 	}
 	

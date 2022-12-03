@@ -3,14 +3,14 @@ package x590.javaclass.instruction.scope;
 import x590.javaclass.context.DisassemblerContext;
 import x590.javaclass.operation.compare.CompareType;
 
-public class IfNotEqInstruction extends IfInstruction {
+public class IfILeInstruction extends IfICmpInstruction {
 	
-	public IfNotEqInstruction(DisassemblerContext context, int offset) {
+	public IfILeInstruction(DisassemblerContext context, int offset) {
 		super(context, offset);
 	}
 	
 	@Override
 	public CompareType getCompareType() {
-		return CompareType.NOT_EQUALS;
+		return CompareType.LESS_OR_EQUALS;
 	}
 }

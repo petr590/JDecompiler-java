@@ -12,7 +12,7 @@ public class MethodScope extends Scope {
 	
 	
 	@Override
-	protected boolean canOmitBody() {
+	protected boolean canOmitCurlyBrackets() {
 		return false;
 	}
 	

@@ -41,7 +41,7 @@ public class CompareType {
 		return (inverted ? invertedType : this).binaryOperator;
 	}
 	
-	public CompareType getInvertedType() {
+	public CompareType getInverted() {
 		return invertedType;
 	}
 	

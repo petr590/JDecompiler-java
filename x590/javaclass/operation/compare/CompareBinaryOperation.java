@@ -13,7 +13,12 @@ public class CompareBinaryOperation extends CompareOperation {
 	
 	private final Operation operand1, operand2;
 	
-	protected void castOperandsTo(Type requiredType) {
+	// Обратный порядок операндов, так как со стека они снимаются именно в обратном порядке
+	private CompareBinaryOperation(Operation operand2, Operation operand1, CompareType compareType, Type requiredType) {
+		super(compareType);
+		this.operand1 = operand1;
+		this.operand2 = operand2;
+		
 		operand1.castReturnTypeToNarrowest(requiredType);
 		operand2.castReturnTypeToNarrowest(requiredType);
 		
@@ -39,26 +44,18 @@ public class CompareBinaryOperation extends CompareOperation {
 			boolean allowedImplCast1 = operand1.implicitCastAllowed(),
 					allowedImplCast2 = operand2.implicitCastAllowed();
 			     
-			if(allowedImplCast1 ^ allowedImplCast2) { // Allow cast when only one of types can be casted implicit
+			if(allowedImplCast1 ^ allowedImplCast2) { // Разрешить приведение, когда только один из типов может быть приведен неявно
 				(allowedImplCast1 ? operand1 : operand2).allowImplicitCast();
 			}
 		}
 	}
-
+	
 	public CompareBinaryOperation(CmpOperation cmpOperation, CompareType compareType) {
-		super(compareType);
-		this.operand2 = cmpOperation.operand2;
-		this.operand1 = cmpOperation.operand1;
-		castOperandsTo(compareType.getRequiredType());
+		this(cmpOperation.operand2, cmpOperation.operand1, compareType, compareType.getRequiredType());
 	}
 	
-	public CompareBinaryOperation(DecompilationContext context, Type requiredType, CompareType compareType) {
-		/* We don't delegate constructor because of undefined order of initialization of the function arguments
-		   which is important in this case */
-		super(compareType);
-		this.operand2 = context.stack.pop();
-		this.operand1 = context.stack.pop();
-		castOperandsTo(compareType.getRequiredType().castToNarrowest(requiredType));
+	public CompareBinaryOperation(DecompilationContext context, CompareType compareType, Type requiredType) {
+		this(context.stack.pop(), context.stack.pop(), compareType, compareType.getRequiredType().castToNarrowest(requiredType));
 	}
 	
 	

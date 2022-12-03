@@ -40,7 +40,7 @@ public class InvokedynamicInstruction extends InstructionWithIndex {
 		super(index);
 		
 		if(zeroShort != 0)
-			context.warning("illegal format of instruction invokedynamic at pos 0x" + Util.hex(context.getPos()) +
+			context.warning("illegal format of instruction invokedynamic at pos 0x" + Util.hex(context.currentPos()) +
 					": by specification, third and fourth bytes must be zero");
 	}
 	

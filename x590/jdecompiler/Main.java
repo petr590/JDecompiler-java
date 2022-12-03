@@ -14,10 +14,11 @@ public class Main {
 	public static void main(String[] args) throws IOException {
 		
 		JDecompiler.init(new String[] {
-//				"/home/winch/eclipse-workspace/JDecompiler/bin/example/Example.class"
-//				"/home/winch/eclipse-workspace/JDecompiler/bin/example/TestAnnotation.class"
+//				"bin/example/Example.class"
+//				"bin/example/TestAnnotation.class"
 				
-				"/home/winch/eclipse-workspace/JDecompiler/example/If.class",
+				"bin/example/Else.class",
+				"--no-omit-curly-brackets"
 		});
 		
 		for(String file : JDecompiler.getInstance().files) {

@@ -3,9 +3,9 @@ package x590.javaclass.instruction.scope;
 import x590.javaclass.context.DisassemblerContext;
 import x590.javaclass.operation.compare.CompareType;
 
-public class IfNotEqInstruction extends IfInstruction {
+public class IfANotEqInstruction extends IfACmpInstruction {
 	
-	public IfNotEqInstruction(DisassemblerContext context, int offset) {
+	public IfANotEqInstruction(DisassemblerContext context, int offset) {
 		super(context, offset);
 	}
 	

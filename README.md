@@ -3,7 +3,6 @@ Writing it in C++ turned out to be a mistake, so I moved it to Java.
 Maybe I'll finish it someday, but I need to add a lot more functionality.
 
 Currently not implemented:
-- else
 - Operators && and ||
 - for/while
 - try/catch/finally
@@ -13,3 +12,8 @@ Currently not implemented:
 - Separate variables (the compiler allocates one cell for two disjoint variables)
 - Lambdas
 - Jar support
+
+Implemented:
+- Annotations
+- if
+- else

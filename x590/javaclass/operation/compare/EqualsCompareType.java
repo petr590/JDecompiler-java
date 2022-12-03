@@ -14,7 +14,7 @@ public class EqualsCompareType extends CompareType {
 	}
 	
 	public String getUnaryOperator(boolean inverted) {
-		return inverted ? ((EqualsCompareType)invertedType).unaryOperator : unaryOperator;
+		return (inverted ? (EqualsCompareType)invertedType : this).unaryOperator;
 	}
 	
 	@Override
