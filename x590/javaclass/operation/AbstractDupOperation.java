@@ -25,8 +25,8 @@ public abstract class AbstractDupOperation extends Operation {
 	}
 	
 	@Override
-	public Operation getOriginalOperation() {
-		return value.getOriginalOperation();
+	public Operation original() {
+		return value.original();
 	}
 	
 	@Override

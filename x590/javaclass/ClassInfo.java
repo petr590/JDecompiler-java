@@ -54,19 +54,19 @@ public class ClassInfo {
 	}
 	
 	public void addImport(ReferenceType type) {
-		if(type instanceof ClassType)
+		if(type.isClassType())
 			addImport((ClassType)type);
-		else if(type instanceof ArrayType)
+		else if(type.isArrayType())
 			addImportIfClassType(((ArrayType)type).memberType);
 	}
 	
 	public void addImportIfClassType(Type type) {
-		if(type instanceof ClassType)
+		if(type.isClassType())
 			addImport((ClassType)type);
 	}
 	
 	public void addImportIfReferenceType(Type type) {
-		if(type instanceof ReferenceType)
+		if(type.isReferenceType())
 			addImport((ReferenceType)type);
 	}
 	

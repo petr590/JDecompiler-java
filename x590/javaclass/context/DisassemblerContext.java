@@ -56,7 +56,6 @@ import x590.javaclass.instruction.scope.IfLtInstruction;
 import x590.javaclass.instruction.scope.IfNonNullInstruction;
 import x590.javaclass.instruction.scope.IfNotEqInstruction;
 import x590.javaclass.instruction.scope.IfNullInstruction;
-import x590.javaclass.scope.MethodScope;
 import x590.javaclass.type.TypeSize;
 import x590.javaclass.util.Util;
 
@@ -68,7 +67,6 @@ public class DisassemblerContext extends Context {
 	
 	private int pos;
 	private final List<Instruction> instructions;
-	public final MethodScope methodScope;
 	
 	private DisassemblerContext(ConstantPool pool, byte[] bytes) {
 		super(pool);
@@ -80,7 +78,6 @@ public class DisassemblerContext extends Context {
 		
 		if(length == 0) {
 			this.instructions = Collections.emptyList();
-			this.methodScope = MethodScope.empty();
 			return;
 		}
 		
@@ -101,8 +98,6 @@ public class DisassemblerContext extends Context {
 		}
 		
 		this.instructions = Collections.unmodifiableList(instructions);
-		
-		this.methodScope = new MethodScope(index);
 	}
 	
 	
@@ -377,8 +372,8 @@ public class DisassemblerContext extends Context {
 			case 0xC0: return new CheckCastInstruction(readUnsignedShort());
 			case 0xC1: return new InstanceofInstruction(readUnsignedShort());
 			
-			case 0xC2: return null; // TODO: MonitorEnter
-			case 0xC3: return null; // TODO: MonitorExit
+			case 0xC2: return Instructions.MONITORENTER;
+			case 0xC3: return Instructions.MONITOREXIT;
 			
 			case 0xC4: switch(readUnsignedByte()) {
 				case 0x15: return new ILoadInstruction(readUnsignedShort());

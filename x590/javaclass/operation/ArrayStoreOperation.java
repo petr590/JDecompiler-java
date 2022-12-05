@@ -20,7 +20,7 @@ public abstract class ArrayStoreOperation extends Operation {
 		
 		value.castReturnTypeToNarrowest(elementType);
 		
-		if(array.getOriginalOperation() instanceof NewArrayOperation newArray) {
+		if(array.original() instanceof NewArrayOperation newArray) {
 			newArray.initializer.add(this);
 			this.remove();
 		}

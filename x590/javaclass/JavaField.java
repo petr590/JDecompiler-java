@@ -63,6 +63,14 @@ public class JavaField extends JavaClassMember {
 		return constantValueAttribute != null;
 	}
 	
+	
+	@Override
+	public void addImports(ClassInfo classinfo) {
+		attributes.addImports(classinfo);
+		descriptor.addImports(classinfo);
+	}
+	
+	
 	@Override
 	public boolean canStringify(ClassInfo classinfo) {
 		return super.canStringify(classinfo); // TODO
@@ -78,7 +86,7 @@ public class JavaField extends JavaClassMember {
 		if(initializer != null) {
 			out.print(" = ");
 			
-			if(descriptor.type.isArray() && JDecompiler.getInstance().shortArrayInitAllowed())
+			if(descriptor.type.isArrayType() && JDecompiler.getInstance().shortArrayInitAllowed())
 				initializer.writeAsArrayInitializer(out, classinfo.getStaticInitializerStringifyContext());
 			else
 				initializer.writeTo(out, classinfo.getStaticInitializerStringifyContext());

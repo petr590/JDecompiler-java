@@ -65,7 +65,7 @@ public class JavaMethod extends JavaClassMember {
 		System.out.println("Disassembling of method " + descriptor);
 		this.disassemblerContext = DisassemblerContext.disassemble(pool, codeAttribute.code);
 		
-		this.scope = disassemblerContext.methodScope;
+		this.scope = MethodScope.of(classinfo, descriptor, modifiers, disassemblerContext.getInstructions().size(), codeAttribute.maxLocals);
 		
 		this.stringifyContext = new StringifyContext(disassemblerContext, classinfo, descriptor, modifiers);
 	}
@@ -80,11 +80,15 @@ public class JavaMethod extends JavaClassMember {
 	public void decompile(ClassInfo classinfo, ConstantPool pool) {
 		System.out.println("Decompiling of method " + descriptor);
 		decompilationContext = DecompilationContext.decompile(disassemblerContext, classinfo, descriptor, modifiers, scope, disassemblerContext.getInstructions(), codeAttribute.maxLocals);
-		
+	}
+	
+	
+	@Override
+	public void addImports(ClassInfo classinfo) {
+		attributes.addImports(classinfo);
 		descriptor.addImports(classinfo);
 		decompilationContext.operations.forEach(operation -> operation.addImports(classinfo));
 	}
-	
 	
 	
 	@Override

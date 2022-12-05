@@ -1,5 +1,6 @@
 package x590.javaclass.operation;
 
+import x590.javaclass.ClassInfo;
 import x590.javaclass.constpool.ConstValueConstant;
 import x590.javaclass.context.DecompilationContext;
 import x590.javaclass.context.StringifyContext;
@@ -20,6 +21,11 @@ public class LdcOperation<CT extends ConstValueConstant> extends Operation {
 		this.value = value;
 		if(value.getType().getSize() != size)
 			throw new TypeSizeMismatchException(size, value.getType().getSize(), value.getType());
+	}
+	
+	
+	public void addImports(ClassInfo classinfo) {
+		value.addImports(classinfo);
 	}
 	
 	

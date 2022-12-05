@@ -12,7 +12,7 @@ import x590.javaclass.util.Util;
 
 public class ExceptionsAttribute extends Attribute implements StringWritable {
 	
-	private final ClassType[] exceptions;
+	private final ClassType[] exceptionTypes;
 	
 	protected ExceptionsAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
 		super(nameIndex, name, length);
@@ -22,18 +22,20 @@ public class ExceptionsAttribute extends Attribute implements StringWritable {
 		if(exceptionsLength == 0)
 			throw new DisassemblingException("Exceptions attribute cannot be empty");
 		
-		var exceptions = this.exceptions = new ClassType[exceptionsLength];
-		
-		for(int i = 0; i < exceptionsLength; i++) {
-			exceptions[i] = pool.<ClassConstant>get(in.readUnsignedShort()).toClassType();
-		}
+		this.exceptionTypes = in.readArray(ClassType[]::new, () -> pool.<ClassConstant>get(in.readUnsignedShort()).toClassType());
 	}
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 		out.write(" throws ");
-		Util.forEachExcludingLast(exceptions,
+		Util.forEachExcludingLast(exceptionTypes,
 				exceptionType -> out.write(exceptionType, classinfo),
 				exceptionType -> out.write(", "));
+	}
+	
+
+	@Override
+	public void addImports(ClassInfo classinfo) {
+		Util.forEach(exceptionTypes, exceptionType -> classinfo.addImport(exceptionType));
 	}
 }

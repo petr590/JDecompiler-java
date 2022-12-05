@@ -1,39 +1,39 @@
 package x590.javaclass.attribute.annotation;
 
 import x590.javaclass.ClassInfo;
-import x590.javaclass.Stringified;
+import x590.javaclass.StringWritableAndImportable;
 import x590.javaclass.constpool.ConstantPool;
 import x590.javaclass.io.ExtendedDataInputStream;
+import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.type.ClassType;
 import x590.javaclass.util.Util;
 
-public class Annotation implements Stringified {
+public class Annotation implements StringWritableAndImportable {
 	
 	private final ClassType type;
 	private final Element[] elements;
 	
 	protected Annotation(ExtendedDataInputStream in, ConstantPool pool) {
-		this.type = ClassType.valueOf(pool.getUtf8String(in.readUnsignedShort()));
-		
-		int length = in.readUnsignedShort();
-		var elements = this.elements = new Element[length];
-		
-		for(int i = 0; i < length; i++)
-			elements[i] = new Element(in, pool);
+		this.type = ClassType.valueOfEncoded(pool.getUtf8String(in.readUnsignedShort()));
+		this.elements = in.readArray(Element[]::new, () -> new Element(in, pool));
 	}
 	
 	@Override
-	public String toString(ClassInfo classinfo) {
-		StringBuilder str = new StringBuilder("@").append(type.toString(classinfo));
+	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
+		out.print('@').print(type, classinfo);
 		
-		 if(elements.length > 0) {
-			str.append('(');
+		if(elements.length > 0) {
+			out.write('(');
 			Util.forEachExcludingLast(elements,
-					element -> str.append(element.toString(classinfo)),
-					element -> str.append(", "));
-			str.append(')');
+					element -> out.write(element, classinfo),
+					element -> out.write(", "));
+			out.write(')');
 		 }
-		 
-		 return str.toString();
+	}
+	
+	
+	@Override
+	public void addImports(ClassInfo classinfo) {
+		classinfo.addImport(type);
 	}
 }

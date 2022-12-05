@@ -1,6 +1,6 @@
 package x590.javaclass.operation;
 
-import x590.javaclass.ClassInfo;
+import x590.javaclass.Importable;
 import x590.javaclass.context.StringifyContext;
 import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.type.PrimitiveType;
@@ -12,7 +12,7 @@ import x590.javaclass.type.Type;
  * От операций скорее всего будет наследоваться класс Scope (если у меня дойдут руки его сделать).<br>
  * Все обычные классы операций, которые не являются Scope-ами, объявлены в пакете {@link x590.javaclass.operation}
  */
-public abstract class Operation {
+public abstract class Operation implements Importable {
 	
 	/**
 	 * Ассоциативность (направленность) операций. Например, сложение
@@ -22,17 +22,16 @@ public abstract class Operation {
 		LEFT, RIGHT;
 		
 		public static Associativity byPriority(int priority) {
-			return priority == Priority.ASSIGNMENT || priority == Priority.TERNARY_OPERATOR || priority == Priority.CAST
-					|| priority == Priority.UNARY ? Associativity.RIGHT : Associativity.LEFT;
+			return  priority == Priority.ASSIGNMENT || priority == Priority.TERNARY_OPERATOR ||
+					priority == Priority.CAST || priority == Priority.UNARY ? RIGHT : LEFT;
 		}
 	}
 	
-	/** Метод приведения к строке 
-	 * @param out TODO*/
+	
+	/** Метод записи в поток */
 	public abstract void writeTo(StringifyOutputStream out, StringifyContext context);
 	
-	/** Метод приведения к строке в качестве инициализатора массива 
-	 * @param out TODO*/
+	/** Метод записи в поток в качестве инициализатора массива */
 	public void writeAsArrayInitializer(StringifyOutputStream out, StringifyContext context) {
 		writeTo(out, context);
 	}
@@ -42,12 +41,9 @@ public abstract class Operation {
 		return out.println().printIndent();
 	}
 	
-	public String getBackSeparator(StringifyContext context) {
-		return ";";
+	public StringifyOutputStream printBack(StringifyOutputStream out, StringifyContext context) {
+		return out.print(';');
 	}
-	
-	
-	public void addImports(ClassInfo classinfo) {}
 	
 	
 	public boolean canOmit() {
@@ -58,7 +54,7 @@ public abstract class Operation {
 	private boolean removed;
 	
 	/** Выставляет флаг {@link #removed}, не удаляет операцию физически из какого-то списка */
-	protected void remove() {
+	public void remove() {
 		removed = true;
 	}
 	
@@ -116,8 +112,8 @@ public abstract class Operation {
 	protected void onCastReturnType(Type type) {}
 	
 	/** Возвращает исходную операцию (для класса {@link AbstractDupOperation},
-	 * для всех остальных классов возвращает {@literal this} */
-	public Operation getOriginalOperation() {
+	 * для всех остальных классов возвращает {@literal this}) */
+	public Operation original() {
 		return this;
 	}
 	

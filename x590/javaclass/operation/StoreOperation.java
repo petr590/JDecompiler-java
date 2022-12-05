@@ -11,14 +11,30 @@ public class StoreOperation extends Operation {
 	private final int index;
 	private final Variable variable;
 	private final Operation value;
-	
+
 	protected Operation incOperation = null;
 	
 	public StoreOperation(Type type, DecompilationContext context, int index) {
 		this.index = index;
-		this.variable = context.getVariable(index);
-		this.value = context.stack.popAsWidest(type);
+		this.variable = context.currentScope().getVariableOrDefine(index, type);
+		this.value = context.stack.pop();
+		
+		variable.castTypeToWidest(value.getReturnTypeAsNarrowest(type));
 	}
+	
+	
+	public int getIndex() {
+		return index;
+	}
+	
+	public Variable getVariable() {
+		return variable;
+	}
+	
+	public Operation getValue() {
+		return value;
+	}
+	
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
@@ -32,7 +48,7 @@ public class StoreOperation extends Operation {
 	
 	@Override
 	public void onCastReturnType(Type newType) {
-//		variable.setTypeShrinking(newType);
+		variable.castTypeToWidest(newType);
 	}
 	
 	@Override

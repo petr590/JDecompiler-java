@@ -3,13 +3,15 @@ package x590.javaclass.attribute;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import x590.javaclass.Importable;
 import x590.javaclass.JavaSerializable;
 import x590.javaclass.attribute.annotation.AnnotationDefaultAttribute;
 import x590.javaclass.attribute.annotation.AnnotationsAttribute;
 import x590.javaclass.constpool.ConstantPool;
+import x590.javaclass.exception.DisassemblingException;
 import x590.javaclass.io.ExtendedDataInputStream;
 
-public class Attribute implements JavaSerializable {
+public class Attribute implements JavaSerializable, Importable {
 
 	public final int nameIndex;
 	public final String name;
@@ -41,7 +43,7 @@ public class Attribute implements JavaSerializable {
 		if(pos == in.available())
 			return attribute;
 		else
-			throw new IllegalStateException("Argument \"" + name + "\" was parsed wrong: position difference " + (pos - in.available()));
+			throw new DisassemblingException("Argument \"" + name + "\" was disassembled wrong: position difference " + (pos - in.available()));
 	}
 	
 	@Override

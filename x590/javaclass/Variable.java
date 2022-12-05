@@ -22,4 +22,12 @@ public abstract class Variable {
 	public Type getType() {
 		return type;
 	}
+	
+	public void castTypeToNarrowest(Type newType) {
+		type = type.castToNarrowest(newType);
+	}
+	
+	public void castTypeToWidest(Type newType) {
+		type = type.castToWidest(newType);
+	}
 }

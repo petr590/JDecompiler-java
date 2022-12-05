@@ -59,18 +59,28 @@ public abstract class Type implements Stringified, StringWritable {
 		return !isBasic();
 	}
 	
-	/* Only for class PrimitiveType */
+	/* Гарантирует, что объект - экземпляр класса PrimitiveType */
 	public boolean isPrimitive() {
 		return false;
 	}
 	
-	/* Only for class IntegralType */
+	/* Гарантирует, что объект - экземпляр класса IntegralType */
 	public boolean isIntegral() {
 		return false;
 	}
 	
-	/* Only for class ArrayType */
-	public boolean isArray() {
+	/* Гарантирует, что объект - экземпляр класса ReferenceType */
+	public boolean isReferenceType() {
+		return false;
+	}
+	
+	/* Гарантирует, что объект - экземпляр класса ClassType */
+	public boolean isClassType() {
+		return false;
+	}
+	
+	/* Гарантирует, что объект - экземпляр класса ArrayType */
+	public boolean isArrayType() {
 		return false;
 	}
 	

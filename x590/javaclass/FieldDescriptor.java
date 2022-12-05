@@ -8,7 +8,7 @@ import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.type.ClassType;
 import x590.javaclass.type.Type;
 
-public class FieldDescriptor extends Descriptor implements StringWritable {
+public class FieldDescriptor extends Descriptor implements StringWritableAndImportable {
 	
 	public final ClassType clazz;
 	public final String name;
@@ -34,6 +34,12 @@ public class FieldDescriptor extends Descriptor implements StringWritable {
 	
 	public FieldDescriptor(ClassType clazz, ExtendedDataInputStream in, ConstantPool pool) {
 		this(clazz, pool.getUtf8String(in.readUnsignedShort()), pool.getUtf8String(in.readUnsignedShort()));
+	}
+	
+	
+	@Override
+	public void addImports(ClassInfo classinfo) {
+		classinfo.addImportIfReferenceType(type);
 	}
 	
 	

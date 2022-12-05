@@ -1,5 +1,7 @@
 package x590.javaclass.instruction;
 
+import x590.javaclass.instruction.scope.MonitorEnterInstruction;
+import x590.javaclass.instruction.scope.MonitorExitInstruction;
 import x590.javaclass.type.PrimitiveType;
 import x590.javaclass.type.TypeSize;
 
@@ -178,5 +180,8 @@ public class Instructions {
 			VRETURN = new VReturnInstruction(),
 			
 			ARRAYLENGTH = new ArrayLengthInstruction(),
-			ATHROW = new AThrowInstruction();
+			ATHROW = new AThrowInstruction(),
+			
+			MONITORENTER = new MonitorEnterInstruction(),
+			MONITOREXIT = new MonitorExitInstruction();
 }

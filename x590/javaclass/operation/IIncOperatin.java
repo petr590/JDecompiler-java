@@ -13,7 +13,7 @@ public class IIncOperatin extends Operation {
 	private final int value;
 	
 	public IIncOperatin(DecompilationContext context, int index, int value) {
-		this.variable = context.getVariable(index);
+		this.variable = context.currentScope().getDefinedVariable(index);
 		this.value = value;
 	}
 	

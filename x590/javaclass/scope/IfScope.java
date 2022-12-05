@@ -25,7 +25,7 @@ public class IfScope extends IfElseScope {
 		if(operation != elseScope) {
 			super.addOperation(context, operation);
 		} else {
-			context.getSuperScope().addOperation(context, operation);
+			context.superScope().addOperation(context, operation);
 		}
 	}
 	

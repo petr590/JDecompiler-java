@@ -11,12 +11,22 @@ public class LoadOperation extends Operation {
 	protected final int index;
 	protected final Variable variable;
 	
-	private Operation incOperation = null;
+//	private Operation incOperation = null;
 	
 	public LoadOperation(Type type, DecompilationContext context, int index) {
 		this.index = index;
-		this.variable = context.getVariable(index);
+		this.variable = context.currentScope().getDefinedVariable(index);
 	}
+	
+	
+	public int getIndex() {
+		return index;
+	}
+	
+	public Variable getVariable() {
+		return variable;
+	}
+	
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
@@ -31,7 +41,7 @@ public class LoadOperation extends Operation {
 	
 	@Override
 	public void onCastReturnType(Type newType) {
-//		variable.setTypeShrinking(newType);
+		variable.castTypeToNarrowest(newType);
 	}
 	
 	@Override

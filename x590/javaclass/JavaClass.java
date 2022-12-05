@@ -62,8 +62,8 @@ public class JavaClass extends JavaClassElement {
 		this.version = new Version(in);
 		var pool = this.pool = new ConstantPool(in);
 		this.modifiers = in.readUnsignedShort();
-		this.thisType = new ClassType(pool.get(in.readUnsignedShort()));
-		this.superType = new ClassType(pool.get(in.readUnsignedShort()));
+		this.thisType = ClassType.valueOf(pool.get(in.readUnsignedShort()));
+		this.superType = ClassType.valueOf(pool.get(in.readUnsignedShort()));
 		
 		int interfacesCount = in.readUnsignedShort();
 		List<ClassType> interfaces = new ArrayList<>(interfacesCount);
@@ -85,6 +85,15 @@ public class JavaClass extends JavaClassElement {
 		
 		methods.forEach(method -> method.decompile(classinfo, pool));
 	}
+	
+	
+	@Override
+	public void addImports(ClassInfo classinfo) {
+		attributes.addImports(classinfo);
+		fields.forEach(field -> field.addImports(classinfo));
+		methods.forEach(method -> method.addImports(classinfo));
+	}
+	
 	
 	@Override
 	public boolean canStringify(ClassInfo classinfo) {

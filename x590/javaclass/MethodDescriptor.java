@@ -19,7 +19,7 @@ import x590.javaclass.type.ReferenceType;
 import x590.javaclass.type.Type;
 import x590.javaclass.util.Util;
 
-public class MethodDescriptor extends Descriptor implements StringWritable {
+public class MethodDescriptor extends Descriptor implements StringWritableAndImportable {
 	public final ClassType clazz;
 	public final String name;
 	public final List<Type> arguments;
@@ -148,8 +148,8 @@ public class MethodDescriptor extends Descriptor implements StringWritable {
 //		if((context.modifiers & ACC_VARARGS) != 0) {
 //			size_t varargsIndex = arguments.size() - 1;
 //			
-//			if(arguments.size() == 0 || !(arguments.back() instanceof ArrayType)) {
-//				throw IllegalMethodHeaderException("Varargs method " + this.toString() + " must have last argument as array");
+//			if(arguments.isEmpty() || !(arguments.back().isArrayType())) {
+//				throw new IllegalMethodHeaderException("Varargs method " + this.toString() + " must have last argument as array");
 //			}
 //			
 //			concater = [&context, parameterAnnotationToString, getVarName, varargsIndex] (Type type, size_t i) {
@@ -168,26 +168,31 @@ public class MethodDescriptor extends Descriptor implements StringWritable {
 //		return in + '(' + join<Type>(arguments, concater) + ')';
 //	}
 	
+	
+	@Override
 	public void addImports(ClassInfo classinfo) {
-		classinfo.addImportIfClassType(returnType);
+		classinfo.addImportIfReferenceType(returnType);
 		arguments.forEach(arg -> classinfo.addImportIfReferenceType(arg));
 	}
 	
+	
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
+		
 		switch(type) {
-			case CONSTRUCTOR:
+			case CONSTRUCTOR -> {
 				out.print(clazz, classinfo);
 				this.writeArguments(out, classinfo);
-				break;
+			}
 				
-			case STATIC_INITIALIZER:
+			case STATIC_INITIALIZER -> {
 				out.print("static");
-				break;
+			}
 				
-			case PLAIN:
+			case PLAIN -> {
 				out.print(returnType, classinfo).printsp().print(name);
 				this.writeArguments(out, classinfo);
+			}
 		}
 	}
 	

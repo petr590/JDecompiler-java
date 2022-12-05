@@ -67,6 +67,10 @@ public final class ClassType extends ReferenceType {
 		}
 	}
 	
+	
+	private static final Map<String, ClassType> CLASS_TYPES = new HashMap<>();
+	
+	
 	public static final ClassType
 			OBJECT        = new ClassType("java/lang/Object"),
 			STRING        = new ClassType("java/lang/String"),
@@ -100,22 +104,30 @@ public final class ClassType extends ReferenceType {
 	public final ClassKind kind;
 	
 	
-	private static final Map<String, ClassType> CLASS_TYPES = new HashMap<>();
-	
-	
-	public static ClassType valueOf(String encodedName) {
-		if(CLASS_TYPES.containsKey(encodedName))
-			return CLASS_TYPES.get(encodedName);
+	public static ClassType valueOf(String classEncodedName) {
+		if(CLASS_TYPES.containsKey(classEncodedName))
+			return CLASS_TYPES.get(classEncodedName);
 		
-		ClassType classType = new ClassType(encodedName);
-		CLASS_TYPES.put(encodedName, classType);
-		return classType;
+		return new ClassType(classEncodedName);
+	}
+	
+	public static ClassType valueOfEncoded(String encodedName) {
+		if(!encodedName.isEmpty() && encodedName.charAt(0) == 'L')
+			return valueOf(encodedName.substring(1));
+		
+		throw new InvalidClassNameException(encodedName);
+	}
+	
+	public static ClassType valueOf(ClassConstant clazz) {
+		return valueOf(clazz.getName().getValue());
 	}
 	
 	
-	public ClassType(ClassConstant clazz) {
-		this(clazz.getName().getValue());
+	private void cacheIfNotCached() {
+		if(!CLASS_TYPES.containsKey(classEncodedName))
+			CLASS_TYPES.put(classEncodedName, this);
 	}
+	
 	
 	private ClassType(String encodedName) {
 		this(new ExtendedStringReader(encodedName));
@@ -123,7 +135,7 @@ public final class ClassType extends ReferenceType {
 	
 	public ClassType(ExtendedStringReader in) {
 		
-		in.mark(Integer.MAX_VALUE);
+		in.mark();
 		
 		StringBuilder
 				encodedNameBuilder = new StringBuilder(),
@@ -186,7 +198,6 @@ public final class ClassType extends ReferenceType {
 					break L;
 				}
 				
-				// Недопустимые символы
 				case '-' -> {
 					// Если мы встречали тире раньше, значит, название класса невалидное
 					if(dashIndex != 0)
@@ -195,6 +206,7 @@ public final class ClassType extends ReferenceType {
 					dashIndex = i;
 				}
 				
+				// Недопустимые символы
 				case '\b', '\t', '\n', 0xB /* '\v' */, '\f', '\r',  ' ',  '!',
 					 '"',  '#',  '%',  '&',  '\'',  '(',  ')',  '*',  '+',
 					 ',',  '.',  ':',  '=',  '?',   '@',  '[',  '\\',
@@ -232,17 +244,26 @@ public final class ClassType extends ReferenceType {
 			this.enclosingClass = null;
 			this.fullSimpleName = simpleName;
 			
-			this.kind = encodedName.endsWith("/package-info") ? ClassKind.PACKAGE_INFO :
-							encodedName.endsWith("/module-info") ? ClassKind.MODULE_INFO : 
-								ClassKind.NONE;
+			if(dashIndex != 0) {
+				
+				if(encodedName.endsWith("/package-info"))
+					this.kind = ClassKind.PACKAGE_INFO;
+				else if(encodedName.endsWith("/module-info"))
+					this.kind = ClassKind.MODULE_INFO;
+				else
+					throw new InvalidClassNameException(in, dashIndex);
+			
+			} else {
+				this.kind = ClassKind.NONE;
+			}
 		}
-		
-		if(kind.isPlain() && dashIndex != 0)
-			throw new InvalidClassNameException(in, dashIndex);
 		
 		this.simpleName = simpleName;
 		
 		in.unmark();
+		
+		
+		this.cacheIfNotCached();
 	}
 	
 	@Override
@@ -258,13 +279,13 @@ public final class ClassType extends ReferenceType {
 	
 	@Override
 	public String getName(ClassInfo classinfo) {
-		return kind.isAnonymous() ? fullSimpleName : (classinfo.imported(this) ? getSimpleName() : name) + (parameters.isEmpty() ? "" :
+		return kind.isAnonymous() ? fullSimpleName : (classinfo.imported(this) ? simpleName : name) + (parameters.isEmpty() ? "" :
 			'<' + parameters.stream().map(type -> type.toString(classinfo)).collect(Collectors.joining(", ")) + ">");
 	}
 	
 	@Override
 	public final String getNameForVariable() {
-		return Util.toLowerCamelCase(getSimpleName());
+		return Util.toLowerCamelCase(simpleName);
 	}
 	
 	@Override
@@ -286,6 +307,11 @@ public final class ClassType extends ReferenceType {
 	
 	public boolean isAnonymous() {
 		return kind.isAnonymous();
+	}
+	
+	@Override
+	public final boolean isClassType() {
+		return true;
 	}
 	
 	

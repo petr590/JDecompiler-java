@@ -14,10 +14,15 @@ public class Main {
 	public static void main(String[] args) throws IOException {
 		
 		JDecompiler.init(new String[] {
-//				"bin/example/Example.class"
-//				"bin/example/TestAnnotation.class"
+				"bin/example/Example2.class",
 				
-				"bin/example/Else.class",
+//				"bin/example/annotation/TestAnnotation.class",
+//				"bin/example/annotation/InvisibleAnnotation.class",
+				
+//				"bin/example/If.class",
+//				"bin/example/Else.class",
+//				"bin/example/Synchronized.class",
+//				"bin/example/Annotations.class",
 				"--no-omit-curly-brackets"
 		});
 		
@@ -32,6 +37,8 @@ public class Main {
 				JavaClass clazz = new JavaClass(in);
 				
 				timer.logElapsed("Class reading");
+				
+				clazz.addImports(clazz.classinfo);
 				
 				var out = new StringifyOutputStream(System.out);
 				clazz.writeTo(out);

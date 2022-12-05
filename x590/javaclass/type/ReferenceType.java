@@ -9,6 +9,11 @@ public abstract class ReferenceType extends BasicType {
 	}
 	
 	@Override
+	public final boolean isReferenceType() {
+		return true;
+	}
+	
+	@Override
 	public TypeSize getSize() {
 		return TypeSize.FOUR_BYTES;
 	}

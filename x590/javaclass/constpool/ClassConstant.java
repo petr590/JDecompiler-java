@@ -34,6 +34,12 @@ public class ClassConstant extends ConstValueConstant {
 		name = pool.get(nameIndex);
 	}
 	
+	
+	public void addImports(ClassInfo classinfo) {
+		classinfo.addImport(this.toReferenceType());
+	}
+	
+	
 	public Utf8Constant getName() {
 		return name;
 	}
@@ -43,17 +49,24 @@ public class ClassConstant extends ConstValueConstant {
 		return Type.parseReferenceType(name.getValue()).toString(classinfo) + ".class";
 	}
 	
+	
 	@Override
 	public Type getType() {
 		return ClassType.CLASS;
 	}
 	
-	
 	public ReferenceType toReferenceType() {
 		if(referenceType != null)
 			return referenceType;
 		
-		return referenceType = Type.parseReferenceType(name.getValue());
+		referenceType = Type.parseReferenceType(name.getValue());
+		
+		if(referenceType.isClassType())
+			classType = (ClassType)referenceType;
+		else if(referenceType.isArrayType())
+			arrayType = (ArrayType)referenceType;
+		
+		return referenceType;
 	}
 	
 	public ClassType toClassType() {

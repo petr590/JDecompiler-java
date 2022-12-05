@@ -3,6 +3,8 @@ package x590.javaclass;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import x590.javaclass.type.ClassType;
 import x590.javaclass.type.Type;
 
@@ -21,37 +23,14 @@ public class UnnamedVariable extends Variable {
 		return names.isEmpty() ? getNameByType(type) : names.iterator().next();
 	}
 	
-	private static String getRawNameByType(Type type, boolean unchecked) {
-		if(type instanceof ClassType classType) {
-			switch(classType.getSimpleName()) {
-				case "Object":		 return "obj";
-				case "Boolean":		 return "bool";
-				case "Byte":		 return "b";
-				case "Character":	 return "ch";
-				case "Short":		 return "sh";
-				case "Integer":		 return "num";
-				case "Long":		 return "l";
-				case "Float":		 return "f";
-				case "Double":		 return "d";
-				case "String":		 return "str";
-				case "StringBuilder":return "strBuilder";
-				case "StringBuffer": return "strBuffer";
-				case "BigInteger":	 return "bigint";
-				case "BigDemical":	 return "bigdem";
-			}
-		}
-		
-		unchecked = true;
-		return type.getNameForVariable();
-	}
-	
 	
 	private static String getNameByType(Type type) {
-		boolean unchecked = false;
+		String name = getRawNameByType(type);
 		
-		String name = getRawNameByType(type, unchecked);
-		
-		if(unchecked) {
+		if(name == null) {
+			
+			name = type.getNameForVariable();
+			
 			switch(name) {
 				case "boolean":		return "bool";
 				case "byte":		return "b";
@@ -110,6 +89,31 @@ public class UnnamedVariable extends Variable {
 		}
 		
 		return name;
+	}
+	
+	private static @Nullable String getRawNameByType(Type type) {
+		if(type.isClassType()) {
+			switch(((ClassType)type).getSimpleName()) {
+				case "Object":		 return "obj";
+				case "Class":		 return "clazz";
+				case "Byte":		 return "b";
+				case "Character":	 return "ch";
+				case "Short":		 return "sh";
+				case "Integer":		 return "num";
+				case "Long":		 return "l";
+				case "Float":		 return "f";
+				case "Double":		 return "d";
+				case "Boolean":		 return "bool";
+				case "String":		 return "str";
+				case "StringBuilder":return "strBuilder";
+				case "StringBuffer": return "strBuffer";
+				case "BigInteger":	 return "bigint";
+				case "BigDemical":	 return "bigdem";
+				case "Void":		 return "v";
+			}
+		}
+		
+		return null;
 	}
 	
 	@Override

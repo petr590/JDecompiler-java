@@ -1,22 +1,21 @@
 package x590.javaclass.context;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EmptyStackException;
 import java.util.List;
 import java.util.Stack;
 
 import x590.javaclass.ClassInfo;
 import x590.javaclass.MethodDescriptor;
-import x590.javaclass.Modifiers;
-import x590.javaclass.NamedVariable;
-import x590.javaclass.UnnamedVariable;
-import x590.javaclass.Variable;
+import x590.javaclass.exception.DecompilationException;
 import x590.javaclass.instruction.Instruction;
 import x590.javaclass.operation.Operation;
 import x590.javaclass.operation.VReturnOperation;
 import x590.javaclass.scope.MethodScope;
 import x590.javaclass.scope.Scope;
 import x590.javaclass.type.PrimitiveType;
-import x590.javaclass.type.Type;
 
 public class DecompilationContext extends DecompilationAndStringifyContext {
 	
@@ -25,29 +24,10 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 	public final List<Operation> operations;
 	protected Scope currentScope;
 	
-	private final List<Variable> locals;
-	
 	private DecompilationContext(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, int modifiers, MethodScope methodScope, List<Instruction> instructions, int maxLocals) {
 		super(otherContext, classinfo, descriptor, modifiers);
 
-		var locals = this.locals = new ArrayList<>(maxLocals);
 		this.currentScope = methodScope;
-		
-		int i = descriptor.arguments.size();
-		
-		if(!Modifiers.isStatic(modifiers)) {
-			locals.add(new NamedVariable("this", classinfo.thisType));
-			i++;
-		}
-		
-		for(Type argType : descriptor.arguments) {
-			locals.add(new UnnamedVariable(argType));
-		}
-		
-		for(; i < maxLocals; i++) {
-			locals.add(new UnnamedVariable());
-		}
-		
 		
 		var stack = this.stack;
 		List<Operation> operations = new ArrayList<>(instructions.size());
@@ -58,7 +38,13 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 			
 			if(instruction != null) {
 				
-				Operation operation = instruction.toOperation(this);
+				Operation operation;
+				
+				try {
+					operation = instruction.toOperation(this);
+				} catch(Exception ex) {
+					throw new DecompilationException("At index " + index, ex);
+				}
 				
 				if(operation != null) {
 					operations.add(operation);
@@ -88,17 +74,22 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 	}
 	
 	
-	public Scope getCurrentScope() {
+	public Scope currentScope() {
 		return currentScope;
 	}
 	
-	public Scope getSuperScope() {
+	public Scope superScope() throws EmptyStackException {
 		return scopeStack.peek();
 	}
 	
 	
+	public Collection<Scope> getScopes() {
+		return Collections.unmodifiableCollection(scopeStack);
+	}
+	
+	
 	private void finalizeScopes() {
-		while(index >= currentScope.endIndex && !scopeStack.isEmpty()) {
+		while(index >= currentScope.endIndex() && !scopeStack.isEmpty()) {
 			System.out.println(index + ": " + currentScope + " finalized");
 			currentScope = scopeStack.pop();
 		}
@@ -107,10 +98,6 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 	
 	public static DecompilationContext decompile(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, int modifiers, MethodScope methodScope, List<Instruction> instructions, int maxLocals) {
 		return new DecompilationContext(otherContext, classinfo, descriptor, modifiers, methodScope, instructions, maxLocals);
-	}
-	
-	public Variable getVariable(int index) {
-		return locals.get(index);
 	}
 	
 	@Override

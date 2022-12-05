@@ -16,9 +16,15 @@ public class Util {
 		
 		StringBuilder result = new StringBuilder(strlength);
 		
-		int i = 1;
-		for(char c = str.charAt(0); i < strlength && c >= 'A' && c <= 'Z'; c = str.charAt(i++))
-			result.append(Character.toLowerCase(c));
+		int i = 0;
+		for(; i < strlength; i++) {
+			char c = str.charAt(i);
+			
+			if(c >= 'A' && c <= 'Z')
+				result.append(Character.toLowerCase(c));
+			else
+				break;
+		}
 		
 		while(i < strlength)
 			result.append(str.charAt(i++));
@@ -249,20 +255,20 @@ public class Util {
 	}
 
 	
-	public static <T> void forEachExcludingLast(T[] array, Consumer<? super T> func1, Runnable func2) {
-		forEachExcludingLast(Arrays.asList(array), func1, func2);
+	public static <T> void forEachExcludingLast(T[] array, Consumer<? super T> eachFunc, Runnable eachExcludingLastFunc) {
+		forEachExcludingLast(Arrays.asList(array), eachFunc, eachExcludingLastFunc);
 	}
 	
-	public static <T> void forEachExcludingLast(Iterable<T> iterable, Consumer<? super T> func1, Runnable func2) {
+	public static <T> void forEachExcludingLast(Iterable<T> iterable, Consumer<? super T> eachFunc, Runnable eachExcludingLastFunc) {
 		Iterator<T> iterator = iterable.iterator();
 		
 		if(iterator.hasNext()) {
 			while(true) {
 				T value = iterator.next();
-				func1.accept(value);
+				eachFunc.accept(value);
 				
 				if(iterator.hasNext())
-					func2.run();
+					eachExcludingLastFunc.run();
 				else
 					break;
 			}

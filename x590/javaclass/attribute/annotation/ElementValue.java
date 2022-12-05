@@ -1,17 +1,18 @@
 package x590.javaclass.attribute.annotation;
 
 import x590.javaclass.ClassInfo;
-import x590.javaclass.Stringified;
+import x590.javaclass.StringWritableAndImportable;
 import x590.javaclass.constpool.ConstValueConstant;
 import x590.javaclass.constpool.ConstantPool;
 import x590.javaclass.exception.DisassemblingException;
 import x590.javaclass.io.ExtendedDataInputStream;
+import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.type.ClassType;
 import x590.javaclass.type.PrimitiveType;
 import x590.javaclass.type.Type;
 import x590.javaclass.util.Util;
 
-public abstract class ElementValue implements Stringified {
+public abstract class ElementValue implements StringWritableAndImportable {
 	
 	public static class ConstElementValue extends ElementValue {
 		
@@ -23,8 +24,9 @@ public abstract class ElementValue implements Stringified {
 			this.value = pool.get(in.readUnsignedShort());
 		}
 		
-		public String toString(ClassInfo classinfo) {
-			return value.toStringAs(type, classinfo);
+		@Override
+		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
+			out.write(value.toStringAs(type, classinfo));
 		}
 	}
 	
@@ -35,12 +37,19 @@ public abstract class ElementValue implements Stringified {
 		private final String constantName;
 		
 		private EnumElementValue(ExtendedDataInputStream in, ConstantPool pool) {
-			this.type = ClassType.valueOf(pool.getUtf8String(in.readUnsignedShort()));
+			this.type = ClassType.valueOfEncoded(pool.getUtf8String(in.readUnsignedShort()));
 			this.constantName = pool.getUtf8String(in.readUnsignedShort());
 		}
+
+		@Override
+		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
+			out.print(type, classinfo).print('.').print(constantName);
+		}
 		
-		public String toString(ClassInfo classinfo) {
-			return type.toString(classinfo) + "." + constantName;
+		
+		@Override
+		public void addImports(ClassInfo classinfo) {
+			classinfo.addImport(type);
 		}
 	}
 	
@@ -52,9 +61,16 @@ public abstract class ElementValue implements Stringified {
 		private ClassElementValue(ExtendedDataInputStream in, ConstantPool pool) {
 			this.clazz = ClassType.valueOf(pool.getUtf8String(in.readUnsignedShort()));
 		}
+
+		@Override
+		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
+			out.print(clazz, classinfo).print(".class");
+		}
 		
-		public String toString(ClassInfo classinfo) {
-			return clazz.toString(classinfo) + ".class";
+		
+		@Override
+		public void addImports(ClassInfo classinfo) {
+			classinfo.addImport(clazz);
 		}
 	}
 	
@@ -66,9 +82,16 @@ public abstract class ElementValue implements Stringified {
 		private AnnotationElementValue(ExtendedDataInputStream in, ConstantPool pool) {
 			this.annotation = new Annotation(in, pool);
 		}
+
+		@Override
+		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
+			out.write(annotation, classinfo);
+		}
 		
-		public String toString(ClassInfo classinfo) {
-			return annotation.toString(classinfo);
+		
+		@Override
+		public void addImports(ClassInfo classinfo) {
+			annotation.addImports(classinfo);
 		}
 	}
 	
@@ -78,22 +101,24 @@ public abstract class ElementValue implements Stringified {
 		private final ElementValue[] values;
 		
 		private ArrayElementValue(ExtendedDataInputStream in, ConstantPool pool) {
-			int length = in.readUnsignedShort();
-			var values = this.values = new ElementValue[length];
-			
-			for(int i = 0; i < length; i++) {
-				values[i] = ElementValue.read(in, pool);
-			}
+			this.values = in.readArray(ElementValue[]::new, () -> ElementValue.read(in, pool));
 		}
-		
-		public String toString(ClassInfo classinfo) {
-			StringBuilder str = new StringBuilder().append('{');
+
+		@Override
+		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
+			out.write('{');
 			
 			Util.forEachExcludingLast(values,
-					element -> str.append(element.toString(classinfo)),
-					element -> str.append(", "));
+					element -> out.write(element, classinfo),
+					() -> out.write(", "));
 			
-			return str.append('}').toString();
+			out.write('}');
+		}
+		
+		
+		@Override
+		public void addImports(ClassInfo classinfo) {
+			Util.forEach(values, value -> value.addImports(classinfo));
 		}
 	}
 	
@@ -120,12 +145,3 @@ public abstract class ElementValue implements Stringified {
 		}
 	}
 }
-
-
-
-
-
-
-
-
-

@@ -21,7 +21,7 @@ public class InvokespecialOperation extends InvokeNonstaticOperation {
 	}
 	
 	private Type initReturnType(DecompilationContext context) {
-		if(descriptor.isConstructor() && object.getOriginalOperation() instanceof NewOperation newOperation) {
+		if(descriptor.isConstructor() && object.original() instanceof NewOperation newOperation) {
 			if(context.stack.peek() != newOperation)
 				throw new DecompilationException("Cannot invoke constructor of new object, invalid stack state");
 			

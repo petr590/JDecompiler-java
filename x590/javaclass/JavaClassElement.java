@@ -6,7 +6,7 @@ import x590.jdecompiler.JDecompiler;
 
 import static x590.javaclass.Modifiers.*;
 
-public abstract class JavaClassElement implements StringWritable {
+public abstract class JavaClassElement implements StringWritableAndImportable {
 	
 	public boolean canStringify(ClassInfo classinfo) {
 		return (getModifiers() & ACC_SYNTHETIC) == 0 || JDecompiler.getInstance().showSynthetic();

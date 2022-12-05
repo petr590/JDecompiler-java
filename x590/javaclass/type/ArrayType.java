@@ -1,6 +1,7 @@
 package x590.javaclass.type;
 
 import x590.javaclass.ClassInfo;
+import x590.javaclass.exception.InvalidArrayNameException;
 import x590.javaclass.io.ExtendedStringReader;
 
 /**
@@ -44,10 +45,14 @@ public final class ArrayType extends ReferenceType {
 		in.prev();
 		
 		this.nestingLevel = nestingLevel;
-
+		
 		this.memberType = parseType(in);
+		
+		if(nestingLevel == 0)
+			throw new InvalidArrayNameException(in);
+		
 		this.elementType = nestingLevel == 1 ? memberType : new ArrayType(memberType, nestingLevel - 1);
-
+		
 		this.braces = "[]".repeat(nestingLevel);
 		this.name = memberType.getName() + braces;
 		this.encodedName = in.readString(memberTypeStart, in.getPos());
@@ -99,7 +104,7 @@ public final class ArrayType extends ReferenceType {
 	}
 	
 	@Override
-	public boolean isArray() {
+	public final boolean isArrayType() {
 		return true;
 	}
 	
