@@ -31,7 +31,7 @@ public class ParameterType extends ReferenceType {
 	}
 	
 	@Override
-	protected boolean isSubtypeOfImpl(Type other) {
+	protected boolean canCastTo(Type other) {
 		return this == other;
 	}
 }

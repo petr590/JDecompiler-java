@@ -31,4 +31,14 @@ public class InvokeDynamicConstant extends Constant {
 		out.writeShort(bootstrapMethodAttrIndex);
 		out.writeShort(nameAndTypeIndex);
 	}
+	
+	
+	@Override
+	public boolean equals(Object other) {
+		return this == other || other instanceof InvokeDynamicConstant constant && this.equals(constant);
+	}
+	
+	public boolean equals(InvokeDynamicConstant other) {
+		return this == other || this.nameAndType.equals(other.nameAndType);
+	}
 }

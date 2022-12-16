@@ -1,5 +1,7 @@
 package x590.javaclass.attribute.annotation;
 
+import java.util.Arrays;
+
 import x590.javaclass.ClassInfo;
 import x590.javaclass.StringWritableAndImportable;
 import x590.javaclass.constpool.ConstValueConstant;
@@ -28,6 +30,41 @@ public abstract class ElementValue implements StringWritableAndImportable {
 		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 			out.write(value.toStringAs(type, classinfo));
 		}
+		
+		
+		@Override
+		public boolean equals(Object other) {
+			return this == other || other instanceof ConstElementValue elementValue && this.equals(elementValue);
+		}
+		
+		public boolean equals(ConstElementValue other) {
+			return this == other || this.type.equals(other.type) && this.value.equals(other.value);
+		}
+	}
+	
+	
+	public static class StringElementValue extends ElementValue {
+		
+		private final String value;
+		
+		private StringElementValue(ExtendedDataInputStream in, ConstantPool pool) {
+			this.value = pool.getUtf8String(in.readUnsignedShort());
+		}
+		
+		@Override
+		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
+			out.write(Util.toLiteral(value));
+		}
+		
+		
+		@Override
+		public boolean equals(Object other) {
+			return this == other || other instanceof StringElementValue elementValue && this.equals(elementValue);
+		}
+		
+		public boolean equals(StringElementValue other) {
+			return this == other || this.value.equals(other.value);
+		}
 	}
 	
 	
@@ -51,6 +88,16 @@ public abstract class ElementValue implements StringWritableAndImportable {
 		public void addImports(ClassInfo classinfo) {
 			classinfo.addImport(type);
 		}
+		
+		
+		@Override
+		public boolean equals(Object other) {
+			return this == other || other instanceof EnumElementValue elementValue && this.equals(elementValue);
+		}
+		
+		public boolean equals(EnumElementValue other) {
+			return this == other || this.type.equals(other.type) && this.constantName.equals(other.constantName);
+		}
 	}
 	
 	
@@ -72,6 +119,16 @@ public abstract class ElementValue implements StringWritableAndImportable {
 		public void addImports(ClassInfo classinfo) {
 			classinfo.addImport(clazz);
 		}
+		
+		
+		@Override
+		public boolean equals(Object other) {
+			return this == other || other instanceof ClassElementValue elementValue && this.equals(elementValue);
+		}
+		
+		public boolean equals(ClassElementValue other) {
+			return this == other || this.clazz.equals(other.clazz);
+		}
 	}
 	
 	
@@ -92,6 +149,16 @@ public abstract class ElementValue implements StringWritableAndImportable {
 		@Override
 		public void addImports(ClassInfo classinfo) {
 			annotation.addImports(classinfo);
+		}
+		
+		
+		@Override
+		public boolean equals(Object other) {
+			return this == other || other instanceof AnnotationElementValue elementValue && this.equals(elementValue);
+		}
+		
+		public boolean equals(AnnotationElementValue other) {
+			return this == other || this.annotation.equals(other.annotation);
 		}
 	}
 	
@@ -120,7 +187,21 @@ public abstract class ElementValue implements StringWritableAndImportable {
 		public void addImports(ClassInfo classinfo) {
 			Util.forEach(values, value -> value.addImports(classinfo));
 		}
+		
+		
+		@Override
+		public boolean equals(Object other) {
+			return this == other || other instanceof ArrayElementValue elementValue && this.equals(elementValue);
+		}
+		
+		public boolean equals(ArrayElementValue other) {
+			return this == other || Arrays.equals(this.values, other.values);
+		}
 	}
+	
+
+	@Override
+	public abstract boolean equals(Object other);
 	
 	
 	protected static ElementValue read(ExtendedDataInputStream in, ConstantPool pool) {
@@ -135,7 +216,8 @@ public abstract class ElementValue implements StringWritableAndImportable {
 			case 'L': return new ConstElementValue(PrimitiveType.LONG, in, pool);
 			case 'F': return new ConstElementValue(PrimitiveType.FLOAT, in, pool);
 			case 'D': return new ConstElementValue(PrimitiveType.DOUBLE, in, pool);
-			case 's': return new ConstElementValue(ClassType.STRING, in, pool);
+			case 'Z': return new ConstElementValue(PrimitiveType.BOOLEAN, in, pool);
+			case 's': return new StringElementValue(in, pool);
 			case 'e': return new EnumElementValue(in, pool);
 			case 'c': return new ClassElementValue(in, pool);
 			case '@': return new AnnotationElementValue(in, pool);

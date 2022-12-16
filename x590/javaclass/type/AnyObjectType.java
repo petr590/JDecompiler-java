@@ -2,11 +2,12 @@ package x590.javaclass.type;
 
 import x590.javaclass.ClassInfo;
 
-public final class AnyObjectType extends SpecialType {
+public final class AnyObjectType extends TwoWayCastSpecialType {
 	
 	public static final AnyObjectType INSTANCE = new AnyObjectType();
 	
 	private AnyObjectType() {}
+	
 	
 	@Override
 	public String toString(ClassInfo classinfo) {
@@ -33,23 +34,30 @@ public final class AnyObjectType extends SpecialType {
 		return "o";
 	}
 	
+	
+	@Override
+	public void addImports(ClassInfo classinfo) {
+		classinfo.addImport(ClassType.OBJECT);
+	}
+	
+	
 	@Override
 	public TypeSize getSize() {
 		return TypeSize.FOUR_BYTES;
 	}
 	
 	@Override
-	protected boolean isSubtypeOfImpl(Type other) {
-		return this == other || (other.isBasic() && !other.isPrimitive());
+	protected boolean canCastTo(Type other) {
+		return this == other || other.isReferenceType();
 	}
 	
 	@Override
 	protected Type castToNarrowestImpl(Type other) {
-		return this.isSubtypeOf(other) ? other : null;
+		return this.canCastTo(other) ? other : null;
 	}
 	
 	@Override
 	protected Type castToWidestImpl(Type other) {
-		return this.isSubtypeOf(other) ? this : null;
+		return this.canCastTo(other) ? this : null;
 	}
 }

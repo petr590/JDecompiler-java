@@ -8,54 +8,14 @@ import javax.annotation.Nullable;
 
 import x590.javaclass.exception.IllegalOpcodeException;
 import x590.javaclass.constpool.ConstantPool;
-import x590.javaclass.instruction.ALoadInstruction;
-import x590.javaclass.instruction.ANewArrayInstruction;
-import x590.javaclass.instruction.AStoreInstruction;
-import x590.javaclass.instruction.BIPushInstruction;
-import x590.javaclass.instruction.CheckCastInstruction;
-import x590.javaclass.instruction.DLoadInstruction;
-import x590.javaclass.instruction.DStoreInstruction;
-import x590.javaclass.instruction.FLoadInstruction;
-import x590.javaclass.instruction.FStoreInstruction;
-import x590.javaclass.instruction.GetInstanceFieldInstruction;
-import x590.javaclass.instruction.GetStaticFieldInstruction;
-import x590.javaclass.instruction.IIncInstruction;
-import x590.javaclass.instruction.ILoadInstruction;
-import x590.javaclass.instruction.IStoreInstruction;
-import x590.javaclass.instruction.InstanceofInstruction;
-import x590.javaclass.instruction.Instruction;
-import x590.javaclass.instruction.Instructions;
-import x590.javaclass.instruction.InvokedynamicInstruction;
-import x590.javaclass.instruction.InvokeinterfaceInstruction;
-import x590.javaclass.instruction.InvokespecialInstruction;
-import x590.javaclass.instruction.InvokestaticInstruction;
-import x590.javaclass.instruction.InvokevirtualInstruction;
-import x590.javaclass.instruction.LLoadInstruction;
-import x590.javaclass.instruction.LStoreInstruction;
-import x590.javaclass.instruction.LdcInstruction;
-import x590.javaclass.instruction.MultiANewArrayInstruction;
-import x590.javaclass.instruction.NewArrayInstruction;
-import x590.javaclass.instruction.NewInstruction;
-import x590.javaclass.instruction.PutInstanceFieldInstruction;
-import x590.javaclass.instruction.PutStaticFieldInstruction;
-import x590.javaclass.instruction.SIPushInstruction;
-import x590.javaclass.instruction.scope.GotoInstruction;
-import x590.javaclass.instruction.scope.IfAEqInstruction;
-import x590.javaclass.instruction.scope.IfANotEqInstruction;
-import x590.javaclass.instruction.scope.IfEqInstruction;
-import x590.javaclass.instruction.scope.IfGeInstruction;
-import x590.javaclass.instruction.scope.IfGtInstruction;
-import x590.javaclass.instruction.scope.IfIEqInstruction;
-import x590.javaclass.instruction.scope.IfIGeInstruction;
-import x590.javaclass.instruction.scope.IfIGtInstruction;
-import x590.javaclass.instruction.scope.IfILeInstruction;
-import x590.javaclass.instruction.scope.IfILtInstruction;
-import x590.javaclass.instruction.scope.IfINotEqInstruction;
-import x590.javaclass.instruction.scope.IfLeInstruction;
-import x590.javaclass.instruction.scope.IfLtInstruction;
-import x590.javaclass.instruction.scope.IfNonNullInstruction;
-import x590.javaclass.instruction.scope.IfNotEqInstruction;
-import x590.javaclass.instruction.scope.IfNullInstruction;
+import x590.javaclass.instruction.*;
+import x590.javaclass.instruction.anew.*;
+import x590.javaclass.instruction.constant.*;
+import x590.javaclass.instruction.field.*;
+import x590.javaclass.instruction.invoke.*;
+import x590.javaclass.instruction.load.*;
+import x590.javaclass.instruction.scope.*;
+import x590.javaclass.instruction.store.*;
 import x590.javaclass.type.TypeSize;
 import x590.javaclass.util.Util;
 
@@ -120,12 +80,12 @@ public class DisassemblerContext extends Context {
 	}
 	
 	private int readShort() {
-		return (short)((bytes[pos + 1] << 8) & 0xFF | bytes[pos += 2] & 0xFF);
+		return (short)((bytes[pos + 1] & 0xFF) << 8 | bytes[pos += 2] & 0xFF);
 	}
 	
 	private int readInt() {
-		return  (bytes[pos + 1] << 24) & 0xFF | (bytes[pos + 2] << 16) & 0xFF |
-				(bytes[pos + 3] << 8)  & 0xFF | bytes[pos += 4] & 0xFF;
+		return  (bytes[pos + 1] & 0xFF) << 24 | (bytes[pos + 2] & 0xFF) << 16 |
+				(bytes[pos + 3] & 0xFF) << 8  | bytes[pos += 4] & 0xFF;
 	}
 	
 	private int readUnsignedByte() {

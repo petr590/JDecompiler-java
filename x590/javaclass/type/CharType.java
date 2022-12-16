@@ -20,6 +20,11 @@ public class CharType extends PrimitiveType {
 	
 	@Override
 	public Type toVariableCapacityIntegralType() {
-		return PrimitiveType.CHAR_OR_INT;
+		return PrimitiveType.CHAR_INT;
+	}
+	
+	@Override
+	protected boolean canCastTo(Type other) {
+		return this == other || other.isIntegral() && ((IntegralType)other).getCapacity() > CHAR_CAPACITY;
 	}
 }

@@ -8,7 +8,7 @@ public abstract class GenericType extends ReferenceType {
 	}
 	
 	@Override
-	protected boolean isSubtypeOfImpl(Type other) {
-		return other instanceof ReferenceType;
+	protected boolean canCastTo(Type other) {
+		return other.isReferenceType();
 	}
 }

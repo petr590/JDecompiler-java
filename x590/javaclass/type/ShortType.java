@@ -20,6 +20,6 @@ public class ShortType extends IntegralType {
 	
 	@Override
 	public Type toVariableCapacityIntegralType() {
-		return PrimitiveType.SHORT_OR_INT;
+		return PrimitiveType.SHORT_INT;
 	}
 }

@@ -187,4 +187,13 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		
 		return array;
 	}
+	
+	
+	public void reset() {
+		try {
+			super.reset();
+		} catch(IOException ex) {
+			throw getUncheckedException(ex);
+		}
+	}
 }

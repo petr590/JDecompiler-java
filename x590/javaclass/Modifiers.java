@@ -29,4 +29,8 @@ public class Modifiers {
 	public static boolean isStatic(int modifiers) {
 		return (modifiers & ACC_STATIC) != 0;
 	}
+	
+	public static boolean isNonStatic(int modifiers) {
+		return (modifiers & ACC_STATIC) == 0;
+	}
 }

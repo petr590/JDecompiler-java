@@ -9,22 +9,57 @@ import x590.javaclass.JavaClass;
 import x590.javaclass.io.StringifyOutputStream;
 import x590.util.Timer;
 
+/**
+ * Если кто-то захочет импортировать модуль x590.argparser, x590.util, jsr305
+ * или любой другой модуль "как надо" - через jar файл с модулем, пожалуйста, не делайте этого.
+ * Пусть они подключаются через симлинки, может это немного сложнее
+ * и не является лучшей практикой в программировании, этот способ хотя бы работает.
+ * 
+ * Может, первый способ сработает на другой машине,
+ * но мой eclipse ни в какую не хочет видеть классы.
+ * 
+ * Для наглядности, вот сколько часов было потрачено в попытках
+ * разобраться в том, почему eclipse не видит классы из импортированного
+ * jar файла:
+ * 
+ * int hoursWasted = 3;
+ * 
+ * Если вы всё же решите это сделать - увеличьте счётчик на соответствующее значение,
+ * чтобы кто-то другой (или вы сами в будущем) не пытался сделать это.
+ * 
+ * @author 0x590
+ */
+
 public class Main {
 	
 	public static void main(String[] args) throws IOException {
 		
-		JDecompiler.init(new String[] {
-				"bin/example/Example2.class",
-				
-//				"bin/example/annotation/TestAnnotation.class",
-//				"bin/example/annotation/InvisibleAnnotation.class",
-				
-//				"bin/example/If.class",
-//				"bin/example/Else.class",
-//				"bin/example/Synchronized.class",
-//				"bin/example/Annotations.class",
-				"--no-omit-curly-brackets"
-		});
+		if(args.length > 0) {
+			JDecompiler.init(args);
+		} else {
+			JDecompiler.init(new String[] {
+//					"bin/example/Example2.class",
+					
+//					"bin/example/annotation/TestAnnotation.class",
+//					"bin/example/annotation/InvisibleAnnotation.class",
+					
+//					"bin/example/If.class",
+//					"bin/example/Else.class",
+//					"bin/example/Synchronized.class",
+//					"bin/example/Annotations.class",
+//					"bin/example/Cast.class",
+//					"bin/example/Charset.class",
+//					"bin/example/Increment1.class",
+//					"bin/example/Increment2.class",
+//					"bin/example/StaticFields.class",
+//					"bin/example/NonStaticFields.class",
+//					"bin/example/Methods.class",
+					"bin/example/OverrideTest.class",
+					
+//					"--no-omit-curly-brackets",
+//					"--no-omit-this-class",
+			});
+		}
 		
 		for(String file : JDecompiler.getInstance().files) {
 			// Нужен ли здесь BufferedInputStream ?..

@@ -3,25 +3,36 @@ package x590.javaclass;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.IntConsumer;
+import java.util.function.ObjIntConsumer;
 import java.util.stream.Collectors;
 
+import x590.javaclass.attribute.Attributes;
+import x590.javaclass.attribute.annotation.ParameterAnnotationsAttribute;
 import x590.javaclass.constpool.ClassConstant;
 import x590.javaclass.constpool.ConstantPool;
 import x590.javaclass.constpool.NameAndTypeConstant;
 import x590.javaclass.constpool.ReferenceConstant;
+import x590.javaclass.context.StringifyContext;
 import x590.javaclass.exception.IllegalMethodDescriptorException;
+import x590.javaclass.exception.IllegalMethodHeaderException;
 import x590.javaclass.io.ExtendedDataInputStream;
 import x590.javaclass.io.ExtendedStringReader;
 import x590.javaclass.io.StringifyOutputStream;
+import x590.javaclass.type.ArrayType;
 import x590.javaclass.type.ClassType;
 import x590.javaclass.type.PrimitiveType;
 import x590.javaclass.type.ReferenceType;
 import x590.javaclass.type.Type;
+import x590.javaclass.type.TypeSize;
 import x590.javaclass.util.Util;
+import x590.util.IntHolder;
+import x590.util.function.ObjIntFunction;
+
+import static x590.javaclass.Modifiers.*;
 
 public class MethodDescriptor extends Descriptor implements StringWritableAndImportable {
-	public final ClassType clazz;
-	public final String name;
+	
 	public final List<Type> arguments;
 	public final Type returnType;
 	
@@ -103,8 +114,7 @@ public class MethodDescriptor extends Descriptor implements StringWritableAndImp
 	}
 	
 	public MethodDescriptor(ClassType clazz, String name, List<Type> arguments, Type returnType) {
-		this.clazz = clazz;
-		this.name = name;
+		super(clazz, name);
 		this.arguments = arguments;
 		this.returnType = returnType;
 		this.type = typeForName(name);
@@ -116,63 +126,78 @@ public class MethodDescriptor extends Descriptor implements StringWritableAndImp
 	}
 	
 	
-//	public String toString(StringifyContext context, Attributes attributes) {
-//		boolean isNonStatic = !(context.modifiers && Modifiers.ACC_STATIC);
-//		
-//		MethodSignature signature = attributes.has<MethodSignatureAttribute>() ? attributes.get<MethodSignatureAttribute>()->signature : null;
-//		
-//		String in = (signature == null || signature.genericParameters.isEmpty() ?
-//				"" : "<" + join<GenericParameter>(signature.genericParameters,
-//					[&context] (GenericParameter parameter) { return parameter.toString(context.classinfo); }) + "> ") +
-//				(isConstructor() ? context.classinfo.thisType.simpleName :
-//				(signature == null ? returnType : signature.returnType)->toString(context.classinfo) + ' ' + name);
-//		
-//		
-//		int offset = isNonStatic ? 1 : 0;
-//		
-//		var getVarName = (Type type, size_t i) -> {
-//			return context.getCurrentScope().getNameFor(
-//					context.methodScope.getVariable(i + (type.getSize() == TypeSize.EIGHT_BYTES ? offset++ : offset), false));
-//		};
-//		
-//		List<Type> arguments = signature != null ? signature.arguments : this.arguments;
-//		
-//		ParameterAnnotationsAttribute parameterAnnotations = attributes.get<ParameterAnnotationsAttribute>();
-//		IntFunction<String> parameterAnnotationToString = parameterAnnotations != null ?
-//			i -> parameterAnnotations.parameterAnnotationsToString(i, context.classinfo) :
-//			i -> "";
-//		
-//		
-//		function<String(Type*, size_t)> concater;
-//		
-//		if((context.modifiers & ACC_VARARGS) != 0) {
-//			size_t varargsIndex = arguments.size() - 1;
-//			
-//			if(arguments.isEmpty() || !(arguments.back().isArrayType())) {
-//				throw new IllegalMethodHeaderException("Varargs method " + this.toString() + " must have last argument as array");
-//			}
-//			
-//			concater = [&context, parameterAnnotationToString, getVarName, varargsIndex] (Type type, size_t i) {
-//				return parameterAnnotationToString(i) + (i == varargsIndex ?
-//					safe_cast<ArrayType>(type)->elementType.toString(context.classinfo) +
-//					"... " + getVarName(type, i) : variableDeclarationToString(type, context.classinfo, getVarName(type, i)));
-//			};
-//		
-//		} else {
-//			concater = [&context, parameterAnnotationToString, getVarName] (Type type, size_t i) {
-//				return parameterAnnotationToString(i) + variableDeclarationToString(type, context.classinfo, getVarName(type, i));
-//			};
-//		}
-//		
-//		
-//		return in + '(' + join<Type>(arguments, concater) + ')';
-//	}
-	
-	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		classinfo.addImportIfReferenceType(returnType);
-		arguments.forEach(arg -> classinfo.addImportIfReferenceType(arg));
+		classinfo.addImport(returnType);
+		arguments.forEach(arg -> classinfo.addImport(arg));
+	}
+	
+	
+	public void write(StringifyOutputStream out, StringifyContext context, Attributes attributes) {
+		
+		switch(type) {
+			case CONSTRUCTOR -> {
+				out.print(clazz, context.classinfo);
+				this.writeArguments(out, context, attributes);
+			}
+				
+			case STATIC_INITIALIZER -> {
+				out.print("static");
+			}
+				
+			case PLAIN -> {
+				out.print(returnType, context.classinfo).printsp().print(name);
+				this.writeArguments(out, context, attributes);
+			}
+		}
+	}
+	
+	
+	private void writeArguments(StringifyOutputStream out, StringifyContext context, Attributes attributes) {
+		out.write('(');
+		
+		ClassInfo classinfo = context.classinfo;
+		
+		IntHolder offset = new IntHolder((context.modifiers & ACC_STATIC) == 0 ? 1 : 0);
+		
+		
+		ParameterAnnotationsAttribute
+				visibleParameterAnnotations = attributes.getOrDefault("RuntimeVisibleParameterAnnotations", ParameterAnnotationsAttribute.emptyVisible()),
+				invisibleParameterAnnotations = attributes.getOrDefault("RuntimeInvisibleParameterAnnotations", ParameterAnnotationsAttribute.emptyInvisible());
+		
+		IntConsumer writeParameterAnnotations = i -> {
+			visibleParameterAnnotations.write(out, classinfo, i);
+			invisibleParameterAnnotations.write(out, classinfo, i);
+		};
+		
+		
+		ObjIntFunction<Type, String> getVariableName = (type, i) -> context.methodScope.getDefinedVariable(i + (type.getSize() == TypeSize.EIGHT_BYTES ? offset.postInc() : offset.get())).getName();
+		
+		ObjIntConsumer<Type> write;
+		
+		if((context.modifiers & ACC_VARARGS) != 0) {
+			int varargsIndex = arguments.size() - 1;
+			
+			if(arguments.isEmpty() || !arguments.get(varargsIndex).isArrayType())
+				throw new IllegalMethodHeaderException("Varargs method must have array as last argument");
+			
+			write = (type, i) ->
+					(i != varargsIndex ? out.printsp(type, classinfo) : out.print(((ArrayType)type).elementType, classinfo).print("... "))
+					.print(getVariableName.apply(type, i));
+			
+		} else {
+			write = (type, i) ->
+					out.printsp(type, classinfo).print(getVariableName.apply(type, i));
+		}
+		
+		
+		Util.forEachExcludingLast(arguments, (type, i) -> {
+					writeParameterAnnotations.accept(i);
+					write.accept(type, i);
+				},
+				() -> out.write(", "));
+		
+		out.write(')');
 	}
 	
 	

@@ -6,7 +6,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import x590.javaclass.ClassInfo;
-import x590.javaclass.StringWritable;
+import x590.javaclass.StringWritableAndImportable;
 import x590.javaclass.Stringified;
 import x590.javaclass.exception.IllegalMethodDescriptorException;
 import x590.javaclass.exception.IncopatibleTypesException;
@@ -18,7 +18,7 @@ import x590.javaclass.util.Util;
 /**
  * Класс, описывающий тип в Java: int, double, String и т.д.
  */
-public abstract class Type implements Stringified, StringWritable {
+public abstract class Type implements Stringified, StringWritableAndImportable {
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
@@ -89,12 +89,14 @@ public abstract class Type implements Stringified, StringWritable {
 	
 	
 	public final boolean isSubtypeOf(Type other) {
-		return this.isSubtypeOfImpl(other) || this.canReverse(other) && other.isSubtypeOfImpl(this);
+		return this.castToNarrowestNoexcept(other) != null;
 	}
 	
-	protected abstract boolean isSubtypeOfImpl(Type other);
+	
+	protected abstract boolean canCastTo(Type other);
 	
 	
+	@Deprecated
 	protected boolean canReverse(Type other) {
 		return true;
 	}
@@ -113,8 +115,7 @@ public abstract class Type implements Stringified, StringWritable {
 	}
 	
 	
-	@Nullable
-	public final Type castToNarrowestNoexcept(Type other) {
+	public final @Nullable Type castToNarrowestNoexcept(Type other) {
 		Type type = castToNarrowestImpl(other);
 		
 		if(type != null) return type;
@@ -123,8 +124,7 @@ public abstract class Type implements Stringified, StringWritable {
 	}
 	
 	
-	@Nullable
-	public final Type castToWidestNoexcept(Type other) {
+	public final @Nullable Type castToWidestNoexcept(Type other) {
 		Type type = castToWidestImpl(other);
 		
 		if(type != null) return type;
@@ -150,10 +150,11 @@ public abstract class Type implements Stringified, StringWritable {
 	}
 	
 	
-	@Deprecated
-	public Type getReducedType() {
+	/** Выполняет сведение типа. */
+	public Type reduced() {
 		return this;
 	}
+	
 	
 	@Override
 	public final boolean equals(Object obj) {
@@ -163,7 +164,7 @@ public abstract class Type implements Stringified, StringWritable {
 	public final boolean equals(Type other) {
 		return this == other || (this.getClass() == other.getClass() && this.getEncodedName().equals(other.getEncodedName()));
 	}
-
+	
 	@Override
 	public final int hashCode() {
 		return this.getClass().hashCode() ^ this.getEncodedName().hashCode();
@@ -171,7 +172,7 @@ public abstract class Type implements Stringified, StringWritable {
 	
 	
 	public int implicitCastStatus(Type other) {
-		return this == other ? CastStatus.SAME_STATUS : this.isSubtypeOf(other) ? CastStatus.EXTEND_STATUS : CastStatus.N_STATUS;
+		return this == other ? CastStatus.SAME : this.canCastTo(other) ? CastStatus.EXTEND : CastStatus.NONE;
 	}
 	
 	

@@ -30,7 +30,7 @@ public class ExcludingBooleanType extends SpecialType {
 	
 	@Override
 	public String getNameForVariable() {
-		return "e";
+		return "n";
 	}
 	
 	@Override
@@ -39,8 +39,8 @@ public class ExcludingBooleanType extends SpecialType {
 	}
 	
 	@Override
-	protected boolean isSubtypeOfImpl(Type other) {
-		return castToNarrowest(other) != null;
+	protected boolean canCastTo(Type other) {
+		return other != PrimitiveType.BOOLEAN;
 	}
 	
 	@Override
@@ -52,7 +52,7 @@ public class ExcludingBooleanType extends SpecialType {
 		
 		return other != PrimitiveType.BOOLEAN ? other : null;
 	}
-
+	
 	@Override
 	protected Type castToWidestImpl(Type other) {
 		return castToNarrowest(other);

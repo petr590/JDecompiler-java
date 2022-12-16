@@ -23,4 +23,19 @@ public abstract class IntegralType extends PrimitiveType {
 	
 	/** Фактический размер типа данных */
 	public abstract int getCapacity();
+	
+	
+	@Override
+	protected boolean canCastTo(Type other) {
+		return this == other ||
+				other.isIntegral() && ((IntegralType)other).getCapacity() >= this.getCapacity() ||
+				other == PrimitiveType.CHAR && this.getCapacity() < CHAR_CAPACITY;
+	}
+	
+	@Override
+	protected boolean canCastToWidest(Type other) {
+		return this == other ||
+				other.isIntegral() && ((IntegralType)other).getCapacity() <= this.getCapacity() ||
+				other == PrimitiveType.CHAR && this.getCapacity() > CHAR_CAPACITY;
+	}
 }

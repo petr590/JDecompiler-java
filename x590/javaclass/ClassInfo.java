@@ -12,9 +12,7 @@ import x590.javaclass.context.StringifyContext;
 import x590.javaclass.exception.NoSuchFieldException;
 import x590.javaclass.exception.NoSuchMethodException;
 import x590.javaclass.io.StringifyOutputStream;
-import x590.javaclass.type.ArrayType;
 import x590.javaclass.type.ClassType;
-import x590.javaclass.type.ReferenceType;
 import x590.javaclass.type.Type;
 
 public class ClassInfo {
@@ -53,21 +51,8 @@ public class ClassInfo {
 		imports.put(clazz, imports.getOrDefault(clazz, ZERO) + 1);
 	}
 	
-	public void addImport(ReferenceType type) {
-		if(type.isClassType())
-			addImport((ClassType)type);
-		else if(type.isArrayType())
-			addImportIfClassType(((ArrayType)type).memberType);
-	}
-	
-	public void addImportIfClassType(Type type) {
-		if(type.isClassType())
-			addImport((ClassType)type);
-	}
-	
-	public void addImportIfReferenceType(Type type) {
-		if(type.isReferenceType())
-			addImport((ReferenceType)type);
+	public void addImport(Type type) {
+		type.addImports(this);
 	}
 	
 	public void uniqImports() {

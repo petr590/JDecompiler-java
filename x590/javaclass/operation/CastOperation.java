@@ -7,16 +7,21 @@ import x590.javaclass.type.Type;
 
 public class CastOperation extends Operation {
 	
-	private final Operation value;
+	private final Operation operand;
 	protected final Type castedType;
 	protected final boolean implicitCast;
-	private boolean implicitCastAllowed = false;
+	protected boolean implicitCastAllowed;
 	
 	public CastOperation(Type requiredType, Type castedType, boolean implicitCast, DecompilationContext context) {
-		this.value = context.stack.popAsNarrowest(requiredType);
+		this.operand = context.stack.popAsNarrowest(requiredType);
 		this.castedType = castedType;
 		this.implicitCast = implicitCast;
 	}
+	
+	public Operation getOperand() {
+		return operand;
+	}
+	
 	
 	@Override
 	public void allowImplicitCast() {
@@ -26,9 +31,10 @@ public class CastOperation extends Operation {
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		if(implicitCast && implicitCastAllowed)
-			out.write(value, context);
+			out.write(operand, context);
 		else
-			out.print('(').print(castedType.toString(context.classinfo)).print(')').print(value, context);
+			out.print('(').print(castedType, context.classinfo).print(')')
+					.printPrioritied(this, operand, context, Associativity.LEFT);
 	}
 	
 	@Override
@@ -36,8 +42,12 @@ public class CastOperation extends Operation {
 		return castedType;
 	}
 	
+	public int getPriority() {
+		return Priority.CAST;
+	}
+	
 	@Override
 	public boolean requiresLocalContext() {
-		return value.requiresLocalContext();
+		return operand.requiresLocalContext();
 	}
 }

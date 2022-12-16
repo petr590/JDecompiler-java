@@ -25,11 +25,11 @@ public abstract class ReferenceType extends BasicType {
 	
 	@Override
 	protected Type castToNarrowestImpl(Type other) {
-		return this.isSubtypeOf(other) ? this : null;
+		return this.canCastTo(other) ? this : null;
 	}
 	
 	@Override
 	protected Type castToWidestImpl(Type other) {
-		return this.isSubtypeOf(other) ? other : null;
+		return this.canCastTo(other) ? other : null;
 	}
 }

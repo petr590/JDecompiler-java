@@ -12,7 +12,7 @@ import x590.javaclass.MethodDescriptor;
 import x590.javaclass.exception.DecompilationException;
 import x590.javaclass.instruction.Instruction;
 import x590.javaclass.operation.Operation;
-import x590.javaclass.operation.VReturnOperation;
+import x590.javaclass.operation.returning.VReturnOperation;
 import x590.javaclass.scope.MethodScope;
 import x590.javaclass.scope.Scope;
 import x590.javaclass.type.PrimitiveType;
@@ -25,7 +25,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 	protected Scope currentScope;
 	
 	private DecompilationContext(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, int modifiers, MethodScope methodScope, List<Instruction> instructions, int maxLocals) {
-		super(otherContext, classinfo, descriptor, modifiers);
+		super(otherContext, classinfo, descriptor, methodScope, modifiers);
 
 		this.currentScope = methodScope;
 		
@@ -35,6 +35,10 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 		for(Instruction instruction : instructions) {
 			
 			finalizeScopes();
+			
+			
+//			System.out.println("Stack: " + stack.stream().map(operation -> operation.getClass().getSimpleName() + " [" + operation.getReturnType() + "]").collect(Collectors.joining(", ")));
+			
 			
 			if(instruction != null) {
 				

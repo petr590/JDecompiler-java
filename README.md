@@ -4,12 +4,11 @@ Maybe I'll finish it someday, but I need to add a lot more functionality.
 
 Currently not implemented:
 - Operators && and ||
+- Ternary operator
 - for/while
 - try/catch/finally
 - switch
 - break/continue
-- Ternary operator
-- Separate variables (the compiler allocates one cell for two disjoint variables)
 - Lambdas
 - Jar support
 
@@ -17,3 +16,4 @@ Implemented:
 - Annotations
 - if
 - else
+- Separate variables (the compiler allocates one cell for two disjoint variables)

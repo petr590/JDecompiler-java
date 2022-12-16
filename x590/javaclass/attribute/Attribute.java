@@ -7,6 +7,7 @@ import x590.javaclass.Importable;
 import x590.javaclass.JavaSerializable;
 import x590.javaclass.attribute.annotation.AnnotationDefaultAttribute;
 import x590.javaclass.attribute.annotation.AnnotationsAttribute;
+import x590.javaclass.attribute.annotation.ParameterAnnotationsAttribute;
 import x590.javaclass.constpool.ConstantPool;
 import x590.javaclass.exception.DisassemblingException;
 import x590.javaclass.io.ExtendedDataInputStream;
@@ -32,18 +33,24 @@ public class Attribute implements JavaSerializable, Importable {
 		
 		Attribute attribute = switch(name) {
 			case "ConstantValue" -> new ConstantValueAttribute(nameIndex, name, length, in, pool);
-			case "Code"          -> new CodeAttribute(nameIndex, name, length, in, pool);
-			case "Exceptions"    -> new ExceptionsAttribute(nameIndex, name, length, in, pool);
-			case "RuntimeVisibleAnnotations", "RuntimeInvisibleAnnotations" -> new AnnotationsAttribute(nameIndex, name, length, in, pool);
+			case "Code"			 -> new CodeAttribute(nameIndex, name, length, in, pool);
+			case "Exceptions"	 -> new ExceptionsAttribute(nameIndex, name, length, in, pool);
+			
+			case "RuntimeVisibleAnnotations", "RuntimeInvisibleAnnotations" ->
+				new AnnotationsAttribute(nameIndex, name, length, in, pool);
+			
+			case "RuntimeVisibleParameterAnnotations", "RuntimeInvisibleParameterAnnotations" ->
+				new ParameterAnnotationsAttribute(nameIndex, name, length, in, pool);
+			
 			case "AnnotationDefault" -> new AnnotationDefaultAttribute(nameIndex, name, length, in, pool);
-			case "BootstrapMethods" -> new BootstrapMethodsAttribute(nameIndex, name, length, in, pool);
+			case "BootstrapMethods"	 -> new BootstrapMethodsAttribute(nameIndex, name, length, in, pool);
 			default -> new UnknownAttribute(nameIndex, name, length, in);
 		};
 		
 		if(pos == in.available())
 			return attribute;
 		else
-			throw new DisassemblingException("Argument \"" + name + "\" was disassembled wrong: position difference " + (pos - in.available()));
+			throw new DisassemblingException("Attribute \"" + name + "\" was disassembled wrong: position difference " + (pos - in.available()));
 	}
 	
 	@Override

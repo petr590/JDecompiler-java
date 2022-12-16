@@ -1,0 +1,29 @@
+The type system has been redesigned. Fixed the casting of VariableCapacityintegraltype and PrimitiveType.
+The type conversion code has been slightly simplified.
+
+Added the Type.canCastTo method as a partial replacement for the method Type.isSubtypeOf.
+Added the Type.reduced method (in C++ code it is called getReducedType).
+
+Fixed a bug in the DisassemblerContext.readShort and DisassemblerContext.readInt methods.
+
+Packages x590.javaclass.operation and x590.javaclass.instruction have been refactored: classes moved to subpackages.
+
+Fixed a bug in DConstOperation.
+
+
+Added the isScope() method to the Operation class. Used instead of checking instanceof Scope.
+
+Fixed a bug when "x + 1" was output instead of "x + true".
+
+Fixed a bug with incorrect indexing of a variable when it is preceded by a variable of type long or double.
+
+
+Pre-increment, post-increment and shortened operators ("x += y" instead of "x = x + y") are implemented for both local variables and fields.
+Fixed some bugs with them.
+
+Added comma-separated declaration of fields (provided they have the same type, modifiers and all annotations).
+
+Fixed a bug when reading an annotation with a string value.
+
+
+... And a bunch of minor improvements and refactorings ...

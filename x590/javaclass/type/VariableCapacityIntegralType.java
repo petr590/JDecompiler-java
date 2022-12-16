@@ -5,7 +5,6 @@ import java.util.List;
 
 import x590.javaclass.ClassInfo;
 import x590.javaclass.util.WhitespaceStringBuilder;
-import x590.javaclass.util.Util;
 
 public class VariableCapacityIntegralType extends SpecialType {
 	
@@ -47,7 +46,8 @@ public class VariableCapacityIntegralType extends SpecialType {
 				(char)('0' + (includeBoolean ? 1 : 0) + (includeChar ? 2 : 0));
 	}
 	
-	public static VariableCapacityIntegralType getInstance(int minCapacity, int maxCapacity, boolean includeBoolean, boolean includeChar) {
+	
+	private static VariableCapacityIntegralType getInstanceNoexcept(int minCapacity, int maxCapacity, boolean includeBoolean, boolean includeChar) {
 		
 		if(minCapacity > maxCapacity)
 			return null;
@@ -67,29 +67,23 @@ public class VariableCapacityIntegralType extends SpecialType {
 	
 	
 	public static VariableCapacityIntegralType getInstance(int minCapacity, int maxCapacity) {
-		return getInstance(minCapacity, maxCapacity, 0);
+		return getInstance(minCapacity, maxCapacity, false, false);
 	}
 	
 	public static VariableCapacityIntegralType getInstance(int minCapacity, int maxCapacity, int flags) {
-		var type = getInstanceNoexcept(minCapacity, maxCapacity, flags);
+		return getInstance(minCapacity, maxCapacity, (flags & INCLUDE_BOOLEAN) != 0, (flags & INCLUDE_CHAR) != 0);
+	}
+	
+	public static VariableCapacityIntegralType getInstance(int minCapacity, int maxCapacity, boolean includeBoolean, boolean includeChar) {
+		var type = getInstanceNoexcept(minCapacity, maxCapacity, includeBoolean, includeChar);
 		
 		if(type != null)
 			return type;
 		
 		throw new IllegalArgumentException(
-				"minCapacity = " + minCapacity + ", maxCapacity = " + maxCapacity + ", flags = " + flags);
+				"minCapacity = " + minCapacity + ", maxCapacity = " + maxCapacity + ", includeBoolean = " + includeBoolean + ", includeChar = " + includeChar);
 	}
 	
-	
-	private static VariableCapacityIntegralType getInstanceNoexcept(int minCapacity, int maxCapacity, int flags) {
-		VariableCapacityIntegralType instance = getInstance(minCapacity, maxCapacity, (flags & INCLUDE_BOOLEAN) != 0, (flags & INCLUDE_CHAR) != 0);
-		
-		if(instance == null)
-			throw new IllegalArgumentException(
-				"minCapacity = " + minCapacity + ", maxCapacity = " + maxCapacity + ", flags = 0x" + Util.hex1(flags));
-		
-		return instance;
-	}
 	
 	@Override
 	public String toString(ClassInfo classinfo) {
@@ -98,8 +92,6 @@ public class VariableCapacityIntegralType extends SpecialType {
 	
 	@Override
 	public String toString() {
-		StringBuilder str = new StringBuilder().append('(');
-		
 		WhitespaceStringBuilder typesStr = new WhitespaceStringBuilder();
 		
 		if(minCapacity <= 1 && maxCapacity >= 1)
@@ -111,13 +103,13 @@ public class VariableCapacityIntegralType extends SpecialType {
 		if(minCapacity <= 4 && maxCapacity >= 4)
 			typesStr.append("int");
 		
-		if(includeBoolean)
-			typesStr.append("boolean");
-		
 		if(includeChar)
 			typesStr.append("char");
 		
-		return str.append(typesStr).append(')').toString();
+		if(includeBoolean)
+			typesStr.append("boolean");
+		
+		return "(" + typesStr + ")";
 	}
 	
 	@Override
@@ -141,16 +133,17 @@ public class VariableCapacityIntegralType extends SpecialType {
 	}
 	
 	@Override
-	protected boolean isSubtypeOfImpl(Type other) {
-		if(this == other || (other == PrimitiveType.BOOLEAN && includeBoolean) || other == highPrimitiveType)
+	protected boolean canCastTo(Type other) {
+		if(this == other || (other == PrimitiveType.BOOLEAN && includeBoolean) || other == highPrimitiveType) {
 			return true;
+		}
 		
-		if(other == PrimitiveType.CHAR)
+		if(other == PrimitiveType.CHAR) {
 			return includeChar || maxCapacity > CHAR_CAPACITY;
+		}
 		
 		if(other.isIntegral()) {
-			int capacity = ((IntegralType)other).getCapacity();
-			return capacity >= minCapacity;
+			return ((IntegralType)other).getCapacity() >= minCapacity;
 		}
 		
 		if(other instanceof VariableCapacityIntegralType integralType) {
@@ -160,17 +153,6 @@ public class VariableCapacityIntegralType extends SpecialType {
 		return false;
 	}
 	
-// TODO
-//	@Override
-//	public boolean isStrictSubtypeOf(Type other) {
-//		if(this == other || (minCapacity == maxCapacity && other == highPrimitiveType && !includeBoolean && !includeChar))
-//			return true;
-//
-//		if(minCapacity == maxCapacity && other.isIntegral())
-//			return ((IntegralType)other).getCapacity() == minCapacity;
-//
-//		return false;
-//	}
 	
 	private static Type castImpl0(VariableCapacityIntegralType type, Type other, boolean widest) {
 		
@@ -179,27 +161,18 @@ public class VariableCapacityIntegralType extends SpecialType {
 			if(other == PrimitiveType.BOOLEAN)
 				return type.includeBoolean ? other : null;
 			
-			if(other == type.highPrimitiveType)
-				return widest ? other : type;
-			
 			if(other == PrimitiveType.CHAR)
 				return type.includeChar ? other : null;
 			
 			if(other.isIntegral()) {
 				int capacity = ((IntegralType)other).getCapacity();
 				
-				if(capacity == type.minCapacity)
-					return widest ? type : other;
-				
-				if(capacity == type.maxCapacity)
-					return widest ? other : type;
-				
-				if(capacity > type.minCapacity)
-					return getInstance(type.minCapacity, Math.min(capacity, type.maxCapacity), false, type.includeChar && capacity > CHAR_CAPACITY);
+				return widest ?
+						getInstanceNoexcept(Math.max(capacity, type.minCapacity), type.maxCapacity, false, type.includeChar && capacity < CHAR_CAPACITY) :
+						getInstanceNoexcept(type.minCapacity, Math.min(capacity, type.maxCapacity), false, type.includeChar && capacity > CHAR_CAPACITY);
 			}
-		}
-		
-		if(other instanceof VariableCapacityIntegralType integralType) {
+			
+		} else if(other instanceof VariableCapacityIntegralType integralType) {
 			return castImpl0(type, integralType, widest);
 		}
 		
@@ -211,11 +184,11 @@ public class VariableCapacityIntegralType extends SpecialType {
 			maxCapacity = Math.min(other.maxCapacity, type.maxCapacity);
 		
 		if(widest) {
-			return getInstance(minCapacity, minCapacity >= maxCapacity ? type.maxCapacity : maxCapacity,
+			return getInstanceNoexcept(minCapacity, minCapacity >= maxCapacity ? type.maxCapacity : maxCapacity,
 					type.includeBoolean && other.includeBoolean, type.includeChar && other.includeChar);
 			
 		} else {
-			return getInstance(minCapacity >= maxCapacity ? type.minCapacity : minCapacity, maxCapacity,
+			return getInstanceNoexcept(minCapacity >= maxCapacity ? type.minCapacity : minCapacity, maxCapacity,
 					type.includeBoolean && other.includeBoolean,
 					type.includeChar && (other.includeChar || maxCapacity > CHAR_CAPACITY));
 		}
@@ -228,22 +201,17 @@ public class VariableCapacityIntegralType extends SpecialType {
 			if(other == PrimitiveType.BOOLEAN)
 				return type.includeBoolean ? other : null;
 			
-			if(other == type.highPrimitiveType)
-				return widest ? type : other;
-			
 			if(other == PrimitiveType.CHAR)
 				return type.includeChar || type.maxCapacity > CHAR_CAPACITY ?
-						(widest ? getInstance(CHAR_CAPACITY * 2, type.maxCapacity, false, type.includeChar) : other) : null;
+						(widest ? getInstanceNoexcept(CHAR_CAPACITY * 2, type.maxCapacity, false, type.includeChar) : other) : null;
 				
 			if(other.isIntegral()) {
 				int capacity = ((IntegralType)other).getCapacity();
 				
-				if(widest ? capacity <= type.minCapacity : capacity >= type.maxCapacity)
-					return type;
-				
-				if(widest ? capacity <= type.maxCapacity : capacity >= type.minCapacity) {
-					return widest ? getInstance(Math.max(capacity, type.minCapacity), capacity, false, type.includeChar) :
-									getInstance(capacity, Math.min(capacity, type.maxCapacity), false, type.includeChar);
+				if(widest ? capacity >= type.minCapacity : capacity <= type.maxCapacity) {
+//					return widest ? getInstance(Math.min(capacity, type.minCapacity), capacity, false, type.includeChar) :
+//									getInstance(capacity, Math.max(capacity, type.maxCapacity), false, type.includeChar);
+					return other;
 				}
 			}
 		}
@@ -272,8 +240,11 @@ public class VariableCapacityIntegralType extends SpecialType {
 	protected Type reversedCastToWidestImpl(Type other) {
 		return reversedCastImpl0(this, other, true);
 	}
-
-//	Type getReducedType() {
-//		return includeBoolean ? BOOLEAN : highPrimitiveType;
-//	}
+	
+	
+	/** Возвращает верхнюю границу типа или boolean */
+	@Override
+	public Type reduced() {
+		return includeBoolean ? PrimitiveType.BOOLEAN : highPrimitiveType;
+	}
 }

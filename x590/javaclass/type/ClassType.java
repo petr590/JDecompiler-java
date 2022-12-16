@@ -15,7 +15,7 @@ import x590.javaclass.io.ExtendedStringReader;
 import x590.javaclass.util.Util;
 
 /**
- * Описывает тип java класса, самого обычного java класса
+ * Описывает тип java класса, самого обычного класса
  */
 public final class ClassType extends ReferenceType {
 	
@@ -97,6 +97,8 @@ public final class ClassType extends ReferenceType {
 			simpleName,
 			fullSimpleName,
 			packageName;
+	
+	protected String nameForVariable;
 
 	public final List<ReferenceType> parameters;
 
@@ -285,7 +287,10 @@ public final class ClassType extends ReferenceType {
 	
 	@Override
 	public final String getNameForVariable() {
-		return Util.toLowerCamelCase(simpleName);
+		if(nameForVariable != null)
+			return nameForVariable;
+		
+		return nameForVariable = Util.toLowerCamelCase(simpleName);
 	}
 	
 	@Override
@@ -316,13 +321,19 @@ public final class ClassType extends ReferenceType {
 	
 	
 	@Override
+	public void addImports(ClassInfo classinfo) {
+		classinfo.addImport(this);
+	}
+	
+	
+	@Override
 	public int implicitCastStatus(Type other) {
-		return other.isPrimitive() && this == ((PrimitiveType)other).getWrapperType() ?
-				CastStatus.AUTOBOXING_STATUS : super.implicitCastStatus(other);
+		return other.isPrimitive() && ((PrimitiveType)other).getWrapperType().equals(this) ?
+				CastStatus.AUTOBOXING : super.implicitCastStatus(other);
 	}
 	
 	@Override
-	protected boolean isSubtypeOfImpl(Type other) {
-		return other instanceof ClassType;
+	protected boolean canCastTo(Type other) {
+		return other.isClassType();
 	}
 }

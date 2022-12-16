@@ -1,12 +1,12 @@
 package x590.javaclass.instruction.scope;
 
-import x590.javaclass.Variable;
 import x590.javaclass.context.DecompilationContext;
-import x590.javaclass.operation.ALoadOperation;
 import x590.javaclass.operation.Operation;
+import x590.javaclass.operation.load.ALoadOperation;
 import x590.javaclass.scope.Scope;
 import x590.javaclass.scope.SynchronizedScope;
 import x590.javaclass.type.Types;
+import x590.javaclass.variable.EmptyableVariable;
 
 public class MonitorExitInstruction extends ScopeInstruction {
 	
@@ -16,7 +16,7 @@ public class MonitorExitInstruction extends ScopeInstruction {
 		
 		if(value instanceof ALoadOperation aloadOperation) {
 			aloadOperation.remove();
-			Variable variable = aloadOperation.getVariable();
+			EmptyableVariable variable = aloadOperation.getVariable();
 			
 			for(Scope scope : context.getScopes()) {
 				if(scope instanceof SynchronizedScope synchronizedScope && synchronizedScope.getVariable() == variable) {

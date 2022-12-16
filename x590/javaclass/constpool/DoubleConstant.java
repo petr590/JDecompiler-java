@@ -5,8 +5,8 @@ import java.io.IOException;
 
 import x590.javaclass.ClassInfo;
 import x590.javaclass.io.ExtendedDataInputStream;
-import x590.javaclass.operation.DConstOperation;
 import x590.javaclass.operation.Operation;
+import x590.javaclass.operation.constant.DConstOperation;
 import x590.javaclass.type.PrimitiveType;
 import x590.javaclass.type.Type;
 import x590.javaclass.util.Util;
@@ -48,5 +48,15 @@ public class DoubleConstant extends ConstValueConstant {
 	public void serialize(DataOutputStream out) throws IOException {
 		out.writeByte(6);
 		out.writeDouble(value);
+	}
+	
+	
+	@Override
+	public boolean equals(Object other) {
+		return this == other || other instanceof DoubleConstant constant && this.equals(constant);
+	}
+	
+	public boolean equals(DoubleConstant other) {
+		return this == other || this.value == other.value;
 	}
 }

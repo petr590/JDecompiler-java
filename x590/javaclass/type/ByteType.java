@@ -20,6 +20,6 @@ public class ByteType extends IntegralType {
 	
 	@Override
 	public Type toVariableCapacityIntegralType() {
-		return PrimitiveType.ANY_INT;
+		return PrimitiveType.BYTE_SHORT_CHAR_INT;
 	}
 }

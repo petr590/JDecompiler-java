@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 import x590.javaclass.attribute.Attributes;
+import x590.javaclass.attribute.annotation.AnnotationsAttribute;
 import x590.javaclass.constpool.ConstantPool;
 import x590.javaclass.exception.ClassFormatException;
 import x590.javaclass.exception.IllegalModifiersException;
@@ -13,10 +14,12 @@ import x590.javaclass.io.ExtendedDataInputStream;
 import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.type.ClassType;
 import x590.javaclass.type.GenericParameter;
+import x590.javaclass.type.Type;
 import x590.javaclass.util.WhitespaceStringBuilder;
 import x590.javaclass.util.IWhitespaceStringBuilder;
 import x590.javaclass.util.Util;
 import x590.jdecompiler.JDecompiler;
+import x590.util.Pair;
 
 import static x590.javaclass.Modifiers.*;
 
@@ -127,12 +130,19 @@ public class JavaClass extends JavaClassElement {
 		out.printIndent().print(modifiersToString(classinfo), classinfo).print(thisType, classinfo)
 				.print(" {").increaseIndent();
 		
-		if(!fields.isEmpty())
+		
+		List<JavaField> stringableFields = fields.stream().filter(field -> field.canStringify(classinfo)).toList();
+		List<JavaMethod> stringableMethods = methods.stream().filter(method -> method.canStringify(classinfo)).toList();
+		
+		
+		if(!stringableFields.isEmpty())
+			out.println().println();
+		else if(!stringableMethods.isEmpty())
 			out.println();
 		
-		fields.stream().filter(field -> field.canStringify(classinfo)).forEach(field -> out.print(field, classinfo));
+		writeFields(stringableFields, out, classinfo);
 		
-		methods.stream().filter(method -> method.canStringify(classinfo)).forEach(method -> out.println().print(method, classinfo));
+		stringableMethods.forEach(method -> out.println().write(method, classinfo));
 		
 		out.reduceIndent().print('}');
 	}
@@ -140,26 +150,26 @@ public class JavaClass extends JavaClassElement {
 	private IWhitespaceStringBuilder modifiersToString(ClassInfo classinfo) {
 		WhitespaceStringBuilder str = new WhitespaceStringBuilder().printTrailingSpace();
 		
-		boolean isInnerProtected = false;
-		
-//		if(thisType.isNested) {
-//			InnerClassesAttribute innerClasses = attributes.get<InnerClassesAttribute>();
-//			if(innerClasses != nullptr) {
-//				InnerClass innerClass = innerClasses->find(thisType);
-//				if(innerClass != nullptr) {
-//					int innerClassModifiers = innerClass->modifiers;
+//		boolean isInnerProtected = false;
+//		
+//		if(thisType.kind.isNested()) {
+//			InnerClassesAttribute innerClasses = attributes.get("InnerClasses");
+//			if(innerClasses != null) {
+//				InnerClass innerClass = innerClasses.find(thisType);
+//				if(innerClass != null) {
+//					int innerClassModifiers = innerClass.modifiers;
 //					
-//					if(innerClassModifiers & ACC_PRIVATE) str.append("private");
-//					if(innerClassModifiers & ACC_PROTECTED) {
+//					if((innerClassModifiers & ACC_PRIVATE) != 0) str.append("private");
+//					if((innerClassModifiers & ACC_PROTECTED) != 0) {
 //						str.append("protected");
 //						isInnerProtected = true;
 //					}
 //					
-//					if(innerClassModifiers & ACC_STATIC) str.append("static");
+//					if((innerClassModifiers & ACC_STATIC) != 0) str.append("static");
 //					
 //					if((innerClassModifiers & ~(ACC_ACCESS_FLAGS | ACC_STATIC | ACC_SUPER)) != (modifiers & ~(ACC_ACCESS_FLAGS | ACC_SUPER)))
 //						warning("modifiers of class " + thisType.getName() + " are not matching to the modifiers in InnerClasses attribute:"
-//								+ hexWithPrefix<4>(innerClassModifiers) + ' ' + hexWithPrefix<4>(modifiers));
+//								+ Util.hex4WithPrefix(innerClassModifiers) + " " + Util.hex4WithPrefix(modifiers));
 //				}
 //			}
 //		}
@@ -167,7 +177,7 @@ public class JavaClass extends JavaClassElement {
 		switch(modifiers & ACC_ACCESS_FLAGS) {
 			case ACC_VISIBLE -> {}
 			case ACC_PUBLIC -> {
-				if(!isInnerProtected)
+//				if(!isInnerProtected)
 					str.append("public");
 			}
 				
@@ -197,5 +207,47 @@ public class JavaClass extends JavaClassElement {
 		}
 		
 		return str;
+	}
+	
+	
+	private void writeFields(List<JavaField> fields, StringifyOutputStream out, ClassInfo classinfo) {
+		
+		int modifiers = 0;
+		Type type = null; // NullPointerException никогда не возникнет для этой переменной
+		Pair<AnnotationsAttribute, AnnotationsAttribute> annotationAttributes = null;
+		boolean prevFieldWritten = false;
+		
+		for(JavaField field : fields) {
+			
+			if(prevFieldWritten) {
+				if(field.modifiers == modifiers && field.descriptor.type.equals(type) && field.getAnnotationAttributes().equals(annotationAttributes)) {
+					out.print(", ").print(field.descriptor.name);
+				} else {
+					out.writeln(';');
+					
+					if(field.hasAnnotation())
+						out.writeln();
+						
+					field.writeWithoutSemicolon(out, classinfo);
+					
+					modifiers = field.modifiers;
+					type = field.descriptor.type;
+					annotationAttributes = field.getAnnotationAttributes();
+				}
+				
+			} else {
+				
+				field.writeWithoutSemicolon(out, classinfo);
+				
+				modifiers = field.modifiers;
+				type = field.descriptor.type;
+				annotationAttributes = field.getAnnotationAttributes();
+				
+				prevFieldWritten = true;
+			}
+		}
+		
+		if(prevFieldWritten)
+			out.writeln(';');
 	}
 }

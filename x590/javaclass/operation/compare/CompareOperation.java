@@ -1,8 +1,8 @@
 package x590.javaclass.operation.compare;
 
 import x590.javaclass.context.DecompilationContext;
-import x590.javaclass.operation.CmpOperation;
 import x590.javaclass.operation.Operation;
+import x590.javaclass.operation.cmp.CmpOperation;
 
 public abstract class CompareOperation extends ConditionOperation {
 	

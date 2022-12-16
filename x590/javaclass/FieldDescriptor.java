@@ -10,13 +10,10 @@ import x590.javaclass.type.Type;
 
 public class FieldDescriptor extends Descriptor implements StringWritableAndImportable {
 	
-	public final ClassType clazz;
-	public final String name;
 	public final Type type;
 	
 	public FieldDescriptor(ClassType clazz, String name, Type type) {
-		this.clazz = clazz;
-		this.name = name;
+		super(clazz, name);
 		this.type = type;
 	}
 	
@@ -39,7 +36,7 @@ public class FieldDescriptor extends Descriptor implements StringWritableAndImpo
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		classinfo.addImportIfReferenceType(type);
+		classinfo.addImport(type);
 	}
 	
 	

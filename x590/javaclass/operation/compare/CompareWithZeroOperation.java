@@ -9,7 +9,7 @@ public class CompareWithZeroOperation extends CompareUnaryOperation {
 	
 	public CompareWithZeroOperation(Operation operand, CompareType compareType) {
 		super(operand, compareType);
-		operand.castReturnTypeToNarrowest(PrimitiveType.ANY_INT_OR_BOOLEAN);
+		operand.castReturnTypeToNarrowest(PrimitiveType.BYTE_SHORT_CHAR_INT_BOOLEAN);
 		operand.allowImplicitCast();
 	}
 	

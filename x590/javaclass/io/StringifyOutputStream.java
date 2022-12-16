@@ -202,6 +202,31 @@ public class StringifyOutputStream extends UncheckedOutputStream {
 	}
 	
 	
+	public void writeln() {
+		write('\n');
+	}
+	
+	public void writeln(char ch) {
+		write(ch);
+		write('\n');
+	}
+	
+	public void writeln(String str) {
+		write(str);
+		write('\n');
+	}
+	
+	public void writeln(StringWritable writable, ClassInfo classinfo) {
+		write(writable, classinfo);
+		write('\n');
+	}
+	
+	public void writeln(Operation operation, StringifyContext context) {
+		write(operation, context);
+		write('\n');
+	}
+	
+	
 	public StringifyOutputStream println() {
 		return print('\n');
 	}
@@ -220,6 +245,30 @@ public class StringifyOutputStream extends UncheckedOutputStream {
 	
 	public StringifyOutputStream println(Operation operation, StringifyContext context) {
 		return print(operation, context).print('\n');
+	}
+	
+	public void writesp() {
+		write(' ');
+	}
+	
+	public void writesp(char ch) {
+		write(ch);
+		write(' ');
+	}
+	
+	public void writesp(String str) {
+		write(str);
+		write(' ');
+	}
+	
+	public void writesp(StringWritable writable, ClassInfo classinfo) {
+		write(writable, classinfo);
+		write(' ');
+	}
+	
+	public void writesp(Operation operation, StringifyContext context) {
+		write(operation, context);
+		write(' ');
 	}
 	
 	

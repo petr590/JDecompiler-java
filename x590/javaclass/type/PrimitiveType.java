@@ -2,6 +2,9 @@ package x590.javaclass.type;
 
 import x590.javaclass.ClassInfo;
 
+import static x590.javaclass.type.VariableCapacityIntegralType.INCLUDE_BOOLEAN;
+import static x590.javaclass.type.VariableCapacityIntegralType.INCLUDE_CHAR;
+
 public abstract class PrimitiveType extends BasicType {
 	
 	public static final PrimitiveType
@@ -17,17 +20,20 @@ public abstract class PrimitiveType extends BasicType {
 	
 	
 	public static final VariableCapacityIntegralType
-			  ANY_INT_OR_BOOLEAN = VariableCapacityIntegralType.getInstance(1, 4, VariableCapacityIntegralType.INCLUDE_BOOLEAN | VariableCapacityIntegralType.INCLUDE_CHAR),
-			             ANY_INT = VariableCapacityIntegralType.getInstance(1, 4, VariableCapacityIntegralType.INCLUDE_CHAR),
-			      ANY_SIGNED_INT = VariableCapacityIntegralType.getInstance(1, 4),
-			CHAR_OR_SHORT_OR_INT = VariableCapacityIntegralType.getInstance(2, 4, VariableCapacityIntegralType.INCLUDE_CHAR),
-			         CHAR_OR_INT = VariableCapacityIntegralType.getInstance(4, 4, VariableCapacityIntegralType.INCLUDE_CHAR),
-			        SHORT_OR_INT = VariableCapacityIntegralType.getInstance(2, 4),
-			     BYTE_OR_BOOLEAN = VariableCapacityIntegralType.getInstance(1, 1, VariableCapacityIntegralType.INCLUDE_BOOLEAN),
-			      INT_OR_BOOLEAN = VariableCapacityIntegralType.getInstance(4, 4, VariableCapacityIntegralType.INCLUDE_BOOLEAN);
+			BYTE_SHORT_CHAR_INT_BOOLEAN = VariableCapacityIntegralType.getInstance(1, 4, INCLUDE_BOOLEAN | INCLUDE_CHAR),
+			BYTE_SHORT_CHAR_INT         = VariableCapacityIntegralType.getInstance(1, 4, INCLUDE_CHAR),
+			BYTE_SHORT_INT              = VariableCapacityIntegralType.getInstance(1, 4),
+			CHAR_SHORT_INT              = VariableCapacityIntegralType.getInstance(2, 4, INCLUDE_CHAR),
+			CHAR_INT                    = VariableCapacityIntegralType.getInstance(4, 4, INCLUDE_CHAR),
+			SHORT_INT                   = VariableCapacityIntegralType.getInstance(2, 4),
+			BYTE_BOOLEAN                = VariableCapacityIntegralType.getInstance(1, 1, INCLUDE_BOOLEAN),
+			INT_BOOLEAN                 = VariableCapacityIntegralType.getInstance(4, 4, INCLUDE_BOOLEAN);
 	
 	
-	public final String nameForVariable;
+	public static final int CHAR_CAPACITY = 2;
+	
+	
+	private final String nameForVariable;
 	
 	public PrimitiveType(String encodedName, String name, String nameForVariable) {
 		super(encodedName, name);
@@ -55,23 +61,22 @@ public abstract class PrimitiveType extends BasicType {
 	}
 	
 	@Override
-	protected boolean isSubtypeOfImpl(Type other) {
+	protected boolean canCastTo(Type other) {
+		return this == other;
+	}
+	
+	protected boolean canCastToWidest(Type other) {
 		return this == other;
 	}
 	
 	@Override
-	protected boolean canReverse(Type other) {
-		return true;
-	}
-	
-	@Override
 	protected Type castToNarrowestImpl(Type other) {
-		return this.isSubtypeOf(other) ? this : null;
+		return this.canCastTo(other) ? this : null;
 	}
 	
 	@Override
 	protected Type castToWidestImpl(Type other) {
-		return this.isSubtypeOf(other) ? other : null;
+		return this.canCastToWidest(other) ? this : null;
 	}
 	
 	public Type toVariableCapacityIntegralType() {

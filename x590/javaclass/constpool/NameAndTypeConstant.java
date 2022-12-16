@@ -41,4 +41,14 @@ public class NameAndTypeConstant extends Constant {
 		out.writeShort(nameIndex);
 		out.writeShort(descriptorIndex);
 	}
+	
+	
+	@Override
+	public boolean equals(Object other) {
+		return this == other || other instanceof NameAndTypeConstant constant && this.equals(constant);
+	}
+	
+	public boolean equals(NameAndTypeConstant other) {
+		return this == other || this.name.equals(other.name) && this.descriptor.equals(other.descriptor);
+	}
 }

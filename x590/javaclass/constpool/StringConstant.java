@@ -6,7 +6,7 @@ import java.io.IOException;
 import x590.javaclass.ClassInfo;
 import x590.javaclass.io.ExtendedDataInputStream;
 import x590.javaclass.operation.Operation;
-import x590.javaclass.operation.StringConstOperation;
+import x590.javaclass.operation.constant.StringConstOperation;
 import x590.javaclass.type.ClassType;
 import x590.javaclass.type.Type;
 import x590.javaclass.util.Util;
@@ -51,5 +51,15 @@ public class StringConstant extends ConstValueConstant {
 	public void serialize(DataOutputStream out) throws IOException {
 		out.writeByte(8);
 		out.writeShort(index);
+	}
+	
+	
+	@Override
+	public boolean equals(Object other) {
+		return this == other || other instanceof StringConstant constant && this.equals(constant);
+	}
+	
+	public boolean equals(StringConstant other) {
+		return this == other || this.value.equals(other.value);
 	}
 }

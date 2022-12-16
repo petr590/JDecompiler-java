@@ -1,22 +1,29 @@
 package x590.javaclass.util;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import x590.javaclass.ClassInfo;
 import x590.javaclass.io.StringifyOutputStream;
 
-public class WhitespaceStringBuilder implements IWhitespaceStringBuilder {
+public class WhitespaceStringBuilder extends AbstractWhitespaceStringBuilder<WhitespaceStringBuilder> {
 	
 	private final List<String> values = new ArrayList<>();
-	private boolean printTrailingSpace;
 	
 	public WhitespaceStringBuilder() {}
 	
 	public WhitespaceStringBuilder(String str) {
 		values.add(str);
+	}
+	
+	public WhitespaceStringBuilder(boolean printTrailingSpace) {
+		super(printTrailingSpace);
+	}
+	
+	public WhitespaceStringBuilder(String str, boolean printTrailingSpace) {
+		this(str);
+		this.printTrailingSpace = printTrailingSpace;
 	}
 	
 	
@@ -43,40 +50,23 @@ public class WhitespaceStringBuilder implements IWhitespaceStringBuilder {
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-		if(printTrailingSpace) {
-			values.forEach(value -> {
-				out.print(value);
-				out.print(' ');
-			});
-			
-		} else {
-			if(!values.isEmpty()) {
-				for(Iterator<String> iter = values.iterator();;) {
-					out.print(iter.next());
-					
-					if(!iter.hasNext())
-						return;
-					
-					out.print(' ');
-				}
-			}
-		}
-	}
-	
-	@Override
-	public WhitespaceStringBuilder printTrailingSpace() {
-		this.printTrailingSpace = true;
-		return this;
+		if(printTrailingSpace)
+			values.forEach(value -> out.print(value).printsp());
+		else
+			Util.forEachExcludingLast(values, value -> out.print(value), () -> out.printsp());
 	}
 	
 	
-	private static class EmptyWhitespaceStringBuilder implements IWhitespaceStringBuilder {
+	private static class EmptyWhitespaceStringBuilder extends AbstractWhitespaceStringBuilder<EmptyWhitespaceStringBuilder> {
 		
 		public static final EmptyWhitespaceStringBuilder INSTANCE = new EmptyWhitespaceStringBuilder();
 		
+		
+		private boolean printTrailingSpace;
+		
 		@Override
 		public IWhitespaceStringBuilder append(String str) {
-			throw new UnsupportedOperationException("append");
+			return new WhitespaceStringBuilder(str, printTrailingSpace);
 		}
 		
 		@Override
@@ -85,9 +75,8 @@ public class WhitespaceStringBuilder implements IWhitespaceStringBuilder {
 		}
 		
 		@Override
-		public IWhitespaceStringBuilder printTrailingSpace() {
-			// Do nothing
-			return this;
+		public String toString() {
+			return "";
 		}
 		
 		@Override

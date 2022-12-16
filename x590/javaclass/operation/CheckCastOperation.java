@@ -12,6 +12,7 @@ public class CheckCastOperation extends CastOperation {
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		classinfo.addImportIfReferenceType(castedType);
+		if(!implicitCast || !implicitCastAllowed)
+			classinfo.addImport(castedType);
 	}
 }

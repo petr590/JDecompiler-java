@@ -3,6 +3,7 @@ package x590.javaclass.operation;
 import x590.javaclass.Importable;
 import x590.javaclass.context.StringifyContext;
 import x590.javaclass.io.StringifyOutputStream;
+import x590.javaclass.operation.dup.AbstractDupOperation;
 import x590.javaclass.type.PrimitiveType;
 import x590.javaclass.type.Type;
 
@@ -109,7 +110,7 @@ public abstract class Operation implements Importable {
 //		onCastReturnType(getReturnType().twoWayCastTo(type));
 //	}
 	
-	protected void onCastReturnType(Type type) {}
+	public void onCastReturnType(Type type) {}
 	
 	/** Возвращает исходную операцию (для класса {@link AbstractDupOperation},
 	 * для всех остальных классов возвращает {@literal this}) */
@@ -120,6 +121,17 @@ public abstract class Operation implements Importable {
 	
 	/** Возвращает {@literal true}, если операция использует локальные переменные */
 	public boolean requiresLocalContext() {
+		return false;
+	}
+	
+	
+	/** Гарантирует, что операция является скопом */
+	public boolean isScope() {
+		return false;
+	}
+	
+	/** Проверяет, что операция является константой 1 (любого типа) */
+	public boolean isOne() {
 		return false;
 	}
 	

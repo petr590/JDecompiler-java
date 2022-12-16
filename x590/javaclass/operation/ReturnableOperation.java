@@ -18,7 +18,7 @@ public abstract class ReturnableOperation extends Operation {
 	}
 	
 	@Override
-	protected void onCastReturnType(Type newType) {
+	public void onCastReturnType(Type newType) {
 		this.returnType = Objects.requireNonNull(newType);
 	}
 }

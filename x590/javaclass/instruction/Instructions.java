@@ -2,8 +2,18 @@ package x590.javaclass.instruction;
 
 import x590.javaclass.instruction.scope.MonitorEnterInstruction;
 import x590.javaclass.instruction.scope.MonitorExitInstruction;
-import x590.javaclass.type.PrimitiveType;
 import x590.javaclass.type.TypeSize;
+import x590.javaclass.instruction.arrayload.*;
+import x590.javaclass.instruction.arraystore.*;
+import x590.javaclass.instruction.cmp.*;
+import x590.javaclass.instruction.constant.*;
+import x590.javaclass.instruction.dup.*;
+import x590.javaclass.instruction.load.*;
+import x590.javaclass.instruction.operator.*;
+import x590.javaclass.instruction.returning.*;
+import x590.javaclass.instruction.store.*;
+
+import static x590.javaclass.type.PrimitiveType.*;
 
 public class Instructions {
 	
@@ -111,60 +121,60 @@ public class Instructions {
 			SWAP    = new SwapInstruction(),
 			
 			
-			IADD = new AddOperatorInstruction(PrimitiveType.ANY_INT_OR_BOOLEAN),
-			LADD = new AddOperatorInstruction(PrimitiveType.LONG),
-			FADD = new AddOperatorInstruction(PrimitiveType.FLOAT),
-			DADD = new AddOperatorInstruction(PrimitiveType.DOUBLE),
-			ISUB = new SubOperatorInstruction(PrimitiveType.ANY_INT_OR_BOOLEAN),
-			LSUB = new SubOperatorInstruction(PrimitiveType.LONG),
-			FSUB = new SubOperatorInstruction(PrimitiveType.FLOAT),
-			DSUB = new SubOperatorInstruction(PrimitiveType.DOUBLE),
-			IMUL = new MulOperatorInstruction(PrimitiveType.ANY_INT_OR_BOOLEAN),
-			LMUL = new MulOperatorInstruction(PrimitiveType.LONG),
-			FMUL = new MulOperatorInstruction(PrimitiveType.FLOAT),
-			DMUL = new MulOperatorInstruction(PrimitiveType.DOUBLE),
-			IDIV = new DivOperatorInstruction(PrimitiveType.ANY_INT_OR_BOOLEAN),
-			LDIV = new DivOperatorInstruction(PrimitiveType.LONG),
-			FDIV = new DivOperatorInstruction(PrimitiveType.FLOAT),
-			DDIV = new DivOperatorInstruction(PrimitiveType.DOUBLE),
-			IREM = new RemOperatorInstruction(PrimitiveType.ANY_INT_OR_BOOLEAN),
-			LREM = new RemOperatorInstruction(PrimitiveType.LONG),
-			FREM = new RemOperatorInstruction(PrimitiveType.FLOAT),
-			DREM = new RemOperatorInstruction(PrimitiveType.DOUBLE),
-			INEG = new NegOperatorInstruction(PrimitiveType.ANY_INT_OR_BOOLEAN),
-			LNEG = new NegOperatorInstruction(PrimitiveType.LONG),
-			FNEG = new NegOperatorInstruction(PrimitiveType.FLOAT),
-			DNEG = new NegOperatorInstruction(PrimitiveType.DOUBLE),
+			IADD = new AddOperatorInstruction(BYTE_SHORT_CHAR_INT),
+			LADD = new AddOperatorInstruction(LONG),
+			FADD = new AddOperatorInstruction(FLOAT),
+			DADD = new AddOperatorInstruction(DOUBLE),
+			ISUB = new SubOperatorInstruction(BYTE_SHORT_CHAR_INT),
+			LSUB = new SubOperatorInstruction(LONG),
+			FSUB = new SubOperatorInstruction(FLOAT),
+			DSUB = new SubOperatorInstruction(DOUBLE),
+			IMUL = new MulOperatorInstruction(BYTE_SHORT_CHAR_INT),
+			LMUL = new MulOperatorInstruction(LONG),
+			FMUL = new MulOperatorInstruction(FLOAT),
+			DMUL = new MulOperatorInstruction(DOUBLE),
+			IDIV = new DivOperatorInstruction(BYTE_SHORT_CHAR_INT),
+			LDIV = new DivOperatorInstruction(LONG),
+			FDIV = new DivOperatorInstruction(FLOAT),
+			DDIV = new DivOperatorInstruction(DOUBLE),
+			IREM = new RemOperatorInstruction(BYTE_SHORT_CHAR_INT),
+			LREM = new RemOperatorInstruction(LONG),
+			FREM = new RemOperatorInstruction(FLOAT),
+			DREM = new RemOperatorInstruction(DOUBLE),
+			INEG = new NegOperatorInstruction(BYTE_SHORT_CHAR_INT),
+			LNEG = new NegOperatorInstruction(LONG),
+			FNEG = new NegOperatorInstruction(FLOAT),
+			DNEG = new NegOperatorInstruction(DOUBLE),
 			
-			ISHL  = new ShiftLeftOperatorInstruction(PrimitiveType.ANY_INT_OR_BOOLEAN),
-			LSHL  = new ShiftLeftOperatorInstruction(PrimitiveType.LONG),
-			ISHR  = new ShiftRightOperatorInstruction(PrimitiveType.ANY_INT_OR_BOOLEAN),
-			LSHR  = new ShiftRightOperatorInstruction(PrimitiveType.LONG),
-			IUSHR = new UShiftRightOperatorInstruction(PrimitiveType.ANY_INT_OR_BOOLEAN),
-			LUSHR = new UShiftRightOperatorInstruction(PrimitiveType.LONG),
-			IAND  = new AndOperatorInstruction(PrimitiveType.ANY_INT_OR_BOOLEAN),
-			LAND  = new AndOperatorInstruction(PrimitiveType.LONG),
-			IOR   = new OrOperatorInstruction(PrimitiveType.ANY_INT_OR_BOOLEAN),
-			LOR   = new OrOperatorInstruction(PrimitiveType.LONG),
-			IXOR  = new XorOperatorInstruction(PrimitiveType.ANY_INT_OR_BOOLEAN),
-			LXOR  = new XorOperatorInstruction(PrimitiveType.LONG),
+			ISHL  = new ShiftLeftOperatorInstruction(BYTE_SHORT_CHAR_INT),
+			LSHL  = new ShiftLeftOperatorInstruction(LONG),
+			ISHR  = new ShiftRightOperatorInstruction(BYTE_SHORT_CHAR_INT),
+			LSHR  = new ShiftRightOperatorInstruction(LONG),
+			IUSHR = new UShiftRightOperatorInstruction(BYTE_SHORT_CHAR_INT),
+			LUSHR = new UShiftRightOperatorInstruction(LONG),
+			IAND  = new AndOperatorInstruction(BYTE_SHORT_CHAR_INT_BOOLEAN),
+			LAND  = new AndOperatorInstruction(LONG),
+			IOR   = new OrOperatorInstruction(BYTE_SHORT_CHAR_INT_BOOLEAN),
+			LOR   = new OrOperatorInstruction(LONG),
+			IXOR  = new XorOperatorInstruction(BYTE_SHORT_CHAR_INT_BOOLEAN),
+			LXOR  = new XorOperatorInstruction(LONG),
 			
 			
-			I2L = new CastInstruction(PrimitiveType.INT,    PrimitiveType.LONG,   false),
-			I2F = new CastInstruction(PrimitiveType.INT,    PrimitiveType.FLOAT,  false),
-			I2D = new CastInstruction(PrimitiveType.INT,    PrimitiveType.DOUBLE, false),
-			L2I = new CastInstruction(PrimitiveType.LONG,   PrimitiveType.INT,    true),
-			L2F = new CastInstruction(PrimitiveType.LONG,   PrimitiveType.FLOAT,  false),
-			L2D = new CastInstruction(PrimitiveType.LONG,   PrimitiveType.DOUBLE, false),
-			F2I = new CastInstruction(PrimitiveType.FLOAT,  PrimitiveType.INT,    true),
-			F2L = new CastInstruction(PrimitiveType.FLOAT,  PrimitiveType.LONG,   true),
-			F2D = new CastInstruction(PrimitiveType.FLOAT,  PrimitiveType.DOUBLE, false),
-			D2I = new CastInstruction(PrimitiveType.DOUBLE, PrimitiveType.INT,    true),
-			D2L = new CastInstruction(PrimitiveType.DOUBLE, PrimitiveType.LONG,   true),
-			D2F = new CastInstruction(PrimitiveType.DOUBLE, PrimitiveType.FLOAT,  true),
-			I2B = new CastInstruction(PrimitiveType.INT,    PrimitiveType.BYTE,   true),
-			I2C = new CastInstruction(PrimitiveType.INT,    PrimitiveType.CHAR,   true),
-			I2S = new CastInstruction(PrimitiveType.INT,    PrimitiveType.SHORT,  true),
+			I2L = new CastInstruction(INT,    LONG,   true),
+			I2F = new CastInstruction(INT,    FLOAT,  true),
+			I2D = new CastInstruction(INT,    DOUBLE, true),
+			L2I = new CastInstruction(LONG,   INT,    false),
+			L2F = new CastInstruction(LONG,   FLOAT,  true),
+			L2D = new CastInstruction(LONG,   DOUBLE, true),
+			F2I = new CastInstruction(FLOAT,  INT,    false),
+			F2L = new CastInstruction(FLOAT,  LONG,   false),
+			F2D = new CastInstruction(FLOAT,  DOUBLE, true),
+			D2I = new CastInstruction(DOUBLE, INT,    false),
+			D2L = new CastInstruction(DOUBLE, LONG,   false),
+			D2F = new CastInstruction(DOUBLE, FLOAT,  false),
+			I2B = new CastInstruction(INT,    BYTE,   false),
+			I2C = new CastInstruction(INT,    CHAR,   false),
+			I2S = new CastInstruction(INT,    SHORT,  false),
 			
 			
 			LCMP = new LCmpInstruction(),

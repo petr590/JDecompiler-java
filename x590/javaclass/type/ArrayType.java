@@ -13,7 +13,7 @@ public final class ArrayType extends ReferenceType {
 	public static final ArrayType
 			ANY_ARRAY = new ArrayType(AnyType.INSTANCE),
 			ANY_OBJECT_ARRAY = new ArrayType(AnyObjectType.INSTANCE),
-			BYTE_OR_BOOLEAN_ARRAY = new ArrayType(PrimitiveType.BYTE_OR_BOOLEAN),
+			BYTE_OR_BOOLEAN_ARRAY = new ArrayType(PrimitiveType.BYTE_BOOLEAN),
 			BOOLEAN_ARRAY = new ArrayType(PrimitiveType.BOOLEAN),
 			BYTE_ARRAY    = new ArrayType(PrimitiveType.BYTE),
 			SHORT_ARRAY   = new ArrayType(PrimitiveType.SHORT),
@@ -108,14 +108,22 @@ public final class ArrayType extends ReferenceType {
 		return true;
 	}
 	
+	
 	@Override
-	protected boolean isSubtypeOfImpl(Type other) {
-		if(other.equals(ClassType.OBJECT)) {
-			return true;
+	public void addImports(ClassInfo classinfo) {
+		classinfo.addImport(memberType);
+	}
+	
+	
+	@Override
+	protected boolean canCastTo(Type other) {
+		if(other.isArrayType()) {
+			ArrayType arrayType = (ArrayType)other;
+			
+			return (this.nestingLevel == arrayType.nestingLevel && this.memberType.isSubtypeOf(arrayType.memberType))
+					|| this.elementType.isSubtypeOf(arrayType.elementType);
 		}
 		
-		return other instanceof ArrayType arrayType &&
-				((this.nestingLevel == arrayType.nestingLevel && this.memberType.isSubtypeOf(arrayType.memberType))
-				|| this.elementType.isSubtypeOf(arrayType.elementType));
+		return false;
 	}
 }

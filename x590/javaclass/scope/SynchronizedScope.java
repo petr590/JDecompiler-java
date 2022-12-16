@@ -1,17 +1,17 @@
 package x590.javaclass.scope;
 
-import x590.javaclass.Variable;
 import x590.javaclass.context.DecompilationContext;
 import x590.javaclass.context.StringifyContext;
 import x590.javaclass.io.StringifyOutputStream;
-import x590.javaclass.operation.AStoreOperation;
 import x590.javaclass.operation.Operation;
+import x590.javaclass.operation.store.AStoreOperation;
 import x590.javaclass.type.Types;
+import x590.javaclass.variable.EmptyableVariable;
 
 public class SynchronizedScope extends Scope {
 	
 	private final Operation object;
-	private final Variable variable;
+	private final EmptyableVariable variable;
 	
 	public SynchronizedScope(DecompilationContext context) {
 		super(context, context.currentScope().endIndex());
@@ -26,7 +26,7 @@ public class SynchronizedScope extends Scope {
 		}
 	}
 	
-	public Variable getVariable() {
+	public EmptyableVariable getVariable() {
 		return variable;
 	}
 	

@@ -5,8 +5,8 @@ import java.io.IOException;
 
 import x590.javaclass.ClassInfo;
 import x590.javaclass.io.ExtendedDataInputStream;
-import x590.javaclass.operation.MethodTypeConstOperation;
 import x590.javaclass.operation.Operation;
+import x590.javaclass.operation.constant.MethodTypeConstOperation;
 import x590.javaclass.type.ClassType;
 import x590.javaclass.type.Type;
 
@@ -56,5 +56,15 @@ public class MethodTypeConstant extends ConstValueConstant {
 	public void serialize(DataOutputStream out) throws IOException {
 		out.writeByte(16);
 		out.writeByte(descriptorIndex);
+	}
+	
+	
+	@Override
+	public boolean equals(Object other) {
+		return this == other || other instanceof MethodTypeConstant constant && this.equals(constant);
+	}
+	
+	public boolean equals(MethodTypeConstant other) {
+		return this == other || this.descriptor.equals(other.descriptor);
 	}
 }

@@ -4,8 +4,8 @@ import x590.javaclass.context.DecompilationContext;
 import x590.javaclass.context.StringifyContext;
 import x590.javaclass.exception.DecompilationException;
 import x590.javaclass.io.StringifyOutputStream;
-import x590.javaclass.operation.CmpOperation;
 import x590.javaclass.operation.Operation;
+import x590.javaclass.operation.cmp.CmpOperation;
 import x590.javaclass.type.PrimitiveType;
 import x590.javaclass.type.Type;
 

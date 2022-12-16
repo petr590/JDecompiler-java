@@ -1,8 +1,10 @@
 package x590.javaclass.util;
 
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.function.Consumer;
+import java.util.function.ObjIntConsumer;
 
 import x590.javaclass.exception.DecompilationException;
 import x590.jdecompiler.JDecompiler;
@@ -44,7 +46,7 @@ public class Util {
 	
 	private static char hexChar(int num) {
 		num &= 0xF;
-		return (char)(num > 9 ? 'A' - 10 + num : '0' + num);
+		return (char)((num > 9 ? 'A' - 10 : '0') + num);
 	}
 	
 	
@@ -72,24 +74,26 @@ public class Util {
 	public static String hex4WithPrefix(int num) {
 		return "0x" + hex4(num);
 	}
-
-
+	
+	
+	private static final Charset UTF8_CHARSET = Charset.forName("Utf-8");
+	
 	private static String encodeUtf8(int c) {
 		// 0xxxxxxx
 		if(c < 0x80)       return String.valueOf((char)c);
 		// 110xxxxx 10xxxxxx
-		if(c < 0x800)      return String.valueOf(new char[] { (char)((c >>  6 & 0x1F) | 0xC0), (char)((c & 0x3F) | 0x80) });
+		if(c < 0x800)      return new String(new byte[] { (byte)((c >>  6 & 0x1F) | 0xC0), (byte)((c & 0x3F) | 0x80) }, UTF8_CHARSET);
 		// 1110xxxx 10xxxxxx 10xxxxxx
-		if(c < 0x10000)    return String.valueOf(new char[] { (char)((c >> 12 &  0xF) | 0xE0), (char)((c >>  6 & 0x3F) | 0x80), (char)((c >>  0 & 0x3F) | 0x80) });
+		if(c < 0x10000)    return new String(new byte[] { (byte)((c >> 12 &  0xF) | 0xE0), (byte)((c >>  6 & 0x3F) | 0x80), (byte)((c >>  0 & 0x3F) | 0x80) }, UTF8_CHARSET);
 		// 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-		if(c < 0x200000)   return String.valueOf(new char[] { (char)((c >> 18 &  0x7) | 0xF0), (char)((c >> 12 & 0x3F) | 0x80), (char)((c >>  6 & 0x3F) | 0x80),
-									(char)((c >>  0 & 0x3F) | 0x80) });
+		if(c < 0x200000)   return new String(new byte[] { (byte)((c >> 18 &  0x7) | 0xF0), (byte)((c >> 12 & 0x3F) | 0x80), (byte)((c >>  6 & 0x3F) | 0x80),
+									(byte)((c >>  0 & 0x3F) | 0x80) }, UTF8_CHARSET);
 		// 111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
-		if(c < 0x4000000)  return String.valueOf(new char[] { (char)((c >> 24 &  0x3) | 0xF8), (char)((c >> 18 & 0x3F) | 0x80), (char)((c >> 12 & 0x3F) | 0x80),
-									(char)((c >>  6 & 0x3F) | 0x80), (char)((c >>  0 & 0x3F) | 0x80) });
+		if(c < 0x4000000)  return new String(new byte[] { (byte)((c >> 24 &  0x3) | 0xF8), (byte)((c >> 18 & 0x3F) | 0x80), (byte)((c >> 12 & 0x3F) | 0x80),
+									(byte)((c >>  6 & 0x3F) | 0x80), (byte)((c >>  0 & 0x3F) | 0x80) }, UTF8_CHARSET);
 		// 1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
-		if(c < 0x80000000) return String.valueOf(new char[] { (char)((c >> 30 &  0x1) | 0xFC), (char)((c >> 24 & 0x3F) | 0x80), (char)((c >> 18 & 0x3F) | 0x80),
-									(char)((c >> 12 & 0x3F) | 0x80), (char)((c >>  6 & 0x3F) | 0x80), (char)((c >>  0 & 0x3F) | 0x80) });
+		if(c < 0x80000000) return new String(new byte[] { (byte)((c >> 30 &  0x1) | 0xFC), (byte)((c >> 24 & 0x3F) | 0x80), (byte)((c >> 18 & 0x3F) | 0x80),
+									(byte)((c >> 12 & 0x3F) | 0x80), (byte)((c >>  6 & 0x3F) | 0x80), (byte)((c >>  0 & 0x3F) | 0x80) }, UTF8_CHARSET);
 
 		throw new IllegalArgumentException("Char code U+" + hex(c) + " is too large for encode");
 	}
@@ -135,10 +139,9 @@ public class Util {
 			case '\f': return "\\f";
 			case '\r': return "\\r";
 			case '\\': return "\\\\";
-			default:   return ch == quote ?
-					"\\" + quote :
+			default:   return ch == quote ? "\\" + quote :
 					isNotDisplayedChar(ch) || (JDecompiler.getInstance().escapeUnicodeChars() && ch >= 0x80) ?
-							quote == '\'' ?
+							quote == '\'' && ch < 0x100 ?
 									escapeUtf16Octal(ch) :
 									escapeUtf16(ch) :
 							encodeUtf8(ch);
@@ -148,43 +151,41 @@ public class Util {
 	public static String toLiteral(String str) {
 		byte[] bytes = str.getBytes();
 		
-		StringBuilder result = new StringBuilder("\"");
+		StringBuilder result = new StringBuilder(bytes.length).append('"');
 		
 		for(int i = 0, end = bytes.length; i < end; ++i) {
 			int ch = bytes[i] & 0xFF;
 			
 			if((ch & 0xE0) == 0xC0) {
-				if(i + 1 >= end)
-					throw new DecompilationException("Unexpected end of the string: " + i + " + " + 1 + " >= " + end);
+				i++;
 				
-				if((bytes[1] & 0xC0) != 0x80)
+				if(i >= end)
+					throw new DecompilationException("Unexpected end of the string: " + i + " >= " + end);
+				
+				if((bytes[i] & 0xC0) != 0x80)
 					throw new DecompilationException("Invalid string encoding");
 				
-				ch = (ch & 0x1F) << 6 | (bytes[1] & 0x3F);
-				
-				i++;
+				ch = (ch & 0x1F) << 6 | (bytes[i] & 0x3F);
 				
 			} else if((ch & 0xF0) == 0xE0) {
 				
 				if(ch == 0xED && i + 5 < end &&
-						(bytes[1] & 0xF0) == 0xA0 && (bytes[2] & 0xC0) == 0x80 && (bytes[3] & 0xFF) == 0xED
-					 && (bytes[4] & 0xF0) == 0xB0 && (bytes[5] & 0xC0) == 0x80) {
+						(bytes[i + 1] & 0xF0) == 0xA0 && (bytes[i + 2] & 0xC0) == 0x80 && (bytes[i + 3] & 0xFF) == 0xED
+					 && (bytes[i + 4] & 0xF0) == 0xB0 && (bytes[i + 5] & 0xC0) == 0x80) {
 					
-					result.append(encodeUtf8((int)(0x10000 | (bytes[1] & 0xF) << 16 |
-							(bytes[2] & 0x3F) << 10 | (bytes[4] & 0xF) << 6 | (bytes[5] & 0x3F))));
-					i += 5;
+					result.append(encodeUtf8((int)(0x10000 | (bytes[++i] & 0xF) << 16 |
+							(bytes[++i] & 0x3F) << 10 | (bytes[i += 2] & 0xF) << 6 | (bytes[++i] & 0x3F))));
+					
 					continue;
 				}
 
 				if(i + 2 >= end)
 					throw new DecompilationException("Unexpected end of the string: " + i + " + " + 2 + " >= " + end);
 				
-				if((bytes[1] & 0xC0) != 0x80 || (bytes[2] & 0xC0) != 0x80)
+				if((bytes[i + 1] & 0xC0) != 0x80 || (bytes[i + 2] & 0xC0) != 0x80)
 					throw new DecompilationException("Invalid string encoding");
 				
-				ch = (ch & 0xF) << 12 | (bytes[1] & 0x3F) << 6 | (bytes[2] & 0x3F);
-
-				i += 2;
+				ch = (ch & 0xF) << 12 | (bytes[++i] & 0x3F) << 6 | (bytes[++i] & 0x3F);
 			}
 
 			if(ch > 0x10FFFF)
@@ -260,19 +261,42 @@ public class Util {
 	}
 	
 	public static <T> void forEachExcludingLast(Iterable<T> iterable, Consumer<? super T> eachFunc, Runnable eachExcludingLastFunc) {
+		forEachExcludingLast(iterable, eachFunc, value -> eachExcludingLastFunc.run());
+	}
+	
+	
+	public static <T> void forEachExcludingLast(T[] array, ObjIntConsumer<? super T> func1, Consumer<? super T> func2) {
+		forEachExcludingLast(Arrays.asList(array), func1, func2);
+	}
+	
+	
+	public static <T> void forEachExcludingLast(Iterable<T> iterable, ObjIntConsumer<? super T> func1, Consumer<? super T> func2) {
 		Iterator<T> iterator = iterable.iterator();
 		
 		if(iterator.hasNext()) {
+			int i = 0;
+			
 			while(true) {
 				T value = iterator.next();
-				eachFunc.accept(value);
+				func1.accept(value, i);
 				
 				if(iterator.hasNext())
-					eachExcludingLastFunc.run();
+					func2.accept(value);
 				else
 					break;
+				
+				i++;
 			}
 		}
+	}
+
+	
+	public static <T> void forEachExcludingLast(T[] array, ObjIntConsumer<? super T> eachFunc, Runnable eachExcludingLastFunc) {
+		forEachExcludingLast(Arrays.asList(array), eachFunc, eachExcludingLastFunc);
+	}
+	
+	public static <T> void forEachExcludingLast(Iterable<T> iterable, ObjIntConsumer<? super T> eachFunc, Runnable eachExcludingLastFunc) {
+		forEachExcludingLast(iterable, eachFunc, value -> eachExcludingLastFunc.run());
 	}
 	
 	

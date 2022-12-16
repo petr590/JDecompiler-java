@@ -5,6 +5,7 @@ import java.util.List;
 
 import x590.javaclass.attribute.Attributes;
 import x590.javaclass.attribute.ConstantValueAttribute;
+import x590.javaclass.attribute.annotation.AnnotationsAttribute;
 import x590.javaclass.constpool.ConstantPool;
 import x590.javaclass.exception.IllegalModifiersException;
 import x590.javaclass.io.ExtendedDataInputStream;
@@ -12,6 +13,8 @@ import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.operation.Operation;
 import x590.javaclass.util.WhitespaceStringBuilder;
 import x590.jdecompiler.JDecompiler;
+import x590.util.Pair;
+import x590.util.lazyloading.LazyLoadingValue;
 
 import static x590.javaclass.Modifiers.*;
 
@@ -24,6 +27,7 @@ public class JavaField extends JavaClassMember {
 //	public final Type genericType; // TODO
 	
 	private Operation initializer;
+	private final LazyLoadingValue<Pair<AnnotationsAttribute, AnnotationsAttribute>> annotationAttributes;
 	
 	protected JavaField(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool) {
 		this(in.readUnsignedShort(), new FieldDescriptor(classinfo.thisType, in, pool), new Attributes(in, pool));
@@ -34,6 +38,7 @@ public class JavaField extends JavaClassMember {
 		this.descriptor = descriptor;
 		this.attributes = attributes;
 		this.constantValueAttribute = attributes.get("ConstantValue");
+		annotationAttributes = new LazyLoadingValue<>(() -> new Pair<>(attributes.get("RuntimeVisibleAnnotations"), attributes.get("RuntimeInvisibleAnnotations")));
 	}
 	
 	
@@ -76,9 +81,21 @@ public class JavaField extends JavaClassMember {
 		return super.canStringify(classinfo); // TODO
 	}
 	
+	public boolean hasAnnotation() {
+		return attributes.has("RuntimeVisibleAnnotations") || attributes.has("RuntimeInvisibleAnnotations");
+	}
+	
+	public Pair<AnnotationsAttribute, AnnotationsAttribute> getAnnotationAttributes() {
+		return annotationAttributes.get();
+	}
+	
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-		
+		writeWithoutSemicolon(out, classinfo);
+		out.println(';');
+	}
+	
+	public void writeWithoutSemicolon(StringifyOutputStream out, ClassInfo classinfo) {
 		writeAnnotations(out, classinfo, attributes);
 		
 		out.printIndent().print(modifiersToString(), classinfo).print(descriptor, classinfo);
@@ -91,8 +108,6 @@ public class JavaField extends JavaClassMember {
 			else
 				initializer.writeTo(out, classinfo.getStaticInitializerStringifyContext());
 		}
-		
-		out.println(';');
 	}
 	
 	private WhitespaceStringBuilder modifiersToString() {

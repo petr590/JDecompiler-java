@@ -2,11 +2,10 @@ package x590.javaclass.scope;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 
-import x590.javaclass.UnnamedVariable;
-import x590.javaclass.Variable;
 import x590.javaclass.context.DecompilationContext;
 import x590.javaclass.context.StringifyContext;
 import x590.javaclass.exception.VariableNotFoundException;
@@ -14,6 +13,9 @@ import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.operation.Operation;
 import x590.javaclass.type.PrimitiveType;
 import x590.javaclass.type.Type;
+import x590.javaclass.variable.Variable;
+import x590.javaclass.variable.UnnamedVariable;
+import x590.javaclass.variable.EmptyableVariable;
 import x590.jdecompiler.JDecompiler;
 
 public class Scope extends Operation {
@@ -23,10 +25,10 @@ public class Scope extends Operation {
 	
 	protected int startIndex, endIndex;
 	
-	protected final List<Variable> locals;
+	protected final List<EmptyableVariable> locals;
 	
 	
-	protected Scope(int startIndex, int endIndex, List<Variable> locals) {
+	protected Scope(int startIndex, int endIndex, List<EmptyableVariable> locals) {
 		this.startIndex = startIndex;
 		this.endIndex = endIndex;
 		this.locals = locals;
@@ -59,45 +61,89 @@ public class Scope extends Operation {
 		this.endIndex = endIndex;
 	}
 	
+	/** Устанавливает переменную по индексу для текущего скопа и для всех вложенных */
+	private void setVariable(int index, EmptyableVariable var) {
+		locals.set(index, var);
+		scopes.forEach(innerScope -> innerScope.setVariable(index, var));
+	}
+	
 	
 	public Variable getDefinedVariable(int index) {
-		Variable var = findVariable(index);
+		EmptyableVariable var = findVariable(index);
 		
-		if(var != null)
-			return var;
+		if(!var.isEmpty())
+			return var.notEmpty();
 		
 		throw new VariableNotFoundException("Variable #" + index + " not found in scope " + this.toString());
 	}
 	
 	
 	public Variable getVariableOrDefine(int index, Type type) {
-		Variable var = findVariable(index);
+		EmptyableVariable var = findVariable(index);
 		
-		if(var != null)
-			return var;
+		if(!var.isEmpty())
+			return var.notEmpty();
 		
-		var = new UnnamedVariable(type);
-		locals.set(index, var);
+		var = new UnnamedVariable(this, type);
+		setVariable(index, var);
 		
-		return var;
+		return var.notEmpty();
 	}
 	
-	
-	protected @Nullable Variable findVariable(int index) {
-		Variable var = locals.get(index);
+	/** Ищет переменную в текущем скопе и во всех вложенных */
+	protected EmptyableVariable findVariable(int index) {
+		EmptyableVariable var = locals.get(index);
 		
-		if(var != null)
+		if(!var.isEmpty())
 			return var;
 		
 		for(Scope innerScope : scopes) {
 			var = innerScope.findVariable(index);
-			if(var != null) {
-				locals.set(index, var);
-				return var;
+			if(!var.isEmpty()) {
+				Variable notEmptyVar = var.notEmpty();
+				
+				setVariable(index, notEmptyVar);
+				notEmptyVar.setEnclosingScope(this);
+				return notEmptyVar;
 			}
 		}
 		
-		return null;
+		return Variable.empty();
+	}
+	
+	
+	private static Predicate<EmptyableVariable> varNameEquals(String name) {
+		return var -> var.hasName() && var.getName().equals(name);
+	}
+	
+	public EmptyableVariable getVariableWithName(String name) {
+		return locals.stream().filter(varNameEquals(name)).findAny()
+				.orElseGet(() -> {
+					for(Scope scope : scopes) {
+						EmptyableVariable var = scope.getVariableWithName(name);
+						if(!var.isEmpty())
+							return var;
+					}
+					
+					return Variable.empty();
+				});
+	}
+	
+	public boolean hasVariableWithName(String name) {
+		return locals.stream().anyMatch(varNameEquals(name)) ||
+				scopes.stream().anyMatch(scope -> scope.hasVariableWithName(name));
+	}
+	
+	/** Выполняет сведение типа для всех переменных и всех операций в этом и во вложенных скопах */
+	protected void reduceTypes() {
+		locals.forEach(EmptyableVariable::reduceType);
+		scopes.forEach(Scope::reduceTypes);
+	}
+	
+	/** Определяет имена всех переменных в этом и во вложенных скопах */
+	protected void assignVariablesNames() {
+		locals.forEach(EmptyableVariable::assignName);
+		scopes.forEach(Scope::assignVariablesNames);
 	}
 	
 	
@@ -106,17 +152,13 @@ public class Scope extends Operation {
 	}
 	
 	
-	public Operation getOperation(int index) {
-		return code.get(startIndex + index);
-	}
-	
 	public @Nullable Operation getLastOperation(DecompilationContext context) {
 		return code.isEmpty() ? null : code.get(code.size() - 1);
 	}
 	
 	public void addOperation(DecompilationContext context, Operation operation) {
 		code.add(operation);
-		if(operation instanceof Scope)
+		if(operation.isScope())
 			scopes.add((Scope)operation);
 	}
 	
@@ -175,7 +217,19 @@ public class Scope extends Operation {
 	
 	
 	@Override
+	public final boolean isScope() {
+		return true;
+	}
+	
+	
+	@Override
 	public String toString() {
 		return this.getClass().getSimpleName() + " {" + startIndex + ", " + endIndex + "}";
+	}
+	
+	public void remove(Operation operation) {
+		code.remove(operation);
+		if(operation.isScope())
+			scopes.remove(operation);
 	}
 }

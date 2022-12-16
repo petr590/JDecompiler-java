@@ -1,5 +1,7 @@
 package x590.javaclass.attribute.annotation;
 
+import java.util.Arrays;
+
 import x590.javaclass.ClassInfo;
 import x590.javaclass.StringWritableAndImportable;
 import x590.javaclass.constpool.ConstantPool;
@@ -35,5 +37,15 @@ public class Annotation implements StringWritableAndImportable {
 	@Override
 	public void addImports(ClassInfo classinfo) {
 		classinfo.addImport(type);
+	}
+	
+	
+	@Override
+	public boolean equals(Object other) {
+		return this == other || other instanceof Annotation annotation && this.equals(annotation);
+	}
+	
+	public boolean equals(Annotation other) {
+		return this == other ||  this.type.equals(other.type) && Arrays.equals(this.elements, other.elements);
 	}
 }

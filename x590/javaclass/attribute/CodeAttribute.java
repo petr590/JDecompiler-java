@@ -7,7 +7,7 @@ import x590.javaclass.constpool.ConstantPool;
 import x590.javaclass.io.ExtendedDataInputStream;
 
 public class CodeAttribute extends Attribute {
-
+	
 	public final int maxStack, maxLocals; 
 	public final byte[] code, otherData; 
 	
@@ -23,7 +23,7 @@ public class CodeAttribute extends Attribute {
 		otherData = new byte[length - code.length - 8];
 		in.readFully(otherData);
 	}
-
+	
 	protected CodeAttribute(int nameIndex, String name, int length, int maxStack, int maxLocals, byte[] code, byte[] otherData) {
 		super(nameIndex, name, length);
 		

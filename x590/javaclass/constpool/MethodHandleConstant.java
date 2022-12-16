@@ -5,8 +5,8 @@ import java.io.IOException;
 
 import x590.javaclass.ClassInfo;
 import x590.javaclass.io.ExtendedDataInputStream;
-import x590.javaclass.operation.MethodHandleConstOperation;
 import x590.javaclass.operation.Operation;
+import x590.javaclass.operation.constant.MethodHandleConstOperation;
 import x590.javaclass.type.ClassType;
 import x590.javaclass.type.Type;
 
@@ -68,5 +68,15 @@ public class MethodHandleConstant extends ConstValueConstant {
 		out.writeByte(15);
 		out.writeByte(referenceKind);
 		out.writeShort(referenceIndex);
+	}
+	
+	
+	@Override
+	public boolean equals(Object other) {
+		return this == other || other instanceof MethodHandleConstant constant && this.equals(constant);
+	}
+	
+	public boolean equals(MethodHandleConstant other) {
+		return this == other || this.referenceKind == other.referenceKind && this.reference.equals(other.reference);
 	}
 }

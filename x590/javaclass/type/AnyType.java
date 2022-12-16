@@ -2,11 +2,12 @@ package x590.javaclass.type;
 
 import x590.javaclass.ClassInfo;
 
-public class AnyType extends SpecialType {
+public class AnyType extends TwoWayCastSpecialType {
 	
 	public static final AnyType INSTANCE = new AnyType();
 	
 	private AnyType() {}
+	
 	
 	@Override
 	public String toString(ClassInfo classinfo) {
@@ -38,8 +39,9 @@ public class AnyType extends SpecialType {
 		return TypeSize.FOUR_BYTES; // ???
 	}
 	
+	
 	@Override
-	protected boolean isSubtypeOfImpl(Type other) {
+	protected boolean canCastTo(Type other) {
 		return true;
 	}
 	

@@ -4,8 +4,8 @@ import x590.javaclass.NameDisassemblingException;
 import x590.javaclass.io.ExtendedStringReader;
 
 public class IllegalMethodDescriptorException extends NameDisassemblingException {
-
-	private static final long serialVersionUID = 1L;
+	
+	private static final long serialVersionUID = -3425457614642349478L;
 	
 	public IllegalMethodDescriptorException(String encodedName) {
 		super(encodedName);

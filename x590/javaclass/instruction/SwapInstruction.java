@@ -8,8 +8,8 @@ public class SwapInstruction extends Instruction {
 	
 	@Override
 	public Operation toOperation(DecompilationContext context) {
-		Operation value1 = context.stack.popWithSize(TypeSize.EIGHT_BYTES);
-		Operation value2 = context.stack.popWithSize(TypeSize.EIGHT_BYTES);
+		Operation value1 = context.stack.popWithSize(TypeSize.FOUR_BYTES);
+		Operation value2 = context.stack.popWithSize(TypeSize.FOUR_BYTES);
 		
 		context.stack.push(value1);
 		context.stack.push(value2);

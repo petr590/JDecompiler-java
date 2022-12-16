@@ -32,4 +32,14 @@ public abstract class ReferenceConstant extends Constant {
 	public NameAndTypeConstant getNameAndType() {
 		return nameAndType;
 	}
+	
+	
+	@Override
+	public boolean equals(Object other) {
+		return this == other || other instanceof ReferenceConstant constant && this.equals(constant);
+	}
+	
+	public boolean equals(ReferenceConstant other) {
+		return this == other || this.clazz.equals(other.clazz) && this.nameAndType.equals(other.nameAndType);
+	}
 }
