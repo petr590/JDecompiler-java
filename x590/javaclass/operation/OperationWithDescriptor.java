@@ -1,7 +1,6 @@
 package x590.javaclass.operation;
 
 import x590.javaclass.Descriptor;
-import x590.javaclass.Modifiers;
 import x590.javaclass.context.StringifyContext;
 import x590.javaclass.operation.load.ALoadOperation;
 import x590.jdecompiler.JDecompiler;
@@ -19,7 +18,7 @@ public abstract class OperationWithDescriptor<D extends Descriptor> extends Oper
 	}
 	
 	protected boolean canOmitObject(StringifyContext context, Operation object) {
-		return JDecompiler.getInstance().canOmitThisClass() && Modifiers.isNonStatic(context.modifiers) &&
+		return JDecompiler.getInstance().canOmitThisClass() && context.modifiers.isNotStatic() &&
 				object instanceof ALoadOperation aload && aload.getIndex() == 0;
 	}
 }

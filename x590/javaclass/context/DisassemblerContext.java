@@ -6,7 +6,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import x590.javaclass.exception.IllegalOpcodeException;
+import x590.javaclass.exception.InvalidOpcodeException;
 import x590.javaclass.constpool.ConstantPool;
 import x590.javaclass.instruction.*;
 import x590.javaclass.instruction.anew.*;
@@ -349,7 +349,7 @@ public class DisassemblerContext extends Context {
 				case 0x84: return new IIncInstruction(readUnsignedShort(), readShort());
 //				case 0xA9: return ret(readUnsignedShort());
 				default:
-					throw new IllegalOpcodeException("Illegal wide opcode 0x" + Util.hex(bytes[pos]));
+					throw new InvalidOpcodeException("Illegal wide opcode 0x" + Util.hex(bytes[pos]));
 			}
 			
 			case 0xC5: return new MultiANewArrayInstruction(readUnsignedShort(), readUnsignedByte());
@@ -362,7 +362,7 @@ public class DisassemblerContext extends Context {
 			case 0xFE: return impdep1;
 			case 0xFF: return impdep2;*/
 			default:
-				throw new IllegalOpcodeException(Util.hex2WithPrefix(bytes[pos]));
+				throw new InvalidOpcodeException(Util.hex2WithPrefix(bytes[pos]));
 		}
 	}
 	

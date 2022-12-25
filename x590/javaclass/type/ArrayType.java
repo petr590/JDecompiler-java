@@ -11,8 +11,10 @@ import x590.javaclass.io.ExtendedStringReader;
 public final class ArrayType extends ReferenceType {
 	
 	public static final ArrayType
-			ANY_ARRAY = new ArrayType(AnyType.INSTANCE),
+			ANY_ARRAY        = new ArrayType(AnyType.INSTANCE),
 			ANY_OBJECT_ARRAY = new ArrayType(AnyObjectType.INSTANCE),
+			STRING_ARRAY     = new ArrayType(ClassType.STRING),
+			
 			BYTE_OR_BOOLEAN_ARRAY = new ArrayType(PrimitiveType.BYTE_BOOLEAN),
 			BOOLEAN_ARRAY = new ArrayType(PrimitiveType.BOOLEAN),
 			BYTE_ARRAY    = new ArrayType(PrimitiveType.BYTE),
@@ -33,6 +35,8 @@ public final class ArrayType extends ReferenceType {
 	}
 	
 	public ArrayType(ExtendedStringReader in) {
+		super(ClassType.OBJECT);
+		
 		in.mark();
 		
 		final int memberTypeStart = in.getPos();
@@ -104,7 +108,7 @@ public final class ArrayType extends ReferenceType {
 	}
 	
 	@Override
-	public final boolean isArrayType() {
+	public final boolean isBasicArrayType() {
 		return true;
 	}
 	
@@ -117,7 +121,11 @@ public final class ArrayType extends ReferenceType {
 	
 	@Override
 	protected boolean canCastTo(Type other) {
-		if(other.isArrayType()) {
+		if(other.equals(ClassType.OBJECT)) {
+			return true;
+		}
+		
+		if(other.isBasicArrayType()) {
 			ArrayType arrayType = (ArrayType)other;
 			
 			return (this.nestingLevel == arrayType.nestingLevel && this.memberType.isSubtypeOf(arrayType.memberType))

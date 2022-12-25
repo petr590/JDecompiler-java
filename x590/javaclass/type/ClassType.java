@@ -3,10 +3,13 @@ package x590.javaclass.type;
 import static x590.javaclass.util.Util.EOF_CHAR;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import javax.annotation.Nullable;
 
 import x590.javaclass.ClassInfo;
 import x590.javaclass.constpool.ClassConstant;
@@ -23,7 +26,7 @@ public final class ClassType extends ReferenceType {
 	 * Определяет, какой это класс: обычный, вложенный, анонимный, package-info, module-info
 	 */
 	public enum ClassKind {
-		NONE("none", false),
+		PLAIN("plain", false),
 		NESTED("nested", false),
 		ANONYMOUS("anonymous", false),
 		PACKAGE_INFO("package-info", true),
@@ -76,22 +79,23 @@ public final class ClassType extends ReferenceType {
 			STRING        = new ClassType("java/lang/String"),
 			CLASS         = new ClassType("java/lang/Class"),
 			ENUM          = new ClassType("java/lang/Enum"),
+			ANNOTATION    = new ClassType("java/lang/annotation/Annotation"),
 			THROWABLE     = new ClassType("java/lang/Throwable"),
 			EXCEPTION     = new ClassType("java/lang/Exception"),
 			METHOD_TYPE   = new ClassType("java/lang/invoke/MethodType"),
 			METHOD_HANDLE = new ClassType("java/lang/invoke/MethodHandle"),
 			
-			VOID      = new ClassType("java/lang/Void"),
-			BOOLEAN   = new ClassType("java/lang/Boolean"),
 			BYTE      = new ClassType("java/lang/Byte"),
-			CHARACTER = new ClassType("java/lang/Character"),
 			SHORT     = new ClassType("java/lang/Short"),
+			CHARACTER = new ClassType("java/lang/Character"),
 			INTEGER   = new ClassType("java/lang/Integer"),
 			LONG      = new ClassType("java/lang/Long"),
 			FLOAT     = new ClassType("java/lang/Float"),
-			DOUBLE    = new ClassType("java/lang/Double");
+			DOUBLE    = new ClassType("java/lang/Double"),
+			BOOLEAN   = new ClassType("java/lang/Boolean"),
+			VOID      = new ClassType("java/lang/Void");
 
-
+	
 	protected final String
 			classEncodedName,
 			simpleName,
@@ -99,13 +103,18 @@ public final class ClassType extends ReferenceType {
 			packageName;
 	
 	protected String nameForVariable;
-
+	
 	public final List<ReferenceType> parameters;
-
+	
 	public final ClassType enclosingClass;
 	public final ClassKind kind;
+
 	
+	public static ClassType valueOf(ClassConstant clazz) {
+		return valueOf(clazz.getName().getValue());
+	}
 	
+	/** Принимает строку без префикса 'L', т.е. в виде "java/lang/Object;" */
 	public static ClassType valueOf(String classEncodedName) {
 		if(CLASS_TYPES.containsKey(classEncodedName))
 			return CLASS_TYPES.get(classEncodedName);
@@ -113,15 +122,22 @@ public final class ClassType extends ReferenceType {
 		return new ClassType(classEncodedName);
 	}
 	
+	
+	public static ClassType valueOfOrDefault(@Nullable String classEncodedName, ClassType defaultValue) {
+		return classEncodedName != null ? valueOf(classEncodedName) : defaultValue;
+	}
+	
+	public static ClassType valueOfOrDefault(@Nullable ClassConstant clazz, ClassType defaultValue) {
+		return clazz != null ? valueOf(clazz) : defaultValue;
+	}
+	
+	
+	/** Принимает строку с префиксом 'L', т.е. в виде "Ljava/lang/Object;" */
 	public static ClassType valueOfEncoded(String encodedName) {
 		if(!encodedName.isEmpty() && encodedName.charAt(0) == 'L')
 			return valueOf(encodedName.substring(1));
 		
 		throw new InvalidClassNameException(encodedName);
-	}
-	
-	public static ClassType valueOf(ClassConstant clazz) {
-		return valueOf(clazz.getName().getValue());
 	}
 	
 	
@@ -153,7 +169,7 @@ public final class ClassType extends ReferenceType {
 		// содержат тире, и эта переменная нужна для полной проверки валидности названия
 		int dashIndex = 0;
 		
-		L: for(int i = 0;; i++) {
+		Loop: for(int i = 0;; i++) {
 			int ch = in.read();
 			
 			switch(ch) {
@@ -174,7 +190,7 @@ public final class ClassType extends ReferenceType {
 					enclosingClassNameEndPos = i;
 					nameStartPos = i + 1;
 					nameBuilder.append('.');
-					encodedNameBuilder.append('/');
+					encodedNameBuilder.append('$');
 					
 					if(dashIndex != 0)
 						throw new InvalidClassNameException(in, dashIndex);
@@ -187,7 +203,7 @@ public final class ClassType extends ReferenceType {
 					
 					switch(in.read()) {
 						case ';', EOF_CHAR -> {
-							break L;
+							break Loop;
 						}
 							
 						default -> {
@@ -197,7 +213,7 @@ public final class ClassType extends ReferenceType {
 				}
 				
 				case ';', EOF_CHAR -> {
-					break L;
+					break Loop;
 				}
 				
 				case '-' -> {
@@ -256,7 +272,7 @@ public final class ClassType extends ReferenceType {
 					throw new InvalidClassNameException(in, dashIndex);
 			
 			} else {
-				this.kind = ClassKind.NONE;
+				this.kind = ClassKind.PLAIN;
 			}
 		}
 		
@@ -277,6 +293,8 @@ public final class ClassType extends ReferenceType {
 	public String toString() {
 		return "class " + (parameters.isEmpty() ? name : name +
 				"<" + parameters.stream().map(type -> type.toString()).collect(Collectors.joining(", ")) + '>');
+//				(superType != null ? " extends " + superType.getName() : "") +
+//				(interfaces != null ? " implements " + interfaces.stream().map(ReferenceType::getName).collect(Collectors.joining(", ")) : "");
 	}
 	
 	@Override
@@ -297,11 +315,11 @@ public final class ClassType extends ReferenceType {
 	public String getClassEncodedName() {
 		return classEncodedName;
 	}
-
+	
 	public String getSimpleName() {
 		return simpleName;
 	}
-
+	
 	public String getFullSimpleName() {
 		return fullSimpleName;
 	}
@@ -315,8 +333,34 @@ public final class ClassType extends ReferenceType {
 	}
 	
 	@Override
-	public final boolean isClassType() {
+	public final boolean isBasicClassType() {
 		return true;
+	}
+	
+	
+	private boolean triedLoadClass;
+	
+	@Override
+	protected void tryLoadSuperType() {
+		if(!triedLoadClass) {
+			
+			try {
+				Class<?> thisClass = Class.forName(name);
+				Class<?> superClass = thisClass.getSuperclass();
+				
+				if(superClass != null) {
+					superType = valueOfEncoded(superClass.descriptorString());
+					interfaces = Arrays.stream(thisClass.getInterfaces())
+							.<ReferenceType>map(interfaceClass -> ClassType.valueOfEncoded(interfaceClass.descriptorString())).toList();
+				}
+				
+			} catch(ClassNotFoundException ex) {
+				
+				System.out.println("Class \"" + name + "\" not found among java classes");
+				
+				triedLoadClass = true;
+			}
+		}
 	}
 	
 	
@@ -334,6 +378,6 @@ public final class ClassType extends ReferenceType {
 	
 	@Override
 	protected boolean canCastTo(Type other) {
-		return other.isClassType();
+		return other.isBasicClassType();
 	}
 }

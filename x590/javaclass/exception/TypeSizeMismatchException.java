@@ -24,6 +24,6 @@ public class TypeSizeMismatchException extends DecompilationException {
 	}
 	
 	public TypeSizeMismatchException(TypeSize requiredSize, TypeSize size, Type type) {
-		super("Required " + requiredSize + ", got " + size + " of type " + type);
+		super("Required " + requiredSize + ", got " + size + " from type " + type);
 	}
 }

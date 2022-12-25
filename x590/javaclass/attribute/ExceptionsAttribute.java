@@ -22,7 +22,7 @@ public class ExceptionsAttribute extends Attribute implements StringWritable {
 		if(exceptionsLength == 0)
 			throw new DisassemblingException("Exceptions attribute cannot be empty");
 		
-		this.exceptionTypes = in.readArray(ClassType[]::new, () -> pool.<ClassConstant>get(in.readUnsignedShort()).toClassType());
+		this.exceptionTypes = in.readArray(new ClassType[exceptionsLength], () -> pool.<ClassConstant>get(in.readUnsignedShort()).toClassType());
 	}
 	
 	@Override

@@ -6,6 +6,8 @@ import java.util.Collections;
 import x590.javaclass.ClassInfo;
 import x590.javaclass.MethodDescriptor;
 import x590.javaclass.Modifiers;
+import x590.javaclass.type.ArrayType;
+import x590.javaclass.type.PrimitiveType;
 import x590.javaclass.type.Type;
 import x590.javaclass.type.TypeSize;
 import x590.javaclass.variable.EmptyVariable;
@@ -14,33 +16,42 @@ import x590.javaclass.variable.UnnamedVariable;
 import x590.javaclass.variable.Variable;
 import x590.util.lazyloading.LazyLoadingValue;
 
+import static x590.javaclass.Modifiers.*;
+
 public class MethodScope extends Scope {
 	
-	private static final LazyLoadingValue<MethodScope> EMPTY_SCOPE = new LazyLoadingValue<>(() -> new MethodScope());
+	private static final LazyLoadingValue<MethodScope> EMPTY_SCOPE = new LazyLoadingValue<>(MethodScope::new);
 	
 	private MethodScope() {
-		super(0, 0, Collections.emptyList());
+		super(0, 0, null, Collections.emptyList());
 	}
 	
-	
-	private MethodScope(ClassInfo classinfo, MethodDescriptor descriptor, int modifiers, int codeLength, int maxLocals) {
-		super(0, codeLength, new ArrayList<>(maxLocals));
+	private MethodScope(ClassInfo classinfo, MethodDescriptor descriptor, Modifiers modifiers, int codeLength, int maxLocals) {
+		super(0, codeLength, null, new ArrayList<>(maxLocals));
 		
 		int i = descriptor.arguments.size();
 		
-		if(Modifiers.isNonStatic(modifiers)) {
+		if(modifiers.isNotStatic()) {
 			locals.add(new NamedVariable("this", this, classinfo.thisType, true));
 			i++;
+			
 		}
 		
 		
 		EmptyVariable emptyVar = Variable.empty();
 		
-		for(Type argType : descriptor.arguments) {
-			locals.add(new UnnamedVariable(this, argType, true));
+		// public static void main(String[] args)
+		if(modifiers.is(ACC_PUBLIC | ACC_STATIC) && descriptor.equals("main", PrimitiveType.VOID, ArrayType.STRING_ARRAY)) {
+			locals.add(new NamedVariable("args", this, ArrayType.STRING_ARRAY, true));
 			
-			if(argType.getSize() == TypeSize.EIGHT_BYTES) {
-				locals.add(emptyVar);
+		} else {
+			
+			for(Type argType : descriptor.arguments) {
+				locals.add(new UnnamedVariable(this, argType, true));
+				
+				if(argType.getSize() == TypeSize.EIGHT_BYTES) {
+					locals.add(emptyVar);
+				}
 			}
 		}
 		
@@ -50,8 +61,8 @@ public class MethodScope extends Scope {
 	}
 	
 	
-	public static MethodScope of(ClassInfo classinfo, MethodDescriptor descriptor, int modifiers, int codeLength, int maxLocals) {
-		return codeLength == 0 ? EMPTY_SCOPE.get() : new MethodScope(classinfo, descriptor, modifiers, codeLength, maxLocals);
+	public static MethodScope of(ClassInfo classinfo, MethodDescriptor descriptor, Modifiers modifiers, int codeLength, int maxLocals) {
+		return codeLength == 0 && maxLocals == 0 ? EMPTY_SCOPE.get() : new MethodScope(classinfo, descriptor, modifiers, codeLength, maxLocals);
 	}
 	
 	/** Меняет область видимости на public */
@@ -70,10 +81,5 @@ public class MethodScope extends Scope {
 	@Override
 	protected boolean canOmitCurlyBrackets() {
 		return false;
-	}
-	
-	
-	public static MethodScope empty() {
-		return EMPTY_SCOPE.get();
 	}
 }

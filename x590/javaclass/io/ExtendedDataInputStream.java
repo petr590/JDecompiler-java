@@ -179,8 +179,11 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 	}
 	
 	public <T> T[] readArray(IntFunction<T[]> arrayCreator, Supplier<T> elementSupplier) {
-		int length = readUnsignedShort();
-		T[] array = arrayCreator.apply(length);
+		return readArray(arrayCreator.apply(readUnsignedShort()), elementSupplier);
+	}
+	
+	public <T> T[] readArray(T[] array, Supplier<T> elementSupplier) {
+		int length = array.length;
 		
 		for(int i = 0; i < length; i++)
 			array[i] = elementSupplier.get();

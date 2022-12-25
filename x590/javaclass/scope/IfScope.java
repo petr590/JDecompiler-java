@@ -5,7 +5,6 @@ import javax.annotation.Nullable;
 import x590.javaclass.context.DecompilationContext;
 import x590.javaclass.context.StringifyContext;
 import x590.javaclass.io.StringifyOutputStream;
-import x590.javaclass.operation.Operation;
 import x590.javaclass.operation.compare.ConditionOperation;
 
 public class IfScope extends IfElseScope {
@@ -20,13 +19,18 @@ public class IfScope extends IfElseScope {
 	}
 	
 	
-	@Override
-	public void addOperation(DecompilationContext context, Operation operation) {
-		if(operation != elseScope) {
-			super.addOperation(context, operation);
-		} else {
-			context.superScope().addOperation(context, operation);
-		}
+	public ConditionOperation getCondition() {
+		return condition;
+	}
+
+	
+	public void addElse(DecompilationContext context, int endIndex) {
+		if(this.elseScope != null)
+			throw new IllegalArgumentException("Cannot set another elseScope");
+		
+		this.elseScope = new ElseScope(context, endIndex, this);
+		superScope.addOperation(elseScope);
+		context.addScopeToQueue(elseScope);
 	}
 	
 	
@@ -37,6 +41,12 @@ public class IfScope extends IfElseScope {
 	
 	@Override
 	protected void writeHeader(StringifyOutputStream out, StringifyContext context) {
-		out.print("if(").print(condition, context).print(')');
+		out.print("if(").print(getCondition(), context).print(')');
+	}
+	
+	@Override
+	public void writeSeparator(StringifyOutputStream out, StringifyContext context) {
+		if(elseScope == null)
+			super.writeSeparator(out, context);
 	}
 }

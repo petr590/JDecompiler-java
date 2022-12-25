@@ -13,35 +13,44 @@ import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.operation.Operation;
 import x590.javaclass.type.PrimitiveType;
 import x590.javaclass.type.Type;
+import x590.javaclass.util.Util;
 import x590.javaclass.variable.Variable;
 import x590.javaclass.variable.UnnamedVariable;
 import x590.javaclass.variable.EmptyableVariable;
 import x590.jdecompiler.JDecompiler;
 
-public class Scope extends Operation {
+public abstract class Scope extends Operation {
 	
-	private List<Operation> code = new ArrayList<>();
-	private List<Scope> scopes = new ArrayList<>();
+	protected List<Operation> code = new ArrayList<>();
+	protected List<Scope> scopes = new ArrayList<>();
 	
-	protected int startIndex, endIndex;
+	protected int startIndex, endIndex; // Невключительно
+	protected final @Nullable Scope superScope;
 	
 	protected final List<EmptyableVariable> locals;
 	
-	
-	protected Scope(int startIndex, int endIndex, List<EmptyableVariable> locals) {
-		this.startIndex = startIndex;
-		this.endIndex = endIndex;
-		this.locals = locals;
-	}
 	
 	public Scope(DecompilationContext context, int endIndex) {
 		this(context, context.currentIndex(), endIndex);
 	}
 	
+	public Scope(DecompilationContext context, int endIndex, @Nullable Scope superScope) {
+		this(context.currentIndex(), endIndex, superScope);
+	}
+	
 	public Scope(DecompilationContext context, int startIndex, int endIndex) {
+		this(startIndex, endIndex, context.currentScope());
+	}
+	
+	public Scope(int startIndex, int endIndex, @Nullable Scope superScope) {
+		this(startIndex, endIndex, superScope, List.copyOf(superScope.locals));
+	}
+	
+	public Scope(int startIndex, int endIndex, @Nullable Scope superScope, List<EmptyableVariable> locals) {
 		this.startIndex = startIndex;
 		this.endIndex = endIndex;
-		this.locals = List.copyOf(context.currentScope().locals);
+		this.superScope = superScope;
+		this.locals = locals;
 	}
 	
 	
@@ -59,6 +68,10 @@ public class Scope extends Operation {
 	
 	public void setEndIndex(int endIndex) {
 		this.endIndex = endIndex;
+	}
+	
+	public Scope superScope() {
+		return superScope;
 	}
 	
 	/** Устанавливает переменную по индексу для текущего скопа и для всех вложенных */
@@ -156,7 +169,7 @@ public class Scope extends Operation {
 		return code.isEmpty() ? null : code.get(code.size() - 1);
 	}
 	
-	public void addOperation(DecompilationContext context, Operation operation) {
+	public void addOperation(Operation operation) {
 		code.add(operation);
 		if(operation.isScope())
 			scopes.add((Scope)operation);
@@ -186,7 +199,9 @@ public class Scope extends Operation {
 				out.write(" {");
 			
 			out.increaseIndent();
-			code.forEach(operation -> operation.printBack(operation.printFront(out, context).print(operation, context), context));
+			Util.forEachExcludingLast(code,
+					operation -> operation.printBack(operation.printFront(out, context).print(operation, context), context),
+					operation -> operation.writeSeparator(out, context));
 			out.reduceIndent();
 			
 			if(!canOmitCurlyBraces)
@@ -196,7 +211,7 @@ public class Scope extends Operation {
 	
 	/** 
 	 * Можно ли записать точку с запятой вместо фигурных скобок
-	 * когда скоп пустой или в нём только одна операция
+	 * (когда скоп пустой или в нём только одна операция)
 	 */
 	protected boolean canOmitCurlyBrackets() {
 		return code.size() <= 1 && JDecompiler.getInstance().canOmitCurlyBrackets();
@@ -204,10 +219,25 @@ public class Scope extends Operation {
 	
 	protected void writeHeader(StringifyOutputStream out, StringifyContext context) {}
 	
+	
+	@Override
+	public StringifyOutputStream printFront(StringifyOutputStream out, StringifyContext context) {
+		return out.println().printIndent();
+	}
+	
 	@Override
 	public StringifyOutputStream printBack(StringifyOutputStream out, StringifyContext context) {
 		return out;
 	}
+	
+	@Override
+	public void writeSeparator(StringifyOutputStream out, StringifyContext context) {
+		out.writeln();
+	}
+	
+	
+	/** Выполняется перед тем, как скоп будет завершён */
+	public void finalizeScope(DecompilationContext context) {}
 	
 	
 	@Override

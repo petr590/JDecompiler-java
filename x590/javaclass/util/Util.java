@@ -40,7 +40,7 @@ public class Util {
 	}
 	
 	public static String hexWithPrefix(int num) {
-		return "0x" + hex(num);
+		return "0x" + Integer.toHexString(num);
 	}
 	
 	
@@ -94,11 +94,11 @@ public class Util {
 		// 1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
 		if(c < 0x80000000) return new String(new byte[] { (byte)((c >> 30 &  0x1) | 0xFC), (byte)((c >> 24 & 0x3F) | 0x80), (byte)((c >> 18 & 0x3F) | 0x80),
 									(byte)((c >> 12 & 0x3F) | 0x80), (byte)((c >>  6 & 0x3F) | 0x80), (byte)((c >>  0 & 0x3F) | 0x80) }, UTF8_CHARSET);
-
+		
 		throw new IllegalArgumentException("Char code U+" + hex(c) + " is too large for encode");
 	}
-
-
+	
+	
 	// surrogate pairs in UTF-16: 0xD800-0xDFFF
 	private static String escapeUtf16(int ch) {
 		assert ch <= 0x10FFFF;
@@ -110,7 +110,7 @@ public class Util {
 		
 		return "\\u" + hex4(ch);
 	}
-
+	
 	private static String escapeUtf16Octal(int ch) {
 		assert ch <= 0x10FFFF;
 		
@@ -131,7 +131,7 @@ public class Util {
 	
 	private static String charToString(char quote, int ch) {
 		assert quote == '"' || quote == '\'' : "Invalid quote";
-
+		
 		switch(ch) {
 			case '\b': return "\\b";
 			case '\t': return "\\t";
@@ -147,7 +147,7 @@ public class Util {
 							encodeUtf8(ch);
 		}
 	}
-
+	
 	public static String toLiteral(String str) {
 		byte[] bytes = str.getBytes();
 		
@@ -173,12 +173,12 @@ public class Util {
 						(bytes[i + 1] & 0xF0) == 0xA0 && (bytes[i + 2] & 0xC0) == 0x80 && (bytes[i + 3] & 0xFF) == 0xED
 					 && (bytes[i + 4] & 0xF0) == 0xB0 && (bytes[i + 5] & 0xC0) == 0x80) {
 					
-					result.append(encodeUtf8((int)(0x10000 | (bytes[++i] & 0xF) << 16 |
-							(bytes[++i] & 0x3F) << 10 | (bytes[i += 2] & 0xF) << 6 | (bytes[++i] & 0x3F))));
+					result.append(encodeUtf8(0x10000 | (bytes[++i] & 0xF) << 16 |
+							(bytes[++i] & 0x3F) << 10 | (bytes[i += 2] & 0xF) << 6 | (bytes[++i] & 0x3F)));
 					
 					continue;
 				}
-
+				
 				if(i + 2 >= end)
 					throw new DecompilationException("Unexpected end of the string: " + i + " + " + 2 + " >= " + end);
 				
@@ -187,7 +187,7 @@ public class Util {
 				
 				ch = (ch & 0xF) << 12 | (bytes[++i] & 0x3F) << 6 | (bytes[++i] & 0x3F);
 			}
-
+			
 			if(ch > 0x10FFFF)
 				throw new DecompilationException("Invalid string: char code U+" + hex(ch) + " is out of range");
 			
@@ -224,64 +224,90 @@ public class Util {
 	}
 	
 	public static String toLiteral(float value) {
-		return Float.toString(value) + JDecompiler.getInstance().getFloatSuffix();
+		return (JDecompiler.getInstance().printTrailingZero() && (int)value == value ? Integer.toString((int)value) : Float.toString(value)) +
+				JDecompiler.getInstance().getFloatSuffix();
 	}
 	
 	public static String toLiteral(double value) {
-		return JDecompiler.getInstance().printDoubleSuffix() ?
-				Double.toString(value) + JDecompiler.getInstance().getDoubleSuffix() :
-				Double.toString(value);
+		return  JDecompiler.getInstance().printTrailingZero() && (int)value == value ?
+					Integer.toString((int)value) + JDecompiler.getInstance().getDoubleSuffix() :
+				JDecompiler.getInstance().printDoubleSuffix() ?
+					Double.toString(value) + JDecompiler.getInstance().getDoubleSuffix() :
+					Double.toString(value);
 	}
 	
 	
-	public static <T> void forEachExcludingLast(T[] array, Consumer<? super T> func1, Consumer<? super T> func2) {
-		forEachExcludingLast(Arrays.asList(array), func1, func2);
+	public static <T> void forEachExcludingLast(T[] array, Consumer<? super T> eachFunc, Runnable eachExcludingLastFunc) {
+		forEachExcludingLast(Arrays.stream(array).iterator(), eachFunc, eachExcludingLastFunc);
+	}
+	
+	public static <T> void forEachExcludingLast(T[] array, Consumer<? super T> eachFunc, Consumer<? super T> eachExcludingLastFunc) {
+		forEachExcludingLast(Arrays.stream(array).iterator(), eachFunc, eachExcludingLastFunc);
 	}
 	
 	
-	public static <T> void forEachExcludingLast(Iterable<T> iterable, Consumer<? super T> func1, Consumer<? super T> func2) {
-		Iterator<T> iterator = iterable.iterator();
+	public static <T> void forEachExcludingLast(Iterable<T> iterable, Consumer<? super T> eachFunc, Runnable eachExcludingLastFunc) {
+		forEachExcludingLast(iterable.iterator(), eachFunc, eachExcludingLastFunc);
+	}
+	
+	public static <T> void forEachExcludingLast(Iterable<T> iterable, Consumer<? super T> eachFunc, Consumer<? super T> eachExcludingLastFunc) {
+		forEachExcludingLast(iterable.iterator(), eachFunc, eachExcludingLastFunc);
+	}
+
+	
+	public static <T> void forEachExcludingLast(Iterator<T> iterator, Consumer<? super T> eachFunc, Runnable eachExcludingLastFunc) {
+		forEachExcludingLast(iterator, eachFunc, value -> eachExcludingLastFunc.run());
+	}
+	
+	public static <T> void forEachExcludingLast(Iterator<T> iterator, Consumer<? super T> eachFunc, Consumer<? super T> eachExcludingLastFunc) {
 		
 		if(iterator.hasNext()) {
 			while(true) {
 				T value = iterator.next();
-				func1.accept(value);
+				eachFunc.accept(value);
 				
 				if(iterator.hasNext())
-					func2.accept(value);
+					eachExcludingLastFunc.accept(value);
 				else
 					break;
 			}
 		}
 	}
-
 	
-	public static <T> void forEachExcludingLast(T[] array, Consumer<? super T> eachFunc, Runnable eachExcludingLastFunc) {
-		forEachExcludingLast(Arrays.asList(array), eachFunc, eachExcludingLastFunc);
+	
+	public static <T> void forEachExcludingLast(T[] array, ObjIntConsumer<? super T> eachFunc, Runnable eachExcludingLastFunc) {
+		forEachExcludingLast(Arrays.stream(array).iterator(), eachFunc, eachExcludingLastFunc);
 	}
 	
-	public static <T> void forEachExcludingLast(Iterable<T> iterable, Consumer<? super T> eachFunc, Runnable eachExcludingLastFunc) {
-		forEachExcludingLast(iterable, eachFunc, value -> eachExcludingLastFunc.run());
-	}
-	
-	
-	public static <T> void forEachExcludingLast(T[] array, ObjIntConsumer<? super T> func1, Consumer<? super T> func2) {
-		forEachExcludingLast(Arrays.asList(array), func1, func2);
+	public static <T> void forEachExcludingLast(T[] array, ObjIntConsumer<? super T> eachFunc, Consumer<? super T> eachExcludingLastFunc) {
+		forEachExcludingLast(Arrays.stream(array).iterator(), eachFunc, eachExcludingLastFunc);
 	}
 	
 	
-	public static <T> void forEachExcludingLast(Iterable<T> iterable, ObjIntConsumer<? super T> func1, Consumer<? super T> func2) {
-		Iterator<T> iterator = iterable.iterator();
+	public static <T> void forEachExcludingLast(Iterable<T> iterable, ObjIntConsumer<? super T> eachFunc, Runnable eachExcludingLastFunc) {
+		forEachExcludingLast(iterable.iterator(), eachFunc, eachExcludingLastFunc);
+	}
+	
+	public static <T> void forEachExcludingLast(Iterable<T> iterable, ObjIntConsumer<? super T> eachFunc, Consumer<? super T> eachExcludingLastFunc) {
+		forEachExcludingLast(iterable.iterator(), eachFunc, eachExcludingLastFunc);
+	}
+	
+	
+	public static <T> void forEachExcludingLast(Iterator<T> iterator, ObjIntConsumer<? super T> eachFunc, Runnable eachExcludingLastFunc) {
+		forEachExcludingLast(iterator, eachFunc, value -> eachExcludingLastFunc.run());
+	}
+	
+	public static <T> void forEachExcludingLast(Iterator<T> iterator, ObjIntConsumer<? super T> eachFunc, Consumer<? super T> eachExcludingLastFunc) {
 		
 		if(iterator.hasNext()) {
 			int i = 0;
 			
 			while(true) {
 				T value = iterator.next();
-				func1.accept(value, i);
+				eachFunc.accept(value, i);
 				
 				if(iterator.hasNext())
-					func2.accept(value);
+					eachExcludingLastFunc.accept(value);
 				else
 					break;
 				
@@ -289,15 +315,7 @@ public class Util {
 			}
 		}
 	}
-
 	
-	public static <T> void forEachExcludingLast(T[] array, ObjIntConsumer<? super T> eachFunc, Runnable eachExcludingLastFunc) {
-		forEachExcludingLast(Arrays.asList(array), eachFunc, eachExcludingLastFunc);
-	}
-	
-	public static <T> void forEachExcludingLast(Iterable<T> iterable, ObjIntConsumer<? super T> eachFunc, Runnable eachExcludingLastFunc) {
-		forEachExcludingLast(iterable, eachFunc, value -> eachExcludingLastFunc.run());
-	}
 	
 	
 	public static <T> void forEach(T[] array, Consumer<T> func) {

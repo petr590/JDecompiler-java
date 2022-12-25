@@ -1,7 +1,6 @@
 package x590.javaclass.operation.invoke;
 
 import x590.javaclass.MethodDescriptor;
-import x590.javaclass.Modifiers;
 import x590.javaclass.context.DecompilationContext;
 import x590.javaclass.context.StringifyContext;
 import x590.javaclass.exception.DecompilationException;
@@ -18,17 +17,15 @@ public class InvokespecialOperation extends InvokeNonstaticOperation {
 	private final Type returnType;
 	
 	private boolean initIsSuper(DecompilationContext context) {
-		return (context.modifiers & Modifiers.ACC_STATIC) == 0 &&
+		return context.modifiers.isNotStatic() &&
 				descriptor.clazz.equals(context.classinfo.superType) &&
 				object instanceof ALoadOperation aload && aload.getIndex() == 0;
 	}
 	
 	private Type initReturnType(DecompilationContext context) {
 		if(descriptor.isConstructor() && object.original() instanceof NewOperation newOperation) {
-			if(context.stack.peek() != newOperation)
+			if(context.stack.isEmpty() || context.stack.pop() != newOperation)
 				throw new DecompilationException("Cannot invoke constructor of new object, invalid stack state");
-			
-			context.stack.pop();
 			
 			return newOperation.getType();
 		}
@@ -82,6 +79,11 @@ public class InvokespecialOperation extends InvokeNonstaticOperation {
 		} else {
 			return super.writeObject(out, context);
 		}
+	}
+	
+	@Override
+	protected boolean canOmitObject(StringifyContext context, Operation object) {
+		return !descriptor.isConstructor() && super.canOmitObject(context, object);
 	}
 	
 	@Override

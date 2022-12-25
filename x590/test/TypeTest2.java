@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import x590.javaclass.type.Type;
-import x590.javaclass.type.VariableCapacityIntegralType;
+import x590.javaclass.type.UncertainIntegralType;
 
 public class TypeTest2 {
 	
@@ -16,10 +16,10 @@ public class TypeTest2 {
 		System.out.println();
 		
 		test(List.of(
-				VariableCapacityIntegralType.getInstance(1, 1),
-				VariableCapacityIntegralType.getInstance(2, 2),
-				VariableCapacityIntegralType.getInstance(4, 4),
-				VariableCapacityIntegralType.getInstance(1, 1, VariableCapacityIntegralType.INCLUDE_CHAR)
+				UncertainIntegralType.getInstance(1, 1),
+				UncertainIntegralType.getInstance(2, 2),
+				UncertainIntegralType.getInstance(4, 4),
+				UncertainIntegralType.getInstance(1, 1, UncertainIntegralType.INCLUDE_CHAR)
 		));
 	}
 	
@@ -35,12 +35,12 @@ public class TypeTest2 {
 		for(int i = 0; i < 3; i++) {
 			types2.addAll(
 					List.of(
-							VariableCapacityIntegralType.getInstance(1, 1, i),
-							VariableCapacityIntegralType.getInstance(1, 2, i),
-							VariableCapacityIntegralType.getInstance(1, 4, i),
-							VariableCapacityIntegralType.getInstance(2, 2, i),
-							VariableCapacityIntegralType.getInstance(2, 4, i),
-							VariableCapacityIntegralType.getInstance(4, 4, i)
+							UncertainIntegralType.getInstance(1, 1, i),
+							UncertainIntegralType.getInstance(1, 2, i),
+							UncertainIntegralType.getInstance(1, 4, i),
+							UncertainIntegralType.getInstance(2, 2, i),
+							UncertainIntegralType.getInstance(2, 4, i),
+							UncertainIntegralType.getInstance(4, 4, i)
 					)
 			);
 		}

@@ -4,7 +4,7 @@ import x590.javaclass.type.Type;
 
 public abstract class IntConvertibleConstOperation extends ConstOperation {
 	
-	protected boolean implicit = false;
+	protected boolean implicit;
 	
 	public IntConvertibleConstOperation(Type returnType) {
 		super(returnType);

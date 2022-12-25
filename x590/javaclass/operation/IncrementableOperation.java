@@ -58,7 +58,6 @@ public interface IncrementableOperation {
 				setProbableType(castOperation.getReturnType());
 				
 			} else {
-				castOperation = null;
 				notCastedValue = originalValue;
 			}
 			

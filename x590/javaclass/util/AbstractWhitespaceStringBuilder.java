@@ -1,6 +1,6 @@
 package x590.javaclass.util;
 
-public abstract class AbstractWhitespaceStringBuilder<SB extends AbstractWhitespaceStringBuilder<SB>> implements IWhitespaceStringBuilder {
+public abstract class AbstractWhitespaceStringBuilder implements IWhitespaceStringBuilder {
 	
 	protected boolean printTrailingSpace;
 	
@@ -14,9 +14,8 @@ public abstract class AbstractWhitespaceStringBuilder<SB extends AbstractWhitesp
 	public abstract String toString();
 	
 	@Override
-	@SuppressWarnings("unchecked")
-	public SB printTrailingSpace() {
+	public AbstractWhitespaceStringBuilder printTrailingSpace() {
 		this.printTrailingSpace = true;
-		return (SB)this;
+		return this;
 	}
 }

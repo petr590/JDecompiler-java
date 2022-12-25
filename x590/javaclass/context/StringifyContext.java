@@ -2,11 +2,12 @@ package x590.javaclass.context;
 
 import x590.javaclass.ClassInfo;
 import x590.javaclass.MethodDescriptor;
+import x590.javaclass.Modifiers;
 import x590.javaclass.scope.MethodScope;
 
 public class StringifyContext extends DecompilationAndStringifyContext {
 	
-	public StringifyContext(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, MethodScope methodScope, int modifiers) {
+	public StringifyContext(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, MethodScope methodScope, Modifiers modifiers) {
 		super(otherContext, classinfo, descriptor, methodScope, modifiers);
 	}
 	

@@ -57,6 +57,6 @@ public class Version {
 	@Override
 	public String toString() {
 		return majorVersion + "." + minorVersion +
-				(versionTable.containsKey(majorVersion) ? " (" + versionTable.get(majorVersion) + ")" : ""); 
+				(versionTable.containsKey(majorVersion) ? " (" + versionTable.get(majorVersion) + ")" : "");
 	}
 }

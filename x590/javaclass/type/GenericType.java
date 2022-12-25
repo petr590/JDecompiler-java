@@ -4,11 +4,11 @@ public abstract class GenericType extends ReferenceType {
 	
 	@Override
 	public String getNameForVariable() {
-		throw new IllegalStateException("Seriously? Variable of unknown generic type?");
+		throw new UnsupportedOperationException("Seriously? Variable of unknown generic type?");
 	}
 	
 	@Override
 	protected boolean canCastTo(Type other) {
-		return other.isReferenceType();
+		return other.isBasicReferenceType();
 	}
 }

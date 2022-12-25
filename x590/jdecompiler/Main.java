@@ -39,10 +39,10 @@ public class Main {
 		} else {
 			JDecompiler.init(new String[] {
 //					"bin/example/Example2.class",
-					
+//					
 //					"bin/example/annotation/TestAnnotation.class",
 //					"bin/example/annotation/InvisibleAnnotation.class",
-					
+//					
 //					"bin/example/If.class",
 //					"bin/example/Else.class",
 //					"bin/example/Synchronized.class",
@@ -54,17 +54,34 @@ public class Main {
 //					"bin/example/StaticFields.class",
 //					"bin/example/NonStaticFields.class",
 //					"bin/example/Methods.class",
-					"bin/example/OverrideTest.class",
+//					"bin/example/MultiDeclaration.class",
+//					"bin/example/OverrideTest.class",
+//					"bin/example/Interface.class",
+//					"bin/example/Enum.class",
+//					"bin/example/Arrays.class",
+//					"bin/example/Constants.class",
+//					"bin/example/Autoboxing.class",
+//					"bin/example/TernaryOperator.class",
+//					"bin/example/Throws.class",
+					
+//					"/home/winch/0x590/java/jdk-8-rt/java/lang/Object.class",
+					
+//					"bin/x590/javaclass/Importable.class",
+					"bin/x590/javaclass/Version.class",
 					
 //					"--no-omit-curly-brackets",
 //					"--no-omit-this-class",
 			});
 		}
 		
+		var out = new StringifyOutputStream(System.out);
+		
 		for(String file : JDecompiler.getInstance().files) {
 			// Нужен ли здесь BufferedInputStream ?..
 			DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
 			int available = in.available();
+
+			out.println("\n\n----------------------------------------------------------------------------------------------------").writeln();
 			
 			try {
 				Timer timer = Timer.startNewTimer();
@@ -73,11 +90,9 @@ public class Main {
 				
 				timer.logElapsed("Class reading");
 				
-				clazz.addImports(clazz.classinfo);
-				
-				var out = new StringifyOutputStream(System.out);
+				clazz.decompile();
+				clazz.addImports();
 				clazz.writeTo(out);
-				out.flush();
 				
 			} catch(Exception ex) {
 				System.out.println("At pos 0x" + Integer.toHexString(available - in.available()));
@@ -87,6 +102,8 @@ public class Main {
 				in.close();
 			}
 		}
+		
+		out.flush();
 		
 //		Type t1 = VariableCapacityIntegralType.getInstance(1, 4);
 //		Type t2 = VariableCapacityIntegralType.CHAR_OR_INT;

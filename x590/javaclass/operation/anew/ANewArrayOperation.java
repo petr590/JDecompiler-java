@@ -6,6 +6,6 @@ import x590.javaclass.type.ArrayType;
 public class ANewArrayOperation extends NewArrayOperation {
 	
 	public ANewArrayOperation(DecompilationContext context, int index) {
-		super(context, new ArrayType(context.pool.getClassConstant(index).toArrayType()));
+		super(context, new ArrayType(context.pool.getClassConstant(index).toReferenceType()));
 	}
 }

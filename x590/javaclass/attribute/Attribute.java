@@ -42,8 +42,9 @@ public class Attribute implements JavaSerializable, Importable {
 			case "RuntimeVisibleParameterAnnotations", "RuntimeInvisibleParameterAnnotations" ->
 				new ParameterAnnotationsAttribute(nameIndex, name, length, in, pool);
 			
-			case "AnnotationDefault" -> new AnnotationDefaultAttribute(nameIndex, name, length, in, pool);
-			case "BootstrapMethods"	 -> new BootstrapMethodsAttribute(nameIndex, name, length, in, pool);
+			case "AnnotationDefault"  -> new AnnotationDefaultAttribute(nameIndex, name, length, in, pool);
+			case "BootstrapMethods"	  -> new BootstrapMethodsAttribute(nameIndex, name, length, in, pool);
+			case "LocalVariableTable" -> new LocalVariableTableAttribute(nameIndex, name, length, in, pool);
 			default -> new UnknownAttribute(nameIndex, name, length, in);
 		};
 		

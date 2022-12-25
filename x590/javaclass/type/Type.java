@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
 import x590.javaclass.ClassInfo;
 import x590.javaclass.StringWritableAndImportable;
 import x590.javaclass.Stringified;
-import x590.javaclass.exception.IllegalMethodDescriptorException;
+import x590.javaclass.exception.InvalidMethodDescriptorException;
 import x590.javaclass.exception.IncopatibleTypesException;
 import x590.javaclass.exception.InvalidTypeNameException;
 import x590.javaclass.io.ExtendedStringReader;
@@ -29,7 +29,8 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 	public abstract String toString();
 	
 	/** Закодированное имя типа:<br>
-	 * "Ljava/lang/Object;", "I" */
+	 * "Ljava/lang/Object;", "I".
+	 * Используется для сравнения типов и для получения хеш-кода */
 	public abstract String getEncodedName();
 	
 	/** Имя типа:<br>
@@ -59,30 +60,42 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 		return !isBasic();
 	}
 	
-	/* Гарантирует, что объект - экземпляр класса PrimitiveType */
+	/** Гарантирует, что объект - экземпляр класса PrimitiveType */
 	public boolean isPrimitive() {
 		return false;
 	}
 	
-	/* Гарантирует, что объект - экземпляр класса IntegralType */
+	/** Гарантирует, что объект - экземпляр класса IntegralType */
 	public boolean isIntegral() {
 		return false;
 	}
 	
-	/* Гарантирует, что объект - экземпляр класса ReferenceType */
+	
+	/** Для всех ссылочных типов, в том числе и для специальных */
 	public boolean isReferenceType() {
+		return isBasicReferenceType();
+	}
+	
+	public boolean isUncertainReferenceType() {
 		return false;
 	}
 	
-	/* Гарантирует, что объект - экземпляр класса ClassType */
-	public boolean isClassType() {
+	
+	/** Гарантирует, что объект - экземпляр класса ReferenceType */
+	public boolean isBasicReferenceType() {
 		return false;
 	}
 	
-	/* Гарантирует, что объект - экземпляр класса ArrayType */
-	public boolean isArrayType() {
+	/** Гарантирует, что объект - экземпляр класса ClassType */
+	public boolean isBasicClassType() {
 		return false;
 	}
+	
+	/** Гарантирует, что объект - экземпляр класса ArrayType */
+	public boolean isBasicArrayType() {
+		return false;
+	}
+	
 	
 	/** Размер типа на стеке (кратен 4 байтам) */
 	public abstract TypeSize getSize();
@@ -94,12 +107,6 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 	
 	
 	protected abstract boolean canCastTo(Type other);
-	
-	
-	@Deprecated
-	protected boolean canReverse(Type other) {
-		return true;
-	}
 	
 	
 	protected abstract Type castToNarrowestImpl(Type other);
@@ -145,6 +152,21 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 		Type type = castToWidestNoexcept(other);
 		
 		if(type != null) return type;
+		
+		throw new IncopatibleTypesException(this, other);
+	}
+	
+	
+	public Type castToGeneralNarrowest(Type other) {
+		Type type = this.castToNarrowestNoexcept(other);
+		
+		if(type != null)
+			return type;
+		
+		type = other.castToNarrowestNoexcept(this);
+		
+		if(type != null)
+			return type;
 		
 		throw new IncopatibleTypesException(this, other);
 	}
@@ -208,7 +230,7 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 		in.mark();
 		
 		if(in.read() != '(')
-			throw new IllegalMethodDescriptorException(in);
+			throw new InvalidMethodDescriptorException(in);
 		
 		List<Type> arguments = new ArrayList<>();
 		
@@ -282,5 +304,5 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 					parameters.add(parseParameter(in));
 			}
 		}
-	}		
+	}
 }

@@ -76,8 +76,14 @@ public abstract class Variable extends EmptyableVariable {
 			
 			EmptyableVariable otherVar = enclosingScope.getVariableWithName(name);
 			
+			
 			if(!otherVar.isEmpty()) {
-				otherVar.notEmpty().setName(otherVar.getName() + '1');
+				otherVar.notEmpty().setName(name + '1');
+			} else {
+				otherVar = enclosingScope.getVariableWithName(name + '1');
+			}
+			
+			if(!otherVar.isEmpty()) {
 				String newName;
 				int i = 1;
 				
@@ -86,6 +92,7 @@ public abstract class Variable extends EmptyableVariable {
 				} while(enclosingScope.hasVariableWithName(newName));
 				
 				name = newName;
+				
 			}
 			
 			this.name = name;

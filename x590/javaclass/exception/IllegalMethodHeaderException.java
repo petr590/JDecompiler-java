@@ -1,6 +1,6 @@
 package x590.javaclass.exception;
 
-public class IllegalMethodHeaderException extends DecompilationException {
+public class IllegalMethodHeaderException extends IllegalHeaderException {
 	
 	private static final long serialVersionUID = 4849479055648724003L;
 	

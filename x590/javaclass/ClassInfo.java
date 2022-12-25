@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
+
 import x590.javaclass.attribute.Attributes;
 import x590.javaclass.constpool.ConstantPool;
 import x590.javaclass.context.StringifyContext;
@@ -21,7 +23,7 @@ public class ClassInfo {
 	
 	public final Version version;
 	public final ConstantPool pool;
-	public final int modifiers;
+	public final Modifiers modifiers;
 	
 	public final ClassType thisType, superType;
 	public final List<ClassType> interfaces;
@@ -32,7 +34,7 @@ public class ClassInfo {
 	private boolean importsUniqued;
 	
 	
-	public ClassInfo(JavaClass clazz, Version version, ConstantPool pool, int modifiers,
+	public ClassInfo(JavaClass clazz, Version version, ConstantPool pool, Modifiers modifiers,
 			ClassType thisType, ClassType superType, List<ClassType> interfaces) {
 		
 		this.clazz = clazz;
@@ -55,13 +57,16 @@ public class ClassInfo {
 		type.addImports(this);
 	}
 	
+	public void addImportIfNotNull(@Nullable Type type) {
+		if(type != null)
+			addImport(type);
+	}
+	
 	public void uniqImports() {
 		assert !importsUniqued;
 		
 		var groupedImports = imports.entrySet().stream().collect(Collectors.groupingBy(entry -> entry.getKey().getSimpleName()));
 		groupedImports.entrySet().removeIf(entry -> entry.getValue().size() <= 1);
-		
-//		System.out.println(groupedImports);
 		
 		importsUniqued = true;
 	}

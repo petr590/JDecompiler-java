@@ -2,32 +2,32 @@ package x590.javaclass.type;
 
 import x590.javaclass.ClassInfo;
 
-import static x590.javaclass.type.VariableCapacityIntegralType.INCLUDE_BOOLEAN;
-import static x590.javaclass.type.VariableCapacityIntegralType.INCLUDE_CHAR;
+import static x590.javaclass.type.UncertainIntegralType.INCLUDE_BOOLEAN;
+import static x590.javaclass.type.UncertainIntegralType.INCLUDE_CHAR;
 
 public abstract class PrimitiveType extends BasicType {
 	
 	public static final PrimitiveType
-			VOID    = VoidType.INSTANCE,
-			BOOLEAN = BooleanType.INSTANCE,
 			BYTE    = ByteType.INSTANCE,
 			SHORT   = ShortType.INSTANCE,
 			CHAR    = CharType.INSTANCE,
 			INT     = IntType.INSTANCE,
 			LONG    = LongType.INSTANCE,
 			FLOAT   = FloatType.INSTANCE,
-			DOUBLE  = DoubleType.INSTANCE;
+			DOUBLE  = DoubleType.INSTANCE,
+			BOOLEAN = BooleanType.INSTANCE,
+			VOID    = VoidType.INSTANCE;
 	
 	
-	public static final VariableCapacityIntegralType
-			BYTE_SHORT_CHAR_INT_BOOLEAN = VariableCapacityIntegralType.getInstance(1, 4, INCLUDE_BOOLEAN | INCLUDE_CHAR),
-			BYTE_SHORT_CHAR_INT         = VariableCapacityIntegralType.getInstance(1, 4, INCLUDE_CHAR),
-			BYTE_SHORT_INT              = VariableCapacityIntegralType.getInstance(1, 4),
-			CHAR_SHORT_INT              = VariableCapacityIntegralType.getInstance(2, 4, INCLUDE_CHAR),
-			CHAR_INT                    = VariableCapacityIntegralType.getInstance(4, 4, INCLUDE_CHAR),
-			SHORT_INT                   = VariableCapacityIntegralType.getInstance(2, 4),
-			BYTE_BOOLEAN                = VariableCapacityIntegralType.getInstance(1, 1, INCLUDE_BOOLEAN),
-			INT_BOOLEAN                 = VariableCapacityIntegralType.getInstance(4, 4, INCLUDE_BOOLEAN);
+	public static final UncertainIntegralType
+			BYTE_SHORT_CHAR_INT_BOOLEAN = UncertainIntegralType.getInstance(1, 4, INCLUDE_BOOLEAN | INCLUDE_CHAR),
+			BYTE_SHORT_CHAR_INT         = UncertainIntegralType.getInstance(1, 4, INCLUDE_CHAR),
+			BYTE_SHORT_INT              = UncertainIntegralType.getInstance(1, 4),
+			CHAR_SHORT_INT              = UncertainIntegralType.getInstance(2, 4, INCLUDE_CHAR),
+			CHAR_INT                    = UncertainIntegralType.getInstance(4, 4, INCLUDE_CHAR),
+			SHORT_INT                   = UncertainIntegralType.getInstance(2, 4),
+			BYTE_BOOLEAN                = UncertainIntegralType.getInstance(1, 1, INCLUDE_BOOLEAN),
+			INT_BOOLEAN                 = UncertainIntegralType.getInstance(4, 4, INCLUDE_BOOLEAN);
 	
 	
 	public static final int CHAR_CAPACITY = 2;

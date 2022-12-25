@@ -2,7 +2,7 @@ package x590.javaclass.type;
 
 import x590.javaclass.ClassInfo;
 
-public class AnyType extends TwoWayCastSpecialType {
+public class AnyType extends SpecialType {
 	
 	public static final AnyType INSTANCE = new AnyType();
 	
@@ -21,7 +21,7 @@ public class AnyType extends TwoWayCastSpecialType {
 	
 	@Override
 	public final String getEncodedName() {
-		return "SAnyType";
+		return "AnyType";
 	}
 	
 	@Override
@@ -53,5 +53,15 @@ public class AnyType extends TwoWayCastSpecialType {
 	@Override
 	protected Type castToWidestImpl(Type other) {
 		return other.isPrimitive() ? ((PrimitiveType)other).toVariableCapacityIntegralType() : other;
+	}
+	
+	@Override
+	protected Type reversedCastToNarrowestImpl(Type other) {
+		return castToNarrowestImpl(other);
+	}
+	
+	@Override
+	protected Type reversedCastToWidestImpl(Type other) {
+		return castToWidestImpl(other);
 	}
 }

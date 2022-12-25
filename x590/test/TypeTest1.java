@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import x590.javaclass.type.Type;
-import x590.javaclass.type.VariableCapacityIntegralType;
+import x590.javaclass.type.UncertainIntegralType;
 
 public class TypeTest1 {
 	
@@ -25,12 +25,12 @@ public class TypeTest1 {
 		for(int i = 0; i < 3; i++) {
 			types.addAll(
 					List.of(
-							VariableCapacityIntegralType.getInstance(1, 1, i),
-							VariableCapacityIntegralType.getInstance(1, 2, i),
-							VariableCapacityIntegralType.getInstance(1, 4, i),
-							VariableCapacityIntegralType.getInstance(2, 2, i),
-							VariableCapacityIntegralType.getInstance(2, 4, i),
-							VariableCapacityIntegralType.getInstance(4, 4, i)
+							UncertainIntegralType.getInstance(1, 1, i),
+							UncertainIntegralType.getInstance(1, 2, i),
+							UncertainIntegralType.getInstance(1, 4, i),
+							UncertainIntegralType.getInstance(2, 2, i),
+							UncertainIntegralType.getInstance(2, 4, i),
+							UncertainIntegralType.getInstance(4, 4, i)
 					)
 			);
 		}

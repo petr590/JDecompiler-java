@@ -55,6 +55,6 @@ public class FieldDescriptor extends Descriptor implements StringWritableAndImpo
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-		out.print(type, classinfo).printsp().print(name);
+		out.printsp(type, classinfo).print(name);
 	}
 }

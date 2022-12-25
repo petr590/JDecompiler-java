@@ -103,7 +103,7 @@ public class UnnamedVariable extends Variable {
 	}
 	
 	private static @Nullable String getRawNameByType(Type type) {
-		if(type.isClassType()) {
+		if(type.isBasicClassType()) {
 			switch(((ClassType)type).getSimpleName()) {
 				case "Object":		 return "obj";
 				case "Class":		 return "clazz";

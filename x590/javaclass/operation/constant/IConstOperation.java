@@ -4,7 +4,7 @@ import x590.javaclass.context.StringifyContext;
 import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.type.PrimitiveType;
 import x590.javaclass.type.Type;
-import x590.javaclass.type.VariableCapacityIntegralType;
+import x590.javaclass.type.UncertainIntegralType;
 import x590.javaclass.util.Util;
 
 public class IConstOperation extends ConstOperation {
@@ -20,7 +20,7 @@ public class IConstOperation extends ConstOperation {
 				(byte)value == value ? 1 :
 				(short)value == value ? 2 : 4;
 		
-		return VariableCapacityIntegralType.getInstance(minCapacity, 4, false, (char)value == value);
+		return UncertainIntegralType.getInstance(minCapacity, 4, false, (char)value == value);
 	}
 	
 	

@@ -2,7 +2,7 @@ package example;
 
 public class Example {
 	
-	static final int[][][] f = {
+	public static final int[][][] f = {
 			{
 				{1, 2, 3},
 				{4, 5, 6},
@@ -18,7 +18,7 @@ public class Example {
 			}
 	};
 	
-	final int i;
+	public final int i;
 	
 	public Example() {
 		this.i = 10;
@@ -32,7 +32,7 @@ public class Example {
 		System.out.println("i+1 is " + (~i + 0b1 & i & foo(f)) * 2);
 	}
 	
-	int foo(int[][][] arr) {
+	public static int foo(int[][][] arr) {
 		return arr[0][0][0] = 10;
 	}
 }

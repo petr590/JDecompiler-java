@@ -3,6 +3,7 @@ package x590.javaclass;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.function.ObjIntConsumer;
 import java.util.stream.Collectors;
@@ -14,7 +15,7 @@ import x590.javaclass.constpool.ConstantPool;
 import x590.javaclass.constpool.NameAndTypeConstant;
 import x590.javaclass.constpool.ReferenceConstant;
 import x590.javaclass.context.StringifyContext;
-import x590.javaclass.exception.IllegalMethodDescriptorException;
+import x590.javaclass.exception.InvalidMethodDescriptorException;
 import x590.javaclass.exception.IllegalMethodHeaderException;
 import x590.javaclass.io.ExtendedDataInputStream;
 import x590.javaclass.io.ExtendedStringReader;
@@ -24,12 +25,8 @@ import x590.javaclass.type.ClassType;
 import x590.javaclass.type.PrimitiveType;
 import x590.javaclass.type.ReferenceType;
 import x590.javaclass.type.Type;
-import x590.javaclass.type.TypeSize;
 import x590.javaclass.util.Util;
 import x590.util.IntHolder;
-import x590.util.function.ObjIntFunction;
-
-import static x590.javaclass.Modifiers.*;
 
 public class MethodDescriptor extends Descriptor implements StringWritableAndImportable {
 	
@@ -50,7 +47,7 @@ public class MethodDescriptor extends Descriptor implements StringWritableAndImp
 		};
 		
 		if(type != MethodType.PLAIN && returnType != PrimitiveType.VOID)
-			throw new IllegalMethodDescriptorException("Method " + this.toString() + " must return void");
+			throw new InvalidMethodDescriptorException("Method " + this.toString() + " must return void");
 		
 		return type;
 	}
@@ -69,10 +66,6 @@ public class MethodDescriptor extends Descriptor implements StringWritableAndImp
 	
 	public boolean isStaticInitializerOf(ReferenceType clazz) {
 		return this.isStaticInitializer() && this.clazz == clazz;
-	}
-	
-	public boolean argumentsEmpty() {
-		return this.arguments.isEmpty();
 	}
 	
 	
@@ -133,6 +126,11 @@ public class MethodDescriptor extends Descriptor implements StringWritableAndImp
 	}
 	
 	
+	public int countLocals(Modifiers modifiers) {
+		return arguments.stream().mapToInt(argType -> argType.getSize().slotsOccupied()).sum() + (modifiers.isNotStatic() ? 1 : 0);
+	}
+	
+	
 	public void write(StringifyOutputStream out, StringifyContext context, Attributes attributes) {
 		
 		switch(type) {
@@ -158,7 +156,7 @@ public class MethodDescriptor extends Descriptor implements StringWritableAndImp
 		
 		ClassInfo classinfo = context.classinfo;
 		
-		IntHolder offset = new IntHolder((context.modifiers & ACC_STATIC) == 0 ? 1 : 0);
+		IntHolder varIndex = new IntHolder(context.modifiers.isNotStatic() ? 1 : 0);
 		
 		
 		ParameterAnnotationsAttribute
@@ -171,23 +169,23 @@ public class MethodDescriptor extends Descriptor implements StringWritableAndImp
 		};
 		
 		
-		ObjIntFunction<Type, String> getVariableName = (type, i) -> context.methodScope.getDefinedVariable(i + (type.getSize() == TypeSize.EIGHT_BYTES ? offset.postInc() : offset.get())).getName();
+		Function<Type, String> getVariableName = type -> context.methodScope.getDefinedVariable(varIndex.postInc(type.getSize().slotsOccupied())).getName();
 		
 		ObjIntConsumer<Type> write;
 		
-		if((context.modifiers & ACC_VARARGS) != 0) {
+		if(context.modifiers.isVarargs()) {
 			int varargsIndex = arguments.size() - 1;
 			
-			if(arguments.isEmpty() || !arguments.get(varargsIndex).isArrayType())
+			if(arguments.isEmpty() || !arguments.get(varargsIndex).isBasicArrayType())
 				throw new IllegalMethodHeaderException("Varargs method must have array as last argument");
 			
 			write = (type, i) ->
 					(i != varargsIndex ? out.printsp(type, classinfo) : out.print(((ArrayType)type).elementType, classinfo).print("... "))
-					.print(getVariableName.apply(type, i));
+					.print(getVariableName.apply(type));
 			
 		} else {
 			write = (type, i) ->
-					out.printsp(type, classinfo).print(getVariableName.apply(type, i));
+					out.printsp(type, classinfo).print(getVariableName.apply(type));
 		}
 		
 		
@@ -228,6 +226,7 @@ public class MethodDescriptor extends Descriptor implements StringWritableAndImp
 		out.write(')');
 	}
 	
+	@Override
 	public String toString() {
 		return clazz.getName() + "." +
 				(type == MethodType.STATIC_INITIALIZER ? "static {}" :
@@ -249,7 +248,7 @@ public class MethodDescriptor extends Descriptor implements StringWritableAndImp
 	}
 	
 	public boolean equals(MethodDescriptor other) {
-		return  this == other || this.equalsRaw(other);
+		return this == other || this.equalsRaw(other);
 	}
 	
 	private boolean equalsRaw(MethodDescriptor other) {
@@ -259,26 +258,76 @@ public class MethodDescriptor extends Descriptor implements StringWritableAndImp
 	}
 	
 	
+	public boolean equals(String name, Type returnType) {
+		return this.equalsRaw(name, returnType) && argumentsEquals();
+	}
+	
+	public boolean equals(String name, Type returnType, Type arg1) {
+		return this.equalsRaw(name, returnType) && argumentsEquals(arg1);
+	}
+	
+	public boolean equals(String name, Type returnType, Type arg1, Type arg2) {
+		return this.equalsRaw(name, returnType) && argumentsEquals(arg1, arg2);
+	}
+	
+	public boolean equals(String name, Type returnType, Type arg1, Type arg2, Type arg3) {
+		return this.equalsRaw(name, returnType) && argumentsEquals(arg1, arg2, arg3);
+	}
+	
+	public boolean equals(String name, Type returnType, Type... args) {
+		return this.equalsRaw(name, returnType) && argumentsEquals(args);
+	}
+	
+	private boolean equalsRaw(String name, Type returnType) {
+		return this.name.equals(name) && this.returnType.equals(returnType);
+	}
+	
+	
+	public boolean equals(ClassType clazz, String name, Type returnType) {
+		return this.equalsRaw(clazz, name, returnType) && argumentsEquals();
+	}
+	
+	public boolean equals(ClassType clazz, String name, Type returnType, Type arg1) {
+		return this.equalsRaw(clazz, name, returnType) && argumentsEquals(arg1);
+	}
+	
+	public boolean equals(ClassType clazz, String name, Type returnType, Type arg1, Type arg2) {
+		return this.equalsRaw(clazz, name, returnType) && argumentsEquals(arg1, arg2);
+	}
+	
+	public boolean equals(ClassType clazz, String name, Type returnType, Type arg1, Type arg2, Type arg3) {
+		return this.equalsRaw(clazz, name, returnType) && argumentsEquals(arg1, arg2, arg3);
+	}
+	
+	public boolean equals(ClassType clazz, String name, Type returnType, Type... args) {
+		return this.equalsRaw(clazz, name, returnType) && argumentsEquals(args);
+	}
+	
+	private boolean equalsRaw(ClassType clazz, String name, Type returnType) {
+		return this.clazz.equals(clazz) && this.name.equals(name) && this.returnType.equals(returnType);
+	}
+	
+	
 	public boolean argumentsEquals() {
 		return arguments.isEmpty();
 	}
 	
-	public boolean argumentsEquals(Type type1) {
+	public boolean argumentsEquals(Type arg1) {
 		return arguments.size() == 1 &&
-				arguments.get(0).equals(type1);
+				arguments.get(0).equals(arg1);
 	}
 	
-	public boolean argumentsEquals(Type type1, Type type2) {
+	public boolean argumentsEquals(Type arg1, Type arg2) {
 		return arguments.size() == 2 &&
-				arguments.get(0).equals(type1) &&
-				arguments.get(1).equals(type2);
+				arguments.get(0).equals(arg1) &&
+				arguments.get(1).equals(arg2);
 	}
 	
-	public boolean argumentsEquals(Type type1, Type type2, Type type3) {
+	public boolean argumentsEquals(Type arg1, Type arg2, Type arg3) {
 		return arguments.size() == 3 &&
-				arguments.get(0).equals(type1) &&
-				arguments.get(1).equals(type2) &&
-				arguments.get(1).equals(type3);
+				arguments.get(0).equals(arg1) &&
+				arguments.get(1).equals(arg2) &&
+				arguments.get(1).equals(arg3);
 	}
 	
 	public boolean argumentsEquals(Type... types) {

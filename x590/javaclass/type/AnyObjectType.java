@@ -2,7 +2,7 @@ package x590.javaclass.type;
 
 import x590.javaclass.ClassInfo;
 
-public final class AnyObjectType extends TwoWayCastSpecialType {
+public final class AnyObjectType extends SpecialType {
 	
 	public static final AnyObjectType INSTANCE = new AnyObjectType();
 	
@@ -21,7 +21,7 @@ public final class AnyObjectType extends TwoWayCastSpecialType {
 	
 	@Override
 	public final String getEncodedName() {
-		return "SAnyObjectType";
+		return "AnyObjectType";
 	}
 	
 	@Override
@@ -31,7 +31,7 @@ public final class AnyObjectType extends TwoWayCastSpecialType {
 	
 	@Override
 	public final String getNameForVariable() {
-		return "o";
+		return "obj";
 	}
 	
 	
@@ -48,16 +48,44 @@ public final class AnyObjectType extends TwoWayCastSpecialType {
 	
 	@Override
 	protected boolean canCastTo(Type other) {
-		return this == other || other.isReferenceType();
+		return this == other || other.isBasicReferenceType();
 	}
 	
 	@Override
 	protected Type castToNarrowestImpl(Type other) {
-		return this.canCastTo(other) ? other : null;
+		if(this == other)
+			return this;
+		
+		if(other.isBasicReferenceType())
+			return new UncertainReferenceType((ReferenceType)other);
+		
+		if(other.isUncertainReferenceType())
+			return other;
+		
+		return null;
 	}
 	
 	@Override
 	protected Type castToWidestImpl(Type other) {
-		return this.canCastTo(other) ? this : null;
+		if(this == other)
+			return this;
+		
+		if(other.isBasicReferenceType())
+			return new UncertainReferenceType(ClassType.OBJECT, (ReferenceType)other);
+		
+		if(other.isUncertainReferenceType())
+			return other;
+		
+		return null;
+	}
+	
+	@Override
+	protected Type reversedCastToNarrowestImpl(Type other) {
+		return this == other || other.isReferenceType() ? other : null;
+	}
+	
+	@Override
+	protected Type reversedCastToWidestImpl(Type other) {
+		return this == other || other.isReferenceType() ? other : null;
 	}
 }

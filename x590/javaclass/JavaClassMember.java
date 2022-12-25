@@ -4,18 +4,18 @@ import x590.javaclass.io.ExtendedDataInputStream;
 
 public abstract class JavaClassMember extends JavaClassElement {
 	
-	public final int modifiers;
+	public final Modifiers modifiers;
 	
-	protected JavaClassMember(int modifiers) {
+	protected JavaClassMember(Modifiers modifiers) {
 		this.modifiers = modifiers;
 	}
 	
 	protected JavaClassMember(ExtendedDataInputStream in) {
-		this(in.readUnsignedShort());
+		this(new Modifiers(in.readUnsignedShort()));
 	}
 	
 	@Override
-	public int getModifiers() {
+	public Modifiers getModifiers() {
 		return modifiers;
 	}
 }

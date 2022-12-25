@@ -61,9 +61,9 @@ public class ClassConstant extends ConstValueConstant {
 		
 		referenceType = Type.parseReferenceType(name.getValue());
 		
-		if(referenceType.isClassType())
+		if(referenceType.isBasicClassType())
 			classType = (ClassType)referenceType;
-		else if(referenceType.isArrayType())
+		else if(referenceType.isBasicArrayType())
 			arrayType = (ArrayType)referenceType;
 		
 		return referenceType;

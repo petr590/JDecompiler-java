@@ -51,8 +51,8 @@ public class StringifyOutputStream extends UncheckedOutputStream {
 		indent = getIndent(indentWidth += 1);
 		return this;
 	}
-
-
+	
+	
 	public StringifyOutputStream increaseIndent(int count) {
 		indent = getIndent(indentWidth += count);
 		return this;
@@ -326,7 +326,7 @@ public class StringifyOutputStream extends UncheckedOutputStream {
 	public void close() {
 		try {
 			out.close();
-		} catch (IOException ex) {
+		} catch(IOException ex) {
 			throw getUncheckedException(ex);
 		}
 	}

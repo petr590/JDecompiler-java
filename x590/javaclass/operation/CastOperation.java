@@ -1,5 +1,6 @@
 package x590.javaclass.operation;
 
+import x590.javaclass.ClassInfo;
 import x590.javaclass.context.DecompilationContext;
 import x590.javaclass.context.StringifyContext;
 import x590.javaclass.io.StringifyOutputStream;
@@ -20,6 +21,13 @@ public class CastOperation extends Operation {
 	
 	public Operation getOperand() {
 		return operand;
+	}
+
+	
+	@Override
+	public void addImports(ClassInfo classinfo) {
+		if(!implicitCast || !implicitCastAllowed)
+			classinfo.addImport(castedType);
 	}
 	
 	

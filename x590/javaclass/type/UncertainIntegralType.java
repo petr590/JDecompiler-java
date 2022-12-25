@@ -6,12 +6,13 @@ import java.util.List;
 import x590.javaclass.ClassInfo;
 import x590.javaclass.util.WhitespaceStringBuilder;
 
-public class VariableCapacityIntegralType extends SpecialType {
+import static x590.javaclass.type.PrimitiveType.CHAR_CAPACITY;
+
+public class UncertainIntegralType extends SpecialType {
 	
-	private static final List<VariableCapacityIntegralType> instances = new ArrayList<>();
+	private static final List<UncertainIntegralType> instances = new ArrayList<>();
 	
 	public static final int INCLUDE_BOOLEAN = 0x1, INCLUDE_CHAR = 0x2;
-	public static final int CHAR_CAPACITY = 2;
 	
 	
 	public final int minCapacity, maxCapacity;
@@ -36,23 +37,23 @@ public class VariableCapacityIntegralType extends SpecialType {
 		}
 	}
 	
-	private VariableCapacityIntegralType(int minCapacity, int maxCapacity, boolean includeBoolean, boolean includeChar) {
+	private UncertainIntegralType(int minCapacity, int maxCapacity, boolean includeBoolean, boolean includeChar) {
 		this.minCapacity = minCapacity;
 		this.maxCapacity = maxCapacity;
 		this.includeBoolean = includeBoolean;
 		this.includeChar = includeChar;
 		this.highPrimitiveType = primitiveTypeByCapacity(maxCapacity, includeChar);
-		this.encodedName = "SVariableCapacityIntegralType:" + minCapacity + ":" + maxCapacity + ":" +
+		this.encodedName = "VariableCapacityIntegralType:" + minCapacity + ":" + maxCapacity + ":" +
 				(char)('0' + (includeBoolean ? 1 : 0) + (includeChar ? 2 : 0));
 	}
 	
 	
-	private static VariableCapacityIntegralType getInstanceNoexcept(int minCapacity, int maxCapacity, boolean includeBoolean, boolean includeChar) {
+	private static UncertainIntegralType getInstanceNoexcept(int minCapacity, int maxCapacity, boolean includeBoolean, boolean includeChar) {
 		
 		if(minCapacity > maxCapacity)
 			return null;
 		
-		for(VariableCapacityIntegralType instance : instances) {
+		for(UncertainIntegralType instance : instances) {
 			if(instance.minCapacity == minCapacity && instance.maxCapacity == maxCapacity &&
 				instance.includeBoolean == includeBoolean && instance.includeChar == includeChar) {
 				
@@ -60,21 +61,21 @@ public class VariableCapacityIntegralType extends SpecialType {
 			}
 		}
 		
-		VariableCapacityIntegralType instance = new VariableCapacityIntegralType(minCapacity, maxCapacity, includeBoolean, includeChar);
+		UncertainIntegralType instance = new UncertainIntegralType(minCapacity, maxCapacity, includeBoolean, includeChar);
 		instances.add(instance);
 		return instance;
 	}
 	
 	
-	public static VariableCapacityIntegralType getInstance(int minCapacity, int maxCapacity) {
+	public static UncertainIntegralType getInstance(int minCapacity, int maxCapacity) {
 		return getInstance(minCapacity, maxCapacity, false, false);
 	}
 	
-	public static VariableCapacityIntegralType getInstance(int minCapacity, int maxCapacity, int flags) {
+	public static UncertainIntegralType getInstance(int minCapacity, int maxCapacity, int flags) {
 		return getInstance(minCapacity, maxCapacity, (flags & INCLUDE_BOOLEAN) != 0, (flags & INCLUDE_CHAR) != 0);
 	}
 	
-	public static VariableCapacityIntegralType getInstance(int minCapacity, int maxCapacity, boolean includeBoolean, boolean includeChar) {
+	public static UncertainIntegralType getInstance(int minCapacity, int maxCapacity, boolean includeBoolean, boolean includeChar) {
 		var type = getInstanceNoexcept(minCapacity, maxCapacity, includeBoolean, includeChar);
 		
 		if(type != null)
@@ -146,7 +147,7 @@ public class VariableCapacityIntegralType extends SpecialType {
 			return ((IntegralType)other).getCapacity() >= minCapacity;
 		}
 		
-		if(other instanceof VariableCapacityIntegralType integralType) {
+		if(other instanceof UncertainIntegralType integralType) {
 			return integralType.maxCapacity >= minCapacity;
 		}
 		
@@ -154,7 +155,7 @@ public class VariableCapacityIntegralType extends SpecialType {
 	}
 	
 	
-	private static Type castImpl0(VariableCapacityIntegralType type, Type other, boolean widest) {
+	private static Type castImpl0(UncertainIntegralType type, Type other, boolean widest) {
 		
 		if(other.isPrimitive()) {
 			
@@ -172,14 +173,14 @@ public class VariableCapacityIntegralType extends SpecialType {
 						getInstanceNoexcept(type.minCapacity, Math.min(capacity, type.maxCapacity), false, type.includeChar && capacity > CHAR_CAPACITY);
 			}
 			
-		} else if(other instanceof VariableCapacityIntegralType integralType) {
+		} else if(other instanceof UncertainIntegralType integralType) {
 			return castImpl0(type, integralType, widest);
 		}
 		
 		return null;
 	}
 	
-	private static Type castImpl0(VariableCapacityIntegralType type, VariableCapacityIntegralType other, boolean widest) {
+	private static Type castImpl0(UncertainIntegralType type, UncertainIntegralType other, boolean widest) {
 		int minCapacity = Math.max(type.minCapacity, other.minCapacity),
 			maxCapacity = Math.min(other.maxCapacity, type.maxCapacity);
 		
@@ -194,7 +195,7 @@ public class VariableCapacityIntegralType extends SpecialType {
 		}
 	}
 	
-	private static Type reversedCastImpl0(VariableCapacityIntegralType type, Type other, boolean widest) {
+	private static Type reversedCastImpl0(UncertainIntegralType type, Type other, boolean widest) {
 		
 		if(other.isPrimitive()) {
 			

@@ -1,29 +1,52 @@
-The type system has been redesigned. Fixed the casting of VariableCapacityintegraltype and PrimitiveType.
-The type conversion code has been slightly simplified.
+Added `extends` and `implements` to class declaration (why didn't I copy this from C++ code?)
 
-Added the Type.canCastTo method as a partial replacement for the method Type.isSubtypeOf.
-Added the Type.reduced method (in C++ code it is called getReducedType).
+Fixed a bug with the anewarray instruction
+Fixed a bug with casting an array to java.lang.Object
 
-Fixed a bug in the DisassemblerContext.readShort and DisassemblerContext.readInt methods.
+Now an object of the Modifiers class is used instead of int, it's much more convenient
+(P.S. after this refactoring, a couple of bugs appeared, which I later fixed)
 
-Packages x590.javaclass.operation and x590.javaclass.instruction have been refactored: classes moved to subpackages.
+Fixed a bug with calling the `this` constructor
 
-Fixed a bug in DConstOperation.
+Added autoboxing for wrapper classes
+
+Fixed a bug with variable names. Was: x1, x2, x1, x3, x1, x4. Became: x1, x2, x3, x4, x5, x6.
+
+Fixed bug when reading attribute `Exceptions`
+
+Fixed a bug when decompiling the java.lang.Object class (its superclass is null)
+
+Fixed a bug when writing a method with arguments without the Code attribute.
+Previously, an empty MethodScope was returned if the code length is 0.
+Now an empty MethodScope is returned only when the length of the code and the number of variables are 0.
+
+Added an UncertainReferenceType class. Works similarly to VariableCapacityIntegralType, but for reference types.
+
+The program version is set as 0.6 (I always forgot to update it). From this commit, all versions will be updated, unless I forget.
+
+Class VariableCapacityIntegralType renamed to UncertainIntegralType
 
 
-Added the isScope() method to the Operation class. Used instead of checking instanceof Scope.
+Fixed methods AnyObjectType.reversedCastToNarrowestImpl and AnyObjectType.reversedCastToWidestImpl.
+Previously, they delegated execution to the castToNarrowestImpl and castToWidestImpl methods (this worked before adding the UncertainReferenceType)
 
-Fixed a bug when "x + 1" was output instead of "x + true".
-
-Fixed a bug with incorrect indexing of a variable when it is preceded by a variable of type long or double.
-
-
-Pre-increment, post-increment and shortened operators ("x += y" instead of "x = x + y") are implemented for both local variables and fields.
-Fixed some bugs with them.
-
-Added comma-separated declaration of fields (provided they have the same type, modifiers and all annotations).
-
-Fixed a bug when reading an annotation with a string value.
+Added loading of supertypes for ClassType via Class.forName(name). This is necessary when decompiling code
+that uses the standard Java library (List, Map, etc.). Although which code does not use it?
 
 
-... And a bunch of minor improvements and refactorings ...
+Fixed decompilation of such code:
+
+if(condition1) {
+	// Here if does not point to the end of the first if, but to the beginning of code3
+	if(condition2) {
+		code1;
+	}
+} else {
+	code2;
+}
+code3;
+
+P.S. The logic of the reference type system (the UncertainReferenceType class) turned
+out to be much more complicated than I thought, so now I'm going to deal with if, else, for, while, try, catch, etc.
+
+An interesting thing: an expression of the form `y = !!x;` decompiles in the same way, although I did not prescribe such a condition.

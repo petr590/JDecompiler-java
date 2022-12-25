@@ -1,14 +1,14 @@
 package x590.javaclass.context;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EmptyStackException;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
+import java.util.Queue;
 
 import x590.javaclass.ClassInfo;
 import x590.javaclass.MethodDescriptor;
+import x590.javaclass.Modifiers;
 import x590.javaclass.exception.DecompilationException;
 import x590.javaclass.instruction.Instruction;
 import x590.javaclass.operation.Operation;
@@ -20,11 +20,12 @@ import x590.javaclass.type.PrimitiveType;
 public class DecompilationContext extends DecompilationAndStringifyContext {
 	
 	public final OperationStack stack = new OperationStack();
-	private final Stack<Scope> scopeStack = new Stack<>();
 	public final List<Operation> operations;
 	protected Scope currentScope;
+
+	private final Queue<Scope> scopesQueue = new LinkedList<>();
 	
-	private DecompilationContext(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, int modifiers, MethodScope methodScope, List<Instruction> instructions, int maxLocals) {
+	private DecompilationContext(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, Modifiers modifiers, MethodScope methodScope, List<Instruction> instructions, int maxLocals) {
 		super(otherContext, classinfo, descriptor, methodScope, modifiers);
 
 		this.currentScope = methodScope;
@@ -55,11 +56,10 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 					
 					if(operation.getReturnType() == PrimitiveType.VOID) {
 						if(operation != VReturnOperation.INSTANCE) {
-							currentScope.addOperation(this, operation);
+							currentScope.addOperation(operation);
 							
 							if(operation instanceof Scope scope) {
-								scopeStack.push(currentScope);
-								currentScope = scope;
+								scopesQueue.add(scope);
 							}
 						}
 						
@@ -82,25 +82,67 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 		return currentScope;
 	}
 	
-	public Scope superScope() throws EmptyStackException {
-		return scopeStack.peek();
+	public Scope superScope() {
+		return currentScope.superScope();
 	}
 	
-	
-	public Collection<Scope> getScopes() {
-		return Collections.unmodifiableCollection(scopeStack);
+	public Iterable<Scope> getScopes() {
+		
+		return new Iterable<>() {
+			
+			public Iterator<Scope> iterator() {
+				
+				return new Iterator<>() {
+					
+					private Scope scope = currentScope;
+					
+					public boolean hasNext() {
+						return scope != null;
+					}
+					
+					public Scope next() {
+						var scope = this.scope;
+						this.scope = scope.superScope();
+						return scope;
+					}
+					
+				};
+			}
+		};
 	}
 	
 	
 	private void finalizeScopes() {
-		while(index >= currentScope.endIndex() && !scopeStack.isEmpty()) {
+		while(currentScope != null && index >= currentScope.endIndex()) {
+			currentScope.finalizeScope(this);
+			
 			System.out.println(index + ": " + currentScope + " finalized");
-			currentScope = scopeStack.pop();
+			
+			currentScope = currentScope.superScope();
+		}
+		
+		for(Iterator<Scope> iter = scopesQueue.iterator(); iter.hasNext(); ) {
+			Scope scope = iter.next();
+			
+			if(index > scope.startIndex()) {
+				
+				assert scope.superScope() == currentScope;
+				currentScope = scope;
+				
+				System.out.println(index + ": " + scope + " started");
+				
+				iter.remove();
+			}
 		}
 	}
 	
 	
-	public static DecompilationContext decompile(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, int modifiers, MethodScope methodScope, List<Instruction> instructions, int maxLocals) {
+	public void addScopeToQueue(Scope scope) {
+		scopesQueue.add(scope);
+	}
+	
+	
+	public static DecompilationContext decompile(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, Modifiers modifiers, MethodScope methodScope, List<Instruction> instructions, int maxLocals) {
 		return new DecompilationContext(otherContext, classinfo, descriptor, modifiers, methodScope, instructions, maxLocals);
 	}
 	

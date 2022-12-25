@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import x590.javaclass.ClassInfo;
 import x590.javaclass.io.StringifyOutputStream;
 
-public class WhitespaceStringBuilder extends AbstractWhitespaceStringBuilder<WhitespaceStringBuilder> {
+public class WhitespaceStringBuilder extends AbstractWhitespaceStringBuilder {
 	
 	private final List<String> values = new ArrayList<>();
 	
@@ -28,7 +28,13 @@ public class WhitespaceStringBuilder extends AbstractWhitespaceStringBuilder<Whi
 	
 	
 	public static IWhitespaceStringBuilder empty() {
-		return EmptyWhitespaceStringBuilder.INSTANCE;
+		return EmptyWhitespaceStringBuilder.NO_PRINT_TRAILING_SPACE_INSTANCE;
+	}
+	
+	public static IWhitespaceStringBuilder empty(boolean printTrailingSpace) {
+		return printTrailingSpace ?
+				EmptyWhitespaceStringBuilder.PRINT_TRAILING_SPACE_INSTANCE :
+				EmptyWhitespaceStringBuilder.NO_PRINT_TRAILING_SPACE_INSTANCE;
 	}
 	
 	
@@ -57,12 +63,21 @@ public class WhitespaceStringBuilder extends AbstractWhitespaceStringBuilder<Whi
 	}
 	
 	
-	private static class EmptyWhitespaceStringBuilder extends AbstractWhitespaceStringBuilder<EmptyWhitespaceStringBuilder> {
+	private static class EmptyWhitespaceStringBuilder extends AbstractWhitespaceStringBuilder {
 		
-		public static final EmptyWhitespaceStringBuilder INSTANCE = new EmptyWhitespaceStringBuilder();
+		public static final EmptyWhitespaceStringBuilder
+				PRINT_TRAILING_SPACE_INSTANCE = new EmptyWhitespaceStringBuilder(true),
+				NO_PRINT_TRAILING_SPACE_INSTANCE = new EmptyWhitespaceStringBuilder(false);
 		
 		
-		private boolean printTrailingSpace;
+		private EmptyWhitespaceStringBuilder(boolean printTrailingSpace) {
+			super(printTrailingSpace);
+		}
+		
+		@Override
+		public EmptyWhitespaceStringBuilder printTrailingSpace() {
+			return PRINT_TRAILING_SPACE_INSTANCE;
+		}
 		
 		@Override
 		public IWhitespaceStringBuilder append(String str) {
@@ -80,8 +95,6 @@ public class WhitespaceStringBuilder extends AbstractWhitespaceStringBuilder<Whi
 		}
 		
 		@Override
-		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-			// Do nothing
-		}
+		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {}
 	}
 }

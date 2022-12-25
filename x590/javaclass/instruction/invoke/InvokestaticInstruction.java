@@ -13,6 +13,6 @@ public class InvokestaticInstruction extends InstructionWithIndex {
 	
 	@Override
 	public Operation toOperation(DecompilationContext context) {
-		return new InvokestaticOperation(context, index);
+		return InvokestaticOperation.valueOf(context, index);
 	}
 }

@@ -11,6 +11,7 @@ import x590.javaclass.exception.IllegalModifiersException;
 import x590.javaclass.io.ExtendedDataInputStream;
 import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.operation.Operation;
+import x590.javaclass.util.IWhitespaceStringBuilder;
 import x590.javaclass.util.WhitespaceStringBuilder;
 import x590.jdecompiler.JDecompiler;
 import x590.util.Pair;
@@ -30,10 +31,10 @@ public class JavaField extends JavaClassMember {
 	private final LazyLoadingValue<Pair<AnnotationsAttribute, AnnotationsAttribute>> annotationAttributes;
 	
 	protected JavaField(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool) {
-		this(in.readUnsignedShort(), new FieldDescriptor(classinfo.thisType, in, pool), new Attributes(in, pool));
+		this(new Modifiers(in.readUnsignedShort()), new FieldDescriptor(classinfo.thisType, in, pool), new Attributes(in, pool));
 	}
 	
-	protected JavaField(int modifiers, FieldDescriptor descriptor, Attributes attributes) {
+	protected JavaField(Modifiers modifiers, FieldDescriptor descriptor, Attributes attributes) {
 		super(modifiers);
 		this.descriptor = descriptor;
 		this.attributes = attributes;
@@ -78,7 +79,7 @@ public class JavaField extends JavaClassMember {
 	
 	@Override
 	public boolean canStringify(ClassInfo classinfo) {
-		return super.canStringify(classinfo); // TODO
+		return super.canStringify(classinfo);
 	}
 	
 	public boolean hasAnnotation() {
@@ -92,30 +93,41 @@ public class JavaField extends JavaClassMember {
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 		writeWithoutSemicolon(out, classinfo);
-		out.println(';');
+		out.writeln(';');
 	}
 	
 	public void writeWithoutSemicolon(StringifyOutputStream out, ClassInfo classinfo) {
 		writeAnnotations(out, classinfo, attributes);
 		
-		out.printIndent().print(modifiersToString(), classinfo).print(descriptor, classinfo);
+		out.printIndent().print(modifiersToString(), classinfo).printsp(descriptor.type, classinfo);
+		
+		writeNameAndInitializer(out, classinfo);
+	}
+	
+	public void writeNameAndInitializer(StringifyOutputStream out, ClassInfo classinfo) {
+		
+		out.write(descriptor.name);
 		
 		if(initializer != null) {
-			out.print(" = ");
+			out.write(" = ");
 			
-			if(descriptor.type.isArrayType() && JDecompiler.getInstance().shortArrayInitAllowed())
+			if(descriptor.type.isBasicArrayType() && JDecompiler.getInstance().shortArrayInitAllowed())
 				initializer.writeAsArrayInitializer(out, classinfo.getStaticInitializerStringifyContext());
 			else
 				initializer.writeTo(out, classinfo.getStaticInitializerStringifyContext());
+			
+		} else if(constantValueAttribute != null) {
+			out.write(" = ");
+			constantValueAttribute.writeAs(out, classinfo, descriptor.type);
 		}
 	}
 	
-	private WhitespaceStringBuilder modifiersToString() {
-		WhitespaceStringBuilder str = new WhitespaceStringBuilder().printTrailingSpace();
+	private IWhitespaceStringBuilder modifiersToString() {
+		IWhitespaceStringBuilder str = new WhitespaceStringBuilder().printTrailingSpace();
 		
-		int modifiers = this.modifiers;
+		Modifiers modifiers = this.modifiers;
 		
-		switch(modifiers & ACC_ACCESS_FLAGS) {
+		switch(modifiers.and(ACC_ACCESS_FLAGS)) {
 			case ACC_VISIBLE   -> {}
 			case ACC_PUBLIC    -> str.append("public");
 			case ACC_PRIVATE   -> str.append("private");
@@ -124,11 +136,13 @@ public class JavaField extends JavaClassMember {
 				throw new IllegalModifiersException(modifiers);
 		}
 		
-		if((modifiers & ACC_STATIC) != 0)    str.append("static");
-		if((modifiers & ACC_FINAL) != 0 && (modifiers & ACC_VOLATILE) != 0) throw new IllegalModifiersException(modifiers);
-		if((modifiers & ACC_FINAL) != 0)     str.append("final");
-		if((modifiers & ACC_TRANSIENT) != 0) str.append("transient");
-		if((modifiers & ACC_VOLATILE) != 0)  str.append("volatile");
+		if(modifiers.isFinal() && modifiers.isVolatile())
+			throw new IllegalModifiersException(modifiers);
+		
+		if(modifiers.isStatic())    str.append("static");
+		if(modifiers.isFinal())     str.append("final");
+		if(modifiers.isTransient()) str.append("transient");
+		if(modifiers.isVolatile())  str.append("volatile");
 		
 		return str;
 	}

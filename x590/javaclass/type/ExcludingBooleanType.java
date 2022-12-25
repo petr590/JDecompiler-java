@@ -20,7 +20,7 @@ public class ExcludingBooleanType extends SpecialType {
 	
 	@Override
 	public String getEncodedName() {
-		return "SExcludingBooleanType";
+		return "ExcludingBooleanType";
 	}
 	
 	@Override
@@ -45,9 +45,9 @@ public class ExcludingBooleanType extends SpecialType {
 	
 	@Override
 	protected Type castToNarrowestImpl(Type other) {
-		if(other instanceof VariableCapacityIntegralType intergalType) {
+		if(other instanceof UncertainIntegralType intergalType) {
 			return !intergalType.includeBoolean ? intergalType :
-					VariableCapacityIntegralType.getInstance(intergalType.minCapacity, intergalType.maxCapacity, false, intergalType.includeChar);
+					UncertainIntegralType.getInstance(intergalType.minCapacity, intergalType.maxCapacity, false, intergalType.includeChar);
 		}
 		
 		return other != PrimitiveType.BOOLEAN ? other : null;
@@ -55,6 +55,16 @@ public class ExcludingBooleanType extends SpecialType {
 	
 	@Override
 	protected Type castToWidestImpl(Type other) {
-		return castToNarrowest(other);
+		return castToNarrowestImpl(other);
+	}
+	
+	@Override
+	protected Type reversedCastToNarrowestImpl(Type other) {
+		return castToNarrowestImpl(other);
+	}
+	
+	@Override
+	protected Type reversedCastToWidestImpl(Type other) {
+		return castToNarrowestImpl(other);
 	}
 }

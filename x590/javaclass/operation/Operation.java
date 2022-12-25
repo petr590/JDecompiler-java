@@ -37,14 +37,18 @@ public abstract class Operation implements Importable {
 		writeTo(out, context);
 	}
 	
-	
+	/** Вывод перед каждой операцией */
 	public StringifyOutputStream printFront(StringifyOutputStream out, StringifyContext context) {
 		return out.println().printIndent();
 	}
 	
+	/** Вывод после каждой операции */
 	public StringifyOutputStream printBack(StringifyOutputStream out, StringifyContext context) {
 		return out.print(';');
 	}
+	
+	/** Вывод между операцииями (т.е. для всех, кроме последней) */
+	public void writeSeparator(StringifyOutputStream out, StringifyContext context) {}
 	
 	
 	public boolean canOmit() {

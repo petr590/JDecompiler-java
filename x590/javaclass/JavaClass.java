@@ -4,11 +4,15 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
+
+import javax.annotation.Nullable;
 
 import x590.javaclass.attribute.Attributes;
 import x590.javaclass.attribute.annotation.AnnotationsAttribute;
 import x590.javaclass.constpool.ConstantPool;
 import x590.javaclass.exception.ClassFormatException;
+import x590.javaclass.exception.IllegalClassHeaderException;
 import x590.javaclass.exception.IllegalModifiersException;
 import x590.javaclass.io.ExtendedDataInputStream;
 import x590.javaclass.io.StringifyOutputStream;
@@ -23,21 +27,62 @@ import x590.util.Pair;
 
 import static x590.javaclass.Modifiers.*;
 
+/**
+ * Описывает декомпилируемый класс
+ */
 public class JavaClass extends JavaClassElement {
 	
 	public final Version version;
 	public final ConstantPool pool;
-	public final int modifiers;
+	public final Modifiers modifiers;
 	
 	public final ClassType thisType, superType;
 	public final List<ClassType> interfaces;
+	
+	// Суперкласс и интерфейсы, которые будут выведены в заголовок класса
+	// Например, все enum классы наследуются от java.lang.Enum,
+	// все аннотации реализуют интерфейс java.lang.annotation.Annotation и т.д.
+	// Такие суперклассы и суперинтерфейсы не должны выводиться в заголовке класса.
+	public final @Nullable Type visibleSuperType;
+	public final List<? extends Type> visibleInterfaces;
 	
 	public final List<JavaField> fields, constants;
 	public final List<JavaMethod> methods;
 	public final Attributes attributes;
 	public final ClassInfo classinfo;
 	
-	public JavaClass(Version version, ConstantPool pool, int modifiers,
+	
+	private Type getVisibleSuperType() {
+		if(superType.equals(ClassType.OBJECT)) {
+			return null;
+			
+		} else {
+			if(modifiers.isInterface()) {
+				throw new IllegalClassHeaderException("Interface cannot inherit from other class than java.lang.Object");
+			}
+		}
+		
+		if(modifiers.isEnum() && superType.equals(ClassType.ENUM)) {
+			return null;
+		}
+		
+		return superType;
+	}
+	
+	
+	private static final Predicate<ClassType> visibleInterfacePredicate = interfaceType -> !interfaceType.equals(ClassType.ANNOTATION);
+	
+	private List<? extends Type> getVisibleInterfaces() {
+		
+		if(modifiers.isNotAnnotation() || interfaces.stream().allMatch(visibleInterfacePredicate))
+			return interfaces;
+		
+		return interfaces.stream().filter(visibleInterfacePredicate).toList();
+	}
+	
+	
+	@Deprecated(since = "0.6", forRemoval = true)
+	public JavaClass(Version version, ConstantPool pool, Modifiers modifiers,
 			ClassType thisType, ClassType superType, List<ClassType> interfaces,
 			List<JavaField> fields, List<JavaMethod> methods, Attributes attributes, List<GenericParameter> generics) {
 		
@@ -47,12 +92,15 @@ public class JavaClass extends JavaClassElement {
 		this.thisType = thisType;
 		this.superType = superType;
 		this.interfaces = interfaces;
+		this.visibleSuperType = getVisibleSuperType();
+		this.visibleInterfaces = getVisibleInterfaces();
 		this.fields = fields;
 		this.methods = methods;
 		this.constants = fields.stream().filter(JavaField::isConstant).toList();
 		this.attributes = attributes;
 		this.classinfo = new ClassInfo(this, version, pool, modifiers, thisType, superType, interfaces);
 	}
+	
 	
 	public JavaClass(InputStream in) {
 		this(new ExtendedDataInputStream(in));
@@ -64,9 +112,9 @@ public class JavaClass extends JavaClassElement {
 		
 		this.version = new Version(in);
 		var pool = this.pool = new ConstantPool(in);
-		this.modifiers = in.readUnsignedShort();
+		this.modifiers = new Modifiers(in.readUnsignedShort());
 		this.thisType = ClassType.valueOf(pool.get(in.readUnsignedShort()));
-		this.superType = ClassType.valueOf(pool.get(in.readUnsignedShort()));
+		this.superType = ClassType.valueOfOrDefault(pool.get(in.readUnsignedShort()), ClassType.OBJECT);
 		
 		int interfacesCount = in.readUnsignedShort();
 		List<ClassType> interfaces = new ArrayList<>(interfacesCount);
@@ -74,6 +122,9 @@ public class JavaClass extends JavaClassElement {
 			interfaces.add(pool.getClassConstant(in.readUnsignedShort()).toClassType());
 		
 		this.interfaces = Collections.unmodifiableList(interfaces);
+
+		this.visibleSuperType = getVisibleSuperType();
+		this.visibleInterfaces = getVisibleInterfaces();
 		
 		this.classinfo = new ClassInfo(this, version, pool, modifiers, thisType, superType, interfaces);
 		
@@ -85,13 +136,20 @@ public class JavaClass extends JavaClassElement {
 		this.attributes = new Attributes(in, pool);
 		
 		classinfo.setAttributes(attributes);
-		
-		methods.forEach(method -> method.decompile(classinfo, pool));
 	}
 	
+	public void decompile() {
+		methods.forEach(method -> method.decompile(classinfo, pool));
+	}
+
+	public void addImports() {
+		addImports(classinfo);
+	}
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
+		classinfo.addImportIfNotNull(visibleSuperType);
+		interfaces.forEach(interfaceType -> classinfo.addImport(interfaceType));
 		attributes.addImports(classinfo);
 		fields.forEach(field -> field.addImports(classinfo));
 		methods.forEach(method -> method.addImports(classinfo));
@@ -100,11 +158,11 @@ public class JavaClass extends JavaClassElement {
 	
 	@Override
 	public boolean canStringify(ClassInfo classinfo) {
-		return super.canStringify(classinfo); // TODO
+		return super.canStringify(classinfo);
 	}
 	
 	@Override
-	public int getModifiers() {
+	public Modifiers getModifiers() {
 		return modifiers;
 	}
 	
@@ -127,8 +185,9 @@ public class JavaClass extends JavaClassElement {
 		
 		writeAnnotations(out, classinfo, attributes);
 		
-		out.printIndent().print(modifiersToString(classinfo), classinfo).print(thisType, classinfo)
-				.print(" {").increaseIndent();
+		writeHeader(out, classinfo);
+		
+		out.print(" {").increaseIndent();
 		
 		
 		List<JavaField> stringableFields = fields.stream().filter(field -> field.canStringify(classinfo)).toList();
@@ -147,8 +206,23 @@ public class JavaClass extends JavaClassElement {
 		out.reduceIndent().print('}');
 	}
 	
+	private void writeHeader(StringifyOutputStream out, ClassInfo classinfo2) {
+		
+		out.printIndent().print(modifiersToString(classinfo), classinfo).print(thisType, classinfo);
+		
+		if(visibleSuperType != null) {
+			out.print(" extends ").print(visibleSuperType, classinfo);
+		}
+		
+		if(!visibleInterfaces.isEmpty()) {
+			out.write(modifiers.isInterface() ? " extends " : " implements ");
+			
+			Util.forEachExcludingLast(visibleInterfaces, interfaceType -> out.write(interfaceType, classinfo), () -> out.write(", "));
+		}
+	}
+
 	private IWhitespaceStringBuilder modifiersToString(ClassInfo classinfo) {
-		WhitespaceStringBuilder str = new WhitespaceStringBuilder().printTrailingSpace();
+		IWhitespaceStringBuilder str = new WhitespaceStringBuilder().printTrailingSpace();
 		
 //		boolean isInnerProtected = false;
 //		
@@ -174,7 +248,7 @@ public class JavaClass extends JavaClassElement {
 //			}
 //		}
 		
-		switch(modifiers & ACC_ACCESS_FLAGS) {
+		switch(modifiers.and(ACC_ACCESS_FLAGS)) {
 			case ACC_VISIBLE -> {}
 			case ACC_PUBLIC -> {
 //				if(!isInnerProtected)
@@ -182,14 +256,14 @@ public class JavaClass extends JavaClassElement {
 			}
 				
 			default ->
-				throw new IllegalModifiersException("in class " + thisType.getName() + ": " + Util.hex4WithPrefix(modifiers));
+				throw new IllegalModifiersException("in class " + thisType.getName() + ": " + modifiers.toHexWithPrefix());
 		}
 		
 		
-		if((modifiers & ACC_STRICT) != 0)
+		if(modifiers.isStrictfp())
 			str.append("strictfp");
 		
-		switch(modifiers & (ACC_FINAL | ACC_ABSTRACT | ACC_INTERFACE | ACC_ANNOTATION | ACC_ENUM)) {
+		switch(modifiers.and(ACC_FINAL | ACC_ABSTRACT | ACC_INTERFACE | ACC_ANNOTATION | ACC_ENUM)) {
 			case 0 ->
 				str.append("class");
 			case ACC_FINAL ->
@@ -203,48 +277,42 @@ public class JavaClass extends JavaClassElement {
 			case ACC_ENUM, ACC_FINAL | ACC_ENUM, ACC_ABSTRACT | ACC_ENUM ->
 				str.append("enum");
 			default ->
-				throw new IllegalModifiersException("in class " + thisType.getName() + ": " + Util.hex4WithPrefix(modifiers));
+				throw new IllegalModifiersException("in class " + thisType.getName() + ": " + modifiers.toHexWithPrefix());
 		}
 		
 		return str;
 	}
 	
 	
-	private void writeFields(List<JavaField> fields, StringifyOutputStream out, ClassInfo classinfo) {
+	private static void writeFields(List<JavaField> fields, StringifyOutputStream out, ClassInfo classinfo) {
 		
-		int modifiers = 0;
-		Type type = null; // NullPointerException никогда не возникнет для этой переменной
+		Modifiers modifiers = null;
+		Type type = null; // NullPointerException никогда не возникнет для этих переменных
 		Pair<AnnotationsAttribute, AnnotationsAttribute> annotationAttributes = null;
 		boolean prevFieldWritten = false;
 		
 		for(JavaField field : fields) {
 			
 			if(prevFieldWritten) {
-				if(field.modifiers == modifiers && field.descriptor.type.equals(type) && field.getAnnotationAttributes().equals(annotationAttributes)) {
-					out.print(", ").print(field.descriptor.name);
+				
+				if(field.modifiers.equals(modifiers) && field.descriptor.type.equals(type) && field.getAnnotationAttributes().equals(annotationAttributes)) {
+					out.write(", ");
+					field.writeNameAndInitializer(out, classinfo);
+					continue;
+					
 				} else {
-					out.writeln(';');
-					
-					if(field.hasAnnotation())
-						out.writeln();
-						
-					field.writeWithoutSemicolon(out, classinfo);
-					
-					modifiers = field.modifiers;
-					type = field.descriptor.type;
-					annotationAttributes = field.getAnnotationAttributes();
+					out.println(';').println();
 				}
-				
+						
 			} else {
-				
-				field.writeWithoutSemicolon(out, classinfo);
-				
-				modifiers = field.modifiers;
-				type = field.descriptor.type;
-				annotationAttributes = field.getAnnotationAttributes();
-				
 				prevFieldWritten = true;
 			}
+			
+			field.writeWithoutSemicolon(out, classinfo);
+			
+			modifiers = field.modifiers;
+			type = field.descriptor.type;
+			annotationAttributes = field.getAnnotationAttributes();
 		}
 		
 		if(prevFieldWritten)

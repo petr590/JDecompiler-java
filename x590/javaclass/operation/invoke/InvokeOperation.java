@@ -31,8 +31,13 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 		return arguments;
 	}
 	
+	protected static MethodDescriptor getDescriptor(DecompilationContext context, int index) {
+		return new MethodDescriptor(context.pool.<MethodrefConstant>get(index));
+	}
+	
+	
 	public InvokeOperation(DecompilationContext context, int index, boolean isStatic) {
-		this(context, new MethodDescriptor(context.pool.<MethodrefConstant>get(index)), isStatic);
+		this(context, getDescriptor(context, index), isStatic);
 	}
 	
 	public InvokeOperation(DecompilationContext context, MethodDescriptor descriptor, boolean isStatic) {

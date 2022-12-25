@@ -2,7 +2,6 @@ package x590.javaclass.operation.compare;
 
 import x590.javaclass.context.DecompilationContext;
 import x590.javaclass.context.StringifyContext;
-import x590.javaclass.exception.DecompilationException;
 import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.operation.Operation;
 import x590.javaclass.operation.cmp.CmpOperation;
@@ -27,15 +26,7 @@ public class CompareBinaryOperation extends CompareOperation {
 			operand2.allowImplicitCast();
 		}
 		
-		Type generalType = operand1.getReturnType().castToNarrowestNoexcept(operand2.getReturnType());
-		
-		if(generalType == null) {
-			generalType = operand2.getReturnType().castToNarrowestNoexcept(operand1.getReturnType());
-			
-			if(generalType == null)
-				throw new DecompilationException("Incopatible types for operator " + compareType.getOperator(false) +
-						": " + operand1.getReturnType() + " and " + operand2.getReturnType());
-		}
+		Type generalType = operand1.getReturnType().castToGeneralNarrowest(operand2.getReturnType());
 		
 		operand1.castReturnTypeToNarrowest(generalType);
 		operand2.castReturnTypeToNarrowest(generalType);

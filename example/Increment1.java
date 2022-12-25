@@ -2,6 +2,10 @@ package example;
 
 public class Increment1 {
 	
+	public static void main(String[] args) {
+		ExampleTesting.runDecompiler(Increment1.class);
+	}
+	
 	public static void foo() {
 		
 		byte b = 0;

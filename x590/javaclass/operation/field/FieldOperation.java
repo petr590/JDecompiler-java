@@ -17,7 +17,7 @@ public abstract class FieldOperation extends OperationWithDescriptor<FieldDescri
 	
 	public FieldOperation(DecompilationContext context, FieldrefConstant fieldref) {
 		super(new FieldDescriptor(fieldref));
-		this.canOmit = descriptor.clazz.equals(context.classinfo.thisType) && context.classinfo.findField(descriptor).get().isSynthetic();
+		this.canOmit = descriptor.clazz.equals(context.classinfo.thisType) && context.classinfo.findField(descriptor).get().modifiers.isSynthetic();
 	}
 	
 	protected Operation popObject(DecompilationContext context) {
