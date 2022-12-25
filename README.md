@@ -4,7 +4,6 @@ Maybe I'll finish it someday, but I need to add a lot more functionality.
 
 Not implemented:
 - Operators && and ||
-- Ternary operator
 - for/while
 - try/catch/finally
 - switch
@@ -18,6 +17,7 @@ Implemented:
 - Call via `super` (so far only for superclass)
 - Annotations
 - if/else
+- Ternary operator
 - Individual variables
 
 Implemented features:
