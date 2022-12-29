@@ -3,7 +3,6 @@ Writing it in C++ turned out to be a mistake, so I moved it to Java.
 Maybe I'll finish it someday, but I need to add a lot more functionality.
 
 Not implemented:
-- Operators && and ||
 - for/while
 - try/catch/finally
 - switch
@@ -18,6 +17,7 @@ Implemented:
 - Annotations
 - if/else
 - Ternary operator
+- Operators && and ||
 - Individual variables
 
 Implemented features:
