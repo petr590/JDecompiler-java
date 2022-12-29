@@ -62,7 +62,7 @@ public class GotoInstruction extends EndPosInstruction {
 			currentIf.setEndIndex(currentIndex + 1);
 			return recognizeElse(context, endIndex, currentIndex, superIf);
 		}
-
+		
 		return false;
 	}
 }

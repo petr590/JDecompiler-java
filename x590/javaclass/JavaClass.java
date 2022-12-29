@@ -17,7 +17,6 @@ import x590.javaclass.exception.IllegalModifiersException;
 import x590.javaclass.io.ExtendedDataInputStream;
 import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.type.ClassType;
-import x590.javaclass.type.GenericParameter;
 import x590.javaclass.type.Type;
 import x590.javaclass.util.WhitespaceStringBuilder;
 import x590.javaclass.util.IWhitespaceStringBuilder;
@@ -81,27 +80,6 @@ public class JavaClass extends JavaClassElement {
 	}
 	
 	
-	@Deprecated(since = "0.6", forRemoval = true)
-	public JavaClass(Version version, ConstantPool pool, Modifiers modifiers,
-			ClassType thisType, ClassType superType, List<ClassType> interfaces,
-			List<JavaField> fields, List<JavaMethod> methods, Attributes attributes, List<GenericParameter> generics) {
-		
-		this.version = version;
-		this.pool = pool;
-		this.modifiers = modifiers;
-		this.thisType = thisType;
-		this.superType = superType;
-		this.interfaces = interfaces;
-		this.visibleSuperType = getVisibleSuperType();
-		this.visibleInterfaces = getVisibleInterfaces();
-		this.fields = fields;
-		this.methods = methods;
-		this.constants = fields.stream().filter(JavaField::isConstant).toList();
-		this.attributes = attributes;
-		this.classinfo = new ClassInfo(this, version, pool, modifiers, thisType, superType, interfaces);
-	}
-	
-	
 	public JavaClass(InputStream in) {
 		this(new ExtendedDataInputStream(in));
 	}
@@ -122,7 +100,7 @@ public class JavaClass extends JavaClassElement {
 			interfaces.add(pool.getClassConstant(in.readUnsignedShort()).toClassType());
 		
 		this.interfaces = Collections.unmodifiableList(interfaces);
-
+		
 		this.visibleSuperType = getVisibleSuperType();
 		this.visibleInterfaces = getVisibleInterfaces();
 		
@@ -141,7 +119,7 @@ public class JavaClass extends JavaClassElement {
 	public void decompile() {
 		methods.forEach(method -> method.decompile(classinfo, pool));
 	}
-
+	
 	public void addImports() {
 		addImports(classinfo);
 	}
@@ -220,7 +198,7 @@ public class JavaClass extends JavaClassElement {
 			Util.forEachExcludingLast(visibleInterfaces, interfaceType -> out.write(interfaceType, classinfo), () -> out.write(", "));
 		}
 	}
-
+	
 	private IWhitespaceStringBuilder modifiersToString(ClassInfo classinfo) {
 		IWhitespaceStringBuilder str = new WhitespaceStringBuilder().printTrailingSpace();
 		

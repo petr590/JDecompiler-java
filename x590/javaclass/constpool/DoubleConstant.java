@@ -14,7 +14,7 @@ import x590.javaclass.util.Util;
 public class DoubleConstant extends ConstValueConstant {
 	
 	public final double value;
-
+	
 	protected DoubleConstant(ExtendedDataInputStream in) {
 		this.value = in.readDouble();
 	}

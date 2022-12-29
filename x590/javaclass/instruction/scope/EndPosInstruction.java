@@ -3,7 +3,7 @@ package x590.javaclass.instruction.scope;
 import x590.javaclass.context.DisassemblerContext;
 
 /**
- * Хранит endPos для скопа, потом он преобразуется в индекс
+ * Хранит endPos для scope-а, потом он преобразуется в индекс
  */
 public abstract class EndPosInstruction extends ScopeInstruction {
 	

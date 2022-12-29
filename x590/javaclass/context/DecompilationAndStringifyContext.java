@@ -6,7 +6,7 @@ import x590.javaclass.Modifiers;
 import x590.javaclass.scope.MethodScope;
 
 public abstract class DecompilationAndStringifyContext extends Context {
-
+	
 	public final ClassInfo classinfo;
 	public final MethodDescriptor descriptor;
 	public final MethodScope methodScope;

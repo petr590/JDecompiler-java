@@ -227,7 +227,7 @@ public class Modifiers {
 	public boolean equals(Object other) {
 		return this == other || other instanceof Modifiers modifiers && this.equals(modifiers);
 	}
-
+	
 	public boolean equals(Modifiers other) {
 		return this.value == other.value;
 	}

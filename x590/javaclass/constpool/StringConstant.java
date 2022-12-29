@@ -15,7 +15,7 @@ public class StringConstant extends ConstValueConstant {
 	
 	private final int index;
 	private Utf8Constant value;
-
+	
 	public StringConstant(ExtendedDataInputStream in) {
 		index = in.readUnsignedShort();
 	}
@@ -24,13 +24,17 @@ public class StringConstant extends ConstValueConstant {
 		value = pool.get(index);
 	}
 	
-	public Utf8Constant getValue() {
+	public Utf8Constant getUtf8Constant() {
 		return value;
+	}
+	
+	public String getString() {
+		return value.getString();
 	}
 	
 	@Override
 	public String toString(ClassInfo classinfo) {
-		return Util.toLiteral(value.getValue());
+		return Util.toLiteral(value.getString());
 	}
 	
 	@Override
@@ -44,7 +48,7 @@ public class StringConstant extends ConstValueConstant {
 	
 	@Override
 	public Operation toOperation() {
-		return new StringConstOperation(value.getValue());
+		return new StringConstOperation(value.getString());
 	}
 	
 	@Override

@@ -5,6 +5,6 @@ import x590.javaclass.type.PrimitiveType;
 public class TypeTest3 {
 	
 	public static void main(String[] args) {
-		System.out.println(PrimitiveType.BYTE_SHORT_CHAR_INT_BOOLEAN.castToNarrowest(PrimitiveType.BYTE));
+		System.out.println(PrimitiveType.BYTE_SHORT_INT_CHAR_BOOLEAN.castToNarrowest(PrimitiveType.BYTE));
 	}
 }

@@ -13,7 +13,7 @@ public class IfElse {
 			System.out.println("Null");
 		else
 			System.out.println("Not null");
-
+		
 		System.out.println("Blablabla");
 	}
 	

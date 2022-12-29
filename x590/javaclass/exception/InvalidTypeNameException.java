@@ -4,7 +4,7 @@ import x590.javaclass.NameDisassemblingException;
 import x590.javaclass.io.ExtendedStringReader;
 
 public class InvalidTypeNameException extends NameDisassemblingException {
-
+	
 	private static final long serialVersionUID = -5822594539587085905L;
 	
 	public InvalidTypeNameException(String encodedName) {

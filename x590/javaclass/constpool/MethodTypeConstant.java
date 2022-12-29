@@ -11,7 +11,7 @@ import x590.javaclass.type.ClassType;
 import x590.javaclass.type.Type;
 
 public class MethodTypeConstant extends ConstValueConstant {
-
+	
 	public final int descriptorIndex;
 	private Utf8Constant descriptor;
 	

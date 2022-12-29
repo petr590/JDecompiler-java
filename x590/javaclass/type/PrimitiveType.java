@@ -20,11 +20,11 @@ public abstract class PrimitiveType extends BasicType {
 	
 	
 	public static final UncertainIntegralType
-			BYTE_SHORT_CHAR_INT_BOOLEAN = UncertainIntegralType.getInstance(1, 4, INCLUDE_BOOLEAN | INCLUDE_CHAR),
-			BYTE_SHORT_CHAR_INT         = UncertainIntegralType.getInstance(1, 4, INCLUDE_CHAR),
+			BYTE_SHORT_INT_CHAR_BOOLEAN = UncertainIntegralType.getInstance(1, 4, INCLUDE_BOOLEAN | INCLUDE_CHAR),
+			BYTE_SHORT_INT_CHAR         = UncertainIntegralType.getInstance(1, 4, INCLUDE_CHAR),
 			BYTE_SHORT_INT              = UncertainIntegralType.getInstance(1, 4),
-			CHAR_SHORT_INT              = UncertainIntegralType.getInstance(2, 4, INCLUDE_CHAR),
-			CHAR_INT                    = UncertainIntegralType.getInstance(4, 4, INCLUDE_CHAR),
+			SHORT_INT_CHAR              = UncertainIntegralType.getInstance(2, 4, INCLUDE_CHAR),
+			INT_CHAR                    = UncertainIntegralType.getInstance(4, 4, INCLUDE_CHAR),
 			SHORT_INT                   = UncertainIntegralType.getInstance(2, 4),
 			BYTE_BOOLEAN                = UncertainIntegralType.getInstance(1, 1, INCLUDE_BOOLEAN),
 			INT_BOOLEAN                 = UncertainIntegralType.getInstance(4, 4, INCLUDE_BOOLEAN);

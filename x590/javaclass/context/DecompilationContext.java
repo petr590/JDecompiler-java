@@ -22,12 +22,12 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 	public final OperationStack stack = new OperationStack();
 	public final List<Operation> operations;
 	protected Scope currentScope;
-
+	
 	private final Queue<Scope> scopesQueue = new LinkedList<>();
 	
 	private DecompilationContext(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, Modifiers modifiers, MethodScope methodScope, List<Instruction> instructions, int maxLocals) {
 		super(otherContext, classinfo, descriptor, methodScope, modifiers);
-
+		
 		this.currentScope = methodScope;
 		
 		var stack = this.stack;
@@ -35,7 +35,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 		
 		for(Instruction instruction : instructions) {
 			
-			finalizeScopes();
+			updateScopes();
 			
 			
 //			System.out.println("Stack: " + stack.stream().map(operation -> operation.getClass().getSimpleName() + " [" + operation.getReturnType() + "]").collect(Collectors.joining(", ")));
@@ -112,11 +112,13 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 	}
 	
 	
-	private void finalizeScopes() {
-		while(currentScope != null && index >= currentScope.endIndex()) {
+	/** Убирает все scope-ы, которые вышли за границу видимости или были удалены.
+	 * Затем кладёт на стэк все scope-ы, до которых дошла очередь. */
+	private void updateScopes() {
+		while(currentScope != null && (currentScope.isRemoved() || index >= currentScope.endIndex())) {
 			currentScope.finalizeScope(this);
 			
-			System.out.println(index + ": " + currentScope + " finalized");
+			System.out.println(index + ": " + currentScope + (currentScope.isRemoved() ? " removed" : " finalized"));
 			
 			currentScope = currentScope.superScope();
 		}
@@ -124,7 +126,10 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 		for(Iterator<Scope> iter = scopesQueue.iterator(); iter.hasNext(); ) {
 			Scope scope = iter.next();
 			
-			if(index > scope.startIndex()) {
+			if(scope.isRemoved()) {
+				iter.remove();
+				
+			} else if(index > scope.startIndex()) {
 				
 				assert scope.superScope() == currentScope;
 				currentScope = scope;

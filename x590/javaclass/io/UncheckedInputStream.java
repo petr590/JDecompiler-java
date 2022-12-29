@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 
 public abstract class UncheckedInputStream extends InputStream {
-
+	
 	@Override
 	public abstract int read() throws UncheckedIOException;
 	

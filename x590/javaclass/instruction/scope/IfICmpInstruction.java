@@ -14,6 +14,6 @@ public abstract class IfICmpInstruction extends IfInstruction {
 	
 	@Override
 	public ConditionOperation getCondition(DecompilationContext context) {
-		return new CompareBinaryOperation(context, getCompareType(), PrimitiveType.BYTE_SHORT_CHAR_INT_BOOLEAN);
+		return new CompareBinaryOperation(context, getCompareType(), PrimitiveType.BYTE_SHORT_INT_CHAR_BOOLEAN);
 	}
 }

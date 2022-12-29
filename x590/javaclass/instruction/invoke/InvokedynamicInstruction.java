@@ -80,7 +80,7 @@ public class InvokedynamicInstruction extends InstructionWithIndex {
 				// pop arguments that already on stack
 				for(int i = descriptor.arguments.size(); i > 0; i--)
 					arguments.add(context.stack.pop());
-
+				
 				
 				MethodDescriptor invokedynamicDescriptor = new MethodDescriptor(referenceConstant);
 				
@@ -128,7 +128,7 @@ public class InvokedynamicInstruction extends InstructionWithIndex {
 				// push lookup argument
 				context.stack.push(new InvokestaticOperation(context, publicLookupDescriptor));
 				
-				context.stack.push(new StringConstOperation(invokeDynamicConstant.getNameAndType().getName().getValue())); // name argument
+				context.stack.push(new StringConstOperation(invokeDynamicConstant.getNameAndType().getNameConstant().getString())); // name argument
 				
 				context.stack.push(new MethodTypeConstOperation(
 						new MethodTypeConstant(invokeDynamicConstant.getNameAndType().getDescriptor()))); // type argument

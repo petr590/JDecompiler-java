@@ -14,7 +14,7 @@ import x590.javaclass.util.Util;
 public class LongConstant extends ConstValueConstant {
 	
 	public final long value;
-
+	
 	protected LongConstant(ExtendedDataInputStream in) {
 		this.value = in.readLong();
 	}

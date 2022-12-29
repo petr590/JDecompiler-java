@@ -7,7 +7,7 @@ import x590.javaclass.exception.DisassemblingException;
 import x590.javaclass.io.ExtendedDataInputStream;
 
 public class Utf8Constant extends Constant {
-
+	
 	private final String value;
 	
 	protected Utf8Constant(ExtendedDataInputStream in) {
@@ -18,14 +18,7 @@ public class Utf8Constant extends Constant {
 		this.value = value;
 	}
 	
-	public String getValue() {
-		return value;
-	}
-	
-	/** Используйте {@link #getValue()} вместо этого метода */
-	@Override
-	@Deprecated
-	public String toString() {
+	public String getString() {
 		return value;
 	}
 	

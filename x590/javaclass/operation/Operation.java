@@ -1,17 +1,21 @@
 package x590.javaclass.operation;
 
+import x590.javaclass.FieldDescriptor;
 import x590.javaclass.Importable;
 import x590.javaclass.context.StringifyContext;
 import x590.javaclass.io.StringifyOutputStream;
+import x590.javaclass.operation.constant.ConstOperation;
 import x590.javaclass.operation.dup.AbstractDupOperation;
 import x590.javaclass.type.PrimitiveType;
 import x590.javaclass.type.Type;
+import x590.util.annotation.RemoveIfNotUsed;
 
 /**
  * Класс, представляющий операцию. Операция - это объектное представление инструкций.<br>
- * Операция модет иметь операнды, которые представлены другими операциями в классе.<br>
- * От операций скорее всего будет наследоваться класс Scope (если у меня дойдут руки его сделать).<br>
- * Все обычные классы операций, которые не являются Scope-ами, объявлены в пакете {@link x590.javaclass.operation}
+ * Операция модет иметь операнды, которые представлены другими операциями.<br>
+ * От операций наследуется класс Scope.<br>
+ * Все обычные классы операций, которые не являются Scope-ами,
+ * объявлены в пакете {@link x590.javaclass.operation} и его подпакетах.
  */
 public abstract class Operation implements Importable {
 	
@@ -82,6 +86,10 @@ public abstract class Operation implements Importable {
 	/** Разрешает опустить явное преобразование */
 	public void allowImplicitCast() {}
 	
+	/** Нужно для {@link ConstOperation} */
+	@RemoveIfNotUsed
+	public void setOwnerConstant(FieldDescriptor ownerConstant) {}
+	
 	
 	public boolean implicitCastAllowed() {
 		return getImplicitType() != getReturnType();
@@ -129,7 +137,7 @@ public abstract class Operation implements Importable {
 	}
 	
 	
-	/** Гарантирует, что операция является скопом */
+	/** Гарантирует, что операция является scope-ом */
 	public boolean isScope() {
 		return false;
 	}

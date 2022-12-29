@@ -33,7 +33,7 @@ public class ExceptionsAttribute extends Attribute implements StringWritable {
 				exceptionType -> out.write(", "));
 	}
 	
-
+	
 	@Override
 	public void addImports(ClassInfo classinfo) {
 		Util.forEach(exceptionTypes, exceptionType -> classinfo.addImport(exceptionType));

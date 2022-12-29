@@ -82,7 +82,7 @@ public class ExtendedStringReader extends InputStream {
 	public String readString(int startPos, int endPos) {
 		if(startPos > length)
 			throw new IndexOutOfBoundsException(startPos);
-
+		
 		if(startPos > endPos)
 			throw new IndexOutOfBoundsException("startPos > endPos");
 		
@@ -97,7 +97,7 @@ public class ExtendedStringReader extends InputStream {
 	public int getFromMark() {
 		return source.charAt(mark == -1 ? pos : mark);
 	}
-
+	
 	/** Читает строку с индекса mark.
 	 * Если mark = -1, то читает с текущей позиции.
 	 * Не изменяет mark и pos. */

@@ -10,11 +10,9 @@ public abstract class Instruction {
 	
 	public Instruction() {}
 	
-	@Nullable
-	public abstract Operation toOperation(DecompilationContext context);
+	public abstract @Nullable Operation toOperation(DecompilationContext context);
 	
-	@Nullable
-	public Scope toScope(DecompilationContext context) {
+	public @Nullable Scope toScope(DecompilationContext context) {
 		return null;
 	}
 }

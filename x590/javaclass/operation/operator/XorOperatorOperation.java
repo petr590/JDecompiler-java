@@ -34,7 +34,7 @@ public class XorOperatorOperation extends BitwiseOperatorOperation {
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-		if(isBitNot())
+		if(isBitNot)
 			out.print('~').printPrioritied(this, operand1, context, Associativity.RIGHT);
 		else
 			super.writeTo(out, context);
@@ -43,11 +43,11 @@ public class XorOperatorOperation extends BitwiseOperatorOperation {
 	
 	@Override
 	public int getPriority() {
-		return isBitNot() ? Priority.UNARY : Priority.BIT_XOR;
+		return isBitNot ? Priority.UNARY : Priority.BIT_XOR;
 	}
 	
 	@Override
 	public int getVisiblePriority(Operation operand) {
-		return isBitNot() ? Priority.UNARY : super.getVisiblePriority(operand);
+		return isBitNot ? Priority.UNARY : super.getVisiblePriority(operand);
 	}
 }

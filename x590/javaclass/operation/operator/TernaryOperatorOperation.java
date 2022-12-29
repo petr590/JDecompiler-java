@@ -4,6 +4,7 @@ import x590.javaclass.context.DecompilationContext;
 import x590.javaclass.context.StringifyContext;
 import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.operation.Operation;
+import x590.javaclass.operation.Priority;
 import x590.javaclass.operation.ReturnableOperation;
 import x590.javaclass.operation.compare.ConditionOperation;
 import x590.javaclass.operation.constant.IConstOperation;
@@ -33,12 +34,19 @@ public class TernaryOperatorOperation extends ReturnableOperation {
 			if(iconst1.getValue() == 1 && iconst2.getValue() == 0) {
 				out.print(condition, context);
 			} else if(iconst1.getValue() == 0 && iconst2.getValue() == 1) {
-				out.print('!').print(condition, context);
+				out.print('!').printPrioritied(this, condition, context, Priority.LOGICAL_NOT, Associativity.RIGHT);
 			}
 			
 		} else {
-			out.print(condition, context).print(" ? ").print(operand1, context).print(" : ").print(operand2, context);
+			out.print(condition, context).print(" ? ")
+				.printPrioritied(this, operand1, context, Associativity.LEFT).print(" : ")
+				.printPrioritied(this, operand2, context, Associativity.RIGHT);
 		}
+	}
+	
+	@Override
+	public int getPriority() {
+		return Priority.TERNARY_OPERATOR;
 	}
 	
 	@Override

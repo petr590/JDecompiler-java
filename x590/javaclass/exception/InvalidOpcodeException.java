@@ -1,7 +1,7 @@
 package x590.javaclass.exception;
 
 public class InvalidOpcodeException extends ClassFormatException {
-
+	
 	private static final long serialVersionUID = 4282824108768458025L;
 	
 	public InvalidOpcodeException() {

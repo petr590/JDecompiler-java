@@ -14,7 +14,7 @@ import x590.javaclass.util.Util;
 public class IntegerConstant extends ConstValueConstant {
 	
 	public final int value;
-
+	
 	protected IntegerConstant(ExtendedDataInputStream in) {
 		this.value = in.readInt();
 	}
@@ -34,7 +34,7 @@ public class IntegerConstant extends ConstValueConstant {
 	
 	@Override
 	public Type getType() {
-		return PrimitiveType.BYTE_SHORT_CHAR_INT_BOOLEAN;
+		return PrimitiveType.BYTE_SHORT_INT_CHAR_BOOLEAN;
 	}
 	
 	public String getConstantName() {

@@ -6,11 +6,11 @@ import java.io.IOException;
 import x590.javaclass.io.ExtendedDataInputStream;
 
 public class MethodrefConstant extends ReferenceConstant {
-
+	
 	protected MethodrefConstant(ExtendedDataInputStream in) {
 		super(in);
 	}
-
+	
 	public MethodrefConstant(int classIndex, int nameAndTypeIndex, ConstantPool pool) {
 		super(classIndex, nameAndTypeIndex, pool);
 	}

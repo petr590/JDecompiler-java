@@ -25,7 +25,7 @@ public class OperationStack extends Stack<Operation> {
 			nextPushHandler = null;
 			return operation;
 		}
-
+		
 		return super.push(operation);
 	}
 	
@@ -41,7 +41,7 @@ public class OperationStack extends Stack<Operation> {
 		operation.castReturnTypeToWidest(requiredType);
 		return operation;
 	}
-
+	
 	public Operation popWithSize(TypeSize size) {
 		Operation operation = pop();
 		
@@ -50,7 +50,7 @@ public class OperationStack extends Stack<Operation> {
 		
 		throw new DecompilationException("Operation size not matches: expected " + size + ", got " + operation.getReturnType().getSize());
 	}
-
+	
 	
 	public Operation peekAsNarrowest(Type requiredType) {
 		Operation operation = peek();
@@ -63,7 +63,7 @@ public class OperationStack extends Stack<Operation> {
 		operation.castReturnTypeToWidest(requiredType);
 		return operation;
 	}
-
+	
 	public Operation peekWithSize(TypeSize size) {
 		Operation operation = peek();
 		

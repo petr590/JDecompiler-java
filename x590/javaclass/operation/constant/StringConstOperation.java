@@ -1,5 +1,6 @@
 package x590.javaclass.operation.constant;
 
+import x590.javaclass.JavaField;
 import x590.javaclass.constpool.StringConstant;
 import x590.javaclass.context.StringifyContext;
 import x590.javaclass.io.StringifyOutputStream;
@@ -17,14 +18,11 @@ public class StringConstOperation extends ConstOperation {
 	}
 	
 	public StringConstOperation(StringConstant value) {
-		this(value.getValue().getValue());
+		this(value.getString());
 	}
 	
 	@Override
-	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-//		Operation operation = findConstant(constantContext);
-//		if(operation != null)
-//			return operation.toString(context);
+	public void writeValue(StringifyOutputStream out, StringifyContext context) {
 		
 		if(JDecompiler.getInstance().multilineStringAllowed()) {
 			int lnPos = getValue().indexOf('\n');
@@ -53,8 +51,13 @@ public class StringConstOperation extends ConstOperation {
 		
 		out.write(Util.toLiteral(getValue()));
 	}
-
+	
 	public String getValue() {
 		return value;
+	}
+	
+	@Override
+	protected boolean canUseConstant(JavaField constant) {
+		return super.canUseConstant(constant) && ((StringConstant)constant.constantValueAttribute.value).getString().equals(value);
 	}
 }

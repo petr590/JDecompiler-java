@@ -6,7 +6,7 @@ import java.io.IOException;
 import x590.javaclass.io.ExtendedDataInputStream;
 
 public class FieldrefConstant extends ReferenceConstant {
-
+	
 	protected FieldrefConstant(ExtendedDataInputStream in) {
 		super(in);
 	}

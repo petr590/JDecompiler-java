@@ -13,11 +13,11 @@ import x590.javaclass.exception.DisassemblingException;
 import x590.javaclass.io.ExtendedDataInputStream;
 
 public class Attribute implements JavaSerializable, Importable {
-
+	
 	public final int nameIndex;
 	public final String name;
 	public final int length;
-
+	
 	protected Attribute(int nameIndex, String name, int length) {
 		this.nameIndex = nameIndex;
 		this.name = name;

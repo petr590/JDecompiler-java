@@ -4,7 +4,7 @@ import javax.annotation.Nullable;
 
 import x590.javaclass.ClassInfo;
 
-/** 
+/**
  * Когда ссылочный тип неизвестен точно
  */
 public class UncertainReferenceType extends SpecialType {
@@ -46,7 +46,7 @@ public class UncertainReferenceType extends SpecialType {
 	public String getNameForVariable() {
 		return narrowestType.getNameForVariable();
 	}
-
+	
 	
 	@Override
 	public final boolean isReferenceType() {

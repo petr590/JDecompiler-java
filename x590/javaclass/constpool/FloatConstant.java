@@ -14,7 +14,7 @@ import x590.javaclass.util.Util;
 public class FloatConstant extends ConstValueConstant {
 	
 	public final float value;
-
+	
 	protected FloatConstant(ExtendedDataInputStream in) {
 		this.value = in.readFloat();
 	}

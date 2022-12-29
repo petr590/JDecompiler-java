@@ -30,7 +30,7 @@ public class AnnotationsAttribute extends Attribute implements StringWritable {
 	public void addImports(ClassInfo classinfo) {
 		Util.forEach(annotations, annotation -> annotation.addImports(classinfo));
 	}
-
+	
 	
 	@Override
 	public boolean equals(Object other) {

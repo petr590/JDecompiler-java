@@ -14,7 +14,7 @@ public abstract class OperationWithDescriptor<D extends Descriptor> extends Oper
 	}
 	
 	protected boolean canOmitClass(StringifyContext context) {
-		return JDecompiler.getInstance().canOmitThisClass() && descriptor.clazz.equals(context.classinfo.thisType);
+		return context.classinfo.canOmitClass(descriptor);
 	}
 	
 	protected boolean canOmitObject(StringifyContext context, Operation object) {

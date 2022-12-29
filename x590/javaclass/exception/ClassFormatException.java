@@ -1,7 +1,7 @@
 package x590.javaclass.exception;
 
 public class ClassFormatException extends DisassemblingException {
-
+	
 	private static final long serialVersionUID = 187754517612972423L;
 	
 	public ClassFormatException() {

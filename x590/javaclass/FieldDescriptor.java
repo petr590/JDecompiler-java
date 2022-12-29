@@ -26,7 +26,7 @@ public class FieldDescriptor extends Descriptor implements StringWritableAndImpo
 	}
 	
 	public FieldDescriptor(ClassType clazz, NameAndTypeConstant nameAndType) {
-		this(clazz, nameAndType.getName().getValue(), nameAndType.getDescriptor().getValue());
+		this(clazz, nameAndType.getNameConstant().getString(), nameAndType.getDescriptor().getString());
 	}
 	
 	public FieldDescriptor(ClassType clazz, ExtendedDataInputStream in, ConstantPool pool) {

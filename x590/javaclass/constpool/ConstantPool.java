@@ -11,18 +11,18 @@ import x590.javaclass.JavaSerializable;
 import x590.javaclass.io.ExtendedDataInputStream;
 
 public class ConstantPool implements JavaSerializable {
-
+	
 	public final List<Constant> data;
 	
 	public ConstantPool(ExtendedDataInputStream in) {
 		var length = in.readUnsignedShort();
 		var data = this.data = new ArrayList<>(length);
 		data.add(null); // 0-й элемент всегда null
-
+		
 		for(int i = 1; i < length; ) {
 			Constant constant;
 			data.add(constant = Constant.readConstant(in));
-
+			
 			if(constant.holdsTwo()) {
 				data.add(null);
 				i += 2;
@@ -43,7 +43,7 @@ public class ConstantPool implements JavaSerializable {
 	}
 	
 	public String getUtf8String(int index) {
-		return this.<Utf8Constant>get(index).getValue();
+		return this.<Utf8Constant>get(index).getString();
 	}
 	
 	public ClassConstant getClassConstant(int index) {
@@ -68,7 +68,7 @@ public class ConstantPool implements JavaSerializable {
 	
 	public int findOrAddUtf8(String value) {
 		return findOrAdd(constant -> constant instanceof Utf8Constant utf8 &&
-				utf8.getValue().equals(value),
+				utf8.getString().equals(value),
 				() -> new Utf8Constant(value));
 	}
 	

@@ -32,7 +32,7 @@ public class UncertainIntegralType extends SpecialType {
 			case 2: return PrimitiveType.SHORT;
 			case 4: return PrimitiveType.INT;
 			default:
-				throw new IllegalStateException("Cannot find " + (includeChar ? "unsigned" : "signed") +
+				throw new IllegalArgumentException("Cannot find " + (includeChar ? "unsigned" : "signed") +
 						" integral type for capacity " + capacity);
 		}
 	}

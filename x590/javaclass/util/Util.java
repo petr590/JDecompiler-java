@@ -253,7 +253,7 @@ public class Util {
 	public static <T> void forEachExcludingLast(Iterable<T> iterable, Consumer<? super T> eachFunc, Consumer<? super T> eachExcludingLastFunc) {
 		forEachExcludingLast(iterable.iterator(), eachFunc, eachExcludingLastFunc);
 	}
-
+	
 	
 	public static <T> void forEachExcludingLast(Iterator<T> iterator, Consumer<? super T> eachFunc, Runnable eachExcludingLastFunc) {
 		forEachExcludingLast(iterator, eachFunc, value -> eachExcludingLastFunc.run());

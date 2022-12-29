@@ -6,7 +6,7 @@ import java.io.IOException;
 import x590.javaclass.io.ExtendedDataInputStream;
 
 public class InterfaceMethodrefConstant extends MethodrefConstant {
-
+	
 	protected InterfaceMethodrefConstant(ExtendedDataInputStream in) {
 		super(in);
 	}

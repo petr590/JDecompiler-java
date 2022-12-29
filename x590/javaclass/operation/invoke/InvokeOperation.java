@@ -15,7 +15,7 @@ import x590.javaclass.type.Type;
 import x590.javaclass.util.Util;
 
 public abstract class InvokeOperation extends OperationWithDescriptor<MethodDescriptor> {
-
+	
 	protected final Deque<Operation> arguments;
 	protected final boolean isStatic;
 	

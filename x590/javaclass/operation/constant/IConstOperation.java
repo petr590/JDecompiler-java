@@ -1,5 +1,7 @@
 package x590.javaclass.operation.constant;
 
+import x590.javaclass.JavaField;
+import x590.javaclass.constpool.IntegerConstant;
 import x590.javaclass.context.StringifyContext;
 import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.type.PrimitiveType;
@@ -14,7 +16,7 @@ public class IConstOperation extends ConstOperation {
 	
 	private static Type getReturnTypeFor(int value) {
 		if((value & 0x1) == value)
-			return PrimitiveType.BYTE_SHORT_CHAR_INT_BOOLEAN;
+			return PrimitiveType.BYTE_SHORT_INT_CHAR_BOOLEAN;
 		
 		int minCapacity =
 				(byte)value == value ? 1 :
@@ -36,7 +38,7 @@ public class IConstOperation extends ConstOperation {
 	
 	
 	@Override
-	public void writeTo(StringifyOutputStream out, StringifyContext context) {
+	public void writeValue(StringifyOutputStream out, StringifyContext context) {
 		Type type = returnType.reduced();
 		
 		out.print(
@@ -51,5 +53,10 @@ public class IConstOperation extends ConstOperation {
 	@Override
 	public boolean isOne() {
 		return value == 1;
+	}
+	
+	@Override
+	protected boolean canUseConstant(JavaField constant) {
+		return super.canUseConstant(constant) && ((IntegerConstant)constant.constantValueAttribute.value).value == value;
 	}
 }

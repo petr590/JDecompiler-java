@@ -4,7 +4,7 @@ import x590.javaclass.context.DecompilationContext;
 import x590.javaclass.type.ArrayType;
 
 public class BAStoreOperation extends ArrayStoreOperation {
-
+	
 	public BAStoreOperation(DecompilationContext context) {
 		super(ArrayType.BYTE_OR_BOOLEAN_ARRAY, context);
 	}

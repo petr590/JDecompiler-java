@@ -39,7 +39,7 @@ public class JavaField extends JavaClassMember {
 		this.descriptor = descriptor;
 		this.attributes = attributes;
 		this.constantValueAttribute = attributes.get("ConstantValue");
-		annotationAttributes = new LazyLoadingValue<>(() -> new Pair<>(attributes.get("RuntimeVisibleAnnotations"), attributes.get("RuntimeInvisibleAnnotations")));
+		this.annotationAttributes = new LazyLoadingValue<>(() -> new Pair<>(attributes.get("RuntimeVisibleAnnotations"), attributes.get("RuntimeInvisibleAnnotations")));
 	}
 	
 	

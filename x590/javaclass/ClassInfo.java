@@ -16,6 +16,7 @@ import x590.javaclass.exception.NoSuchMethodException;
 import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.type.ClassType;
 import x590.javaclass.type.Type;
+import x590.jdecompiler.JDecompiler;
 
 public class ClassInfo {
 	
@@ -172,6 +173,11 @@ public class ClassInfo {
 	
 	public String getIndent() {
 		return out.getIndent();
+	}
+	
+	
+	public boolean canOmitClass(Descriptor descriptor) {
+		return JDecompiler.getInstance().canOmitThisClass() && descriptor.clazz.equals(thisType);
 	}
 	
 	

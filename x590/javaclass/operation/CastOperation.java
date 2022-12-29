@@ -22,7 +22,7 @@ public class CastOperation extends Operation {
 	public Operation getOperand() {
 		return operand;
 	}
-
+	
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {

@@ -24,8 +24,8 @@ public final class ArrayType extends ReferenceType {
 			LONG_ARRAY    = new ArrayType(PrimitiveType.LONG),
 			FLOAT_ARRAY   = new ArrayType(PrimitiveType.FLOAT),
 			DOUBLE_ARRAY  = new ArrayType(PrimitiveType.DOUBLE);
-
-
+	
+	
 	public final Type memberType, elementType;
 	public final int nestingLevel;
 	private final String braces;

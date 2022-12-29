@@ -3,7 +3,7 @@ package x590.javaclass;
 import x590.javaclass.type.ClassType;
 
 public abstract class Descriptor {
-
+	
 	public final ClassType clazz;
 	public final String name;
 	

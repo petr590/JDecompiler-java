@@ -38,7 +38,7 @@ public abstract class PutFieldOperation extends FieldOperation implements Increm
 		this.incData = IncrementableOperation.super.init(context, value, descriptor.type);
 		returnType = incData.returnType;
 	}
-
+	
 	
 	@Override
 	public boolean canIncrement() {

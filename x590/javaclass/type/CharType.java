@@ -20,7 +20,7 @@ public class CharType extends PrimitiveType {
 	
 	@Override
 	public Type toVariableCapacityIntegralType() {
-		return PrimitiveType.CHAR_INT;
+		return PrimitiveType.INT_CHAR;
 	}
 	
 	@Override

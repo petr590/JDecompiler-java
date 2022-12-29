@@ -1,9 +1,9 @@
 package x590.javaclass.exception;
 
 public class DisassemblingException extends RuntimeException {
-
+	
 	private static final long serialVersionUID = -1857134960093430464L;
-
+	
 	public DisassemblingException() {
 		super();
 	}

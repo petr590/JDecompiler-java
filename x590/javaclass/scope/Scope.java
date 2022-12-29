@@ -19,6 +19,10 @@ import x590.javaclass.variable.UnnamedVariable;
 import x590.javaclass.variable.EmptyableVariable;
 import x590.jdecompiler.JDecompiler;
 
+/**
+ * Описывает область видимости (Scope). Почти всё, что в исходном коде
+ * оборачивается фигурными скобками, является Scope-ом.
+ */
 public abstract class Scope extends Operation {
 	
 	protected List<Operation> code = new ArrayList<>();
@@ -74,7 +78,7 @@ public abstract class Scope extends Operation {
 		return superScope;
 	}
 	
-	/** Устанавливает переменную по индексу для текущего скопа и для всех вложенных */
+	/** Устанавливает переменную по индексу для текущего scope и для всех вложенных */
 	private void setVariable(int index, EmptyableVariable var) {
 		locals.set(index, var);
 		scopes.forEach(innerScope -> innerScope.setVariable(index, var));
@@ -103,7 +107,7 @@ public abstract class Scope extends Operation {
 		return var.notEmpty();
 	}
 	
-	/** Ищет переменную в текущем скопе и во всех вложенных */
+	/** Ищет переменную в текущем scope и во всех вложенных */
 	protected EmptyableVariable findVariable(int index) {
 		EmptyableVariable var = locals.get(index);
 		
@@ -147,13 +151,13 @@ public abstract class Scope extends Operation {
 				scopes.stream().anyMatch(scope -> scope.hasVariableWithName(name));
 	}
 	
-	/** Выполняет сведение типа для всех переменных и всех операций в этом и во вложенных скопах */
+	/** Выполняет сведение типа для всех переменных и всех операций в этом и во вложенных scope-ах */
 	protected void reduceTypes() {
 		locals.forEach(EmptyableVariable::reduceType);
 		scopes.forEach(Scope::reduceTypes);
 	}
 	
-	/** Определяет имена всех переменных в этом и во вложенных скопах */
+	/** Определяет имена всех переменных в этом и во вложенных scope-ах */
 	protected void assignVariablesNames() {
 		locals.forEach(EmptyableVariable::assignName);
 		scopes.forEach(Scope::assignVariablesNames);
@@ -176,6 +180,7 @@ public abstract class Scope extends Operation {
 	}
 	
 	
+	/** Удаляет все операции с установленным флагом {@link Operation#removed} */
 	public void deleteRemovedOperations() {
 		code = code.stream().filter(operation -> !operation.isRemoved() && !operation.canOmit()).toList();
 		scopes.forEach(Scope::deleteRemovedOperations);
@@ -209,9 +214,9 @@ public abstract class Scope extends Operation {
 		}
 	}
 	
-	/** 
+	/**
 	 * Можно ли записать точку с запятой вместо фигурных скобок
-	 * (когда скоп пустой или в нём только одна операция)
+	 * (когда scope пустой или в нём только одна операция)
 	 */
 	protected boolean canOmitCurlyBrackets() {
 		return code.size() <= 1 && JDecompiler.getInstance().canOmitCurlyBrackets();
@@ -236,7 +241,7 @@ public abstract class Scope extends Operation {
 	}
 	
 	
-	/** Выполняется перед тем, как скоп будет завершён */
+	/** Выполняется перед тем, как scope будет завершён и убран со стэка scope-ов */
 	public void finalizeScope(DecompilationContext context) {}
 	
 	

@@ -3,7 +3,7 @@ package x590.javaclass.exception;
 public class DecompilationException extends RuntimeException {
 	
 	private static final long serialVersionUID = -3206146674439197384L;
-
+	
 	public DecompilationException() {
 		super();
 	}

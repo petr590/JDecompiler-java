@@ -5,9 +5,9 @@ import x590.javaclass.exception.DisassemblingException;
 import x590.javaclass.io.ExtendedDataInputStream;
 
 public abstract class Constant implements JavaSerializable {
-
+	
 	protected Constant() {}
-
+	
 	protected static Constant readConstant(ExtendedDataInputStream in) {
 		int tag = in.readUnsignedByte();
 		switch(tag) {

@@ -3,7 +3,7 @@ package x590.javaclass.constpool;
 import x590.javaclass.io.ExtendedDataInputStream;
 
 public abstract class ReferenceConstant extends Constant {
-
+	
 	public final int classIndex, nameAndTypeIndex;
 	private ClassConstant clazz;
 	private NameAndTypeConstant nameAndType;
@@ -18,7 +18,7 @@ public abstract class ReferenceConstant extends Constant {
 		this.nameAndTypeIndex = nameAndTypeIndex;
 		init(pool);
 	}
-
+	
 	@Override
 	void init(ConstantPool pool) {
 		clazz = pool.get(classIndex);

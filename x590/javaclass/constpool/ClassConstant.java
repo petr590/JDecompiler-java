@@ -13,7 +13,7 @@ import x590.javaclass.type.ReferenceType;
 import x590.javaclass.type.Type;
 
 public class ClassConstant extends ConstValueConstant {
-
+	
 	public final int nameIndex;
 	private Utf8Constant name;
 	private ReferenceType referenceType;
@@ -28,7 +28,7 @@ public class ClassConstant extends ConstValueConstant {
 		this.nameIndex = nameIndex;
 		init(pool);
 	}
-
+	
 	@Override
 	void init(ConstantPool pool) {
 		name = pool.get(nameIndex);
@@ -40,13 +40,13 @@ public class ClassConstant extends ConstValueConstant {
 	}
 	
 	
-	public Utf8Constant getName() {
+	public Utf8Constant getNameConstant() {
 		return name;
 	}
 	
 	@Override
 	public String toString(ClassInfo classinfo) {
-		return Type.parseReferenceType(name.getValue()).toString(classinfo) + ".class";
+		return Type.parseReferenceType(name.getString()).toString(classinfo) + ".class";
 	}
 	
 	
@@ -59,7 +59,7 @@ public class ClassConstant extends ConstValueConstant {
 		if(referenceType != null)
 			return referenceType;
 		
-		referenceType = Type.parseReferenceType(name.getValue());
+		referenceType = Type.parseReferenceType(name.getString());
 		
 		if(referenceType.isBasicClassType())
 			classType = (ClassType)referenceType;
@@ -73,7 +73,7 @@ public class ClassConstant extends ConstValueConstant {
 		if(classType != null)
 			return classType;
 		
-		referenceType = classType = ClassType.valueOf(name.getValue());
+		referenceType = classType = ClassType.valueOf(name.getString());
 		
 		return classType;
 	}
@@ -82,7 +82,7 @@ public class ClassConstant extends ConstValueConstant {
 		if(arrayType != null)
 			return arrayType;
 		
-		referenceType = arrayType = new ArrayType(name.getValue());
+		referenceType = arrayType = new ArrayType(name.getString());
 		
 		return arrayType;
 	}
@@ -92,6 +92,7 @@ public class ClassConstant extends ConstValueConstant {
 		return "Class";
 	}
 	
+	@Override
 	public Operation toOperation() {
 		return new ClassConstOperation(this);
 	}

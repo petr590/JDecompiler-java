@@ -8,8 +8,8 @@ import x590.javaclass.io.ExtendedDataInputStream;
 
 public class CodeAttribute extends Attribute {
 	
-	public final int maxStack, maxLocals; 
-	public final byte[] code, otherData; 
+	public final int maxStack, maxLocals;
+	public final byte[] code, otherData;
 	
 	protected CodeAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
 		super(nameIndex, name, length);

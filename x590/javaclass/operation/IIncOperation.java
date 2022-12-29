@@ -44,7 +44,7 @@ public class IIncOperation extends OperationWithVariable {
 		return false;
 	}
 	
-
+	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		if(isPreInc) {

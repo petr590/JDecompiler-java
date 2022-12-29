@@ -18,8 +18,8 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 	public ExtendedDataInputStream(InputStream in) {
 		this(in instanceof DataInputStream dataIn ? dataIn : new DataInputStream(in));
 	}
-
-
+	
+	
 	@Override
 	public int available() {
 		try {
@@ -28,7 +28,7 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 			throw getUncheckedException(ex);
 		}
 	}
-
+	
 	@Override
 	public int read() {
 		try {

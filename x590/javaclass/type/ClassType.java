@@ -94,7 +94,7 @@ public final class ClassType extends ReferenceType {
 			DOUBLE    = new ClassType("java/lang/Double"),
 			BOOLEAN   = new ClassType("java/lang/Boolean"),
 			VOID      = new ClassType("java/lang/Void");
-
+	
 	
 	protected final String
 			classEncodedName,
@@ -108,10 +108,10 @@ public final class ClassType extends ReferenceType {
 	
 	public final ClassType enclosingClass;
 	public final ClassKind kind;
-
+	
 	
 	public static ClassType valueOf(ClassConstant clazz) {
-		return valueOf(clazz.getName().getValue());
+		return valueOf(clazz.getNameConstant().getString());
 	}
 	
 	/** Принимает строку без префикса 'L', т.е. в виде "java/lang/Object;" */
@@ -248,7 +248,7 @@ public final class ClassType extends ReferenceType {
 		
 		if(enclosingClassNameEndPos != 0) { // Nested class
 			boolean isAnonymous = simpleName.matches("^\\d+$");
-			this.kind = isAnonymous ? ClassKind.ANONYMOUS : ClassKind.NESTED; 
+			this.kind = isAnonymous ? ClassKind.ANONYMOUS : ClassKind.NESTED;
 			this.enclosingClass = new ClassType(encodedName.substring(0, enclosingClassNameEndPos));
 			
 			this.fullSimpleName = enclosingClass.fullSimpleName + (isAnonymous ? '$' : '.') + simpleName;

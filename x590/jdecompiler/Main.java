@@ -80,7 +80,7 @@ public class Main {
 			// Нужен ли здесь BufferedInputStream ?..
 			DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
 			int available = in.available();
-
+			
 			out.println("\n\n----------------------------------------------------------------------------------------------------").writeln();
 			
 			try {

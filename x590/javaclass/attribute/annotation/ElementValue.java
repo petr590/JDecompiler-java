@@ -77,7 +77,7 @@ public abstract class ElementValue implements StringWritableAndImportable {
 			this.type = ClassType.valueOfEncoded(pool.getUtf8String(in.readUnsignedShort()));
 			this.constantName = pool.getUtf8String(in.readUnsignedShort());
 		}
-
+		
 		@Override
 		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 			out.print(type, classinfo).print('.').print(constantName);
@@ -108,7 +108,7 @@ public abstract class ElementValue implements StringWritableAndImportable {
 		private ClassElementValue(ExtendedDataInputStream in, ConstantPool pool) {
 			this.clazz = ClassType.valueOf(pool.getUtf8String(in.readUnsignedShort()));
 		}
-
+		
 		@Override
 		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 			out.print(clazz, classinfo).print(".class");
@@ -139,7 +139,7 @@ public abstract class ElementValue implements StringWritableAndImportable {
 		private AnnotationElementValue(ExtendedDataInputStream in, ConstantPool pool) {
 			this.annotation = new Annotation(in, pool);
 		}
-
+		
 		@Override
 		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 			out.write(annotation, classinfo);
@@ -170,7 +170,7 @@ public abstract class ElementValue implements StringWritableAndImportable {
 		private ArrayElementValue(ExtendedDataInputStream in, ConstantPool pool) {
 			this.values = in.readArray(ElementValue[]::new, () -> ElementValue.read(in, pool));
 		}
-
+		
 		@Override
 		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 			out.write('{');
@@ -199,7 +199,7 @@ public abstract class ElementValue implements StringWritableAndImportable {
 		}
 	}
 	
-
+	
 	@Override
 	public abstract boolean equals(Object other);
 	

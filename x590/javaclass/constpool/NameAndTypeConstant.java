@@ -6,7 +6,7 @@ import java.io.IOException;
 import x590.javaclass.io.ExtendedDataInputStream;
 
 public class NameAndTypeConstant extends Constant {
-
+	
 	public final int nameIndex, descriptorIndex;
 	private Utf8Constant name, descriptor;
 	
@@ -20,14 +20,14 @@ public class NameAndTypeConstant extends Constant {
 		this.descriptorIndex = descriptorIndex;
 		init(pool);
 	}
-
+	
 	@Override
 	void init(ConstantPool pool) {
 		name = pool.get(nameIndex);
 		descriptor = pool.get(descriptorIndex);
 	}
 	
-	public Utf8Constant getName() {
+	public Utf8Constant getNameConstant() {
 		return name;
 	}
 	

@@ -15,7 +15,7 @@ public class PutInstanceFieldOperation extends PutFieldOperation {
 		this.object = popObject(context);
 		super.initIncData(context);
 	}
-
+	
 	public PutInstanceFieldOperation(DecompilationContext context, FieldrefConstant fieldref) {
 		super(context, fieldref);
 		this.object = popObject(context);

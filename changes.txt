@@ -1,52 +1,8 @@
-Added `extends` and `implements` to class declaration (why didn't I copy this from C++ code?)
+The && and || operators have been added, even decompilation of complex conditions has been added.
 
-Fixed a bug with the anewarray instruction
-Fixed a bug with casting an array to java.lang.Object
+Fixed operator precedence in expressions like `!(a&&b)` (was `!a&&b`)
+Fixed the priority of the not operator (was `!(a)`, it became `!a`)
 
-Now an object of the Modifiers class is used instead of int, it's much more convenient
-(P.S. after this refactoring, a couple of bugs appeared, which I later fixed)
+Fixed some javadocs and added some new ones.
 
-Fixed a bug with calling the `this` constructor
-
-Added autoboxing for wrapper classes
-
-Fixed a bug with variable names. Was: x1, x2, x1, x3, x1, x4. Became: x1, x2, x3, x4, x5, x6.
-
-Fixed bug when reading attribute `Exceptions`
-
-Fixed a bug when decompiling the java.lang.Object class (its superclass is null)
-
-Fixed a bug when writing a method with arguments without the Code attribute.
-Previously, an empty MethodScope was returned if the code length is 0.
-Now an empty MethodScope is returned only when the length of the code and the number of variables are 0.
-
-Added an UncertainReferenceType class. Works similarly to VariableCapacityIntegralType, but for reference types.
-
-The program version is set as 0.6 (I always forgot to update it). From this commit, all versions will be updated, unless I forget.
-
-Class VariableCapacityIntegralType renamed to UncertainIntegralType
-
-
-Fixed methods AnyObjectType.reversedCastToNarrowestImpl and AnyObjectType.reversedCastToWidestImpl.
-Previously, they delegated execution to the castToNarrowestImpl and castToWidestImpl methods (this worked before adding the UncertainReferenceType)
-
-Added loading of supertypes for ClassType via Class.forName(name). This is necessary when decompiling code
-that uses the standard Java library (List, Map, etc.). Although which code does not use it?
-
-
-Fixed decompilation of such code:
-
-if(condition1) {
-	// Here if does not point to the end of the first if, but to the beginning of code3
-	if(condition2) {
-		code1;
-	}
-} else {
-	code2;
-}
-code3;
-
-P.S. The logic of the reference type system (the UncertainReferenceType class) turned
-out to be much more complicated than I thought, so now I'm going to deal with if, else, for, while, try, catch, etc.
-
-An interesting thing: an expression of the form `y = !!x;` decompiles in the same way, although I did not prescribe such a condition.
+Fixed a bug with incorrect definition of abbreviated operators where they cannot be.

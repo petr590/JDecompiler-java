@@ -6,7 +6,7 @@ import java.io.IOException;
 import x590.javaclass.io.ExtendedDataInputStream;
 
 public class InvokeDynamicConstant extends Constant {
-
+	
 	public final int bootstrapMethodAttrIndex;
 	public final int nameAndTypeIndex;
 	private NameAndTypeConstant nameAndType;

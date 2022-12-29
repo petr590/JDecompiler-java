@@ -1,5 +1,7 @@
 package x590.javaclass.operation.constant;
 
+import x590.javaclass.JavaField;
+import x590.javaclass.constpool.FloatConstant;
 import x590.javaclass.context.StringifyContext;
 import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.type.PrimitiveType;
@@ -21,7 +23,7 @@ public class FConstOperation extends IntConvertibleConstOperation {
 	
 	
 	@Override
-	public void writeTo(StringifyOutputStream out, StringifyContext context) {
+	public void writeValue(StringifyOutputStream out, StringifyContext context) {
 		out.write(implicit && (int)value == value ? Util.toLiteral((int)value) : Util.toLiteral(value));
 	}
 	
@@ -33,5 +35,10 @@ public class FConstOperation extends IntConvertibleConstOperation {
 	@Override
 	public boolean isOne() {
 		return value == 1;
+	}
+	
+	@Override
+	protected boolean canUseConstant(JavaField constant) {
+		return super.canUseConstant(constant) && ((FloatConstant)constant.constantValueAttribute.value).value == value;
 	}
 }

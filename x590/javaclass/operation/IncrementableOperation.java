@@ -70,25 +70,28 @@ public interface IncrementableOperation {
 			
 			if(notCastedValue instanceof BinaryOperatorOperation binaryOperator) {
 				
-				operator = binaryOperator.getOperator();
-				operatorOperand = binaryOperator.operand2();
-				
 				Operation operand1 = binaryOperator.operand1().original();
 				
-				if((operator == "+" || operator == "-") && isLoadOperation(operand1)) {
+				if(isLoadOperation(operand1)) {
 					
-					shortInc = operatorOperand.isOne();
+					operator = binaryOperator.getOperator();
+					operatorOperand = binaryOperator.operand2();
 					
-					
-					if(!preInc && !context.stack.empty() && context.stack.peek() == operand1) {
-						returnType = type;
-						context.stack.pop();
+					if((operator == "+" || operator == "-")) {
+						
+						shortInc = operatorOperand.isOne();
+						
+						
+						if(!preInc && !context.stack.empty() && context.stack.peek() == operand1) {
+							returnType = type;
+							context.stack.pop();
+						}
+						
+						
+					} else if(operator == "^" && binaryOperator instanceof XorOperatorOperation xorOperator && xorOperator.isBitNot()) {
+						operator = null;
+						operatorOperand = null;
 					}
-					
-					
-				} else if(operator == "^" && binaryOperator instanceof XorOperatorOperation xorOperator && xorOperator.isBitNot()) {
-					operator = null;
-					operatorOperand = null;
 				}
 			}
 			
@@ -99,7 +102,7 @@ public interface IncrementableOperation {
 		return new IncrementData(returnType, operatorOperand, castOperation, shortInc, preInc, operator);
 	}
 	
-
+	
 	public default void writeTo(StringifyOutputStream out, StringifyContext context, Type type, IncrementData data) {
 		String operator = data.operator;
 		

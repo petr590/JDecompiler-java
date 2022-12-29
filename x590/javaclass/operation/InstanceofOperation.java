@@ -12,7 +12,7 @@ public class InstanceofOperation extends BooleanOperation {
 	public InstanceofOperation(DecompilationContext context, int index) {
 		this.clazz = context.pool.getClassConstant(index).toReferenceType();
 	}
-
+	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		out.print(clazz.toString(context.classinfo)).print(" instanceof ").print(clazz.toString(context.classinfo));

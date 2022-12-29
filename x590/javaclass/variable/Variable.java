@@ -66,9 +66,9 @@ public abstract class Variable extends EmptyableVariable {
 		this.name = name;
 	}
 	
-
+	
 	/** Определяет имя переменной. Получает начальное имя из метода {@link #chooseName()}.
-	 * Если переменная с таким именем уже есть в скопе, то к имени добавляется число. */
+	 * Если переменная с таким именем уже есть в scope, то к имени добавляется число. */
 	@Override
 	public void assignName() {
 		if(this.name == null) {
@@ -110,7 +110,7 @@ public abstract class Variable extends EmptyableVariable {
 	
 	
 	public abstract void addName(String name);
-
+	
 	
 	public Type getType() {
 		return type;

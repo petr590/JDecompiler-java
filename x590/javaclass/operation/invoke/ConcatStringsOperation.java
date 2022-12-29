@@ -44,13 +44,13 @@ public class ConcatStringsOperation extends InvokeOperation {
 					operands.add(new StringConstOperation(str.toString()));
 					str.setLength(0);
 				}
-
+				
 				switch(ch) {
 					case '\1': operands.add(arg.next()); break;
 					case '\2': operands.add(staticArg.next()); break;
 					default: throw new RuntimeException("WTF??"); // 🙃️
 				}
-
+			
 			} else {
 				str.append(ch);
 			}
@@ -58,10 +58,10 @@ public class ConcatStringsOperation extends InvokeOperation {
 		
 		if(!str.isEmpty())
 			operands.add(new StringConstOperation(str.toString()));
-
+		
 		insertEmptyStringIfNecessary();
 	}
-
+	
 	protected void insertEmptyStringIfNecessary() {
 		if((operands.size() == 1 && !operands.get(0).getReturnType().equals(ClassType.STRING)) ||
 			(operands.size() > 1 && !operands.get(0).getReturnType().equals(ClassType.STRING) &&
