@@ -60,11 +60,13 @@ public abstract class ReferenceType extends BasicType {
 	}
 	
 	public boolean isSubclassOf(ReferenceType other) {
+		if(this.equals(other))
+			return true;
+		
 		if(superType == null)
 			tryLoadSuperType();
 		
-		return this.equals(other) ||
-				superType != null && superType.isSubclassOf(other) ||
+		return superType != null && superType.isSubclassOf(other) ||
 				interfaces != null && interfaces.stream().anyMatch(interfaceType -> interfaceType.isSubclassOf(other));
 	}
 	

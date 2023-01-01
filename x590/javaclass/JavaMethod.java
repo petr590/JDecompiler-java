@@ -6,6 +6,7 @@ import java.util.List;
 import x590.javaclass.attribute.Attributes;
 import x590.javaclass.attribute.CodeAttribute;
 import x590.javaclass.attribute.EmptyCodeAttribute;
+import x590.javaclass.attribute.Attributes.Location;
 import x590.javaclass.constpool.ConstantPool;
 import x590.javaclass.context.DecompilationContext;
 import x590.javaclass.context.DisassemblerContext;
@@ -85,7 +86,7 @@ public class JavaMethod extends JavaClassMember {
 		System.out.println("Disassembling of method " + descriptor);
 		this.disassemblerContext = DisassemblerContext.disassemble(pool, codeAttribute.code);
 		
-		this.methodScope = MethodScope.of(classinfo, descriptor, modifiers,
+		this.methodScope = MethodScope.of(classinfo, descriptor, modifiers, codeAttribute,
 				disassemblerContext.getInstructions().size(), codeAttribute.isEmpty() ? descriptor.countLocals(modifiers) : codeAttribute.maxLocals);
 		
 		this.stringifyContext = new StringifyContext(disassemblerContext, classinfo, descriptor, methodScope, modifiers);
@@ -94,13 +95,20 @@ public class JavaMethod extends JavaClassMember {
 	
 	public JavaMethod(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool) {
 		this(new Modifiers(in.readUnsignedShort()), new MethodDescriptor(classinfo.thisType, in, pool),
-				new Attributes(in, pool), classinfo, pool);
+				new Attributes(in, pool, Location.METHOD), classinfo, pool);
+	}
+	
+	
+	public StringifyContext getStringifyContext() {
+		return stringifyContext;
 	}
 	
 	
 	public void decompile(ClassInfo classinfo, ConstantPool pool) {
 		System.out.println("Decompiling of method " + descriptor);
 		decompilationContext = DecompilationContext.decompile(disassemblerContext, classinfo, descriptor, modifiers, methodScope, disassemblerContext.getInstructions(), codeAttribute.maxLocals);
+		methodScope.reduceTypes();
+		methodScope.defineVariables();
 	}
 	
 	
@@ -121,15 +129,9 @@ public class JavaMethod extends JavaClassMember {
 	}
 	
 	
-	public StringifyContext getStringifyContext() {
-		return stringifyContext;
-	}
-	
-	
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 		
-		methodScope.reduceTypes();
 		methodScope.assignVariablesNames();
 		
 		writeAnnotations(out, classinfo, attributes);

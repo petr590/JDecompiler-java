@@ -4,15 +4,17 @@ import x590.javaclass.ClassInfo;
 import x590.javaclass.io.ExtendedStringReader;
 import x590.javaclass.util.Util;
 
-public class ParameterType extends ReferenceType {
+/** Описывает дженерик. Хранит только его имя */
+public class SignatureParameterType extends ReferenceType {
 	
-	public ParameterType(ExtendedStringReader in) {
+	public SignatureParameterType(ExtendedStringReader in) {
 		StringBuilder nameBuilder = new StringBuilder();
 		
-		for(int ch = in.read(); ch != ';' && ch != Util.EOF_CHAR; ch = in.read())
+		for(int ch = in.read(); ch != ';' && ch != ExtendedStringReader.EOF_CHAR; ch = in.read())
 			nameBuilder.append((char)ch);
 		
-		this.encodedName = this.name = nameBuilder.toString();
+		this.name = nameBuilder.toString();
+		this.encodedName = "T" + name + ";";
 	}
 	
 	@Override

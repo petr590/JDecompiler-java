@@ -5,6 +5,7 @@ import java.util.List;
 
 import x590.javaclass.attribute.Attributes;
 import x590.javaclass.attribute.ConstantValueAttribute;
+import x590.javaclass.attribute.Attributes.Location;
 import x590.javaclass.attribute.annotation.AnnotationsAttribute;
 import x590.javaclass.constpool.ConstantPool;
 import x590.javaclass.exception.IllegalModifiersException;
@@ -31,7 +32,7 @@ public class JavaField extends JavaClassMember {
 	private final LazyLoadingValue<Pair<AnnotationsAttribute, AnnotationsAttribute>> annotationAttributes;
 	
 	protected JavaField(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool) {
-		this(new Modifiers(in.readUnsignedShort()), new FieldDescriptor(classinfo.thisType, in, pool), new Attributes(in, pool));
+		this(new Modifiers(in.readUnsignedShort()), new FieldDescriptor(classinfo.thisType, in, pool), new Attributes(in, pool, Location.FIELD));
 	}
 	
 	protected JavaField(Modifiers modifiers, FieldDescriptor descriptor, Attributes attributes) {

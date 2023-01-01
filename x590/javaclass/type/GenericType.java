@@ -1,5 +1,6 @@
 package x590.javaclass.type;
 
+/** Описывает дженерик, ограниченный только сверху или снизу или вообще не ограниченный */
 public abstract class GenericType extends ReferenceType {
 	
 	@Override

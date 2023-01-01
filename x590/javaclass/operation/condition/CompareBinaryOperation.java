@@ -1,4 +1,4 @@
-package x590.javaclass.operation.compare;
+package x590.javaclass.operation.condition;
 
 import x590.javaclass.context.DecompilationContext;
 import x590.javaclass.context.StringifyContext;
@@ -26,7 +26,7 @@ public class CompareBinaryOperation extends CompareOperation {
 			operand2.allowImplicitCast();
 		}
 		
-		Type generalType = operand1.getReturnType().castToGeneralNarrowest(operand2.getReturnType());
+		Type generalType = operand1.getReturnType().castToGeneral(operand2.getReturnType());
 		
 		operand1.castReturnTypeToNarrowest(generalType);
 		operand2.castReturnTypeToNarrowest(generalType);

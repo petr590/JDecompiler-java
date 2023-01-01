@@ -4,8 +4,11 @@ import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import x590.javaclass.JavaClass;
+import x590.javaclass.exception.DisassemblingException;
 import x590.javaclass.io.StringifyOutputStream;
 import x590.util.Timer;
 
@@ -61,45 +64,63 @@ public class Main {
 //					"bin/example/Arrays.class",
 //					"bin/example/Constants.class",
 //					"bin/example/Autoboxing.class",
+					"bin/example/Autounboxing.class",
 //					"bin/example/TernaryOperator.class",
 //					"bin/example/Throws.class",
 					
 //					"/home/winch/0x590/java/jdk-8-rt/java/lang/Object.class",
 					
 //					"bin/x590/javaclass/Importable.class",
-					"bin/x590/javaclass/Version.class",
+//					"bin/x590/javaclass/Version.class",
 					
 //					"--no-omit-curly-brackets",
 //					"--no-omit-this-class",
+//					"--no-brackets-around-bitwise-operands",
 			});
 		}
 		
-		var out = new StringifyOutputStream(System.out);
 		
-		for(String file : JDecompiler.getInstance().files) {
-			// Нужен ли здесь BufferedInputStream ?..
+		List<JavaClass> classes = new ArrayList<>(JDecompiler.getInstance().getFiles().size());
+		
+		for(String file : JDecompiler.getInstance().getFiles()) {
+			
 			DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
 			int available = in.available();
-			
-			out.println("\n\n----------------------------------------------------------------------------------------------------").writeln();
 			
 			try {
 				Timer timer = Timer.startNewTimer();
 				
-				JavaClass clazz = new JavaClass(in);
+				classes.add(new JavaClass(in));
 				
 				timer.logElapsed("Class reading");
 				
-				clazz.decompile();
-				clazz.addImports();
-				clazz.writeTo(out);
+			} catch(DisassemblingException ex) {
+				System.out.println("At pos 0x" + Integer.toHexString(available - in.available()));
+				ex.printStackTrace();
 				
 			} catch(Exception ex) {
-				System.out.println("At pos 0x" + Integer.toHexString(available - in.available()));
-				throw ex;
+				ex.printStackTrace();
 				
 			} finally {
 				in.close();
+			}
+		}
+		
+
+		
+		var out = new StringifyOutputStream(System.out);
+		
+		for(JavaClass clazz : classes) {
+			
+			out.println("\n\n----------------------------------------------------------------------------------------------------").writeln();
+			
+			try {
+				clazz.decompile();
+				clazz.resolveImports();
+				clazz.writeTo(out);
+				
+			} catch(Exception ex) {
+				ex.printStackTrace();
 			}
 		}
 		

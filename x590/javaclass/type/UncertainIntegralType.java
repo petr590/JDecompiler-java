@@ -1,8 +1,5 @@
 package x590.javaclass.type;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import x590.javaclass.ClassInfo;
 import x590.javaclass.util.WhitespaceStringBuilder;
 
@@ -10,7 +7,7 @@ import static x590.javaclass.type.PrimitiveType.CHAR_CAPACITY;
 
 public class UncertainIntegralType extends SpecialType {
 	
-	private static final List<UncertainIntegralType> instances = new ArrayList<>();
+	private static final UncertainIntegralType[] instances = new UncertainIntegralType[64];
 	
 	public static final int INCLUDE_BOOLEAN = 0x1, INCLUDE_CHAR = 0x2;
 	
@@ -47,23 +44,34 @@ public class UncertainIntegralType extends SpecialType {
 				(char)('0' + (includeBoolean ? 1 : 0) + (includeChar ? 2 : 0));
 	}
 	
+	private UncertainIntegralType(int minCapacity, int maxCapacity, int flags) {
+		this(minCapacity, maxCapacity, (flags & INCLUDE_BOOLEAN) != 0, (flags & INCLUDE_CHAR) != 0);
+	}
+
 	
 	private static UncertainIntegralType getInstanceNoexcept(int minCapacity, int maxCapacity, boolean includeBoolean, boolean includeChar) {
+		return getInstanceNoexcept(minCapacity, maxCapacity, (includeBoolean ? INCLUDE_BOOLEAN : 0) | (includeChar ? INCLUDE_CHAR: 0));
+	}
+	
+	private static UncertainIntegralType getInstanceNoexcept(int minCapacity, int maxCapacity, int flags) {
+		
+		if(minCapacity < 1 || minCapacity > 4)
+			throw new IllegalArgumentException("minCapacity = " + minCapacity);
+		
+		if(maxCapacity < 1 || maxCapacity > 4)
+			throw new IllegalArgumentException("maxCapacity = " + maxCapacity);
 		
 		if(minCapacity > maxCapacity)
 			return null;
 		
-		for(UncertainIntegralType instance : instances) {
-			if(instance.minCapacity == minCapacity && instance.maxCapacity == maxCapacity &&
-				instance.includeBoolean == includeBoolean && instance.includeChar == includeChar) {
-				
-				return instance;
-			}
-		}
+		int index = (minCapacity - 1) | (maxCapacity - 1) << 2 | flags << 4;
 		
-		UncertainIntegralType instance = new UncertainIntegralType(minCapacity, maxCapacity, includeBoolean, includeChar);
-		instances.add(instance);
-		return instance;
+		UncertainIntegralType instance = instances[index];
+		
+		if(instance != null)
+			return instance;
+		
+		return instances[index] = new UncertainIntegralType(minCapacity, maxCapacity, flags);
 	}
 	
 	
@@ -71,18 +79,17 @@ public class UncertainIntegralType extends SpecialType {
 		return getInstance(minCapacity, maxCapacity, false, false);
 	}
 	
-	public static UncertainIntegralType getInstance(int minCapacity, int maxCapacity, int flags) {
-		return getInstance(minCapacity, maxCapacity, (flags & INCLUDE_BOOLEAN) != 0, (flags & INCLUDE_CHAR) != 0);
+	public static UncertainIntegralType getInstance(int minCapacity, int maxCapacity, boolean includeBoolean, boolean includeChar) {
+		return getInstance(minCapacity, maxCapacity, (includeBoolean ? INCLUDE_BOOLEAN : 0) | (includeChar ? INCLUDE_CHAR: 0));
 	}
 	
-	public static UncertainIntegralType getInstance(int minCapacity, int maxCapacity, boolean includeBoolean, boolean includeChar) {
-		var type = getInstanceNoexcept(minCapacity, maxCapacity, includeBoolean, includeChar);
+	public static UncertainIntegralType getInstance(int minCapacity, int maxCapacity, int flags) {
+		var type = getInstanceNoexcept(minCapacity, maxCapacity, flags);
 		
 		if(type != null)
 			return type;
 		
-		throw new IllegalArgumentException(
-				"minCapacity = " + minCapacity + ", maxCapacity = " + maxCapacity + ", includeBoolean = " + includeBoolean + ", includeChar = " + includeChar);
+		throw new IllegalArgumentException("minCapacity = " + minCapacity + ", maxCapacity = " + maxCapacity + ", flags = " + flags);
 	}
 	
 	
@@ -163,7 +170,8 @@ public class UncertainIntegralType extends SpecialType {
 				return type.includeBoolean ? other : null;
 			
 			if(other == PrimitiveType.CHAR)
-				return type.includeChar ? other : null;
+				return widest && type.maxCapacity > CHAR_CAPACITY ? getInstanceNoexcept(CHAR_CAPACITY * 2, type.maxCapacity, false, type.includeChar) :  
+						type.includeChar ? other : null;
 			
 			if(other.isIntegral()) {
 				int capacity = ((IntegralType)other).getCapacity();

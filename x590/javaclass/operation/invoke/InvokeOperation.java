@@ -4,7 +4,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 import x590.javaclass.MethodDescriptor;
-import x590.javaclass.constpool.MethodrefConstant;
 import x590.javaclass.context.DecompilationContext;
 import x590.javaclass.context.StringifyContext;
 import x590.javaclass.exception.DecompilationException;
@@ -32,7 +31,7 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 	}
 	
 	protected static MethodDescriptor getDescriptor(DecompilationContext context, int index) {
-		return new MethodDescriptor(context.pool.<MethodrefConstant>get(index));
+		return new MethodDescriptor(context.pool.get(index));
 	}
 	
 	

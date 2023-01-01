@@ -36,7 +36,7 @@ public class ConcatStringsOperation extends InvokeOperation {
 		
 		this.operands = new LinkedList<>();
 		
-		for(int i = 0, length = patternStr.length(); i < length; ++i) {
+		for(int i = 0, length = patternStr.length(); i < length; i++) {
 			char ch = patternStr.charAt(i);
 			
 			if(ch == '\1' || ch == '\2') {

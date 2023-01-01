@@ -7,7 +7,6 @@ Not implemented:
 - try/catch/finally
 - switch
 - break/continue
-- Generics
 - Lambdas
 - Jar support
 
@@ -19,8 +18,10 @@ Implemented:
 - Ternary operator
 - Operators && and ||
 - Individual variables
+- Generics
 
 Implemented features:
 - Selection of variable names
 - Ability to omit `this` and the current class
 - Declaration of fields separated by commas
+- Variable names from LocalVariableTable

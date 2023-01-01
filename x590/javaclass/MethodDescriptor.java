@@ -78,7 +78,7 @@ public class MethodDescriptor extends Descriptor implements StringWritableAndImp
 	}
 	
 	public MethodDescriptor(String className, String name, String descriptor) {
-		this(ClassType.valueOf(className), name, descriptor);
+		this(ClassType.fromDescriptor(className), name, descriptor);
 	}
 	
 	public MethodDescriptor(ClassConstant clazz, NameAndTypeConstant nameAndType) {

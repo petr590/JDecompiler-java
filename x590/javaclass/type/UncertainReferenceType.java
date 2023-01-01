@@ -34,7 +34,8 @@ public class UncertainReferenceType extends SpecialType {
 	
 	@Override
 	public String getEncodedName() {
-		return "UncertainClassType:" + widestType.getClassEncodedName() + ":" + narrowestType.getClassEncodedName();
+		return "UncertainClassType:" + widestType.getClassEncodedName() + ":" +
+				(narrowestType == null ? "null" : narrowestType.getClassEncodedName());
 	}
 	
 	@Override

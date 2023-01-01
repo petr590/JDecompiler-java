@@ -74,7 +74,7 @@ public abstract class ElementValue implements StringWritableAndImportable {
 		private final String constantName;
 		
 		private EnumElementValue(ExtendedDataInputStream in, ConstantPool pool) {
-			this.type = ClassType.valueOfEncoded(pool.getUtf8String(in.readUnsignedShort()));
+			this.type = ClassType.fromTypeDescriptor(pool.getUtf8String(in.readUnsignedShort()));
 			this.constantName = pool.getUtf8String(in.readUnsignedShort());
 		}
 		
@@ -106,7 +106,7 @@ public abstract class ElementValue implements StringWritableAndImportable {
 		private final ClassType clazz;
 		
 		private ClassElementValue(ExtendedDataInputStream in, ConstantPool pool) {
-			this.clazz = ClassType.valueOf(pool.getUtf8String(in.readUnsignedShort()));
+			this.clazz = ClassType.fromDescriptor(pool.getUtf8String(in.readUnsignedShort()));
 		}
 		
 		@Override

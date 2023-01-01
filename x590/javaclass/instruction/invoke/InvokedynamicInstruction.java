@@ -47,9 +47,9 @@ public class InvokedynamicInstruction extends InstructionWithIndex {
 	
 	protected static final ArrayType OBJECT_ARRAY = new ArrayType(ClassType.OBJECT);
 	protected static final ClassType
-			CALL_SITE = ClassType.valueOf("java/lang/invoke/CallSite"),
-			LOOKUP = ClassType.valueOf("java/lang/invoke/MethodHandles$Lookup"),
-			STRING_CONCAT_FACTORY = ClassType.valueOf("java/lang/invoke/StringConcatFactory");
+			CALL_SITE = ClassType.fromDescriptor("java/lang/invoke/CallSite"),
+			LOOKUP = ClassType.fromDescriptor("java/lang/invoke/MethodHandles$Lookup"),
+			STRING_CONCAT_FACTORY = ClassType.fromDescriptor("java/lang/invoke/StringConcatFactory");
 	
 	protected static final MethodDescriptor makeConcatWithConstantsDescriptor
 			= new MethodDescriptor(STRING_CONCAT_FACTORY, "makeConcatWithConstants", CALL_SITE, LOOKUP, ClassType.STRING, ClassType.METHOD_TYPE, ClassType.STRING, OBJECT_ARRAY);
@@ -148,7 +148,7 @@ public class InvokedynamicInstruction extends InstructionWithIndex {
 					case ReferenceKind.NEWINVOKESPECIAL: return new InvokespecialOperation(context, invokedynamicDescriptor,
 							new NewOperation(referenceConstant.getClassConstant().toClassType()));
 					case ReferenceKind.INVOKEINTERFACE: return new InvokeinterfaceOperation(context, descriptor);
-					default: throw new IllegalStateException("Illegal referenceKind " + methodHandle.referenceKind);
+					default: throw new DecompilationException("Illegal referenceKind " + methodHandle.referenceKind);
 				}
 		}
 	}

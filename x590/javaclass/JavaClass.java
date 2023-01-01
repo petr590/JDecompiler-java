@@ -9,6 +9,8 @@ import java.util.function.Predicate;
 import javax.annotation.Nullable;
 
 import x590.javaclass.attribute.Attributes;
+import x590.javaclass.attribute.Attributes.Location;
+import x590.javaclass.attribute.ClassSignatureAttribute;
 import x590.javaclass.attribute.annotation.AnnotationsAttribute;
 import x590.javaclass.constpool.ConstantPool;
 import x590.javaclass.exception.ClassFormatException;
@@ -38,6 +40,8 @@ public class JavaClass extends JavaClassElement {
 	public final ClassType thisType, superType;
 	public final List<ClassType> interfaces;
 	
+	public final @Nullable ClassSignatureAttribute signature;
+	
 	// Суперкласс и интерфейсы, которые будут выведены в заголовок класса
 	// Например, все enum классы наследуются от java.lang.Enum,
 	// все аннотации реализуют интерфейс java.lang.annotation.Annotation и т.д.
@@ -51,7 +55,7 @@ public class JavaClass extends JavaClassElement {
 	public final ClassInfo classinfo;
 	
 	
-	private Type getVisibleSuperType() {
+	private @Nullable Type getVisibleSuperType() {
 		if(superType.equals(ClassType.OBJECT)) {
 			return null;
 			
@@ -65,18 +69,20 @@ public class JavaClass extends JavaClassElement {
 			return null;
 		}
 		
-		return superType;
+		return signature != null ? signature.superType : superType;
 	}
 	
 	
-	private static final Predicate<ClassType> visibleInterfacePredicate = interfaceType -> !interfaceType.equals(ClassType.ANNOTATION);
+	private static final Predicate<ClassType> notAnnotationPredicate = interfaceType -> !interfaceType.equals(ClassType.ANNOTATION);
 	
 	private List<? extends Type> getVisibleInterfaces() {
 		
-		if(modifiers.isNotAnnotation() || interfaces.stream().allMatch(visibleInterfacePredicate))
+		var interfaces = signature != null ? signature.interfaces : this.interfaces;
+		
+		if(modifiers.isNotAnnotation() || interfaces.stream().allMatch(notAnnotationPredicate))
 			return interfaces;
 		
-		return interfaces.stream().filter(visibleInterfacePredicate).toList();
+		return interfaces.stream().filter(notAnnotationPredicate).toList();
 	}
 	
 	
@@ -91,8 +97,8 @@ public class JavaClass extends JavaClassElement {
 		this.version = new Version(in);
 		var pool = this.pool = new ConstantPool(in);
 		this.modifiers = new Modifiers(in.readUnsignedShort());
-		this.thisType = ClassType.valueOf(pool.get(in.readUnsignedShort()));
-		this.superType = ClassType.valueOfOrDefault(pool.get(in.readUnsignedShort()), ClassType.OBJECT);
+		this.thisType = ClassType.fromConstant(pool.get(in.readUnsignedShort()));
+		this.superType = ClassType.fromNullableConstant(pool.get(in.readUnsignedShort()), ClassType.OBJECT);
 		
 		int interfacesCount = in.readUnsignedShort();
 		List<ClassType> interfaces = new ArrayList<>(interfacesCount);
@@ -101,9 +107,6 @@ public class JavaClass extends JavaClassElement {
 		
 		this.interfaces = Collections.unmodifiableList(interfaces);
 		
-		this.visibleSuperType = getVisibleSuperType();
-		this.visibleInterfaces = getVisibleInterfaces();
-		
 		this.classinfo = new ClassInfo(this, version, pool, modifiers, thisType, superType, interfaces);
 		
 		this.fields = Collections.unmodifiableList(JavaField.readFields(in, classinfo, pool));
@@ -111,7 +114,14 @@ public class JavaClass extends JavaClassElement {
 		
 		this.constants = fields.stream().filter(JavaField::isConstant).toList();
 		
-		this.attributes = new Attributes(in, pool);
+		this.attributes = new Attributes(in, pool, Location.CLASS);
+		
+		this.signature = attributes.get("Signature");
+		if(signature != null)
+			signature.checkTypes(superType, interfaces);
+		
+		this.visibleSuperType = getVisibleSuperType();
+		this.visibleInterfaces = getVisibleInterfaces();
 		
 		classinfo.setAttributes(attributes);
 	}
@@ -120,14 +130,14 @@ public class JavaClass extends JavaClassElement {
 		methods.forEach(method -> method.decompile(classinfo, pool));
 	}
 	
-	public void addImports() {
+	public void resolveImports() {
 		addImports(classinfo);
 	}
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
 		classinfo.addImportIfNotNull(visibleSuperType);
-		interfaces.forEach(interfaceType -> classinfo.addImport(interfaceType));
+		visibleInterfaces.forEach(interfaceType -> classinfo.addImport(interfaceType));
 		attributes.addImports(classinfo);
 		fields.forEach(field -> field.addImports(classinfo));
 		methods.forEach(method -> method.addImports(classinfo));
@@ -184,9 +194,12 @@ public class JavaClass extends JavaClassElement {
 		out.reduceIndent().print('}');
 	}
 	
-	private void writeHeader(StringifyOutputStream out, ClassInfo classinfo2) {
+	private void writeHeader(StringifyOutputStream out, ClassInfo classinfo) {
 		
 		out.printIndent().print(modifiersToString(classinfo), classinfo).print(thisType, classinfo);
+		
+		if(signature != null)
+			out.write(signature.parameters, classinfo);
 		
 		if(visibleSuperType != null) {
 			out.print(" extends ").print(visibleSuperType, classinfo);

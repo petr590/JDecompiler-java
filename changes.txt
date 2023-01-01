@@ -1,8 +1,22 @@
-The && and || operators have been added, even decompilation of complex conditions has been added.
+A small refactoring in the Main class.
 
-Fixed operator precedence in expressions like `!(a&&b)` (was `!a&&b`)
-Fixed the priority of the not operator (was `!(a)`, it became `!a`)
+Fixed a bug with the return type of bitwise operators that can work with boolean (&, |, ^).
 
-Fixed some javadocs and added some new ones.
+Added autounboxing of types.
 
-Fixed a bug with incorrect definition of abbreviated operators where they cannot be.
+Added variable declaration.
+
+Fixed a bug where the superclass for interface types was null, now always Object.
+
+Fixed a bug with calling non-static methods: the object was removed from the stack before the arguments.
+
+Fixed a bug with the casting of UncertainReferenceType
+
+Added type conversion (was: `(byte)(int)longValue`, became: `(byte)longValue`)
+
+Fixed reading of the Code attribute
+Added variable names from LocalVariableTable (for now only for parameters)
+
+The generic signature of the class has been added, and in general I have put things in order in reading signatures.
+
+Fixed a bug with importing generic class.

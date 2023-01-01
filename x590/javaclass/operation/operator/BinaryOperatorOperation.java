@@ -12,7 +12,11 @@ public abstract class BinaryOperatorOperation extends OperatorOperation {
 	protected final Operation operand2;
 	
 	public BinaryOperatorOperation(Type type, DecompilationContext context) {
-		this(type, type, context);
+		super(type);
+		this.operand2 = context.stack.popAsNarrowest(type);
+		this.operand1 = context.stack.popAsNarrowest(type);
+		
+		returnType = operand2.getReturnTypeAsGeneralNarrowest(operand1);
 	}
 	
 	public BinaryOperatorOperation(Type type1, Type type2, DecompilationContext context) {
@@ -20,7 +24,6 @@ public abstract class BinaryOperatorOperation extends OperatorOperation {
 		this.operand2 = context.stack.popAsNarrowest(type2);
 		this.operand1 = context.stack.popAsNarrowest(type1);
 	}
-	
 	
 	public Operation operand1() {
 		return operand1;

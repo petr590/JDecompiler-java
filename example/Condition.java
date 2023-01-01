@@ -16,8 +16,4 @@ public class Condition {
 		
 		System.out.println("Blablabla");
 	}
-	
-	public static void foo(int a, int b) {
-		int c = a & b;
-	}
 }

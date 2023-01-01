@@ -25,7 +25,7 @@ public class InvokestaticOperation extends InvokeOperation {
 			var clazz = descriptor.clazz;
 			var returnType = descriptor.returnType;
 			
-			if(returnType.isBasicClassType() && clazz.equals(returnType)) {
+			if(returnType.isBasicClassType() && returnType.equals(clazz)) {
 				
 				if(clazz.equals(ClassType.BYTE) && descriptor.argumentsEquals(PrimitiveType.BYTE))
 					return new CastOperation(PrimitiveType.BYTE, ClassType.BYTE, true, context);

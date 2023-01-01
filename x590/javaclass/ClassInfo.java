@@ -51,7 +51,10 @@ public class ClassInfo {
 	private static final Integer ZERO = 0;
 	
 	public void addImport(ClassType clazz) {
-		imports.put(clazz, imports.getOrDefault(clazz, ZERO) + 1);
+		ClassType rawClass = clazz.getRawType();
+		imports.put(rawClass, imports.getOrDefault(rawClass, ZERO) + 1);
+		
+		clazz.addImportsForSignature(null);
 	}
 	
 	public void addImport(Type type) {
@@ -73,14 +76,14 @@ public class ClassInfo {
 	}
 	
 	public boolean imported(ClassType classType) {
-		return imports.containsKey(classType);
+		return imports.containsKey(classType.getRawType());
 	}
 	
 	public void writeImports(StringifyOutputStream out) {
 		boolean written = false;
 		
 		for(ClassType clazz : imports.keySet()) {
-			if(!clazz.getPackageName().equals("java.lang") && !clazz.getPackageName().equals(thisType.getPackageName())) {
+			if(!clazz.getPackageName().isEmpty() && !clazz.getPackageName().equals("java.lang") && !clazz.getPackageName().equals(thisType.getPackageName())) {
 				out.printIndent().print("import ").print(clazz.getName()).println(';');
 				written = true;
 			}

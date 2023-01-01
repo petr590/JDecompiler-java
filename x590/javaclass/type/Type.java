@@ -13,7 +13,6 @@ import x590.javaclass.exception.IncopatibleTypesException;
 import x590.javaclass.exception.InvalidTypeNameException;
 import x590.javaclass.io.ExtendedStringReader;
 import x590.javaclass.io.StringifyOutputStream;
-import x590.javaclass.util.Util;
 
 /**
  * Класс, описывающий тип в Java: int, double, String и т.д.
@@ -96,6 +95,22 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 		return false;
 	}
 	
+	/** Гарантирует, что объект - экземпляр класса WrapperClassType */
+	public boolean isWrapperClassType() {
+		return false;
+	}
+	
+	
+	/** Проверяет, что это тип {@link PrimitiveType#BYTE}, {@link PrimitiveType#SHORT} или {@link PrimitiveType#CHAR} */
+	public final boolean isByteOrShortOrChar() {
+		return this == PrimitiveType.BYTE || this == PrimitiveType.SHORT || this == PrimitiveType.CHAR;
+	}
+	
+	/** Проверяет, что это тип {@link PrimitiveType#LONG}, {@link PrimitiveType#FLOAT} или {@link PrimitiveType#DOUBLE} */
+	public final boolean isLongOrFloatOrDouble() {
+		return this == PrimitiveType.LONG || this == PrimitiveType.FLOAT || this == PrimitiveType.DOUBLE;
+	}
+	
 	
 	/** Размер типа на стеке (кратен 4 байтам) */
 	public abstract TypeSize getSize();
@@ -103,6 +118,12 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 	
 	public final boolean isSubtypeOf(Type other) {
 		return this.castToNarrowestNoexcept(other) != null;
+	}
+	
+	/** Возвращает {@literal true} если мы можем неявно преобразовать {@literal this} в {@code other}
+	 * (например, int -> long. На уровне байткода мы не можем сделать такое преобразование неявно) */
+	public boolean isImplicitSubtypeOf(Type other) {
+		return isSubtypeOf(other);
 	}
 	
 	
@@ -140,6 +161,7 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 	}
 	
 	
+	/** Преобразует тип к наиболее узкому типу (когда мы используем значение как значение какого-то типа) */
 	public final Type castToNarrowest(Type other) {
 		Type type = castToNarrowestNoexcept(other);
 		
@@ -147,7 +169,8 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 		
 		throw new IncopatibleTypesException(this, other);
 	}
-	
+
+	/** Преобразует тип к наиболее широкрму типу (используется при присвоении значения переменной) */
 	public final Type castToWidest(Type other) {
 		Type type = castToWidestNoexcept(other);
 		
@@ -157,16 +180,15 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 	}
 	
 	
-	public Type castToGeneralNarrowest(Type other) {
-		Type type = this.castToNarrowestNoexcept(other);
+	/** Преобразует тип к общему типу (используется, например, в тернарном операторе) */
+	public Type castToGeneral(Type other) {
+		Type type = this.castToWidestNoexcept(other);
 		
-		if(type != null)
-			return type;
+		if(type != null) return type;
 		
-		type = other.castToNarrowestNoexcept(this);
+		type = other.castToWidestNoexcept(this);
 		
-		if(type != null)
-			return type;
+		if(type != null) return type;
 		
 		throw new IncopatibleTypesException(this, other);
 	}
@@ -213,9 +235,9 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 			case 'F': in.incPos(); return PrimitiveType.FLOAT;
 			case 'D': in.incPos(); return PrimitiveType.DOUBLE;
 			case 'Z': in.incPos(); return PrimitiveType.BOOLEAN;
-			case 'L': return new ClassType(in.next());
+			case 'L': return ClassType.read(in.next());
 			case '[': return new ArrayType(in);
-			case 'T': return new ParameterType(in.next());
+			case 'T': return new SignatureParameterType(in.next());
 			default:
 				throw new InvalidTypeNameException(in);
 		}
@@ -256,53 +278,39 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 	
 	
 	public static ReferenceType parseReferenceType(String in) {
-		return in.charAt(0) == '[' ? new ArrayType(in) : ClassType.valueOf(in);
+		return in.charAt(0) == '[' ? new ArrayType(in) : ClassType.fromDescriptor(in);
 	}
 	
 	
-	public static ReferenceType parseParameter(ExtendedStringReader in) {
+	public static ReferenceType parseSignatureParameter(ExtendedStringReader in) {
 		switch(in.get()) {
-			case 'L': return new ClassType(in.next());
+			case 'L': return ClassType.read(in.next());
 			case '[': return new ArrayType(in);
-			case 'T': return new ParameterType(in.next());
+			case 'T': return new SignatureParameterType(in.next());
 			default:
 				throw new InvalidTypeNameException(in);
 		}
 	}
 	
 	
-	public static List<ReferenceType> parseParameters(ExtendedStringReader in) {
-		in.mark();
+	public static GenericParameters<ReferenceType> parseSignature(ExtendedStringReader in) {
 		
-		if(in.read() != '<')
-			throw new InvalidTypeNameException(in, 0);
-		
-		List<ReferenceType> parameters = new ArrayList<>();
-		
-		while(true) {
-			switch(in.get()) {
-				case '>':
-					in.incPos();
-					in.unmark();
-					return parameters;
+		return new GenericParameters<>(in, ch ->
+				switch(in.get()) {
+					case '+' -> new ExtendingGenericType(in.next());
+					case '-' -> new SuperGenericType(in.next());
+					case '*' -> {
+						in.incPos();
+						yield AnyGenericType.INSTANCE;
+					}
+						
+					case ExtendedStringReader.EOF_CHAR -> throw new InvalidTypeNameException(in, in.distanceToMark());
 					
-				case '+':
-					parameters.add(new ExtendingGenericType(in.next()));
-					break;
-				case '-':
-					parameters.add(new SuperGenericType(in.next()));
-					break;
-				case '*':
-					in.next();
-					parameters.add(AnyGenericType.INSTANCE);
-					break;
-					
-				case Util.EOF_CHAR:
-					throw new InvalidTypeNameException(in, in.distanceToMark());
-					
-				default:
-					parameters.add(parseParameter(in));
-			}
-		}
+					default -> parseSignatureParameter(in);
+				});
+	}
+	
+	public static GenericParameters<GenericParameterType> parseGenericParameters(ExtendedStringReader in) {
+		return new GenericParameters<>(in, ch -> new GenericParameterType(in));
 	}
 }

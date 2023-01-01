@@ -27,6 +27,6 @@ public abstract class BitwiseOperatorOperation extends BinaryOperatorOperation {
 	
 	public int getVisiblePriority(Operation operand) {
 		return operand.getPriority() > Priority.BIT_AND ?
-				Priority.CAST : this.getPriority();
+				Priority.BITWISE_OPERAND : this.getPriority();
 	}
 }

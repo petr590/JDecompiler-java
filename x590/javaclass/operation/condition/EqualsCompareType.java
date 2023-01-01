@@ -1,4 +1,4 @@
-package x590.javaclass.operation.compare;
+package x590.javaclass.operation.condition;
 
 import x590.javaclass.operation.Priority;
 import x590.javaclass.type.Type;

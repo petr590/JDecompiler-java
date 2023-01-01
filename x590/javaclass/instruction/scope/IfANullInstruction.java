@@ -2,9 +2,9 @@ package x590.javaclass.instruction.scope;
 
 import x590.javaclass.context.DecompilationContext;
 import x590.javaclass.context.DisassemblerContext;
-import x590.javaclass.operation.compare.CompareWithNullOperation;
-import x590.javaclass.operation.compare.ConditionOperation;
-import x590.javaclass.operation.compare.EqualsCompareType;
+import x590.javaclass.operation.condition.CompareWithNullOperation;
+import x590.javaclass.operation.condition.ConditionOperation;
+import x590.javaclass.operation.condition.EqualsCompareType;
 
 public abstract class IfANullInstruction extends IfInstruction {
 	

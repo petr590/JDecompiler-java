@@ -28,8 +28,7 @@ public abstract class IntegralType extends PrimitiveType {
 	@Override
 	protected boolean canCastTo(Type other) {
 		return this == other ||
-				other.isIntegral() && ((IntegralType)other).getCapacity() >= this.getCapacity() ||
-				other == PrimitiveType.CHAR && this.getCapacity() < CHAR_CAPACITY;
+				other.isIntegral() && ((IntegralType)other).getCapacity() >= this.getCapacity();
 	}
 	
 	@Override
@@ -37,5 +36,11 @@ public abstract class IntegralType extends PrimitiveType {
 		return this == other ||
 				other.isIntegral() && ((IntegralType)other).getCapacity() <= this.getCapacity() ||
 				other == PrimitiveType.CHAR && this.getCapacity() > CHAR_CAPACITY;
+	}
+	
+	@Override
+	public boolean isImplicitSubtypeOf(Type other) {
+		return isSubtypeOf(other) || other.isPrimitive() &&
+				(other == PrimitiveType.LONG || other == PrimitiveType.FLOAT || other == PrimitiveType.DOUBLE);
 	}
 }

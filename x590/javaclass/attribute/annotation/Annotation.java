@@ -16,7 +16,7 @@ public class Annotation implements StringWritableAndImportable {
 	private final Element[] elements;
 	
 	protected Annotation(ExtendedDataInputStream in, ConstantPool pool) {
-		this.type = ClassType.valueOfEncoded(pool.getUtf8String(in.readUnsignedShort()));
+		this.type = ClassType.fromTypeDescriptor(pool.getUtf8String(in.readUnsignedShort()));
 		this.elements = in.readArray(Element[]::new, () -> new Element(in, pool));
 	}
 	

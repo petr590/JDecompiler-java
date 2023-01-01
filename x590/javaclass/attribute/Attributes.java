@@ -2,6 +2,7 @@ package x590.javaclass.attribute;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,20 +15,38 @@ import x590.javaclass.util.Util;
 
 public class Attributes implements JavaSerializable, Importable {
 	
+	public static enum Location {
+		CLASS, FIELD, METHOD, CODE_ATTRIBUTE, OTHER
+	}
+	
+	
+	private static final Attributes EMPTY = new Attributes();
+	
 	private final Attribute[] attributes;
 	private final Map<String, Attribute> attributeByName;
 	
-	public Attributes(ExtendedDataInputStream in, ConstantPool pool) {
+	private Attributes() {
+		this.attributes = new Attribute[] {};
+		this.attributeByName = Collections.emptyMap();
+	}
+	
+	public Attributes(ExtendedDataInputStream in, ConstantPool pool, Location location) {
 		int length = in.readUnsignedShort();
 		var attributes = this.attributes = new Attribute[length];
 		var attributeByName = this.attributeByName = new HashMap<>(length);
 		
 		for(int i = 0; i < length; i++) {
-			Attribute attribute = Attribute.read(in, pool);
+			Attribute attribute = Attribute.read(in, pool, location);
 			attributes[i] = attribute;
 			attributeByName.put(attribute.name, attribute);
 		}
 	}
+	
+	
+	public static Attributes empty() {
+		return EMPTY;
+	}
+	
 	
 	@Override
 	public void serialize(DataOutputStream out) throws IOException {

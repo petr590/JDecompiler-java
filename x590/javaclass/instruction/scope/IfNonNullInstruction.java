@@ -1,8 +1,8 @@
 package x590.javaclass.instruction.scope;
 
 import x590.javaclass.context.DisassemblerContext;
-import x590.javaclass.operation.compare.CompareType;
-import x590.javaclass.operation.compare.EqualsCompareType;
+import x590.javaclass.operation.condition.CompareType;
+import x590.javaclass.operation.condition.EqualsCompareType;
 
 public class IfNonNullInstruction extends IfANullInstruction {
 	

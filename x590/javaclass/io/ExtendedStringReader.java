@@ -1,7 +1,5 @@
 package x590.javaclass.io;
 
-import static x590.javaclass.util.Util.EOF_CHAR;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -13,14 +11,24 @@ import java.io.UncheckedIOException;
  */
 public class ExtendedStringReader extends InputStream {
 	
-	private final String source;
+	private String source;
 	private int pos = 0, mark = -1;
 	private final int length;
+	public static final int EOF_CHAR = -1;
 	
 	
 	public ExtendedStringReader(String str) {
 		this.source = str;
 		this.length = str.length();
+	}
+	
+	
+	public int available() {
+		return length - pos;
+	}
+	
+	public boolean isAvailable() {
+		return pos < length;
 	}
 	
 	
@@ -41,16 +49,16 @@ public class ExtendedStringReader extends InputStream {
 		pos++;
 	}
 	
-	public ExtendedStringReader next() {
-		incPos();
-		return this;
-	}
-	
 	public void decPos() {
 		if(pos == 0)
 			throw new UncheckedIOException(new IOException("Position is 0"));
 		
 		pos--;
+	}
+	
+	public ExtendedStringReader next() {
+		incPos();
+		return this;
 	}
 	
 	public ExtendedStringReader prev() {
@@ -61,7 +69,7 @@ public class ExtendedStringReader extends InputStream {
 	
 	@Override
 	public int read() {
-		return pos >= length ? EOF_CHAR : source.charAt(pos++);
+		return pos >= length ? ExtendedStringReader.EOF_CHAR : source.charAt(pos++);
 	}
 	
 	public String readAll() {
@@ -91,6 +99,42 @@ public class ExtendedStringReader extends InputStream {
 	}
 	
 	
+	public String readUntil(char ch) {
+		return readUntil(ch, new StringBuilder()).toString();
+	}
+	
+	public String readUntil(char ch1, char ch2) {
+		return readUntil(ch1, ch2, new StringBuilder()).toString();
+	}
+	
+	
+	public StringBuilder readUntil(char ch, StringBuilder str) {
+		
+		while(true) {
+			int c = read();
+			if(c == ch || c == ExtendedStringReader.EOF_CHAR) break;
+			str.append((char)c);
+		}
+		
+		decPos();
+		
+		return str;
+	}
+	
+	public StringBuilder readUntil(char ch1, char ch2, StringBuilder str) {
+		
+		while(true) {
+			int c = read();
+			if(c == ch1 || c == ch2 || c == ExtendedStringReader.EOF_CHAR) break;
+			str.append((char)c);
+		}
+		
+		decPos();
+		
+		return str;
+	}
+	
+	
 	/** Читает символ с индекса mark.
 	 * Если mark = -1, то читает с текущей позиции.
 	 * Не изменяет mark и pos. */
@@ -116,7 +160,7 @@ public class ExtendedStringReader extends InputStream {
 	
 	
 	public int get() {
-		return pos >= length ? EOF_CHAR : source.charAt(pos);
+		return pos >= length ? ExtendedStringReader.EOF_CHAR : source.charAt(pos);
 	}
 	
 	
@@ -144,5 +188,10 @@ public class ExtendedStringReader extends InputStream {
 			throw new UncheckedIOException(new IOException("Not marked"));
 		
 		pos = mark;
+	}
+	
+	@Override
+	public void close() {
+		source = null;
 	}
 }

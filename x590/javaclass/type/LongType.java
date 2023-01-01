@@ -17,4 +17,9 @@ public class LongType extends PrimitiveType {
 	public TypeSize getSize() {
 		return TypeSize.EIGHT_BYTES;
 	}
+	
+	@Override
+	public boolean isImplicitSubtypeOf(Type other) {
+		return this == other || other == PrimitiveType.FLOAT || other == PrimitiveType.DOUBLE;
+	}
 }

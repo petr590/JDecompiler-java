@@ -13,6 +13,6 @@ public class InvokevirtualInstruction extends InstructionWithIndex {
 	
 	@Override
 	public Operation toOperation(DecompilationContext context) {
-		return new InvokevirtualOperation(context, index);
+		return InvokevirtualOperation.valueOf(context, index);
 	}
 }

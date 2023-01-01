@@ -1,13 +1,11 @@
 package x590.javaclass.type;
 
-import static x590.javaclass.util.Util.EOF_CHAR;
-
-import java.util.ArrayList;
+import java.lang.annotation.Annotation;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -20,7 +18,7 @@ import x590.javaclass.util.Util;
 /**
  * Описывает тип java класса, самого обычного класса
  */
-public final class ClassType extends ReferenceType {
+public class ClassType extends ReferenceType {
 	
 	/**
 	 * Определяет, какой это класс: обычный, вложенный, анонимный, package-info, module-info
@@ -75,25 +73,99 @@ public final class ClassType extends ReferenceType {
 	
 	
 	public static final ClassType
-			OBJECT        = new ClassType("java/lang/Object"),
-			STRING        = new ClassType("java/lang/String"),
-			CLASS         = new ClassType("java/lang/Class"),
-			ENUM          = new ClassType("java/lang/Enum"),
-			ANNOTATION    = new ClassType("java/lang/annotation/Annotation"),
-			THROWABLE     = new ClassType("java/lang/Throwable"),
-			EXCEPTION     = new ClassType("java/lang/Exception"),
-			METHOD_TYPE   = new ClassType("java/lang/invoke/MethodType"),
-			METHOD_HANDLE = new ClassType("java/lang/invoke/MethodHandle"),
+			OBJECT        = new ClassType("java/lang/Object", Object.class),
+			STRING        = new ClassType("java/lang/String", String.class),
+			CLASS         = new ClassType("java/lang/Class", Class.class),
+			ENUM          = new ClassType("java/lang/Enum", Enum.class),
+			ANNOTATION    = new ClassType("java/lang/annotation/Annotation", Annotation.class),
+			THROWABLE     = new ClassType("java/lang/Throwable", Throwable.class),
+			EXCEPTION     = new ClassType("java/lang/Exception", Exception.class),
+			METHOD_TYPE   = new ClassType("java/lang/invoke/MethodType", MethodType.class),
+			METHOD_HANDLE = new ClassType("java/lang/invoke/MethodHandle", MethodHandle.class),
 			
-			BYTE      = new ClassType("java/lang/Byte"),
-			SHORT     = new ClassType("java/lang/Short"),
-			CHARACTER = new ClassType("java/lang/Character"),
-			INTEGER   = new ClassType("java/lang/Integer"),
-			LONG      = new ClassType("java/lang/Long"),
-			FLOAT     = new ClassType("java/lang/Float"),
-			DOUBLE    = new ClassType("java/lang/Double"),
-			BOOLEAN   = new ClassType("java/lang/Boolean"),
-			VOID      = new ClassType("java/lang/Void");
+			BYTE      = new WrapperClassType("java/lang/Byte", Byte.class, PrimitiveType.BYTE),
+			SHORT     = new WrapperClassType("java/lang/Short", Short.class, PrimitiveType.SHORT),
+			CHARACTER = new WrapperClassType("java/lang/Character", Character.class, PrimitiveType.CHAR),
+			INTEGER   = new WrapperClassType("java/lang/Integer", Integer.class, PrimitiveType.INT),
+			LONG      = new WrapperClassType("java/lang/Long", Long.class, PrimitiveType.LONG),
+			FLOAT     = new WrapperClassType("java/lang/Float", Float.class, PrimitiveType.FLOAT),
+			DOUBLE    = new WrapperClassType("java/lang/Double", Double.class, PrimitiveType.DOUBLE),
+			BOOLEAN   = new WrapperClassType("java/lang/Boolean", Boolean.class, PrimitiveType.BOOLEAN),
+			VOID      = new WrapperClassType("java/lang/Void", Void.class, PrimitiveType.VOID);
+	
+	
+	public static ClassType fromConstant(ClassConstant clazz) {
+		return fromDescriptor(clazz.getNameConstant().getString());
+	}
+	
+	public static ClassType fromNullableConstant(@Nullable ClassConstant clazz, ClassType defaultValue) {
+		return clazz != null ? fromConstant(clazz) : defaultValue;
+	}
+	
+	
+	/** Принимает строку без префикса 'L', т.е. в виде "java/lang/Object;" */
+	public static ClassType fromDescriptor(String classEncodedName) {
+		if(CLASS_TYPES.containsKey(classEncodedName))
+			return CLASS_TYPES.get(classEncodedName);
+		
+		return new ClassType(classEncodedName);
+	}
+	
+	public static ClassType fromNullableDescriptor(@Nullable String classEncodedName, ClassType defaultValue) {
+		return classEncodedName != null ? fromDescriptor(classEncodedName) : defaultValue;
+	}
+	
+	/** Принимает строку с префиксом 'L', т.е. в виде "Ljava/lang/Object;" */
+	public static ClassType fromTypeDescriptor(String encodedName) {
+		if(!encodedName.isEmpty() && encodedName.charAt(0) == 'L')
+			return fromDescriptor(encodedName.substring(1));
+		
+		throw new InvalidClassNameException(encodedName);
+	}
+	
+	
+	/** Принимает строку без префикса 'L' */
+	public static ClassType read(ExtendedStringReader in) {
+		return fromDescriptor(readDescriptor(in));
+	}
+	
+	/** Принимает строку с префиксом 'L' */
+	public static ClassType readAsType(ExtendedStringReader in) {
+		if(in.get() == 'L')
+			return read(in.next());
+		
+		throw new InvalidClassNameException(in);
+	}
+	
+	public static String readDescriptor(ExtendedStringReader in) {
+		
+		StringBuilder str = in.readUntil(';', '<', new StringBuilder());
+		
+		if(in.get() == '<')
+			readSignature(in.next(), str);
+		
+		if(in.get() == ';')
+			in.incPos();
+		
+		return str.toString();
+	}
+	
+	public static void readSignature(ExtendedStringReader in, StringBuilder str) {
+		
+		str.append('<');
+		
+		while(true) {
+			in.readUntil('<', '>', str);
+			
+			if(in.get() == '<') {
+				readSignature(in.next(), str);
+			} else {
+				in.incPos();
+				str.append('>');
+				return;
+			}
+		}
+	}
 	
 	
 	protected final String
@@ -104,41 +176,14 @@ public final class ClassType extends ReferenceType {
 	
 	protected String nameForVariable;
 	
-	public final List<ReferenceType> parameters;
-	
 	public final ClassType enclosingClass;
+	
+	protected @Nullable GenericParameters<ReferenceType> signature;
+	private ClassType rawType;
+	
 	public final ClassKind kind;
 	
-	
-	public static ClassType valueOf(ClassConstant clazz) {
-		return valueOf(clazz.getNameConstant().getString());
-	}
-	
-	/** Принимает строку без префикса 'L', т.е. в виде "java/lang/Object;" */
-	public static ClassType valueOf(String classEncodedName) {
-		if(CLASS_TYPES.containsKey(classEncodedName))
-			return CLASS_TYPES.get(classEncodedName);
-		
-		return new ClassType(classEncodedName);
-	}
-	
-	
-	public static ClassType valueOfOrDefault(@Nullable String classEncodedName, ClassType defaultValue) {
-		return classEncodedName != null ? valueOf(classEncodedName) : defaultValue;
-	}
-	
-	public static ClassType valueOfOrDefault(@Nullable ClassConstant clazz, ClassType defaultValue) {
-		return clazz != null ? valueOf(clazz) : defaultValue;
-	}
-	
-	
-	/** Принимает строку с префиксом 'L', т.е. в виде "Ljava/lang/Object;" */
-	public static ClassType valueOfEncoded(String encodedName) {
-		if(!encodedName.isEmpty() && encodedName.charAt(0) == 'L')
-			return valueOf(encodedName.substring(1));
-		
-		throw new InvalidClassNameException(encodedName);
-	}
+	private boolean triedLoadClass;
 	
 	
 	private void cacheIfNotCached() {
@@ -147,19 +192,23 @@ public final class ClassType extends ReferenceType {
 	}
 	
 	
-	private ClassType(String encodedName) {
+	protected ClassType(String encodedName, Class<?> thisClass) {
+		this(encodedName);
+		initSuperType(thisClass);
+		triedLoadClass = true;
+	}
+	
+	protected ClassType(String encodedName) {
 		this(new ExtendedStringReader(encodedName));
 	}
 	
-	public ClassType(ExtendedStringReader in) {
+	protected ClassType(ExtendedStringReader in) {
 		
 		in.mark();
 		
 		StringBuilder
-				encodedNameBuilder = new StringBuilder(),
+				classEncodedNameBuilder = new StringBuilder(),
 				nameBuilder = new StringBuilder();
-		
-		this.parameters = new ArrayList<>();
 		
 		int nameStartPos = 0,
 			packageEndPos = 0,
@@ -177,7 +226,7 @@ public final class ClassType extends ReferenceType {
 					packageEndPos = i;
 					nameStartPos = i + 1;
 					nameBuilder.append('.');
-					encodedNameBuilder.append('/');
+					classEncodedNameBuilder.append('/');
 					
 					// Если мы встречали тире раньше, значит, название класса невалидное
 					if(dashIndex != 0)
@@ -190,7 +239,7 @@ public final class ClassType extends ReferenceType {
 					enclosingClassNameEndPos = i;
 					nameStartPos = i + 1;
 					nameBuilder.append('.');
-					encodedNameBuilder.append('$');
+					classEncodedNameBuilder.append('$');
 					
 					if(dashIndex != 0)
 						throw new InvalidClassNameException(in, dashIndex);
@@ -199,10 +248,16 @@ public final class ClassType extends ReferenceType {
 				}
 					
 				case '<' -> {
-					parameters.addAll(parseParameters(in.prev()));
+					signature = parseSignature(in.prev());
+					rawType = ClassType.fromDescriptor(classEncodedNameBuilder.toString());
+					
+					classEncodedNameBuilder.append('<');
+					signature.types.forEach(parameter -> classEncodedNameBuilder.append(parameter.getEncodedName()));
+					classEncodedNameBuilder.append('>');
+					
 					
 					switch(in.read()) {
-						case ';', EOF_CHAR -> {
+						case ';', ExtendedStringReader.EOF_CHAR -> {
 							break Loop;
 						}
 							
@@ -212,7 +267,7 @@ public final class ClassType extends ReferenceType {
 					}
 				}
 				
-				case ';', EOF_CHAR -> {
+				case ';', ExtendedStringReader.EOF_CHAR -> {
 					break Loop;
 				}
 				
@@ -227,20 +282,20 @@ public final class ClassType extends ReferenceType {
 				// Недопустимые символы
 				case '\b', '\t', '\n', 0xB /* '\v' */, '\f', '\r',  ' ',  '!',
 					 '"',  '#',  '%',  '&',  '\'',  '(',  ')',  '*',  '+',
-					 ',',  '.',  ':',  '=',  '?',   '@',  '[',  '\\',
+					 ',',  '.',  ':',  '=',  '>',   '?',  '@',  '[',  '\\',
 					 ']',  '^',  '`',  '{',  '|',   '}',  '~',  0x7F /* DEL */ -> {
 						throw new InvalidClassNameException(in, i);
 					 }
 			}
 			
-			encodedNameBuilder.append((char)ch);
+			classEncodedNameBuilder.append((char)ch);
 			nameBuilder.append((char)ch);
 		}
 		
-		String encodedName = encodedNameBuilder.toString();
+		String classEncodedName = classEncodedNameBuilder.toString();
 		
-		this.encodedName = 'L' + encodedName + ';';
-		this.classEncodedName = encodedName;
+		this.encodedName = "L" + classEncodedName + ";";
+		this.classEncodedName = classEncodedName;
 		this.name = nameBuilder.toString();
 		
 		String simpleName = nameBuilder.substring(nameStartPos);
@@ -249,7 +304,7 @@ public final class ClassType extends ReferenceType {
 		if(enclosingClassNameEndPos != 0) { // Nested class
 			boolean isAnonymous = simpleName.matches("^\\d+$");
 			this.kind = isAnonymous ? ClassKind.ANONYMOUS : ClassKind.NESTED;
-			this.enclosingClass = new ClassType(encodedName.substring(0, enclosingClassNameEndPos));
+			this.enclosingClass = new ClassType(classEncodedName.substring(0, enclosingClassNameEndPos));
 			
 			this.fullSimpleName = enclosingClass.fullSimpleName + (isAnonymous ? '$' : '.') + simpleName;
 			
@@ -264,9 +319,9 @@ public final class ClassType extends ReferenceType {
 			
 			if(dashIndex != 0) {
 				
-				if(encodedName.endsWith("/package-info"))
+				if(classEncodedName.endsWith("/package-info"))
 					this.kind = ClassKind.PACKAGE_INFO;
-				else if(encodedName.endsWith("/module-info"))
+				else if(classEncodedName.endsWith("/module-info"))
 					this.kind = ClassKind.MODULE_INFO;
 				else
 					throw new InvalidClassNameException(in, dashIndex);
@@ -277,6 +332,9 @@ public final class ClassType extends ReferenceType {
 		}
 		
 		this.simpleName = simpleName;
+		
+		if(rawType == null)
+			rawType = this;
 		
 		in.unmark();
 		
@@ -291,16 +349,15 @@ public final class ClassType extends ReferenceType {
 	
 	@Override
 	public String toString() {
-		return "class " + (parameters.isEmpty() ? name : name +
-				"<" + parameters.stream().map(type -> type.toString()).collect(Collectors.joining(", ")) + '>');
+		return "class " + (signature == null ? name : name + signature.toString());
 //				(superType != null ? " extends " + superType.getName() : "") +
 //				(interfaces != null ? " implements " + interfaces.stream().map(ReferenceType::getName).collect(Collectors.joining(", ")) : "");
 	}
 	
 	@Override
 	public String getName(ClassInfo classinfo) {
-		return kind.isAnonymous() ? fullSimpleName : (classinfo.imported(this) ? simpleName : name) + (parameters.isEmpty() ? "" :
-			'<' + parameters.stream().map(type -> type.toString(classinfo)).collect(Collectors.joining(", ")) + ">");
+		return kind.isAnonymous() ? fullSimpleName : (classinfo.imported(this) ? simpleName : name) + (signature == null ? "" :
+			signature.toString(classinfo));
 	}
 	
 	@Override
@@ -328,6 +385,13 @@ public final class ClassType extends ReferenceType {
 		return packageName;
 	}
 	
+	
+	/** Возвращает не параметрезированный тип */
+	public ClassType getRawType() {
+		return rawType;
+	}
+	
+	
 	public boolean isAnonymous() {
 		return kind.isAnonymous();
 	}
@@ -338,35 +402,43 @@ public final class ClassType extends ReferenceType {
 	}
 	
 	
-	private boolean triedLoadClass;
-	
 	@Override
 	protected void tryLoadSuperType() {
 		if(!triedLoadClass) {
 			
+			triedLoadClass = true;
+			
 			try {
-				Class<?> thisClass = Class.forName(name);
-				Class<?> superClass = thisClass.getSuperclass();
-				
-				if(superClass != null) {
-					superType = valueOfEncoded(superClass.descriptorString());
-					interfaces = Arrays.stream(thisClass.getInterfaces())
-							.<ReferenceType>map(interfaceClass -> ClassType.valueOfEncoded(interfaceClass.descriptorString())).toList();
-				}
-				
+				initSuperType(Class.forName(name));
 			} catch(ClassNotFoundException ex) {
-				
 				System.out.println("Class \"" + name + "\" not found among java classes");
-				
-				triedLoadClass = true;
 			}
 		}
+	}
+	
+	
+	protected void initSuperType(Class<?> thisClass) {
+		Class<?> superClass = thisClass.getSuperclass();
+		
+		if(superClass != null) {
+			superType = fromTypeDescriptor(superClass.descriptorString());
+		} else if(thisClass.isInterface()) {
+			superType = OBJECT;
+		}
+		
+		interfaces = Arrays.stream(thisClass.getInterfaces())
+				.<ReferenceType>map(interfaceClass -> ClassType.fromTypeDescriptor(interfaceClass.descriptorString())).toList();
 	}
 	
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
 		classinfo.addImport(this);
+	}
+	
+	public void addImportsForSignature(ClassInfo classinfo) {
+		if(signature != null)
+			signature.addImports(classinfo);
 	}
 	
 	
@@ -379,5 +451,10 @@ public final class ClassType extends ReferenceType {
 	@Override
 	protected boolean canCastTo(Type other) {
 		return other.isBasicClassType();
+	}
+	
+	/** Сравнивает типы без учёта сигнатуры */
+	public boolean baseEquals(ClassType other) {
+		return this == other || this.name.equals(other.name);
 	}
 }

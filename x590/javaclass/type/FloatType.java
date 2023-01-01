@@ -17,4 +17,9 @@ public class FloatType extends PrimitiveType {
 	public TypeSize getSize() {
 		return TypeSize.FOUR_BYTES;
 	}
+	
+	@Override
+	public boolean isImplicitSubtypeOf(Type other) {
+		return this == other || other == PrimitiveType.DOUBLE;
+	}
 }

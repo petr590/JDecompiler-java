@@ -118,9 +118,14 @@ public abstract class Operation implements Importable {
 		onCastReturnType(getReturnType().castToWidest(type));
 	}
 	
-//	public void twoWayCastReturnTypeTo(Type type) {
-//		onCastReturnType(getReturnType().twoWayCastTo(type));
-//	}
+	
+	public Type getReturnTypeAsGeneralNarrowest(Operation other) {
+		Type generalType = this.getReturnType().castToGeneral(other.getReturnType());
+		this.castReturnTypeToNarrowest(generalType);
+		other.castReturnTypeToNarrowest(generalType);
+		return generalType;
+	}
+	
 	
 	public void onCastReturnType(Type type) {}
 	

@@ -73,7 +73,7 @@ public class ClassConstant extends ConstValueConstant {
 		if(classType != null)
 			return classType;
 		
-		referenceType = classType = ClassType.valueOf(name.getString());
+		referenceType = classType = ClassType.fromDescriptor(name.getString());
 		
 		return classType;
 	}

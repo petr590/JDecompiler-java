@@ -3,7 +3,7 @@ package x590.javaclass.type;
 import x590.javaclass.ClassInfo;
 import x590.javaclass.io.ExtendedStringReader;
 
-public class SuperGenericType extends DefinedGenericType {
+public class SuperGenericType extends BoundedGenericType {
 	
 	public SuperGenericType(ExtendedStringReader in) {
 		super(in);

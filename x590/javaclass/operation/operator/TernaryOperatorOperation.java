@@ -6,7 +6,7 @@ import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.operation.Operation;
 import x590.javaclass.operation.Priority;
 import x590.javaclass.operation.ReturnableOperation;
-import x590.javaclass.operation.compare.ConditionOperation;
+import x590.javaclass.operation.condition.ConditionOperation;
 import x590.javaclass.operation.constant.IConstOperation;
 import x590.javaclass.type.PrimitiveType;
 import x590.javaclass.type.Type;
@@ -22,9 +22,7 @@ public class TernaryOperatorOperation extends ReturnableOperation {
 		this.operand2 = context.stack.pop();
 		this.operand1 = context.stack.pop();
 		
-		returnType = operand1.getReturnType().castToGeneralNarrowest(operand2.getReturnType());
-		operand1.castReturnTypeToNarrowest(returnType);
-		operand2.castReturnTypeToNarrowest(returnType);
+		returnType = operand1.getReturnTypeAsGeneralNarrowest(operand2);
 	}
 	
 	@Override

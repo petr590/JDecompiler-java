@@ -2,11 +2,11 @@ package x590.javaclass.instruction.scope;
 
 import x590.javaclass.context.DecompilationContext;
 import x590.javaclass.context.DisassemblerContext;
-import x590.javaclass.operation.compare.AndOperation;
-import x590.javaclass.operation.compare.CompareOperation;
-import x590.javaclass.operation.compare.CompareType;
-import x590.javaclass.operation.compare.ConditionOperation;
-import x590.javaclass.operation.compare.OrOperation;
+import x590.javaclass.operation.condition.AndOperation;
+import x590.javaclass.operation.condition.CompareOperation;
+import x590.javaclass.operation.condition.CompareType;
+import x590.javaclass.operation.condition.ConditionOperation;
+import x590.javaclass.operation.condition.OrOperation;
 import x590.javaclass.scope.IfScope;
 import x590.javaclass.scope.Scope;
 

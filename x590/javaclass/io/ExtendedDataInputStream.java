@@ -4,6 +4,7 @@ import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
@@ -179,16 +180,27 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 	}
 	
 	public <T> T[] readArray(IntFunction<T[]> arrayCreator, Supplier<T> elementSupplier) {
-		return readArray(arrayCreator.apply(readUnsignedShort()), elementSupplier);
+		return readToArray(arrayCreator.apply(readUnsignedShort()), elementSupplier);
 	}
 	
-	public <T> T[] readArray(T[] array, Supplier<T> elementSupplier) {
+	public <T> T[] readToArray(T[] array, Supplier<T> elementSupplier) {
 		int length = array.length;
 		
 		for(int i = 0; i < length; i++)
 			array[i] = elementSupplier.get();
 		
 		return array;
+	}
+	
+	public <T> ArrayList<T> readArrayList(Supplier<T> elementSupplier) {
+		int length = readUnsignedShort();
+		
+		ArrayList<T> list = new ArrayList<>(length);
+		
+		for(int i = 0; i < length; i++)
+			list.add(elementSupplier.get());
+		
+		return list;
 	}
 	
 	

@@ -27,4 +27,9 @@ public class CharType extends PrimitiveType {
 	protected boolean canCastTo(Type other) {
 		return this == other || other.isIntegral() && ((IntegralType)other).getCapacity() > CHAR_CAPACITY;
 	}
+	
+	@Override
+	public boolean isImplicitSubtypeOf(Type other) {
+		return canCastTo(other) || other.isPrimitive() && (other == PrimitiveType.INT || other.isLongOrFloatOrDouble());
+	}
 }

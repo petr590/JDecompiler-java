@@ -7,7 +7,7 @@ public class ClassTypeTest {
 	
 	public static void main(String[] args) {
 		
-		ClassType type = ClassType.valueOf("java/util/ArrayList");
+		ClassType type = ClassType.fromDescriptor("java/util/ArrayList");
 		
 		System.out.println(type.castToWidest(Types.ANY_OBJECT_TYPE));
 	}

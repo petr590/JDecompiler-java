@@ -12,12 +12,14 @@ public abstract class InvokeNonstaticOperation extends InvokeOperation {
 	protected final Operation object;
 	
 	public InvokeNonstaticOperation(DecompilationContext context, int index) {
-		super(context, index, false);
-		this.object = context.stack.popAsNarrowest(Types.ANY_TYPE);
+		this(context, getDescriptor(context, index));
 	}
 	
+	// Не переделывать через делегирование конструктору this,
+	// так как важен порядок: сначала со стека снимаются аргументы, затем объект
 	public InvokeNonstaticOperation(DecompilationContext context, MethodDescriptor descriptor) {
-		this(context, descriptor, context.stack.popAsNarrowest(Types.ANY_TYPE));
+		super(context, descriptor, false);
+		this.object = context.stack.popAsNarrowest(Types.ANY_TYPE);
 	}
 	
 	public InvokeNonstaticOperation(DecompilationContext context, MethodDescriptor descriptor, Operation object) {

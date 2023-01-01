@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import x590.javaclass.Importable;
 import x590.javaclass.JavaSerializable;
+import x590.javaclass.attribute.Attributes.Location;
 import x590.javaclass.attribute.annotation.AnnotationDefaultAttribute;
 import x590.javaclass.attribute.annotation.AnnotationsAttribute;
 import x590.javaclass.attribute.annotation.ParameterAnnotationsAttribute;
@@ -25,11 +26,12 @@ public class Attribute implements JavaSerializable, Importable {
 	}
 	
 	
-	public static Attribute read(ExtendedDataInputStream in, ConstantPool pool) {
+	public static Attribute read(ExtendedDataInputStream in, ConstantPool pool, Location location) {
 		int nameIndex = in.readUnsignedShort();
 		String name = pool.getUtf8String(nameIndex);
 		int length = in.readInt();
 		int pos = in.available() - length;
+		
 		
 		Attribute attribute = switch(name) {
 			case "ConstantValue" -> new ConstantValueAttribute(nameIndex, name, length, in, pool);
@@ -45,6 +47,12 @@ public class Attribute implements JavaSerializable, Importable {
 			case "AnnotationDefault"  -> new AnnotationDefaultAttribute(nameIndex, name, length, in, pool);
 			case "BootstrapMethods"	  -> new BootstrapMethodsAttribute(nameIndex, name, length, in, pool);
 			case "LocalVariableTable" -> new LocalVariableTableAttribute(nameIndex, name, length, in, pool);
+			
+			case "Signature" -> switch(location) {
+				case CLASS -> new ClassSignatureAttribute(nameIndex, name, length, in, pool);
+				default -> new UnknownAttribute(nameIndex, name, length, in);
+			};
+			
 			default -> new UnknownAttribute(nameIndex, name, length, in);
 		};
 		

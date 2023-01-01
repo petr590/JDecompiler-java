@@ -3,7 +3,7 @@ package x590.javaclass.type;
 import x590.javaclass.ClassInfo;
 import x590.javaclass.io.ExtendedStringReader;
 
-public class ExtendingGenericType extends DefinedGenericType {
+public class ExtendingGenericType extends BoundedGenericType {
 	
 	public ExtendingGenericType(ExtendedStringReader in) {
 		super(in);

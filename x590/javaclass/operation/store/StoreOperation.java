@@ -1,5 +1,6 @@
 package x590.javaclass.operation.store;
 
+import x590.javaclass.ClassInfo;
 import x590.javaclass.context.DecompilationContext;
 import x590.javaclass.context.StringifyContext;
 import x590.javaclass.io.StringifyOutputStream;
@@ -15,6 +16,7 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 	private final Operation value;
 	
 	private final IncrementData incData;
+	private boolean varDefined;
 	
 	
 	public StoreOperation(Type requiredType, DecompilationContext context, int index) {
@@ -59,6 +61,23 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 		variable.setProbableType(probableType);
 	}
 	
+	
+	public boolean defineVariable() {
+		if(incData.operator == null) {
+			variable.define();
+			varDefined = true;
+		}
+		
+		return varDefined;
+	}
+	
+	
+	@Override
+	public void addImports(ClassInfo classinfo) {
+		if(varDefined)
+			classinfo.addImport(variable.getType());
+	}
+	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		writeTo(out, context, returnType, incData);
@@ -66,6 +85,9 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 	
 	@Override
 	public void writeName(StringifyOutputStream out, StringifyContext context) {
+		if(varDefined)
+			out.writesp(variable.getType(), context.classinfo);
+			
 		out.write(variable.getName());
 	}
 	

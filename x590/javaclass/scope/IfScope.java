@@ -5,9 +5,9 @@ import javax.annotation.Nullable;
 import x590.javaclass.context.DecompilationContext;
 import x590.javaclass.context.StringifyContext;
 import x590.javaclass.io.StringifyOutputStream;
-import x590.javaclass.operation.compare.AndOperation;
-import x590.javaclass.operation.compare.ConditionOperation;
-import x590.javaclass.operation.compare.OrOperation;
+import x590.javaclass.operation.condition.AndOperation;
+import x590.javaclass.operation.condition.ConditionOperation;
+import x590.javaclass.operation.condition.OrOperation;
 
 public class IfScope extends IfElseScope {
 	

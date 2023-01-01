@@ -11,8 +11,6 @@ import x590.jdecompiler.JDecompiler;
 
 public class Util {
 	
-	public static final int EOF_CHAR = -1;
-	
 	public static String toLowerCamelCase(String str) {
 		int strlength = str.length();
 		

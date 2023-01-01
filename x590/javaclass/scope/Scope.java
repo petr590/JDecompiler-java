@@ -2,6 +2,7 @@ package x590.javaclass.scope;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
@@ -11,6 +12,8 @@ import x590.javaclass.context.StringifyContext;
 import x590.javaclass.exception.VariableNotFoundException;
 import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.operation.Operation;
+import x590.javaclass.operation.VariableDefineOperation;
+import x590.javaclass.operation.store.StoreOperation;
 import x590.javaclass.type.PrimitiveType;
 import x590.javaclass.type.Type;
 import x590.javaclass.util.Util;
@@ -156,6 +159,26 @@ public abstract class Scope extends Operation {
 		locals.forEach(EmptyableVariable::reduceType);
 		scopes.forEach(Scope::reduceTypes);
 	}
+	
+	/** Объявляет все необъявленные переменные в этом и во вложенных scope-ах */
+	protected void defineVariables() {
+		locals.stream().filter(var -> !var.isEmpty()).map(EmptyableVariable::notEmpty).forEach(variable -> {
+			if(!variable.isDefined()) {
+				
+				Optional<StoreOperation> foundStore = code.stream().filter(operation -> operation instanceof StoreOperation store && store.getVariable() == variable)
+						.map(operation -> (StoreOperation)operation).findFirst();
+				
+				if(foundStore.isPresent() && foundStore.get().defineVariable()) {
+					return;
+				}
+				
+				code.add(foundStore.isPresent() ? code.indexOf(foundStore.get()) : 0, new VariableDefineOperation(variable));
+			}
+		});
+		
+		scopes.forEach(Scope::defineVariables);
+	}
+	
 	
 	/** Определяет имена всех переменных в этом и во вложенных scope-ах */
 	protected void assignVariablesNames() {

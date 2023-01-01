@@ -1,6 +1,6 @@
 byte                           -> byte                           = byte
 byte                           -> short                          = byte
-byte                           -> char                           = byte
+byte                           -> char                           = null
 byte                           -> int                            = byte
 byte                           -> (byte)                         = byte
 byte                           -> (byte short)                   = byte
@@ -45,7 +45,7 @@ short                          -> (int char)                     = short
 char                           -> byte                           = null
 char                           -> short                          = null
 char                           -> char                           = char
-char                           -> int                            = null
+char                           -> int                            = char
 char                           -> (byte)                         = null
 char                           -> (byte short)                   = null
 char                           -> (byte short int)               = char

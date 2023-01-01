@@ -3,6 +3,9 @@ package x590.javaclass.variable;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
+import x590.javaclass.attribute.LocalVariableTableAttribute.LocalVariableEntry;
 import x590.javaclass.operation.Operation;
 import x590.javaclass.scope.Scope;
 import x590.javaclass.type.Type;
@@ -22,6 +25,9 @@ public abstract class Variable extends EmptyableVariable {
 	/** Наиболее вероятный тип переменной. Если мы, например, инкрементируем переменную, как short, то
 	 * наиболее вероятный тип - short. При сведении типа этот тип будет выбран вместо int, если возможно. */
 	private Type probableType;
+	
+	/** {@literal true}, если переменная объявлена */
+	private boolean defined;
 	
 	/** Флаг чтобы избежать бесконечной рекурсии */
 	private boolean casting;
@@ -47,6 +53,12 @@ public abstract class Variable extends EmptyableVariable {
 	
 	public static EmptyVariable empty() {
 		return EmptyVariable.INSTANCE;
+	}
+	
+	public static Variable valueOf(@Nullable LocalVariableEntry entry, Scope enclosingScope, Type type, boolean typeFixed) {
+		return entry == null ?
+				new UnnamedVariable(enclosingScope, type, typeFixed) :
+				new NamedVariable(entry.name, enclosingScope, type, typeFixed);
 	}
 	
 	
@@ -110,6 +122,16 @@ public abstract class Variable extends EmptyableVariable {
 	
 	
 	public abstract void addName(String name);
+	
+	
+	public boolean isDefined() {
+		return defined;
+	}
+	
+	public EmptyableVariable define() {
+		defined = true;
+		return this;
+	}
 	
 	
 	public Type getType() {

@@ -106,7 +106,7 @@ public interface IncrementableOperation {
 	public default void writeTo(StringifyOutputStream out, StringifyContext context, Type type, IncrementData data) {
 		String operator = data.operator;
 		
-		if(data.shortInc && data.preInc) {
+		if(operator != null && data.shortInc && data.preInc) {
 			out.print(operator).print(operator);
 			writeName(out, context);
 			return;

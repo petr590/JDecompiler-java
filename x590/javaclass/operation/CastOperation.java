@@ -5,6 +5,7 @@ import x590.javaclass.context.DecompilationContext;
 import x590.javaclass.context.StringifyContext;
 import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.type.Type;
+import x590.javaclass.type.WrapperClassType;
 
 public class CastOperation extends Operation {
 	
@@ -14,9 +15,19 @@ public class CastOperation extends Operation {
 	protected boolean implicitCastAllowed;
 	
 	public CastOperation(Type requiredType, Type castedType, boolean implicitCast, DecompilationContext context) {
-		this.operand = context.stack.popAsNarrowest(requiredType);
+		var operand = context.stack.popAsNarrowest(requiredType);
 		this.castedType = castedType;
 		this.implicitCast = implicitCast;
+		
+		Type implicitType = operand.getImplicitType();
+		
+		if(implicitType.isWrapperClassType() && ((WrapperClassType)implicitType).getPrimitiveType().isImplicitSubtypeOf(castedType)) {
+			operand.allowImplicitCast();
+		} else if(operand instanceof CastOperation castOperation && castedType.isByteOrShortOrChar() && implicitType.isLongOrFloatOrDouble()) {
+			operand = castOperation.getOperand();
+		}
+		
+		this.operand = operand;
 	}
 	
 	public Operation getOperand() {
@@ -42,7 +53,7 @@ public class CastOperation extends Operation {
 			out.write(operand, context);
 		else
 			out.print('(').print(castedType, context.classinfo).print(')')
-					.printPrioritied(this, operand, context, Associativity.LEFT);
+					.printPrioritied(this, operand, context, Associativity.RIGHT);
 	}
 	
 	@Override
@@ -50,8 +61,13 @@ public class CastOperation extends Operation {
 		return castedType;
 	}
 	
+	@Override
+	public Type getImplicitType() {
+		return operand.getReturnType();
+	}
+	
 	public int getPriority() {
-		return Priority.CAST;
+		return implicitCast && implicitCastAllowed ? operand.getPriority() : Priority.CAST;
 	}
 	
 	@Override
