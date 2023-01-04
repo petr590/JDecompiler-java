@@ -36,4 +36,9 @@ public class SignatureParameterType extends ReferenceType {
 	protected boolean canCastTo(Type other) {
 		return this == other;
 	}
+	
+	@Override
+	public boolean baseEquals(Type other) {
+		return this.equals(other) || other.isBasicReferenceType();
+	}
 }

@@ -54,7 +54,7 @@ public class ClassInfo {
 		ClassType rawClass = clazz.getRawType();
 		imports.put(rawClass, imports.getOrDefault(rawClass, ZERO) + 1);
 		
-		clazz.addImportsForSignature(null);
+		clazz.addImportsForSignature(this);
 	}
 	
 	public void addImport(Type type) {

@@ -209,6 +209,11 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 		return this == other || (this.getClass() == other.getClass() && this.getEncodedName().equals(other.getEncodedName()));
 	}
 	
+	/** Сравнивает типы без учёта сигнатуры */
+	public boolean baseEquals(Type other) {
+		return equals(other);
+	}
+	
 	@Override
 	public final int hashCode() {
 		return this.getClass().hashCode() ^ this.getEncodedName().hashCode();
@@ -293,9 +298,9 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 	}
 	
 	
-	public static GenericParameters<ReferenceType> parseSignature(ExtendedStringReader in) {
+	public static @Nullable GenericParameters<ReferenceType> parseSignature(ExtendedStringReader in) {
 		
-		return new GenericParameters<>(in, ch ->
+		return GenericParameters.read(in, ch ->
 				switch(in.get()) {
 					case '+' -> new ExtendingGenericType(in.next());
 					case '-' -> new SuperGenericType(in.next());
@@ -310,7 +315,7 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 				});
 	}
 	
-	public static GenericParameters<GenericParameterType> parseGenericParameters(ExtendedStringReader in) {
-		return new GenericParameters<>(in, ch -> new GenericParameterType(in));
+	public static @Nullable GenericParameters<GenericParameterType> parseGenericParameters(ExtendedStringReader in) {
+		return GenericParameters.read(in, ch -> new GenericParameterType(in));
 	}
 }

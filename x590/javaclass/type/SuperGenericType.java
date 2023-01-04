@@ -2,6 +2,7 @@ package x590.javaclass.type;
 
 import x590.javaclass.ClassInfo;
 import x590.javaclass.io.ExtendedStringReader;
+import x590.javaclass.io.StringifyOutputStream;
 
 public class SuperGenericType extends BoundedGenericType {
 	
@@ -17,5 +18,10 @@ public class SuperGenericType extends BoundedGenericType {
 	@Override
 	public String toString() {
 		return "SuperGenericType(" + type.toString() + ")";
+	}
+	
+	@Override
+	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
+		out.print("? super ").print(type, classinfo);
 	}
 }

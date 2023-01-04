@@ -1,6 +1,5 @@
 package x590.javaclass.type;
 
-import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.util.Arrays;
@@ -13,6 +12,7 @@ import x590.javaclass.ClassInfo;
 import x590.javaclass.constpool.ClassConstant;
 import x590.javaclass.exception.InvalidClassNameException;
 import x590.javaclass.io.ExtendedStringReader;
+import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.util.Util;
 
 /**
@@ -77,11 +77,14 @@ public class ClassType extends ReferenceType {
 			STRING        = new ClassType("java/lang/String", String.class),
 			CLASS         = new ClassType("java/lang/Class", Class.class),
 			ENUM          = new ClassType("java/lang/Enum", Enum.class),
-			ANNOTATION    = new ClassType("java/lang/annotation/Annotation", Annotation.class),
-			THROWABLE     = new ClassType("java/lang/Throwable", Throwable.class),
 			EXCEPTION     = new ClassType("java/lang/Exception", Exception.class),
 			METHOD_TYPE   = new ClassType("java/lang/invoke/MethodType", MethodType.class),
 			METHOD_HANDLE = new ClassType("java/lang/invoke/MethodHandle", MethodHandle.class),
+			
+			ANNOTATION    = new ClassType("java/lang/annotation/Annotation", java.lang.annotation.Annotation.class),
+			CLONEABLE     = new ClassType("java/lang/Cloneable", Cloneable.class),
+			SERIALIZABLE  = new ClassType("java/io/Serializable", java.io.Serializable.class),
+			THROWABLE     = new ClassType("java/lang/Throwable", Throwable.class),
 			
 			BYTE      = new WrapperClassType("java/lang/Byte", Byte.class, PrimitiveType.BYTE),
 			SHORT     = new WrapperClassType("java/lang/Short", Short.class, PrimitiveType.SHORT),
@@ -343,15 +346,15 @@ public class ClassType extends ReferenceType {
 	}
 	
 	@Override
-	public String toString(ClassInfo classinfo) {
-		return getName(classinfo);
-	}
-	
-	@Override
 	public String toString() {
 		return "class " + (signature == null ? name : name + signature.toString());
 //				(superType != null ? " extends " + superType.getName() : "") +
 //				(interfaces != null ? " implements " + interfaces.stream().map(ReferenceType::getName).collect(Collectors.joining(", ")) : "");
+	}
+	
+	@Override
+	public String toString(ClassInfo classinfo) {
+		return getName(classinfo);
 	}
 	
 	@Override
@@ -443,6 +446,12 @@ public class ClassType extends ReferenceType {
 	
 	
 	@Override
+	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
+		out.print(kind.isAnonymous() ? fullSimpleName : (classinfo.imported(this) ? simpleName : name)).printIfNotNull(signature, classinfo);
+	}
+	
+	
+	@Override
 	public int implicitCastStatus(Type other) {
 		return other.isPrimitive() && ((PrimitiveType)other).getWrapperType().equals(this) ?
 				CastStatus.AUTOBOXING : super.implicitCastStatus(other);
@@ -453,7 +462,11 @@ public class ClassType extends ReferenceType {
 		return other.isBasicClassType();
 	}
 	
-	/** Сравнивает типы без учёта сигнатуры */
+	@Override
+	public boolean baseEquals(Type other) {
+		return this == other || other instanceof ClassType classType && this.baseEquals(classType);
+	}
+	
 	public boolean baseEquals(ClassType other) {
 		return this == other || this.name.equals(other.name);
 	}

@@ -55,4 +55,9 @@ public class LoadOperation extends Operation {
 	public boolean requiresLocalContext() {
 		return true;
 	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof LoadOperation load && this.variable.equals(load.variable);
+	}
 }

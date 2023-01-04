@@ -14,20 +14,10 @@ public interface IncrementableOperation {
 	 * и множественное наследование не поддерживается в Java,
 	 * все поля будут в этом классе. */
 	public static class IncrementData {
-		public Type returnType;
 		public Operation operatorOperand;
 		public CastOperation castOperation;
 		public boolean shortInc, preInc;
 		public String operator;
-		
-		public IncrementData(Type returnType, Operation operatorOperand, CastOperation castOperation, boolean shortInc, boolean preInc, String operator) {
-			this.returnType = returnType;
-			this.operatorOperand = operatorOperand;
-			this.castOperation = castOperation;
-			this.shortInc = shortInc;
-			this.preInc = preInc;
-			this.operator = operator;
-		}
 	}
 	
 	
@@ -35,16 +25,18 @@ public interface IncrementableOperation {
 	
 	public boolean isLoadOperation(Operation operation);
 	
+	public void setReturnType(Type returnType);
+	
+	public Type getReturnTypeFor(Operation operation);
+	
 	public default void setProbableType(Type probableType) {}
 	
 	
 	public default IncrementData init(DecompilationContext context, Operation value, Type type) {
 		
 		Type returnType = PrimitiveType.VOID;
-		Operation operatorOperand = null;
-		CastOperation castOperation = null;
-		boolean shortInc = false, preInc = false;
-		String operator = null;
+		
+		IncrementData data = new IncrementData();
 		
 		if(canIncrement()) {
 			
@@ -53,18 +45,18 @@ public interface IncrementableOperation {
 			Operation notCastedValue;
 			
 			if(originalValue instanceof CastOperation) {
-				castOperation = (CastOperation)originalValue;
-				notCastedValue = castOperation.getOperand();
-				setProbableType(castOperation.getReturnType());
+				data.castOperation = (CastOperation)originalValue;
+				notCastedValue = data.castOperation.getOperand();
+				setProbableType(data.castOperation.getReturnType());
 				
 			} else {
 				notCastedValue = originalValue;
 			}
 			
-			if(!context.stack.empty() && context.stack.peek() == originalValue) {
+			if(!context.stack.empty() && context.stack.peek().equals(originalValue)) {
 				returnType = type;
 				context.stack.pop();
-				preInc = true;
+				data.preInc = true;
 			}
 			
 			
@@ -74,32 +66,51 @@ public interface IncrementableOperation {
 				
 				if(isLoadOperation(operand1)) {
 					
-					operator = binaryOperator.getOperator();
-					operatorOperand = binaryOperator.operand2();
+					data.operator = binaryOperator.getOperator();
+					data.operatorOperand = binaryOperator.operand2();
 					
-					if((operator == "+" || operator == "-")) {
+					if(data.operator.equals("+") || data.operator.equals("-")) {
 						
-						shortInc = operatorOperand.isOne();
+						data.shortInc = data.operatorOperand.isOne();
 						
-						
-						if(!preInc && !context.stack.empty() && context.stack.peek() == operand1) {
+						if(!data.preInc && !context.stack.empty() && context.stack.peek().equals(operand1)) {
 							returnType = type;
 							context.stack.pop();
+							
+						} else if(data.shortInc) {
+							
+							context.stack.onNextPush(operation -> {
+								
+								operation = operation.original();
+								
+								if(isLoadOperation(operation)) {
+									setReturnType(getReturnTypeFor(operation));
+									data.preInc = true;
+									
+									Operation self = (Operation)this;
+									context.stack.push(self);
+									context.currentScope().remove(self);
+									return false;
+								}
+				
+								return true;
+							});
 						}
 						
-						
-					} else if(operator == "^" && binaryOperator instanceof XorOperatorOperation xorOperator && xorOperator.isBitNot()) {
-						operator = null;
-						operatorOperand = null;
+					} else if(data.operator.equals("^") && binaryOperator instanceof XorOperatorOperation xorOperator && xorOperator.isBitNot()) {
+						data.operator = null;
+						data.operatorOperand = null;
 					}
 				}
 			}
 			
-			if(operatorOperand != null)
-				operatorOperand.allowImplicitCast();
+			if(data.operatorOperand != null)
+				data.operatorOperand.allowImplicitCast();
 		}
 		
-		return new IncrementData(returnType, operatorOperand, castOperation, shortInc, preInc, operator);
+		setReturnType(returnType);
+		
+		return data;
 	}
 	
 	

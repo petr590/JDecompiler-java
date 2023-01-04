@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
@@ -11,6 +12,7 @@ import javax.annotation.Nullable;
 import x590.javaclass.attribute.Attributes;
 import x590.javaclass.attribute.Attributes.Location;
 import x590.javaclass.attribute.ClassSignatureAttribute;
+import x590.javaclass.attribute.FieldSignatureAttribute;
 import x590.javaclass.attribute.annotation.AnnotationsAttribute;
 import x590.javaclass.constpool.ConstantPool;
 import x590.javaclass.exception.ClassFormatException;
@@ -199,7 +201,7 @@ public class JavaClass extends JavaClassElement {
 		out.printIndent().print(modifiersToString(classinfo), classinfo).print(thisType, classinfo);
 		
 		if(signature != null)
-			out.write(signature.parameters, classinfo);
+			out.writeIfNotNull(signature.parameters, classinfo);
 		
 		if(visibleSuperType != null) {
 			out.print(" extends ").print(visibleSuperType, classinfo);
@@ -280,19 +282,27 @@ public class JavaClass extends JavaClassElement {
 		Modifiers modifiers = null;
 		Type type = null; // NullPointerException никогда не возникнет для этих переменных
 		Pair<AnnotationsAttribute, AnnotationsAttribute> annotationAttributes = null;
+		FieldSignatureAttribute signature = null;
 		boolean prevFieldWritten = false;
 		
 		for(JavaField field : fields) {
 			
 			if(prevFieldWritten) {
 				
-				if(field.modifiers.equals(modifiers) && field.descriptor.type.equals(type) && field.getAnnotationAttributes().equals(annotationAttributes)) {
+				boolean typesEquals = field.descriptor.type.equals(type);
+				
+				if(field.modifiers.equals(modifiers) && typesEquals &&
+						field.getAnnotationAttributes().equals(annotationAttributes) && Objects.equals(field.getSignature(), signature)) {
+					
 					out.write(", ");
 					field.writeNameAndInitializer(out, classinfo);
 					continue;
 					
 				} else {
-					out.println(';').println();
+					out.writeln(';');
+					if(!typesEquals) {
+						out.writeln();
+					}
 				}
 						
 			} else {
@@ -304,6 +314,7 @@ public class JavaClass extends JavaClassElement {
 			modifiers = field.modifiers;
 			type = field.descriptor.type;
 			annotationAttributes = field.getAnnotationAttributes();
+			signature = field.getSignature();
 		}
 		
 		if(prevFieldWritten)

@@ -41,37 +41,39 @@ public class Main {
 			JDecompiler.init(args);
 		} else {
 			JDecompiler.init(new String[] {
-//					"bin/example/Example2.class",
-//					
-//					"bin/example/annotation/TestAnnotation.class",
-//					"bin/example/annotation/InvisibleAnnotation.class",
-//					
-//					"bin/example/If.class",
-//					"bin/example/Else.class",
-//					"bin/example/Synchronized.class",
-//					"bin/example/Annotations.class",
-//					"bin/example/Cast.class",
-//					"bin/example/Charset.class",
-//					"bin/example/Increment1.class",
-//					"bin/example/Increment2.class",
-//					"bin/example/StaticFields.class",
-//					"bin/example/NonStaticFields.class",
-//					"bin/example/Methods.class",
-//					"bin/example/MultiDeclaration.class",
-//					"bin/example/OverrideTest.class",
-//					"bin/example/Interface.class",
-//					"bin/example/Enum.class",
-//					"bin/example/Arrays.class",
-//					"bin/example/Constants.class",
-//					"bin/example/Autoboxing.class",
+					"bin/example/Example2.class",
+					
+					"bin/example/annotation/TestAnnotation.class",
+					"bin/example/annotation/InvisibleAnnotation.class",
+					
+					"bin/example/If.class",
+					"bin/example/Else.class",
+					"bin/example/Synchronized.class",
+					"bin/example/Annotations.class",
+					"bin/example/Cast.class",
+					"bin/example/Charset.class",
+					"bin/example/Increment1.class",
+					"bin/example/Increment2.class",
+					"bin/example/StaticFields.class",
+					"bin/example/NonStaticFields.class",
+					"bin/example/Methods.class",
+					"bin/example/MultiDeclaration.class",
+					"bin/example/OverrideTest.class",
+					"bin/example/Interface.class",
+					"bin/example/Enum.class",
+					"bin/example/Arrays.class",
+					"bin/example/Constants.class",
+					"bin/example/Autoboxing.class",
 					"bin/example/Autounboxing.class",
-//					"bin/example/TernaryOperator.class",
-//					"bin/example/Throws.class",
+					"bin/example/TernaryOperator.class",
+					"bin/example/Throws.class",
 					
 //					"/home/winch/0x590/java/jdk-8-rt/java/lang/Object.class",
 					
-//					"bin/x590/javaclass/Importable.class",
-//					"bin/x590/javaclass/Version.class",
+					"bin/x590/javaclass/Importable.class",
+					"bin/x590/javaclass/Version.class",
+					
+					"bin/x590/util/Pair.class",
 					
 //					"--no-omit-curly-brackets",
 //					"--no-omit-this-class",
@@ -112,7 +114,8 @@ public class Main {
 		
 		for(JavaClass clazz : classes) {
 			
-			out.println("\n\n----------------------------------------------------------------------------------------------------").writeln();
+			out.resetIndent();
+			out.write("\n\n----------------------------------------------------------------------------------------------------\n\n");
 			
 			try {
 				clazz.decompile();
@@ -120,34 +123,14 @@ public class Main {
 				clazz.writeTo(out);
 				
 			} catch(Exception ex) {
+				// Если исключение возникло при выводе файла в консоль,
+				// надо, чтобы стектрейс начинался с новой строки.
+				System.out.println();
 				ex.printStackTrace();
 			}
 		}
 		
+		out.writeln();
 		out.flush();
-		
-//		Type t1 = VariableCapacityIntegralType.getInstance(1, 4);
-//		Type t2 = VariableCapacityIntegralType.CHAR_OR_INT;
-		
-//		Type t1 = VariableCapacityIntegralType.getInstance(1, 2);
-//		Type t2 = VariableCapacityIntegralType.CHAR_OR_SHORT_OR_INT;
-		
-//		Type t1 = VariableCapacityIntegralType.SHORT_OR_INT;
-//		Type t2 = VariableCapacityIntegralType.getInstance(1, 2);
-//		
-//		castNarrowest(t1, t2);
-//		castNarrowest(t2, t1);
-//		castWidest(t1, t2);
-//		castWidest(t2, t1);
-//
-//		castWidest(VariableCapacityIntegralType.ANY_INT_OR_BOOLEAN, VariableCapacityIntegralType.getInstance(1, 1));
 	}
-	
-//	private static void castNarrowest(Type t1, Type t2) {
-//		System.out.println(t1 + " as " + t2 + " -> " + t1.castToNarrowest(t2));
-//	}
-//	
-//	private static void castWidest(Type t1, Type t2) {
-//		System.out.println(t1 + " as " + t2 + " -> " + t1.castToWidest(t2));
-//	}
 }

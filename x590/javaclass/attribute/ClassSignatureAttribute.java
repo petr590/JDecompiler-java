@@ -3,6 +3,8 @@ package x590.javaclass.attribute;
 import java.util.List;
 import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
+
 import x590.javaclass.constpool.ConstantPool;
 import x590.javaclass.exception.DecompilationException;
 import x590.javaclass.io.ExtendedDataInputStream;
@@ -14,7 +16,7 @@ import x590.javaclass.type.Type;
 
 public class ClassSignatureAttribute extends SignatureAttribute {
 	
-	public final GenericParameters<GenericParameterType> parameters;
+	public final @Nullable GenericParameters<GenericParameterType> parameters;
 	public final ClassType superType;
 	public final List<ClassType> interfaces;
 	
@@ -27,10 +29,6 @@ public class ClassSignatureAttribute extends SignatureAttribute {
 		this.superType = ClassType.readAsType(signatureIn);
 		this.interfaces = Stream.generate(() -> signatureIn.isAvailable() ? ClassType.readAsType(signatureIn) : null)
 				.takeWhile(type -> type != null).toList();
-		
-		System.out.println(parameters);
-		System.out.println(superType);
-		System.out.println(interfaces);
 	}
 	
 	public void checkTypes(ClassType superType, List<ClassType> interfaces) {

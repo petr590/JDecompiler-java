@@ -13,6 +13,7 @@ import x590.javaclass.operation.constant.EmptyStringConstOperation;
 import x590.javaclass.operation.constant.StringConstOperation;
 import x590.javaclass.type.ClassType;
 import x590.javaclass.type.Type;
+import x590.javaclass.util.Util;
 
 public class ConcatStringsOperation extends InvokeOperation {
 	
@@ -73,7 +74,7 @@ public class ConcatStringsOperation extends InvokeOperation {
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-		operands.forEach(operation -> out.writePrioritied(this, operation, context, Associativity.RIGHT));
+		Util.forEachExcludingLast(operands, operation -> out.writePrioritied(this, operation, context, Associativity.RIGHT), () -> out.write(" + "));
 	}
 	
 	@Override

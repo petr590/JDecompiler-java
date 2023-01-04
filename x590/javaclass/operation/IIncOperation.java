@@ -36,7 +36,7 @@ public class IIncOperation extends OperationWithVariable {
 	}
 	
 	private boolean tryLoadSameVariable(Operation operation) {
-		if(operation.original() instanceof LoadOperation loadOperation && loadOperation.getVariable() == variable) {
+		if(operation.original() instanceof LoadOperation loadOperation && loadOperation.getVariable().equals(variable)) {
 			returnType = variable.getType();
 			return true;
 		}

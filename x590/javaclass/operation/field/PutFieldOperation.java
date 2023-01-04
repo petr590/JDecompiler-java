@@ -36,7 +36,6 @@ public abstract class PutFieldOperation extends FieldOperation implements Increm
 	// Мы должны вызвать этот код только после popObject, поэтому он вызывается в дочернем инициализаторе
 	public void initIncData(DecompilationContext context) {
 		this.incData = IncrementableOperation.super.init(context, value, descriptor.type);
-		returnType = incData.returnType;
 	}
 	
 	
@@ -48,6 +47,16 @@ public abstract class PutFieldOperation extends FieldOperation implements Increm
 	@Override
 	public boolean isLoadOperation(Operation operation) {
 		return operation instanceof GetFieldOperation getFieldOperation && getFieldOperation.descriptor.equals(descriptor);
+	}
+	
+	@Override
+	public void setReturnType(Type returnType) {
+		this.returnType = returnType;
+	}
+	
+	@Override
+	public Type getReturnTypeFor(Operation operation) {
+		return ((GetFieldOperation)operation).descriptor.type;
 	}
 	
 	

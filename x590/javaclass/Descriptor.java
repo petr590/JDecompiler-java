@@ -1,13 +1,13 @@
 package x590.javaclass;
 
-import x590.javaclass.type.ClassType;
+import x590.javaclass.type.ReferenceType;
 
 public abstract class Descriptor {
 	
-	public final ClassType clazz;
+	public final ReferenceType clazz;
 	public final String name;
 	
-	public Descriptor(ClassType clazz, String name) {
+	public Descriptor(ReferenceType clazz, String name) {
 		this.clazz = clazz;
 		this.name = name;
 	}

@@ -33,7 +33,6 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 		value.castReturnTypeToNarrowest(variable.getType());
 		
 		this.incData = init(context, value, variable.getType());
-		returnType = incData.returnType;
 	}
 	
 	
@@ -53,7 +52,17 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 	
 	@Override
 	public boolean isLoadOperation(Operation operation) {
-		return operation instanceof LoadOperation loadOperation && loadOperation.getVariable() == variable;
+		return operation instanceof LoadOperation loadOperation && loadOperation.getVariable().equals(variable);
+	}
+	
+	@Override
+	public void setReturnType(Type returnType) {
+		this.returnType = returnType;
+	}
+	
+	@Override
+	public Type getReturnTypeFor(Operation operation) {
+		return ((LoadOperation)operation).getVariable().getType();
 	}
 	
 	@Override

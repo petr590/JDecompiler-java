@@ -37,6 +37,7 @@ public class Annotation implements StringWritableAndImportable {
 	@Override
 	public void addImports(ClassInfo classinfo) {
 		classinfo.addImport(type);
+		Util.forEach(elements, element -> element.addImports(classinfo));
 	}
 	
 	

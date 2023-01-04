@@ -9,6 +9,7 @@ import java.util.Map;
 import x590.javaclass.ClassInfo;
 import x590.javaclass.Importable;
 import x590.javaclass.JavaSerializable;
+import x590.javaclass.StringWritable;
 import x590.javaclass.constpool.ConstantPool;
 import x590.javaclass.io.ExtendedDataInputStream;
 import x590.javaclass.util.Util;
@@ -71,6 +72,10 @@ public class Attributes implements JavaSerializable, Importable {
 	@SuppressWarnings("unchecked")
 	public <T extends Attribute> T getOrDefault(String name, T defaultValue) {
 		return (T)attributeByName.getOrDefault(name, defaultValue);
+	}
+	
+	public StringWritable getAsWritable(String name) {
+		return (StringWritable)attributeByName.get(name);
 	}
 	
 	public boolean has(String name) {

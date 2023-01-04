@@ -1,22 +1,23 @@
-A small refactoring in the Main class.
+Added method signatures.
 
-Fixed a bug with the return type of bitwise operators that can work with boolean (&, |, ^).
+Fixed a bug where there is no declaration of the signature, but the signature itself is there.
 
-Added autounboxing of types.
+Fixed a bug with the attribute type being defined as Stringified, it must be StringWritable.
 
-Added variable declaration.
+Added field signatures.
 
-Fixed a bug where the superclass for interface types was null, now always Object.
+---------- Debug ----------
 
-Fixed a bug with calling non-static methods: the object was removed from the stack before the arguments.
+Fixed the lack of import in annotations.
 
-Fixed a bug with the casting of UncertainReferenceType
+Added increment and decrement decompilation for javac17 compiler (eclipse compiles differently).
 
-Added type conversion (was: `(byte)(int)longValue`, became: `(byte)longValue`)
+Fixed the instanceof operation (why didn't I add an operand to it?)
 
-Fixed reading of the Code attribute
-Added variable names from LocalVariableTable (for now only for parameters)
+Fields with different signatures are now declared separately.
 
-The generic signature of the class has been added, and in general I have put things in order in reading signatures.
+Fixed the definition of a ternary operator with complex conditions.
+Now all operations marked removed are deleted before the scope is finalized, not at the end of decompilation.
+Method Scope finalization has also been added.
 
-Fixed a bug with importing generic class.
+Fixed ConcatStringsOperation (added "+").

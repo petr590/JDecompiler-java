@@ -4,8 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import x590.javaclass.attribute.Attributes;
-import x590.javaclass.attribute.ConstantValueAttribute;
 import x590.javaclass.attribute.Attributes.Location;
+import x590.javaclass.attribute.ConstantValueAttribute;
+import x590.javaclass.attribute.FieldSignatureAttribute;
 import x590.javaclass.attribute.annotation.AnnotationsAttribute;
 import x590.javaclass.constpool.ConstantPool;
 import x590.javaclass.exception.IllegalModifiersException;
@@ -26,7 +27,6 @@ public class JavaField extends JavaClassMember {
 	public final Attributes attributes;
 	
 	public final ConstantValueAttribute constantValueAttribute;
-//	public final Type genericType; // TODO
 	
 	private Operation initializer;
 	private final LazyLoadingValue<Pair<AnnotationsAttribute, AnnotationsAttribute>> annotationAttributes;
@@ -91,6 +91,10 @@ public class JavaField extends JavaClassMember {
 		return annotationAttributes.get();
 	}
 	
+	public FieldSignatureAttribute getSignature() {
+		return attributes.get("Signature");
+	}
+	
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 		writeWithoutSemicolon(out, classinfo);
@@ -100,7 +104,8 @@ public class JavaField extends JavaClassMember {
 	public void writeWithoutSemicolon(StringifyOutputStream out, ClassInfo classinfo) {
 		writeAnnotations(out, classinfo, attributes);
 		
-		out.printIndent().print(modifiersToString(), classinfo).printsp(descriptor.type, classinfo);
+		out.printIndent().print(modifiersToString(), classinfo);
+		descriptor.writeType(out, classinfo, attributes);
 		
 		writeNameAndInitializer(out, classinfo);
 	}

@@ -1,5 +1,7 @@
 package x590.javaclass;
 
+import x590.javaclass.attribute.Attributes;
+import x590.javaclass.attribute.FieldSignatureAttribute;
 import x590.javaclass.constpool.ConstantPool;
 import x590.javaclass.constpool.FieldrefConstant;
 import x590.javaclass.constpool.NameAndTypeConstant;
@@ -8,7 +10,7 @@ import x590.javaclass.io.StringifyOutputStream;
 import x590.javaclass.type.ClassType;
 import x590.javaclass.type.Type;
 
-public class FieldDescriptor extends Descriptor implements StringWritableAndImportable {
+public class FieldDescriptor extends Descriptor implements Importable {
 	
 	public final Type type;
 	
@@ -53,8 +55,13 @@ public class FieldDescriptor extends Descriptor implements StringWritableAndImpo
 		return this == obj || obj instanceof FieldDescriptor other && this.equals(other);
 	}
 	
-	@Override
-	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-		out.printsp(type, classinfo).print(name);
+	public void writeType(StringifyOutputStream out, ClassInfo classinfo, Attributes attributes) {
+		FieldSignatureAttribute signature = attributes.get("Signature");
+		
+		if(signature != null) {
+			signature.checkType(this);
+		}
+		
+		out.writesp(signature != null ? signature.type : type, classinfo);
 	}
 }

@@ -41,6 +41,11 @@ public abstract class AbstractDupOperation extends Operation {
 	}
 	
 	@Override
+	public void addVariableName(String name) {
+		value.addVariableName(name);
+	}
+	
+	@Override
 	public boolean requiresLocalContext() {
 		return value.requiresLocalContext();
 	}

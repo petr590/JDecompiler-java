@@ -50,7 +50,7 @@ public abstract class Scope extends Operation {
 	}
 	
 	public Scope(int startIndex, int endIndex, @Nullable Scope superScope) {
-		this(startIndex, endIndex, superScope, List.copyOf(superScope.locals));
+		this(startIndex, endIndex, superScope, new ArrayList<>(superScope.locals));
 	}
 	
 	public Scope(int startIndex, int endIndex, @Nullable Scope superScope, List<EmptyableVariable> locals) {
@@ -206,7 +206,6 @@ public abstract class Scope extends Operation {
 	/** Удаляет все операции с установленным флагом {@link Operation#removed} */
 	public void deleteRemovedOperations() {
 		code = code.stream().filter(operation -> !operation.isRemoved() && !operation.canOmit()).toList();
-		scopes.forEach(Scope::deleteRemovedOperations);
 	}
 	
 	

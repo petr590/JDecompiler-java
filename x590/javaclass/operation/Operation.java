@@ -136,6 +136,10 @@ public abstract class Operation implements Importable {
 	}
 	
 	
+	/** Добавляет имя переменной (для load операций) */
+	public void addVariableName(String name) {}
+	
+	
 	/** Возвращает {@literal true}, если операция использует локальные переменные */
 	public boolean requiresLocalContext() {
 		return false;
@@ -172,6 +176,12 @@ public abstract class Operation implements Importable {
 			out.print(operation, context);
 	}
 	
+	@Override
+	public boolean equals(Object other) {
+		return this == other || other instanceof Operation operation && this.equals(operation);
+	}
 	
-	public void addVariableName(String name) {}
+	public boolean equals(Operation other) {
+		return this == other;
+	}
 }

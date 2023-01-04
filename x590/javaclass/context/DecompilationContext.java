@@ -35,7 +35,8 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 		
 		for(Instruction instruction : instructions) {
 			
-			updateScopes();
+			finalizeScopes(index);
+			startScopes(index);
 			
 			
 //			System.out.println("Stack: " + stack.stream().map(operation -> operation.getClass().getSimpleName() + " [" + operation.getReturnType() + "]").collect(Collectors.joining(", ")));
@@ -72,9 +73,55 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 			}
 		}
 		
-		methodScope.deleteRemovedOperations();
+		checkScopesBounds(index);
+		finalizeScopes(Integer.MAX_VALUE);
 		
 		this.operations = operations.stream().filter(operation -> !operation.isRemoved()).toList();
+	}
+	
+	
+	/** Убирает все scope-ы, которые вышли за границу видимости или были удалены. */
+	private void finalizeScopes(int index) {
+		String strIndex = index == Integer.MAX_VALUE ? "End" : Integer.toString(index);
+	
+		while(currentScope != null && (currentScope.isRemoved() || index >= currentScope.endIndex())) {
+			currentScope.deleteRemovedOperations();
+			currentScope.finalizeScope(this);
+			
+			System.out.println(strIndex + ": " + currentScope + (currentScope.isRemoved() ? " removed" : " finalized"));
+			
+			currentScope = currentScope.superScope();
+		}
+		
+	}
+	
+	/** Кладёт на стэк все scope-ы, до которых дошла очередь. */
+	private void startScopes(int index) {
+		
+		for(Iterator<Scope> iter = scopesQueue.iterator(); iter.hasNext(); ) {
+			Scope scope = iter.next();
+			
+			if(scope.isRemoved()) {
+				iter.remove();
+				
+			} else if(index > scope.startIndex()) {
+				
+				assert scope.superScope() == currentScope;
+				currentScope = scope;
+				
+				System.out.println(index + ": " + scope + " started");
+				
+				iter.remove();
+			}
+		}
+	}
+	
+	private void checkScopesBounds(int lastIndex) {
+		for(Scope scope = currentScope; scope != null; scope = scope.superScope()) {
+			if(scope.endIndex() > lastIndex) {
+				warning("Scope " + scope + " is out of bounds of the " + methodScope);
+			}
+		}
 	}
 	
 	
@@ -109,36 +156,6 @@ public class DecompilationContext extends DecompilationAndStringifyContext {
 				};
 			}
 		};
-	}
-	
-	
-	/** Убирает все scope-ы, которые вышли за границу видимости или были удалены.
-	 * Затем кладёт на стэк все scope-ы, до которых дошла очередь. */
-	private void updateScopes() {
-		while(currentScope != null && (currentScope.isRemoved() || index >= currentScope.endIndex())) {
-			currentScope.finalizeScope(this);
-			
-			System.out.println(index + ": " + currentScope + (currentScope.isRemoved() ? " removed" : " finalized"));
-			
-			currentScope = currentScope.superScope();
-		}
-		
-		for(Iterator<Scope> iter = scopesQueue.iterator(); iter.hasNext(); ) {
-			Scope scope = iter.next();
-			
-			if(scope.isRemoved()) {
-				iter.remove();
-				
-			} else if(index > scope.startIndex()) {
-				
-				assert scope.superScope() == currentScope;
-				currentScope = scope;
-				
-				System.out.println(index + ": " + scope + " started");
-				
-				iter.remove();
-			}
-		}
 	}
 	
 	

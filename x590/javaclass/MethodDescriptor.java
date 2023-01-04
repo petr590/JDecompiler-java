@@ -8,7 +8,10 @@ import java.util.function.IntConsumer;
 import java.util.function.ObjIntConsumer;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
+
 import x590.javaclass.attribute.Attributes;
+import x590.javaclass.attribute.MethodSignatureAttribute;
 import x590.javaclass.attribute.annotation.ParameterAnnotationsAttribute;
 import x590.javaclass.constpool.ClassConstant;
 import x590.javaclass.constpool.ConstantPool;
@@ -28,7 +31,7 @@ import x590.javaclass.type.Type;
 import x590.javaclass.util.Util;
 import x590.util.IntHolder;
 
-public class MethodDescriptor extends Descriptor implements StringWritableAndImportable {
+public class MethodDescriptor extends Descriptor implements Importable {
 	
 	public final List<Type> arguments;
 	public final Type returnType;
@@ -46,8 +49,14 @@ public class MethodDescriptor extends Descriptor implements StringWritableAndImp
 			default         -> MethodType.PLAIN;
 		};
 		
-		if(type != MethodType.PLAIN && returnType != PrimitiveType.VOID)
-			throw new InvalidMethodDescriptorException("Method " + this.toString() + " must return void");
+		if(type != MethodType.PLAIN) {
+			
+			if(returnType != PrimitiveType.VOID)
+				throw new InvalidMethodDescriptorException("Method " + this.toString() + " must return void");
+			
+			if(!clazz.isBasicClassType())
+				throw new InvalidMethodDescriptorException("Class " + clazz + " cannot have " + this.toString() + " method");
+		}
 		
 		return type;
 	}
@@ -70,7 +79,7 @@ public class MethodDescriptor extends Descriptor implements StringWritableAndImp
 	
 	
 	public MethodDescriptor(ReferenceConstant referenceConstant) {
-		this(referenceConstant.getClassConstant().toClassType(), referenceConstant.getNameAndType());
+		this(referenceConstant.getClassConstant().toReferenceType(), referenceConstant.getNameAndType());
 	}
 	
 	public MethodDescriptor(String className, NameAndTypeConstant nameAndType) {
@@ -85,28 +94,28 @@ public class MethodDescriptor extends Descriptor implements StringWritableAndImp
 		this(clazz.toClassType(), nameAndType);
 	}
 	
-	public MethodDescriptor(ClassType clazz, NameAndTypeConstant nameAndType) {
+	public MethodDescriptor(ReferenceType clazz, NameAndTypeConstant nameAndType) {
 		this(clazz, nameAndType.getNameConstant().getString(), nameAndType.getDescriptor().getString());
 	}
 	
-	public MethodDescriptor(ClassType clazz, String name, String descriptor) {
+	public MethodDescriptor(ReferenceType clazz, String name, String descriptor) {
 		this(clazz, name, new ExtendedStringReader(descriptor));
 	}
 	
-	public MethodDescriptor(ClassType clazz, String name, ExtendedStringReader descriptor) {
+	public MethodDescriptor(ReferenceType clazz, String name, ExtendedStringReader descriptor) {
 		this(clazz, name, Type.parseMethodArguments(descriptor), Type.parseReturnType(descriptor));
 	}
 	
 	
-	public MethodDescriptor(ClassType clazz, String name, Type returnType, Type... arguments) {
+	public MethodDescriptor(ReferenceType clazz, String name, Type returnType, Type... arguments) {
 		this(clazz, name, List.of(arguments), returnType);
 	}
 	
-	public MethodDescriptor(ClassType clazz, String name, Type returnType) {
+	public MethodDescriptor(ReferenceType clazz, String name, Type returnType) {
 		this(clazz, name, Collections.emptyList(), returnType);
 	}
 	
-	public MethodDescriptor(ClassType clazz, String name, List<Type> arguments, Type returnType) {
+	public MethodDescriptor(ReferenceType clazz, String name, List<Type> arguments, Type returnType) {
 		super(clazz, name);
 		this.arguments = arguments;
 		this.returnType = returnType;
@@ -114,7 +123,7 @@ public class MethodDescriptor extends Descriptor implements StringWritableAndImp
 	}
 	
 	
-	public MethodDescriptor(ClassType clazz, ExtendedDataInputStream in, ConstantPool pool) {
+	public MethodDescriptor(ReferenceType clazz, ExtendedDataInputStream in, ConstantPool pool) {
 		this(clazz, pool.getUtf8String(in.readUnsignedShort()), pool.getUtf8String(in.readUnsignedShort()));
 	}
 	
@@ -133,10 +142,20 @@ public class MethodDescriptor extends Descriptor implements StringWritableAndImp
 	
 	public void write(StringifyOutputStream out, StringifyContext context, Attributes attributes) {
 		
+		MethodSignatureAttribute signature = attributes.get("Signature");
+		
+		if(signature != null) {
+			signature.checkTypes(this);
+			
+			if(signature.parameters != null) {
+				out.writesp(signature.parameters, context.classinfo);
+			}
+		}
+		
 		switch(type) {
 			case CONSTRUCTOR -> {
 				out.print(clazz, context.classinfo);
-				this.writeArguments(out, context, attributes);
+				this.writeArguments(out, context, attributes, signature);
 			}
 				
 			case STATIC_INITIALIZER -> {
@@ -144,14 +163,14 @@ public class MethodDescriptor extends Descriptor implements StringWritableAndImp
 			}
 				
 			case PLAIN -> {
-				out.print(returnType, context.classinfo).printsp().print(name);
-				this.writeArguments(out, context, attributes);
+				out.print(signature != null ? signature.returnType : returnType, context.classinfo).printsp().print(name);
+				this.writeArguments(out, context, attributes, signature);
 			}
 		}
 	}
 	
 	
-	private void writeArguments(StringifyOutputStream out, StringifyContext context, Attributes attributes) {
+	private void writeArguments(StringifyOutputStream out, StringifyContext context, Attributes attributes, @Nullable MethodSignatureAttribute signature) {
 		out.write('(');
 		
 		ClassInfo classinfo = context.classinfo;
@@ -189,34 +208,14 @@ public class MethodDescriptor extends Descriptor implements StringWritableAndImp
 		}
 		
 		
-		Util.forEachExcludingLast(arguments, (type, i) -> {
+		Util.forEachExcludingLast(signature != null ? signature.arguments : arguments,
+				(type, i) -> {
 					writeParameterAnnotations.accept(i);
 					write.accept(type, i);
 				},
 				() -> out.write(", "));
 		
 		out.write(')');
-	}
-	
-	
-	@Override
-	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-		
-		switch(type) {
-			case CONSTRUCTOR -> {
-				out.print(clazz, classinfo);
-				this.writeArguments(out, classinfo);
-			}
-				
-			case STATIC_INITIALIZER -> {
-				out.print("static");
-			}
-				
-			case PLAIN -> {
-				out.print(returnType, classinfo).printsp().print(name);
-				this.writeArguments(out, classinfo);
-			}
-		}
 	}
 	
 	
@@ -230,7 +229,7 @@ public class MethodDescriptor extends Descriptor implements StringWritableAndImp
 	public String toString() {
 		return clazz.getName() + "." +
 				(type == MethodType.STATIC_INITIALIZER ? "static {}" :
-				(type == MethodType.CONSTRUCTOR ? clazz.getSimpleName() : name)
+				(type == MethodType.CONSTRUCTOR ? ((ClassType)clazz).getSimpleName() : name)
 						+ "(" + arguments.stream().map(Type::getName).collect(Collectors.joining(", ")) + ")");
 	}
 	

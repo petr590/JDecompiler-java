@@ -1,5 +1,7 @@
 package x590.javaclass.type;
 
+import java.util.List;
+
 import x590.javaclass.ClassInfo;
 import x590.javaclass.exception.InvalidArrayNameException;
 import x590.javaclass.io.ExtendedStringReader;
@@ -9,6 +11,9 @@ import x590.javaclass.io.ExtendedStringReader;
  * многомерные массивы и массивы SpecialType
  */
 public final class ArrayType extends ReferenceType {
+	
+	private static final ReferenceType ARRAY_SUPER_TYPE = ClassType.OBJECT;
+	private static final List<ReferenceType> ARRAY_INTERFACES = List.of(ClassType.CLONEABLE, ClassType.SERIALIZABLE);
 	
 	public static final ArrayType
 			ANY_ARRAY        = new ArrayType(AnyType.INSTANCE),
@@ -35,7 +40,7 @@ public final class ArrayType extends ReferenceType {
 	}
 	
 	public ArrayType(ExtendedStringReader in) {
-		super(ClassType.OBJECT);
+		super(ARRAY_SUPER_TYPE, ARRAY_INTERFACES);
 		
 		in.mark();
 		
@@ -73,6 +78,8 @@ public final class ArrayType extends ReferenceType {
 	}
 	
 	public ArrayType(Type memberType, int nestingLevel) {
+		super(ARRAY_SUPER_TYPE, ARRAY_INTERFACES);
+		
 		if(nestingLevel == 0)
 			throw new IllegalArgumentException("nestingLevel cannot be zero");
 		
@@ -133,5 +140,15 @@ public final class ArrayType extends ReferenceType {
 		}
 		
 		return false;
+	}
+	
+	@Override
+	public boolean baseEquals(Type other) {
+		return this == other || other instanceof ArrayType arrayType && this.baseEquals(arrayType);
+	}
+	
+	public boolean baseEquals(ArrayType other) {
+		return this == other || this.nestingLevel == other.nestingLevel && this.memberType.baseEquals(other.memberType) ||
+				this.elementType.baseEquals(other.elementType);
 	}
 }

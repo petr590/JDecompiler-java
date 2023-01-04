@@ -53,6 +53,12 @@ public class StringifyOutputStream extends UncheckedOutputStream {
 	}
 	
 	
+	public StringifyOutputStream resetIndent() {
+		indentWidth = 0;
+		indent = "";
+		return this;
+	}
+	
 	public StringifyOutputStream increaseIndent(int count) {
 		indent = getIndent(indentWidth += count);
 		return this;

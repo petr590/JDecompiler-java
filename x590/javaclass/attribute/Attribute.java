@@ -50,6 +50,8 @@ public class Attribute implements JavaSerializable, Importable {
 			
 			case "Signature" -> switch(location) {
 				case CLASS -> new ClassSignatureAttribute(nameIndex, name, length, in, pool);
+				case FIELD -> new FieldSignatureAttribute(nameIndex, name, length, in, pool);
+				case METHOD -> new MethodSignatureAttribute(nameIndex, name, length, in, pool);
 				default -> new UnknownAttribute(nameIndex, name, length, in);
 			};
 			

@@ -14,7 +14,7 @@ public abstract class JavaClassElement implements StringWritableAndImportable {
 	
 	
 	protected static void writeAnnotations(StringifyOutputStream out, ClassInfo classinfo, Attributes attributes) {
-		out.printIfNotNull(attributes.get("RuntimeVisibleAnnotations"), classinfo);
-		out.printIfNotNull(attributes.get("RuntimeInvisibleAnnotations"), classinfo);
+		out.printIfNotNull(attributes.getAsWritable("RuntimeVisibleAnnotations"), classinfo);
+		out.printIfNotNull(attributes.getAsWritable("RuntimeInvisibleAnnotations"), classinfo);
 	}
 }
