@@ -1,6 +1,6 @@
 package example;
 
-import x590.jdecompiler.Main;
+import x590.jdecompiler.main.Main;
 
 public class ExampleTesting {
 	

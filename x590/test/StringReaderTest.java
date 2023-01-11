@@ -1,7 +1,7 @@
 package x590.test;
 
-import x590.javaclass.io.ExtendedStringReader;
-import x590.javaclass.type.ClassType;
+import x590.jdecompiler.io.ExtendedStringReader;
+import x590.jdecompiler.type.ClassType;
 
 public class StringReaderTest {
 	

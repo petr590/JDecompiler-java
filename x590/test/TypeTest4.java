@@ -1,6 +1,6 @@
 package x590.test;
 
-import x590.javaclass.type.ClassType;
+import x590.jdecompiler.type.ClassType;
 
 public class TypeTest4 {
 	

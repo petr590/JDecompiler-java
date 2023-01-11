@@ -1,23 +1,12 @@
-Added method signatures.
+Added correct decompilation of constructors and constants in enum classes.
 
-Fixed a bug where there is no declaration of the signature, but the signature itself is there.
+Fixed an import error when 2 classes with the same name could be imported.
 
-Fixed a bug with the attribute type being defined as Stringified, it must be StringWritable.
+Refactoring in the x590.util.Util class: some methods were moved to the x590.util.ArrayUtil class, javadoc was added to all methods.
 
-Added field signatures.
+The x590.util package is placed in a separate project, as it is used in other projects.
 
----------- Debug ----------
+Package x590.jdecompiler is renamed to x590.jdecompiler.main
+Package x590.javaclass is renamed to x590.jdecompiler along with all the sub packages.
 
-Fixed the lack of import in annotations.
-
-Added increment and decrement decompilation for javac17 compiler (eclipse compiles differently).
-
-Fixed the instanceof operation (why didn't I add an operand to it?)
-
-Fields with different signatures are now declared separately.
-
-Fixed the definition of a ternary operator with complex conditions.
-Now all operations marked removed are deleted before the scope is finalized, not at the end of decompilation.
-Method Scope finalization has also been added.
-
-Fixed ConcatStringsOperation (added "+").
+Added module-info.java

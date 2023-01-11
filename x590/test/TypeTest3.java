@@ -1,6 +1,6 @@
 package x590.test;
 
-import x590.javaclass.type.PrimitiveType;
+import x590.jdecompiler.type.PrimitiveType;
 
 public class TypeTest3 {
 	

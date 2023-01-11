@@ -2,13 +2,17 @@ package example;
 
 public class NonStaticFields {
 	
-	byte b;
-	short s;
-	char c;
-	int i;
-	long l;
-	float f;
-	double d;
+	public byte b;
+	public short s;
+	public char c;
+	public int i;
+	public long l;
+	public float f;
+	public double d;
+	
+	public static void main(String[] args) {
+		ExampleTesting.runDecompiler(NonStaticFields.class);
+	}
 	
 	public void inc() {
 		System.out.println(b++);

@@ -2,13 +2,17 @@ package example;
 
 public class StaticFields {
 	
-	static byte b = 0;
-	static short s = 0;
-	static char c = 0;
-	static int i = 0;
-	static long l = 0;
-	static float f = 0;
-	static double d = 0;
+	public static byte b = 0;
+	public static short s = 0;
+	public static char c = 0;
+	public static int i = 0;
+	public static long l = 0;
+	public static float f = 0;
+	public static double d = 0;
+	
+	public static void main(String[] args) {
+		ExampleTesting.runDecompiler(StaticFields.class);
+	}
 	
 	public static void inc() {
 		System.out.println(b++);

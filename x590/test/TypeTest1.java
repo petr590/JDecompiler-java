@@ -1,15 +1,12 @@
 package x590.test;
 
-import static x590.javaclass.type.PrimitiveType.BYTE;
-import static x590.javaclass.type.PrimitiveType.CHAR;
-import static x590.javaclass.type.PrimitiveType.INT;
-import static x590.javaclass.type.PrimitiveType.SHORT;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import x590.javaclass.type.Type;
-import x590.javaclass.type.UncertainIntegralType;
+import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.UncertainIntegralType;
+
+import static x590.jdecompiler.type.PrimitiveType.*;
 
 public class TypeTest1 {
 	
