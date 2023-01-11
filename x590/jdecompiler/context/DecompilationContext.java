@@ -1,10 +1,13 @@
 package x590.jdecompiler.context;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
@@ -18,14 +21,22 @@ import x590.jdecompiler.scope.MethodScope;
 import x590.jdecompiler.scope.Scope;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.util.Logger;
+import x590.util.annotation.Immutable;
 
 public class DecompilationContext extends DecompilationAndStringifyContext implements Importable {
 	
 	public final OperationStack stack = new OperationStack();
-	protected final List<Operation> operations;
-	protected Scope currentScope;
+	private final @Immutable List<Operation> operations;
+	private Scope currentScope;
 	
 	private final Queue<Scope> scopesQueue = new LinkedList<>();
+	
+	/** Для определения индекса начала выражения */
+	private final int[] expressionIndexTable;
+	
+	/** Точки "разрыва", через которые мы не можем проводить соединение опрераций (например, инкремент и использование переменной).
+	 * Нужно для корректной декомпиляции циклов и, возможно, других конструкций */
+	private final Set<Integer> breaks = new HashSet<>();
 	
 	private DecompilationContext(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, MethodModifiers modifiers, MethodScope methodScope, List<Instruction> instructions, int maxLocals) {
 		super(otherContext, classinfo, descriptor, methodScope, modifiers);
@@ -33,7 +44,12 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 		this.currentScope = methodScope;
 		
 		var stack = this.stack;
+		
 		List<Operation> operations = new ArrayList<>(instructions.size());
+		this.operations = Collections.unmodifiableList(operations);
+		
+		var expressionIndexTable = this.expressionIndexTable = new int[instructions.size()];
+		int expressionIndex = 0;
 		
 		for(Instruction instruction : instructions) {
 			
@@ -41,63 +57,78 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 			startScopes(index);
 			
 			
-//			System.out.println("Stack: " + stack.stream().map(operation -> operation.getClass().getSimpleName() + " [" + operation.getReturnType() + "]").collect(Collectors.joining(", ")));
+//			Logger.debugf("Stack: [%s]", stack.stream().map(operation -> operation.getClass().getSimpleName() + operation.getReturnType() + "]").collect(Collectors.joining(", ")));
+
+
+			expressionIndexTable[index] = expressionIndex;
 			
+			Operation operation;
 			
-			if(instruction != null) {
-				
-				Operation operation;
-				
-				try {
-					operation = instruction.toOperation(this);
-				} catch(Exception ex) {
-					throw new DecompilationException("At index " + index, ex);
-				}
-				
-				if(operation != null) {
-					operations.add(operation);
-					
-					if(operation.getReturnType() == PrimitiveType.VOID) {
-						if(operation != VReturnOperation.INSTANCE) {
-							currentScope.addOperation(operation);
-							
-							if(operation instanceof Scope scope) {
-								scopesQueue.add(scope);
-							}
-						}
-						
-					} else {
-						stack.push(operation);
-					}
-				}
-				
-				index++;
+			try {
+				operation = instruction.toOperation(this);
+			} catch(Exception ex) {
+				throw new DecompilationException("At index " + index, ex);
 			}
+			
+			if(operation != null) {
+				operations.add(operation);
+				
+				if(operation.getReturnType() == PrimitiveType.VOID) {
+					expressionIndex = index;
+					
+					if(operation != VReturnOperation.INSTANCE) {
+						currentScope.addOperation(operation, this);
+						
+						if(operation instanceof Scope scope) {
+							scopesQueue.add(scope);
+						}
+					}
+					
+				} else {
+					stack.push(operation);
+				}
+			}
+			
+			index++;
 		}
 		
 		checkScopesBounds(index);
-		finalizeScopes(Integer.MAX_VALUE);
+		finalizeScopes(END_INDEX);
 		
-		this.operations = operations.stream().filter(operation -> !operation.isRemoved()).toList();
+		assert index == instructions.size() : index + ", " + instructions.size();
+		
+		index = 0;
+		
+		instructions.forEach(instruction -> {
+			instruction.postDecompilation(this);
+			index++;
+		});
+		
+		operations.removeIf(Operation::isRemoved);
 	}
+	
+	
+	private static final int END_INDEX = Integer.MAX_VALUE;
 	
 	
 	/** Убирает все scope-ы, которые вышли за границу видимости или были удалены. */
 	private void finalizeScopes(int index) {
-		String strIndex = index == Integer.MAX_VALUE ? "End" : Integer.toString(index);
-	
+		String strIndex = index == END_INDEX ? "End" : Integer.toString(index);
+		
+		Scope currentScope = this.currentScope;
+		
 		while(currentScope != null && (currentScope.isRemoved() || index >= currentScope.endIndex())) {
 			currentScope.deleteRemovedOperations();
 			currentScope.finalizeScope(this);
 			
 			Logger.logf("%s: %s %s", strIndex, currentScope, currentScope.isRemoved() ? "removed" : "finalized");
 			
-			currentScope = currentScope.superScope();
+			this.currentScope = currentScope = currentScope.superScope();
 		}
 		
 	}
 	
-	/** Кладёт на стэк все scope-ы, до которых дошла очередь. */
+	/** Кладёт на стек все scope-ы, до которых дошла очередь. */
 	private void startScopes(int index) {
 		
 		for(Iterator<Scope> iter = scopesQueue.iterator(); iter.hasNext(); ) {
@@ -135,7 +166,34 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 		return currentScope.superScope();
 	}
 	
-	public Iterable<Scope> getScopes() {
+	
+	public int expressionStartIndexByIndex(int index) {
+		return expressionIndexTable[index];
+	}
+	
+	public int currentExpressionStartIndex() {
+		return expressionIndexTable[index];
+	}
+	
+	
+	public void addBreak(int index) {
+		breaks.add(index);
+	}
+	
+	public boolean hasBreak(int index) {
+		return breaks.contains(index);
+	}
+	
+	public boolean hasBreakAtCurrentIndex() {
+		return breaks.contains(index);
+	}
+	
+	
+	public @Immutable List<Operation> getOperations() {
+		return operations;
+	}
+	
+	public Iterable<Scope> getCurrentScopes() {
 		
 		return new Iterable<>() {
 			

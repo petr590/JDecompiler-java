@@ -14,4 +14,6 @@ public abstract class Instruction {
 	public @Nullable Scope toScope(DecompilationContext context) {
 		return null;
 	}
+	
+	public void postDecompilation(DecompilationContext context) {}
 }

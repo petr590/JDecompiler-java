@@ -18,20 +18,23 @@ public class IIncOperation extends OperationWithVariable {
 		
 		variable.castTypeToWidest(PrimitiveType.INT);
 		
-		if(!context.stack.empty() && tryLoadSameVariable(context.stack.peek())) {
-			context.stack.pop();
+		if(!context.hasBreakAtCurrentIndex()) {
 			
-		} else if(value == 1 || value == -1) {
-			context.stack.onNextPush(operation -> {
-				if(tryLoadSameVariable(operation)) {
-					isPreInc = true;
-					context.stack.push(this);
-					context.currentScope().remove(this);
-					return false;
-				}
+			if(!context.stack.empty() && tryLoadSameVariable(context.stack.peek())) {
+				context.stack.pop();
 				
-				return true;
-			});
+			} else if(value == 1 || value == -1) {
+				context.stack.onNextPush(operation -> {
+					if(tryLoadSameVariable(operation)) {
+						isPreInc = true;
+						context.stack.push(this);
+						context.currentScope().remove(this);
+						return false;
+					}
+					
+					return true;
+				});
+			}
 		}
 	}
 	

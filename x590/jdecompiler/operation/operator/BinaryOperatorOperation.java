@@ -8,21 +8,29 @@ import x590.jdecompiler.type.Type;
 
 public abstract class BinaryOperatorOperation extends OperatorOperation {
 	
-	protected final Operation operand1;
-	protected final Operation operand2;
+	private final Operation operand1;
+	private final Operation operand2;
+	
+	protected Operation processOperand1(Operation operand1) {
+		return operand1;
+	}
+	
+	protected Operation processOperand2(Operation operand2) {
+		return operand2;
+	}
 	
 	public BinaryOperatorOperation(Type type, DecompilationContext context) {
 		super(type);
-		this.operand2 = context.stack.popAsNarrowest(type);
-		this.operand1 = context.stack.popAsNarrowest(type);
+		this.operand2 = processOperand2(context.stack.popAsNarrowest(type));
+		this.operand1 = (context.stack.popAsNarrowest(type));
 		
 		returnType = operand2.getReturnTypeAsGeneralNarrowest(operand1);
 	}
 	
 	public BinaryOperatorOperation(Type type1, Type type2, DecompilationContext context) {
 		super(type1);
-		this.operand2 = context.stack.popAsNarrowest(type2);
-		this.operand1 = context.stack.popAsNarrowest(type1);
+		this.operand2 = processOperand2(context.stack.popAsNarrowest(type2));
+		this.operand1 = processOperand1(context.stack.popAsNarrowest(type1));
 	}
 	
 	public Operation operand1() {

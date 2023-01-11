@@ -10,12 +10,13 @@ import x590.jdecompiler.type.WrapperClassType;
 public class CastOperation extends Operation {
 	
 	private final Operation operand;
-	protected final Type castedType;
-	protected final boolean implicitCast;
-	protected boolean implicitCastAllowed;
+	private final Type requiredType, castedType;
+	private final boolean implicitCast;
+	private boolean implicitCastAllowed;
 	
 	public CastOperation(Type requiredType, Type castedType, boolean implicitCast, DecompilationContext context) {
 		var operand = context.stack.popAsNarrowest(requiredType);
+		this.requiredType = requiredType;
 		this.castedType = castedType;
 		this.implicitCast = implicitCast;
 		
@@ -32,6 +33,14 @@ public class CastOperation extends Operation {
 	
 	public Operation getOperand() {
 		return operand;
+	}
+	
+	public Type getRequiredType() {
+		return requiredType;
+	}
+	
+	public Type getCastedType() {
+		return castedType;
 	}
 	
 	

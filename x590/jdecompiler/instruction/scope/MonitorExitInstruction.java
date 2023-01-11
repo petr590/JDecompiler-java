@@ -18,7 +18,7 @@ public class MonitorExitInstruction extends ScopeInstruction {
 			aloadOperation.remove();
 			EmptyableVariable variable = aloadOperation.getVariable();
 			
-			for(Scope scope : context.getScopes()) {
+			for(Scope scope : context.getCurrentScopes()) {
 				if(scope instanceof SynchronizedScope synchronizedScope && synchronizedScope.getVariable() == variable) {
 					synchronizedScope.setEndIndex(context.currentIndex());
 				}

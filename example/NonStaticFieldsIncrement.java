@@ -1,6 +1,6 @@
 package example;
 
-public class NonStaticFields {
+public class NonStaticFieldsIncrement {
 	
 	public byte b;
 	public short s;
@@ -11,7 +11,7 @@ public class NonStaticFields {
 	public double d;
 	
 	public static void main(String[] args) {
-		ExampleTesting.runDecompiler(NonStaticFields.class);
+		ExampleTesting.runDecompiler(NonStaticFieldsIncrement.class);
 	}
 	
 	public void inc() {

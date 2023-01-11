@@ -1,6 +1,6 @@
 package example;
 
-public class StaticFields {
+public class StaticFieldsIncrement {
 	
 	public static byte b = 0;
 	public static short s = 0;
@@ -11,7 +11,7 @@ public class StaticFields {
 	public static double d = 0;
 	
 	public static void main(String[] args) {
-		ExampleTesting.runDecompiler(StaticFields.class);
+		ExampleTesting.runDecompiler(StaticFieldsIncrement.class);
 	}
 	
 	public static void inc() {

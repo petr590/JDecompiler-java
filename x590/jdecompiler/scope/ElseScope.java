@@ -5,7 +5,7 @@ import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.operator.TernaryOperatorOperation;
 
-public class ElseScope extends IfElseScope {
+public class ElseScope extends Scope {
 	
 	protected final IfScope ifScope;
 	
@@ -13,8 +13,8 @@ public class ElseScope extends IfElseScope {
 		super(context, endIndex, ifScope.superScope());
 		this.ifScope = ifScope;
 	}
+
 	
-	@Override
 	protected boolean canSelfOmitCurlyBrackets() {
 		return super.canOmitCurlyBrackets();
 	}

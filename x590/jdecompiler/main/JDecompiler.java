@@ -56,7 +56,7 @@ public class JDecompiler {
 	
 	public JDecompiler(String[] args) {
 		
-		ArgsNamespace arguments = new StandartArgParser("JDecompiler", "0.7.5").localize()
+		ArgsNamespace arguments = new StandartArgParser("JDecompiler", Version.VERSION).localize()
 				
 				.add(new StringOption("files").help("Files to be processed").oneOrMoreTimes())
 				

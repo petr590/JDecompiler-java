@@ -3,9 +3,8 @@ package x590.jdecompiler.io;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-
-import x590.util.IntArrayList;
-import x590.util.IntList;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Выбрасывает {@link UncheckedIOException} вместо {@link IOException}.
@@ -16,7 +15,7 @@ public class ExtendedStringReader extends InputStream {
 	
 	private String source;
 	private int pos = 0;
-	private IntList marks = new IntArrayList();
+	private List<Integer> marks = new ArrayList<>();
 	private final int length;
 	public static final int EOF_CHAR = -1;
 	
@@ -41,11 +40,15 @@ public class ExtendedStringReader extends InputStream {
 	}
 	
 	public int getMarkPos() {
-		return marks.getLast();
+		return marks.isEmpty() ? -1 : marks.get(marks.size() - 1);
+	}
+	
+	public int getMarkOrCurrentPos() {
+		return marks.isEmpty() ? pos : marks.get(marks.size() - 1);
 	}
 	
 	public int distanceToMark() {
-		return pos - marks.getLast();
+		return pos - getMarkPos();
 	}
 	
 	
@@ -143,18 +146,18 @@ public class ExtendedStringReader extends InputStream {
 	 * Если mark = -1, то читает с текущей позиции.
 	 * Не изменяет mark и pos. */
 	public int getFromMark() {
-		return source.charAt(marks.isEmpty() ? pos : marks.getLast());
+		return source.charAt(getMarkOrCurrentPos());
 	}
 	
 	/** Читает строку с индекса mark.
 	 * Если mark = -1, то читает с текущей позиции.
 	 * Не изменяет mark и pos. */
 	public String getAllFromMark() {
-		return source.substring(marks.isEmpty() ? pos : marks.getLast());
+		return source.substring(getMarkOrCurrentPos());
 	}
 	
 	public String getStringFromMark(int length) {
-		int newPos = (marks.isEmpty() ? pos : marks.getLast()) + length;
+		int newPos = (getMarkOrCurrentPos()) + length;
 		
 		if(newPos > this.length)
 			throw new IndexOutOfBoundsException(newPos);
@@ -168,6 +171,7 @@ public class ExtendedStringReader extends InputStream {
 	}
 	
 	
+	/** Делгирует методу {@link #mark()}. Параметр readAheadLimit игнорируется */
 	@Override
 	public void mark(int readAheadLimit) {
 		this.mark();
@@ -178,7 +182,11 @@ public class ExtendedStringReader extends InputStream {
 	}
 	
 	public void unmark() {
-		marks.removeLast();
+		try {
+			marks.remove(marks.size() - 1);
+		} catch(IndexOutOfBoundsException ex) {
+			throw new UncheckedIOException(new IOException("Not marked"));
+		}
 	}
 	
 	public boolean marked() {
@@ -191,8 +199,7 @@ public class ExtendedStringReader extends InputStream {
 		if(marks.isEmpty())
 			throw new UncheckedIOException(new IOException("Not marked"));
 		
-		pos = marks.getLast();
-		marks.removeLast();
+		pos = marks.remove(marks.size() - 1);
 	}
 	
 	@Override

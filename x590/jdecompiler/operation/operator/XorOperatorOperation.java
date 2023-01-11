@@ -16,8 +16,8 @@ public class XorOperatorOperation extends BitwiseOperatorOperation {
 	public XorOperatorOperation(Type type, DecompilationContext context) {
 		super(type, context);
 		this.isBitNot =
-				operand2 instanceof IConstOperation iconst && iconst.getValue() == -1 ||
-				operand2 instanceof LConstOperation lconst && lconst.getValue() == -1;
+				operand2() instanceof IConstOperation iconst && iconst.getValue() == -1 ||
+				operand2() instanceof LConstOperation lconst && lconst.getValue() == -1;
 	}
 	
 	
@@ -35,7 +35,7 @@ public class XorOperatorOperation extends BitwiseOperatorOperation {
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		if(isBitNot)
-			out.print('~').printPrioritied(this, operand1, context, Associativity.RIGHT);
+			out.print('~').printPrioritied(this, operand1(), context, Associativity.RIGHT);
 		else
 			super.writeTo(out, context);
 	}

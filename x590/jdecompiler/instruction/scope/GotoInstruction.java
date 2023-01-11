@@ -1,36 +1,54 @@
 package x590.jdecompiler.instruction.scope;
 
+import java.util.Optional;
+
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.DisassemblerContext;
 import x590.jdecompiler.scope.EmptyInfiniteLoopScope;
 import x590.jdecompiler.scope.IfScope;
+import x590.jdecompiler.scope.LoopScope;
 import x590.jdecompiler.scope.Scope;
+import x590.util.Logger;
 
 public class GotoInstruction extends EndPosInstruction {
+	
+	private int endIndex;
+	
+	/** Применена ли инструкция goto где-либо */
+	private boolean applied;
 	
 	public GotoInstruction(DisassemblerContext context, int offset) {
 		super(context, offset);
 	}
 	
+	private void apply() {
+		applied = true;
+	}
+	
 	@Override
 	public Scope toScope(DecompilationContext context) {
-		int endIndex = context.posToIndex(endPos);
+		int endIndex = this.endIndex = context.posToIndex(endPos);
 		int currentIndex = context.currentIndex();
 		Scope currentScope = context.currentScope();
 		
 		if(endIndex > currentIndex) {
 			
 			if(currentScope instanceof IfScope currentIf) {
-				if(recognizeElse(context, endIndex, currentIndex, currentIf))
+				if(recognizeElse(context, endIndex, currentIndex, currentIf)) {
+					apply();
 					return null;
+				}
 			}
 			
 		} else if(endIndex < currentIndex) {
-			// loop
+			Logger.debug("Loop");
 			
 		} else {
+			apply();
 			return new EmptyInfiniteLoopScope(context);
 		}
+		
+		context.addBreak(endIndex - 1);
 		
 		return null;
 	}
@@ -64,5 +82,22 @@ public class GotoInstruction extends EndPosInstruction {
 		}
 		
 		return false;
+	}
+	
+	@Override
+	public void postDecompilation(DecompilationContext context) {
+		if(!applied) {
+			int currentIndexP1 = context.currentIndex() + 1;
+			int endIndexM1 = endIndex - 1;
+			
+			Optional<LoopScope> foundScope = context.getOperations().stream().filter(
+					operation -> operation instanceof LoopScope scope && scope.startIndex() == currentIndexP1 && scope.conditionStartIndex() == endIndexM1
+				).map(operation -> (LoopScope)operation).findAny();
+			
+			if(foundScope.isPresent()) {
+				apply();
+				foundScope.get().makeWhileLoop();
+			}
+		}
 	}
 }

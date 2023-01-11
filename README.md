@@ -3,7 +3,7 @@ Writing it in C++ turned out to be a mistake, so I moved it to Java.
 Maybe I'll finish it someday, but I need to add a lot more functionality.
 
 Not implemented:
-- for/while
+- for
 - try/catch/finally
 - switch
 - break/continue
@@ -15,6 +15,7 @@ Implemented:
 - Call via `super` (so far only for superclass)
 - Annotations
 - if/else
+- while
 - Ternary operator
 - Operators && and ||
 - Individual variables

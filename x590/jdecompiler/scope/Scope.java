@@ -1,7 +1,10 @@
 package x590.jdecompiler.scope;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -15,6 +18,7 @@ import x590.jdecompiler.operation.VariableDefineOperation;
 import x590.jdecompiler.operation.store.StoreOperation;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.util.IntegerConstants;
 import x590.jdecompiler.variable.EmptyableVariable;
 import x590.jdecompiler.variable.UnnamedVariable;
 import x590.jdecompiler.variable.Variable;
@@ -27,13 +31,14 @@ import x590.util.annotation.Nullable;
  */
 public abstract class Scope extends Operation {
 	
-	protected final List<Operation> code = new ArrayList<>();
-	protected final List<Scope> scopes = new ArrayList<>();
+	private final List<Operation> code = new ArrayList<>();
+	private final List<Scope> scopes = new ArrayList<>();
 	
-	protected int startIndex, endIndex; // Невключительно
-	protected final @Nullable Scope superScope;
+	private int startIndex, endIndex; // Невключительно
+	private final @Nullable Scope superScope;
 	
-	protected final List<EmptyableVariable> locals;
+	private final List<EmptyableVariable> locals;
+	private final Map<Integer, Integer> indexTable;
 	
 	
 	public Scope(DecompilationContext context, int endIndex) {
@@ -53,10 +58,13 @@ public abstract class Scope extends Operation {
 	}
 	
 	public Scope(int startIndex, int endIndex, @Nullable Scope superScope, List<EmptyableVariable> locals) {
+		assert startIndex <= endIndex;
+		
 		this.startIndex = startIndex;
 		this.endIndex = endIndex;
 		this.superScope = superScope;
 		this.locals = locals;
+		this.indexTable = new HashMap<>(endIndex - startIndex);
 	}
 	
 	
@@ -78,6 +86,11 @@ public abstract class Scope extends Operation {
 	
 	public Scope superScope() {
 		return superScope;
+	}
+	
+	
+	protected void addLocalVariable(EmptyableVariable var) {
+		locals.add(var);
 	}
 	
 	/** Устанавливает переменную по индексу для текущего scope и для всех вложенных */
@@ -195,10 +208,68 @@ public abstract class Scope extends Operation {
 		return code.isEmpty() ? null : code.get(code.size() - 1);
 	}
 	
-	public void addOperation(Operation operation) {
+	public void addOperation(Operation operation, DecompilationContext context) {
+		addOperation(operation, context.currentIndex());
+	}
+	
+	public void addOperation(Operation operation, int fromIndex) {
+		indexTable.put(fromIndex, code.size());
+		
 		code.add(operation);
+		
 		if(operation.isScope())
 			scopes.add((Scope)operation);
+	}
+
+	public void addOperations(List<Operation> operations, int fromIndex) {
+		for(Operation operation : operations)
+			addOperation(operation, fromIndex);
+	}
+	
+	
+	private int getIndexInTable(int index) {
+		Integer foundIndex = indexTable.get(index);
+		
+		if(foundIndex != null)
+			return foundIndex;
+		
+		int srcIndex = index;
+		int maxIndex = indexTable.keySet().stream().max(Integer::compare).orElse(IntegerConstants.ZERO);
+		
+		while(foundIndex == null && index < maxIndex) {
+			foundIndex = indexTable.get(++index);
+		}
+		
+		if(foundIndex != null)
+			return foundIndex;
+		
+		throw new NoSuchElementException(Integer.toString(srcIndex));
+	}
+	
+	
+	/** Удаляет все элементы, начиная с заданного индекса, и возвращает их.
+	 * @param fromIndex - индекс операции в коде (тот индекс, который возвращается,
+	 * например, методом {@link DecompilationContext#currentIndex()}).
+	 * Этот индекс уже преобразуется в индекс для внутреннего массива.
+	 * Не должен быть меньше {@link #startIndex} или больше {@link #endIndex}. */
+	public List<Operation> pullOperationsFromIndex(int fromIndex) {
+		
+		assert fromIndex >= startIndex && fromIndex <= endIndex :
+			"startIndex = " + startIndex + ", endIndex = " + endIndex + ", fromIndex = " + fromIndex;
+		
+		int indexInCode = getIndexInTable(fromIndex);
+		
+		// Метод List.subList(int, int) не копирует внутренний массив,
+		// поэтому мы модем удалить все элементы, начиная с indexInCode, просто очистив sublist
+		List<Operation> sublist = code.subList(indexInCode, code.size());
+		List<Operation> sublistCopy = new ArrayList<>(sublist);
+		sublist.clear();
+		
+		scopes.removeAll(sublistCopy);
+		
+		indexTable.entrySet().removeIf(entry -> entry.getKey() >= indexInCode);
+		
+		return sublistCopy;
 	}
 	
 	
@@ -240,7 +311,8 @@ public abstract class Scope extends Operation {
 	 * (когда scope пустой или в нём только одна операция)
 	 */
 	protected boolean canOmitCurlyBrackets() {
-		return code.size() <= 1 && JDecompiler.getInstance().canOmitCurlyBrackets();
+		return JDecompiler.getInstance().canOmitCurlyBrackets() &&
+				(code.isEmpty() || code.size() == 1 && (!code.get(0).isScope() || ((Scope)code.get(0)).canOmitCurlyBrackets()));
 	}
 	
 	protected void writeHeader(StringifyOutputStream out, StringifyContext context) {}
@@ -262,7 +334,7 @@ public abstract class Scope extends Operation {
 	}
 	
 	
-	/** Выполняется перед тем, как scope будет завершён и убран со стэка scope-ов */
+	/** Выполняется перед тем, как scope будет завершён и убран со стека scope-ов */
 	public void finalizeScope(DecompilationContext context) {}
 	
 	

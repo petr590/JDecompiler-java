@@ -17,9 +17,9 @@ public abstract class BitwiseOperatorOperation extends BinaryOperatorOperation {
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		if(JDecompiler.getInstance().printBracketsAroundBitwiseOperands()) {
-			out.printPrioritied(this, operand1, context, getVisiblePriority(operand1), Associativity.LEFT)
+			out.printPrioritied(this, operand1(), context, getVisiblePriority(operand1()), Associativity.LEFT)
 				.printsp().print(getOperator()).printsp()
-				.printPrioritied(this, operand2, context, getVisiblePriority(operand2), Associativity.RIGHT);
+				.printPrioritied(this, operand2(), context, getVisiblePriority(operand2()), Associativity.RIGHT);
 		} else {
 			super.writeTo(out, context);
 		}

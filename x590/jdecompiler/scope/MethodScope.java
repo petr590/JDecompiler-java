@@ -35,7 +35,7 @@ public class MethodScope extends Scope {
 		int i = 0;
 		
 		if(modifiers.isNotStatic()) {
-			locals.add(new NamedVariable("this", this, classinfo.thisType, true).define());
+			addLocalVariable(new NamedVariable("this", this, classinfo.thisType, true).define());
 			i++;
 		}
 		
@@ -47,7 +47,7 @@ public class MethodScope extends Scope {
 		
 		// public static void main(String[] args)
 		if(localVariableTable == null && modifiers.isAll(ACC_PUBLIC | ACC_STATIC) && descriptor.equals("main", PrimitiveType.VOID, ArrayType.STRING_ARRAY)) {
-			locals.add(new NamedVariable("args", this, ArrayType.STRING_ARRAY, true).define());
+			addLocalVariable(new NamedVariable("args", this, ArrayType.STRING_ARRAY, true).define());
 			
 		} else {
 			
@@ -59,10 +59,10 @@ public class MethodScope extends Scope {
 			
 			
 			for(Type argType : descriptor.arguments) {
-				locals.add(variableCreator.apply(argType, i).define());
+				addLocalVariable(variableCreator.apply(argType, i).define());
 				
 				if(argType.getSize() == TypeSize.EIGHT_BYTES) {
-					locals.add(emptyVar);
+					addLocalVariable(emptyVar);
 					i++;
 				}
 				
@@ -72,7 +72,7 @@ public class MethodScope extends Scope {
 		
 		
 		for(; i < maxLocals; i++)
-			locals.add(emptyVar);
+			addLocalVariable(emptyVar);
 	}
 	
 	

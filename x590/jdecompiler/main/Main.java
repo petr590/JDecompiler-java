@@ -32,10 +32,16 @@ public class Main {
 //					"bin/example/Annotations.class",
 //					"bin/example/Cast.class",
 //					"bin/example/Charset.class",
-//					"bin/example/Increment1.class",
+					
+					"bin/example/Increment1.class",
 //					"bin/example/Increment2.class",
-//					"bin/example/StaticFields.class",
-//					"bin/example/NonStaticFields.class",
+//					"bin/example/StaticFieldsIncrement.class",
+//					"bin/example/NonStaticFieldsIncrement.class",
+					
+//					"bin/example/LoopIncrement.class",
+//					"bin/example/StaticFieldsLoopIncrement.class",
+//					"bin/example/NonStaticFieldsLoopIncrement.class",
+					
 //					"bin/example/Methods.class",
 //					"bin/example/MultiDeclaration.class",
 //					"bin/example/OverrideTest.class",
@@ -55,7 +61,7 @@ public class Main {
 //					"bin/x590/jdecompiler/Importable.class",
 //					"bin/x590/jdecompiler/Version.class",
 					
-					"/home/winch/eclipse-workspace/Util/bin/x590/util/Pair.class"
+//					"/home/winch/eclipse-workspace/Util/bin/x590/util/Pair.class"
 					
 //					"--no-omit-curly-brackets",
 //					"--no-omit-this-class",

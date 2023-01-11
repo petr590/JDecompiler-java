@@ -1,12 +1,7 @@
-Added correct decompilation of constructors and constants in enum classes.
+Added support for loops (finally!). So far only `while` and `do while`
 
-Fixed an import error when 2 classes with the same name could be imported.
+Added automatic path change in the version (maybe at least now I will stop forgetting to update it)
 
-Refactoring in the x590.util.Util class: some methods were moved to the x590.util.ArrayUtil class, javadoc was added to all methods.
+Fixed a bug with the order of operands in cmp operations.
 
-The x590.util package is placed in a separate project, as it is used in other projects.
-
-Package x590.jdecompiler is renamed to x590.jdecompiler.main
-Package x590.javaclass is renamed to x590.jdecompiler along with all the sub packages.
-
-Added module-info.java
+Added a feature with shift operations. Was: `i << (int)l', became: `i << l` (this is possible in java).

@@ -8,6 +8,7 @@ import x590.jdecompiler.operation.condition.CompareType;
 import x590.jdecompiler.operation.condition.ConditionOperation;
 import x590.jdecompiler.operation.condition.OrOperation;
 import x590.jdecompiler.scope.IfScope;
+import x590.jdecompiler.scope.LoopScope;
 import x590.jdecompiler.scope.Scope;
 
 public abstract class IfInstruction extends EndPosInstruction {
@@ -20,6 +21,17 @@ public abstract class IfInstruction extends EndPosInstruction {
 	public Scope toScope(DecompilationContext context) {
 		int endIndex = context.posToIndex(endPos);
 		Scope currentScope = context.currentScope();
+		
+		if(endIndex < context.currentIndex()) {
+			LoopScope scope = new LoopScope(context, endIndex, context.currentIndex(), getCondition(context));
+			
+			// Мы определяем цикл уже в конце, поэтому мы должны
+			// добавить все операции в тело цикла из внешнего scope
+			
+			scope.addOperations(currentScope.pullOperationsFromIndex(endIndex), endIndex);
+			
+			return scope;
+		}
 		
 		if(currentScope instanceof IfScope ifScope) {
 			

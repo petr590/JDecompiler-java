@@ -29,12 +29,10 @@ public class DisassemblerContext extends Context {
 	private final List<Instruction> instructions;
 	
 	private DisassemblerContext(ConstantPool pool, byte[] bytes) {
-		super(pool);
+		super(pool, bytes.length);
 		this.bytes = bytes;
 		
 		var length = bytes.length;
-		this.indexMap = new int[length];
-		this.posMap = new int[length];
 		
 		if(length == 0) {
 			this.instructions = Collections.emptyList();

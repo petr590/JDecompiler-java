@@ -53,7 +53,7 @@ public interface IncrementableOperation {
 				notCastedValue = originalValue;
 			}
 			
-			if(!context.stack.empty() && context.stack.peek().equals(originalValue)) {
+			if(!context.hasBreakAtCurrentIndex() && !context.stack.empty() && context.stack.peek().equals(originalValue)) {
 				returnType = type;
 				context.stack.pop();
 				data.preInc = true;
@@ -73,28 +73,31 @@ public interface IncrementableOperation {
 						
 						data.shortInc = data.operatorOperand.isOne();
 						
-						if(!data.preInc && !context.stack.empty() && context.stack.peek().equals(operand1)) {
-							returnType = type;
-							context.stack.pop();
+						if(!context.hasBreakAtCurrentIndex()) {
 							
-						} else if(data.shortInc) {
-							
-							context.stack.onNextPush(operation -> {
+							if(!data.preInc && !context.stack.empty() && context.stack.peek().equals(operand1)) {
+								returnType = type;
+								context.stack.pop();
 								
-								operation = operation.original();
+							} else if(data.shortInc) {
 								
-								if(isLoadOperation(operation)) {
-									setReturnType(getReturnTypeFor(operation));
-									data.preInc = true;
+								context.stack.onNextPush(operation -> {
 									
-									Operation self = (Operation)this;
-									context.stack.push(self);
-									context.currentScope().remove(self);
-									return false;
-								}
-				
-								return true;
-							});
+									operation = operation.original();
+									
+									if(isLoadOperation(operation)) {
+										setReturnType(getReturnTypeFor(operation));
+										data.preInc = true;
+										
+										Operation self = (Operation)this;
+										context.stack.push(self);
+										context.currentScope().remove(self);
+										return false;
+									}
+					
+									return true;
+								});
+							}
 						}
 						
 					} else if(data.operator.equals("^") && binaryOperator instanceof XorOperatorOperation xorOperator && xorOperator.isBitNot()) {

@@ -7,8 +7,8 @@ import x590.jdecompiler.constpool.ConstantPool;
 public abstract class Context {
 	
 	public final ConstantPool pool;
-	protected int index;
-	protected int[] indexMap, posMap;
+	int index;
+	final int[] indexMap, posMap;
 	
 	
 	public Context(Context otherContext) {
@@ -17,12 +17,12 @@ public abstract class Context {
 		this.posMap = otherContext.posMap;
 	}
 	
-	public Context(ConstantPool pool) {
-		this.pool = pool;
+	public Context(ConstantPool pool, int mapLength) {
+		this(pool, new int[mapLength], new int[mapLength]);
 	}
 	
 	public Context(ConstantPool pool, int[] indexMap, int[] posMap) {
-		this(pool);
+		this.pool = pool;
 		this.indexMap = indexMap;
 		this.posMap = posMap;
 	}
