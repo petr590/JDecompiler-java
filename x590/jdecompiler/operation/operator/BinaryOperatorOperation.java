@@ -21,16 +21,16 @@ public abstract class BinaryOperatorOperation extends OperatorOperation {
 	
 	public BinaryOperatorOperation(Type type, DecompilationContext context) {
 		super(type);
-		this.operand2 = processOperand2(context.stack.popAsNarrowest(type));
-		this.operand1 = (context.stack.popAsNarrowest(type));
+		this.operand2 = processOperand2(context.popAsNarrowest(type));
+		this.operand1 = (context.popAsNarrowest(type));
 		
 		returnType = operand2.getReturnTypeAsGeneralNarrowest(operand1);
 	}
 	
 	public BinaryOperatorOperation(Type type1, Type type2, DecompilationContext context) {
 		super(type1);
-		this.operand2 = processOperand2(context.stack.popAsNarrowest(type2));
-		this.operand1 = processOperand1(context.stack.popAsNarrowest(type1));
+		this.operand2 = processOperand2(context.popAsNarrowest(type2));
+		this.operand1 = processOperand1(context.popAsNarrowest(type1));
 	}
 	
 	public Operation operand1() {

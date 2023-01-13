@@ -19,8 +19,8 @@ public class PutStaticFieldOperation extends PutFieldOperation {
 	}
 	
 	private void init(DecompilationContext context) {
-		if(!canOmit && context.descriptor.isStaticInitializer() && !value.requiresLocalContext()) {
-			if(context.classinfo.getField(descriptor).setInitializer(value))
+		if(!canOmit && context.descriptor.isStaticInitializer() && !getValue().requiresLocalContext()) {
+			if(context.classinfo.getField(descriptor).setInitializer(getValue()))
 				this.remove();
 		}
 		

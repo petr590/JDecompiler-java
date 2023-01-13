@@ -15,6 +15,6 @@ public final class DoubleType extends PrimitiveType {
 	
 	@Override
 	public TypeSize getSize() {
-		return TypeSize.EIGHT_BYTES;
+		return TypeSize.LONG;
 	}
 }

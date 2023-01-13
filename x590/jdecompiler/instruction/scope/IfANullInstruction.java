@@ -14,7 +14,7 @@ public abstract class IfANullInstruction extends IfInstruction {
 	
 	@Override
 	public ConditionOperation getCondition(DecompilationContext context) {
-		return new CompareWithNullOperation(context.stack.pop(), getCompareType());
+		return new CompareWithNullOperation(context.pop(), getCompareType());
 	}
 	
 	@Override

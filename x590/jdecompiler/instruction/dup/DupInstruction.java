@@ -1,14 +1,12 @@
 package x590.jdecompiler.instruction.dup;
 
 import x590.jdecompiler.context.DecompilationContext;
-import x590.jdecompiler.instruction.Instruction;
-import x590.jdecompiler.operation.Operation;
-import x590.jdecompiler.operation.dup.DupOperation;
+import x590.jdecompiler.operation.Dup;
 
-public class DupInstruction extends Instruction {
+public class DupInstruction extends AbstractDupInstruction {
 	
 	@Override
-	public Operation toOperation(DecompilationContext context) {
-		return new DupOperation(context);
+	protected void dup(DecompilationContext context) {
+		Dup.dup(context);
 	}
 }

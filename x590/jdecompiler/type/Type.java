@@ -1,6 +1,7 @@
 package x590.jdecompiler.type;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
@@ -117,6 +118,11 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 	/** Проверяет, что это тип {@link PrimitiveType#LONG}, {@link PrimitiveType#FLOAT} или {@link PrimitiveType#DOUBLE} */
 	public final boolean isLongOrFloatOrDouble() {
 		return this == PrimitiveType.LONG || this == PrimitiveType.FLOAT || this == PrimitiveType.DOUBLE;
+	}
+	
+	
+	public final boolean canUseShortOperator() {
+		return this.isPrimitive() || this.isWrapperClassType();
 	}
 	
 	
@@ -257,11 +263,11 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 	}
 	
 	
-	public static List<Type> parseMethodArguments(String str) {
+	public static @Immutable List<Type> parseMethodArguments(String str) {
 		return parseMethodArguments(new ExtendedStringReader(str));
 	}
 	
-	public static List<Type> parseMethodArguments(ExtendedStringReader in) {
+	public static @Immutable List<Type> parseMethodArguments(ExtendedStringReader in) {
 		in.mark();
 		
 		if(in.read() != '(')
@@ -273,7 +279,7 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 			if(in.get() == ')') {
 				in.incPos();
 				in.unmark();
-				return arguments;
+				return Collections.unmodifiableList(arguments);
 			}
 			
 			arguments.add(parseType(in));
@@ -286,7 +292,12 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 	}
 	
 	public static BasicType parseReturnType(ExtendedStringReader in) {
-		return in.get() == 'V' ? PrimitiveType.VOID : parseType(in);
+		if(in.get() == 'V') {
+			in.incPos();
+			return PrimitiveType.VOID;
+		}
+		
+		return parseType(in);
 	}
 	
 	
@@ -306,30 +317,30 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 	}
 	
 	
-	private static final Function<ExtendedStringReader, ReferenceType> signatureParameterSupplier =
+	private static final Function<ExtendedStringReader, ReferenceType> signatureParameterGetter =
 			in -> switch(in.get()) {
-					case '+' -> new ExtendingGenericType(in.next());
-					case '-' -> new SuperGenericType(in.next());
-					case '*' -> {
-						in.incPos();
-						yield AnyGenericType.INSTANCE;
-					}
-						
-					case ExtendedStringReader.EOF_CHAR -> throw new InvalidTypeNameException(in, in.distanceToMark());
-					
-					default -> parseSignatureParameter(in);
-				};
+				case '+' -> new ExtendingGenericType(in.next());
+				case '-' -> new SuperGenericType(in.next());
+				case '*' -> {
+					in.incPos();
+					yield AnyGenericType.INSTANCE;
+				}
+				
+				case ExtendedStringReader.EOF_CHAR -> throw new InvalidTypeNameException(in, in.distanceToMark());
+				
+				default -> parseSignatureParameter(in);
+			};
 
 	
 	public static @Nonnull GenericParameters<ReferenceType> parseSignature(ExtendedStringReader in) {
-		return GenericParameters.readNonnull(in, signatureParameterSupplier);
+		return GenericParameters.readNonnull(in, signatureParameterGetter);
 	}
 	
 	public static @Nullable GenericParameters<ReferenceType> parseNullableSignature(ExtendedStringReader in) {
-		return GenericParameters.readNullable(in, signatureParameterSupplier);
+		return GenericParameters.readNullable(in, signatureParameterGetter);
 	}
 	
 	public static @Nullable GenericParameters<GenericParameterType> parseNullableGenericParameters(ExtendedStringReader in) {
-		return GenericParameters.readNullable(in, ch -> new GenericParameterType(in));
+		return GenericParameters.readNullable(in, GenericParameterType::new);
 	}
 }

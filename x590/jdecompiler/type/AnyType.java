@@ -36,7 +36,7 @@ public class AnyType extends SpecialType {
 	
 	@Override
 	public TypeSize getSize() {
-		return TypeSize.FOUR_BYTES; // ???
+		return TypeSize.WORD; // ???
 	}
 	
 	

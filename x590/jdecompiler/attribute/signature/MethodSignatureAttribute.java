@@ -1,25 +1,32 @@
 package x590.jdecompiler.attribute.signature;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.MethodDescriptor;
+import x590.jdecompiler.attribute.ExceptionsAttribute;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.ExtendedStringReader;
 import x590.jdecompiler.type.GenericParameterType;
 import x590.jdecompiler.type.GenericParameters;
+import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
+import x590.util.Util;
+import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
 public class MethodSignatureAttribute extends SignatureAttribute {
 	
 	public final @Nullable GenericParameters<GenericParameterType> parameters;
-	public final List<Type> arguments;
+	public final @Immutable List<Type> arguments;
 	public final Type returnType;
+	public final @Immutable List<ReferenceType> throwsTypes;
 	
 	public MethodSignatureAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
 		super(nameIndex, name, length);
@@ -29,10 +36,26 @@ public class MethodSignatureAttribute extends SignatureAttribute {
 		this.parameters = Type.parseNullableGenericParameters(signatureIn);
 		this.arguments = Type.parseMethodArguments(signatureIn);
 		this.returnType = Type.parseReturnType(signatureIn);
+		
+		if(signatureIn.get() == '^') {
+			signatureIn.incPos();
+			
+			List<ReferenceType> throwsTypes = new ArrayList<>();
+			
+			while(signatureIn.isAvailable()) {
+				throwsTypes.add(Type.parseSignatureParameter(signatureIn));
+			}
+			
+			this.throwsTypes = Collections.unmodifiableList(throwsTypes);
+			
+		} else {
+			this.throwsTypes = Collections.emptyList();
+		}
 	}
 	
 	public boolean hasGenericTypes() {
-		return arguments.stream().anyMatch(Type::isGenericType) || returnType.isGenericType();
+		return parameters != null || arguments.stream().anyMatch(Type::isGenericType) ||
+				returnType.isGenericType() || !throwsTypes.isEmpty();
 	}
 	
 	@Override
@@ -44,24 +67,33 @@ public class MethodSignatureAttribute extends SignatureAttribute {
 		arguments.forEach(argument -> argument.addImports(classinfo));
 	}
 	
-	public void checkTypes(MethodDescriptor descriptor, int skip) {
+	public void checkTypes(MethodDescriptor descriptor, int skip, @Nullable ExceptionsAttribute excepionsAttr) {
 		var iterator = descriptor.arguments.iterator();
 		
 		for(int i = 0; i < skip && iterator.hasNext(); i++)
 			iterator.next();
 		
-		for(Type argument : arguments) {
-			if(!iterator.hasNext() || !argument.baseEquals(iterator.next())) {
-				throw new DecompilationException("Method signature doesn't matches the arguments: (" + argumentsToString(arguments.stream()) + ") and (" + argumentsToString(descriptor.arguments.stream().skip(skip)) + ")");
-			}
+		if(!Util.iteratorsEquals(arguments.iterator(), iterator, Type::baseEquals)) {
+			throw new DecompilationException("Method signature doesn't matches the arguments: (" + argumentsToString(arguments.stream()) + ") and (" + argumentsToString(descriptor.arguments.stream().skip(skip)) + ")");
 		}
 		
 		if(!returnType.baseEquals(descriptor.returnType)) {
 			throw new DecompilationException("Method signature doesn't matches the return type: " + returnType + " and " + descriptor.returnType);
 		}
+		
+		if(!throwsTypes.isEmpty()) {
+			if(excepionsAttr == null || !Util.collectionsEquals(throwsTypes, excepionsAttr.getExceptionTypes(), Type::baseEquals)) {
+				throw new DecompilationException("Method signature doesn't matches the \"Excepions\" attribute: " + argumentsToString(throwsTypes) +
+						" and " + (excepionsAttr == null ? "null" : argumentsToString(excepionsAttr.getExceptionTypes())));
+			}
+		}
 	}
 	
-	private static String argumentsToString(Stream<Type> arguments) {
+	private static String argumentsToString(List<? extends Type> arguments) {
+		return argumentsToString(arguments.stream());
+	}
+	
+	private static String argumentsToString(Stream<? extends Type> arguments) {
 		return arguments.map(Type::toString).collect(Collectors.joining(", "));
 	}
 }

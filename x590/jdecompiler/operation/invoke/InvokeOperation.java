@@ -25,7 +25,7 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 		Deque<Operation> arguments = new ArrayDeque<>(length);
 		
 		for(int i = length; i > 0; ) {
-			arguments.addFirst(context.stack.popAsNarrowest(descriptor.arguments.get(--i)));
+			arguments.addFirst(context.popAsNarrowest(descriptor.arguments.get(--i)));
 		}
 		
 		return arguments;

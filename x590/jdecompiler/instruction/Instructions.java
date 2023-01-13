@@ -110,8 +110,8 @@ public class Instructions {
 			SASTORE = new SAStoreInstruction(),
 			
 			
-			POP     = new PopInstruction(TypeSize.FOUR_BYTES),
-			POP2    = new PopInstruction(TypeSize.EIGHT_BYTES),
+			POP     = new PopInstruction(TypeSize.WORD),
+			POP2    = new PopInstruction(TypeSize.LONG),
 			DUP     = new DupInstruction(),
 			DUP_X1  = new DupX1Instruction(),
 			DUP_X2  = new DupX2Instruction(),

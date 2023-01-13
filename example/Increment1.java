@@ -115,7 +115,8 @@ public class Increment1 {
 		System.out.println(d %= d);
 	}
 	
-	public static void and(byte b, short s, char c, int i, long l) {
+	public static void and(boolean z, byte b, short s, char c, int i, long l) {
+		System.out.println(z &= z);
 		System.out.println(b &= b);
 		System.out.println(s &= s);
 		System.out.println(c &= c);
@@ -123,7 +124,8 @@ public class Increment1 {
 		System.out.println(l &= l);
 	}
 	
-	public static void or(byte b, short s, char c, int i, long l) {
+	public static void or(boolean z, byte b, short s, char c, int i, long l) {
+		System.out.println(z |= z);
 		System.out.println(b |= b);
 		System.out.println(s |= s);
 		System.out.println(c |= c);
@@ -131,7 +133,8 @@ public class Increment1 {
 		System.out.println(l |= l);
 	}
 	
-	public static void xor(byte b, short s, char c, int i, long l) {
+	public static void xor(boolean z, byte b, short s, char c, int i, long l) {
+		System.out.println(z ^= z);
 		System.out.println(b ^= b);
 		System.out.println(s ^= s);
 		System.out.println(c ^= c);

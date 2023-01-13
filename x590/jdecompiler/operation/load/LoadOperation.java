@@ -9,10 +9,8 @@ import x590.jdecompiler.variable.Variable;
 
 public class LoadOperation extends Operation {
 	
-	protected final int index;
-	protected final Variable variable;
-	
-//	private Operation incOperation = null;
+	private final int index;
+	private final Variable variable;
 	
 	public LoadOperation(Type type, DecompilationContext context, int index) {
 		this.index = index;
@@ -32,7 +30,6 @@ public class LoadOperation extends Operation {
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-//		return incOperation != null ? incOperation->toString(context) : context.getCurrentScope().getNameFor(variable);
 		out.write(variable.getName());
 	}
 	

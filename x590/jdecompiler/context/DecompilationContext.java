@@ -1,6 +1,6 @@
 package x590.jdecompiler.context;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -8,6 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
@@ -20,13 +22,16 @@ import x590.jdecompiler.operation.returning.VReturnOperation;
 import x590.jdecompiler.scope.MethodScope;
 import x590.jdecompiler.scope.Scope;
 import x590.jdecompiler.type.PrimitiveType;
+import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.TypeSize;
 import x590.util.Logger;
 import x590.util.annotation.Immutable;
 
 public class DecompilationContext extends DecompilationAndStringifyContext implements Importable {
 	
-	public final OperationStack stack = new OperationStack();
-	private final @Immutable List<Operation> operations;
+	private final OperationStack stack = new OperationStack();
+	private final @Immutable Set<Operation> operations;
+	private final Set<Operation> mutableOperations;
 	private Scope currentScope;
 	
 	private final Queue<Scope> scopesQueue = new LinkedList<>();
@@ -43,10 +48,9 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 		
 		this.currentScope = methodScope;
 		
-		var stack = this.stack;
-		
-		List<Operation> operations = new ArrayList<>(instructions.size());
-		this.operations = Collections.unmodifiableList(operations);
+		Set<Operation> operations = new HashSet<>(instructions.size());
+		this.operations = Collections.unmodifiableSet(operations);
+		this.mutableOperations = operations;
 		
 		var expressionIndexTable = this.expressionIndexTable = new int[instructions.size()];
 		int expressionIndex = 0;
@@ -57,7 +61,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 			startScopes(index);
 			
 			
-//			Logger.debugf("Stack: [%s]", stack.stream().map(operation -> operation.getClass().getSimpleName() + operation.getReturnType() + "]").collect(Collectors.joining(", ")));
+			Logger.debugf("Stack: %d [%s]", index, stack.stream().map(operation -> operation.getClass().getSimpleName() + operation.getReturnType() + "]").collect(Collectors.joining(", ")));
 
 
 			expressionIndexTable[index] = expressionIndex;
@@ -85,7 +89,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 					}
 					
 				} else {
-					stack.push(operation);
+					push(operation);
 				}
 			}
 			
@@ -158,6 +162,69 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	}
 	
 	
+	public Operation pop() {
+		return stack.pop();
+	}
+	
+	public Operation popAsNarrowest(Type type) {
+		return stack.popAsNarrowest(type);
+	}
+	
+	public Operation popAsWidest(Type type) {
+		return stack.popAsWidest(type);
+	}
+	
+	public Operation popWithSize(TypeSize size) {
+		return stack.popWithSize(size);
+	}
+	
+	public Operation peek() {
+		return stack.peek();
+	}
+	
+	public Operation peek(int index) {
+		return stack.peek(index);
+	}
+	
+	public Operation peekAsNarrowest(Type type) {
+		return stack.peekAsNarrowest(type);
+	}
+	
+	public Operation peekAsWidest(Type type) {
+		return stack.peekAsWidest(type);
+	}
+	
+	public Operation peekWithSize(TypeSize size) {
+		return stack.peekWithSize(size);
+	}
+	
+	public Operation peekWithSize(int index, TypeSize size) {
+		return stack.peekWithSize(index, size);
+	}
+	
+	public void push(Operation operation) {
+		mutableOperations.add(operation);
+		stack.push(operation);
+	}
+	
+	public void pushAll(Collection<Operation> operations) {
+		stack.pushAll(operations);
+		this.mutableOperations.addAll(operations);
+	}
+	
+	public boolean stackEmpty() {
+		return stack.empty();
+	}
+	
+	public int stackSize() {
+		return stack.size();
+	}
+	
+	public void onNextPush(Predicate<Operation> nextPushHandler) {
+		stack.onNextPush(nextPushHandler);
+	}
+	
+	
 	public Scope currentScope() {
 		return currentScope;
 	}
@@ -189,7 +256,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	}
 	
 	
-	public @Immutable List<Operation> getOperations() {
+	public @Immutable Set<Operation> getOperations() {
 		return operations;
 	}
 	

@@ -23,7 +23,7 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 		super(context.currentScope().getVariableOrDefine(index, requiredType));
 		
 		this.index = index;
-		var value = this.value = context.stack.pop();
+		var value = this.value = context.pop();
 		
 		value.allowImplicitCast();
 		
@@ -46,11 +46,6 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 	
 	
 	@Override
-	public boolean canIncrement() {
-		return true;
-	}
-	
-	@Override
 	public boolean isLoadOperation(Operation operation) {
 		return operation instanceof LoadOperation loadOperation && loadOperation.getVariable().equals(variable);
 	}
@@ -58,11 +53,6 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 	@Override
 	public void setReturnType(Type returnType) {
 		this.returnType = returnType;
-	}
-	
-	@Override
-	public Type getReturnTypeFor(Operation operation) {
-		return ((LoadOperation)operation).getVariable().getType();
 	}
 	
 	@Override
@@ -102,7 +92,7 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 	
 	@Override
 	public void writeValue(StringifyOutputStream out, StringifyContext context) {
-		out.write(value, context);
+		value.writeAsArrayInitializer(out, context);
 	}
 	
 	@Override

@@ -25,7 +25,7 @@ public class PutInstanceFieldOperation extends PutFieldOperation {
 	@Override
 	public void writeName(StringifyOutputStream out, StringifyContext context) {
 		if(!canOmitObject(context, object)) {
-			out.print(object, context).print('.');
+			out.printPrioritied(this, object, context, Associativity.LEFT).print('.');
 		}
 		
 		super.writeName(out, context);

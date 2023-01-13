@@ -155,7 +155,7 @@ public class UncertainIntegralType extends SpecialType {
 	
 	@Override
 	public TypeSize getSize() {
-		return TypeSize.FOUR_BYTES;
+		return TypeSize.WORD;
 	}
 	
 	@Override

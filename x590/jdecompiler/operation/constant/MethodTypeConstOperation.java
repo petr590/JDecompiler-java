@@ -6,6 +6,6 @@ import x590.jdecompiler.type.TypeSize;
 public class MethodTypeConstOperation extends LdcOperation<MethodTypeConstant> {
 	
 	public MethodTypeConstOperation(MethodTypeConstant value) {
-		super(TypeSize.FOUR_BYTES, value);
+		super(TypeSize.WORD, value);
 	}
 }

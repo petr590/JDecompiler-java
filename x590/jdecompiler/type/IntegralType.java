@@ -13,7 +13,7 @@ public abstract class IntegralType extends PrimitiveType {
 	
 	@Override
 	public final TypeSize getSize() {
-		return TypeSize.FOUR_BYTES;
+		return TypeSize.WORD;
 	}
 	
 	@Override

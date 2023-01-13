@@ -7,7 +7,7 @@ import x590.jdecompiler.operation.cmp.CmpOperation;
 public abstract class CompareOperation extends ConditionOperation {
 	
 	public static ConditionOperation valueOf(DecompilationContext context, CompareType compareType) {
-		return valueOf(context.stack.pop(), compareType);
+		return valueOf(context.pop(), compareType);
 	}
 	
 	public static ConditionOperation valueOf(Operation operand, CompareType compareType) {

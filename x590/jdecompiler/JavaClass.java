@@ -44,7 +44,7 @@ public class JavaClass extends JavaClassElement {
 	public final ClassType thisType, superType;
 	public final @Immutable List<ClassType> interfaces;
 	
-	public final @Nullable ClassSignatureAttribute signature;
+	public final ClassInfo classinfo;
 	
 	// Суперкласс и интерфейсы, которые будут выведены в заголовок класса
 	// Например, все enum классы наследуются от java.lang.Enum,
@@ -56,8 +56,9 @@ public class JavaClass extends JavaClassElement {
 	private final @Immutable List<JavaField> fields, constants;
 	private final @Immutable @Nullable List<JavaEnumField> enumConstants;
 	private final @Immutable List<JavaMethod> methods;
+	
 	public final Attributes attributes;
-	public final ClassInfo classinfo;
+	private final @Nullable ClassSignatureAttribute signature;
 	
 	
 	private @Nullable Type getVisibleSuperType() {

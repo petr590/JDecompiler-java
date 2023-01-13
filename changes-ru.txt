@@ -1,7 +1,16 @@
-Добавлена поддержка циклов (наконец-то!). Пока только while и do while
+Добавлена сигнатура в throws (в джаве можно указать дженерик в атрибуте throws)
+Исправлено чтение типа PrimitiveType.VOID в методе Type.parseReferenceType(ExtendedStringReader)
 
-Добавлено автомотическое изменение path в версии (может хоть теперь я перестану забывать обновить её)
+Исправлена операция ArrayLoadOperation - добавлено приведение индекса к типу int
 
-Исправлен баг с порядком операндов в cmp операциях.
+Переработаны инструкции dup - теперь мы не создаём DupOperation, а дублируем значение напрямую,
+так проще и не надо писать везде operation.original().
 
-Добавлена фича с операциями сдвига. Было: `i << (int)l`, стало: `i << l` (в джаве так можно).
+Переименованы константы в enum-е TypeSize: ZERO_BYTES в VOID, FOUR_BYTES в WORD, EIGHT_BYTES в LONG.
+
+Исправлена инициализация массивов (компилятор eclipse не присваивает null и 0 в массивы при инициализации).
+
+Добавлен инкремент и укороченные операторы для элементов массива.
+
+Вызов метода print заменён на printPriotitied в классах GetInstanceFieldOperation, PutInstanceFieldOperation,
+InstanceofOperation, CompareWithNullOperation

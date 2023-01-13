@@ -12,7 +12,7 @@ public abstract class UnaryOperatorOperation extends OperatorOperation {
 	
 	public UnaryOperatorOperation(Type type, DecompilationContext context) {
 		super(type);
-		this.operand = context.stack.popAsNarrowest(type);
+		this.operand = context.popAsNarrowest(type);
 	}
 	
 	@Override

@@ -1,5 +1,6 @@
 package x590.jdecompiler.context;
 
+import java.util.Collection;
 import java.util.Stack;
 import java.util.function.Predicate;
 
@@ -29,6 +30,12 @@ public class OperationStack extends Stack<Operation> {
 		return super.push(operation);
 	}
 	
+	public void pushAll(Collection<Operation> operations) {
+		for(Operation operation : operations) {
+			push(operation);
+		}
+	}
+	
 	
 	public Operation popAsNarrowest(Type requiredType) {
 		Operation operation = pop();
@@ -48,7 +55,12 @@ public class OperationStack extends Stack<Operation> {
 		if(operation.getReturnType().getSize() == size)
 			return operation;
 		
-		throw new DecompilationException("Operation size not matches: expected " + size + ", got " + operation.getReturnType().getSize());
+		throw new DecompilationException("Operation size not matches: expected " + size + ", got " + operation.getReturnType().getSize() + " (operation " + operation + ")");
+	}
+	
+	
+	public Operation peek(int index) {
+		return get(this.size() - index - 1);
 	}
 	
 	
@@ -70,7 +82,16 @@ public class OperationStack extends Stack<Operation> {
 		if(operation.getReturnType().getSize() == size)
 			return operation;
 		
-		throw new DecompilationException("Operation size not matches: expected " + size + ", got " + operation.getReturnType().getSize());
+		throw new DecompilationException("Operation size not matches: expected " + size + ", got " + operation.getReturnType().getSize() + " (operation " + operation + ")");
+	}
+	
+	public Operation peekWithSize(int index, TypeSize size) {
+		Operation operation = peek(index);
+		
+		if(operation.getReturnType().getSize() == size)
+			return operation;
+		
+		throw new DecompilationException("Operation size not matches: expected " + size + ", got " + operation.getReturnType().getSize() + " (operation " + operation + ")");
 	}
 	
 	

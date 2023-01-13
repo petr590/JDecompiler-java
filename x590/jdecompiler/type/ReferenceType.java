@@ -43,7 +43,7 @@ public abstract class ReferenceType extends BasicType {
 	
 	@Override
 	public TypeSize getSize() {
-		return TypeSize.FOUR_BYTES;
+		return TypeSize.WORD;
 	}
 	
 	public String getClassEncodedName() {

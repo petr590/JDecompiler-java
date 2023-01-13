@@ -9,6 +9,7 @@ import x590.jdecompiler.attribute.Attributes.Location;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.type.ClassType;
+import x590.util.annotation.Immutable;
 
 public class CodeAttribute extends Attribute {
 	
@@ -17,7 +18,7 @@ public class CodeAttribute extends Attribute {
 	public final ExceptionTable exceptionTable;
 	public final Attributes attributes;
 	
-	protected CodeAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
+	CodeAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
 		super(nameIndex, name, length);
 		
 		this.maxStack = in.readUnsignedShort();
@@ -30,7 +31,7 @@ public class CodeAttribute extends Attribute {
 		this.attributes = new Attributes(in, pool, Location.CODE_ATTRIBUTE);
 	}
 	
-	protected CodeAttribute(int nameIndex, String name, int length, int maxStack, int maxLocals, byte[] code, ExceptionTable exceptionTable, Attributes attributes) {
+	CodeAttribute(int nameIndex, String name, int length, int maxStack, int maxLocals, byte[] code, ExceptionTable exceptionTable, Attributes attributes) {
 		super(nameIndex, name, length);
 		
 		this.maxStack = maxStack;
@@ -38,8 +39,6 @@ public class CodeAttribute extends Attribute {
 		this.code = code;
 		this.exceptionTable = exceptionTable;
 		this.attributes = attributes;
-		
-		
 	}
 	
 	public boolean isEmpty() {
@@ -51,7 +50,7 @@ public class CodeAttribute extends Attribute {
 		
 		private static final ExceptionTable EMPTY_TABLE = new ExceptionTable();
 		
-		public final List<CatchEntry> entries;
+		private final @Immutable List<CatchEntry> entries;
 		
 		private ExceptionTable() {
 			this.entries = Collections.emptyList();

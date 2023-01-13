@@ -21,7 +21,7 @@ public abstract class FieldOperation extends OperationWithDescriptor<FieldDescri
 	}
 	
 	protected Operation popObject(DecompilationContext context) {
-		return context.stack.popAsNarrowest(descriptor.clazz);
+		return context.popAsNarrowest(descriptor.clazz).castIfNull(descriptor.clazz);
 	}
 	
 	@Override

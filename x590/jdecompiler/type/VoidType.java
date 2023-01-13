@@ -15,6 +15,6 @@ public final class VoidType extends PrimitiveType {
 	
 	@Override
 	public TypeSize getSize() {
-		return TypeSize.ZERO_BYTES;
+		return TypeSize.VOID;
 	}
 }

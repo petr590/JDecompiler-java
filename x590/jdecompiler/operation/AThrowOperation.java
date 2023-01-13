@@ -10,7 +10,7 @@ public class AThrowOperation extends VoidOperation {
 	private final Operation throwable;
 	
 	public AThrowOperation(DecompilationContext context) {
-		this.throwable = context.stack.popAsNarrowest(ClassType.THROWABLE);
+		this.throwable = context.popAsNarrowest(ClassType.THROWABLE);
 	}
 	
 	@Override

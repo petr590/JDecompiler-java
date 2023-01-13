@@ -4,9 +4,10 @@ import x590.jdecompiler.FieldDescriptor;
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.operation.constant.AConstNullOperation;
 import x590.jdecompiler.operation.constant.ConstOperation;
-import x590.jdecompiler.operation.dup.AbstractDupOperation;
 import x590.jdecompiler.type.PrimitiveType;
+import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
 import x590.util.annotation.RemoveIfNotUsed;
 
@@ -129,9 +130,17 @@ public abstract class Operation implements Importable {
 	
 	public void onCastReturnType(Type type) {}
 	
-	/** Возвращает исходную операцию (для класса {@link AbstractDupOperation},
-	 * для всех остальных классов возвращает {@literal this}) */
+	/** Устарел, так как был удалён класс {@link AbstractDupOperation} */
+	@Deprecated(since="0.7.6")
 	public Operation original() {
+		return this;
+	}
+	
+	/** Делает преобразование для константы {@literal null},
+	 * так как мы не можем обратиться к полю или методу напрямую через {@literal null}.
+	 * @param clazz - тип, к которому преобразуется {@literal null}
+	 * @see AConstNullOperation */
+	public Operation castIfNull(ReferenceType clazz) {
 		return this;
 	}
 	

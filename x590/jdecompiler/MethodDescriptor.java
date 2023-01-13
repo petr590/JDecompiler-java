@@ -130,8 +130,12 @@ public class MethodDescriptor extends Descriptor implements Importable {
 	}
 
 	
-	public boolean isEnumConstructor(StringifyContext context) {
-		return context.classinfo.modifiers.isEnum() && this.isConstructorOf(context.classinfo.thisType);
+	public boolean isEnumConstructor(ClassInfo classinfo) {
+		return classinfo.modifiers.isEnum() && this.isConstructorOf(classinfo.thisType);
+	}
+	
+	int getVisibleStartIndex(ClassInfo classinfo) {
+		return isEnumConstructor(classinfo) ? 2 : 0;
 	}
 	
 	
@@ -147,16 +151,10 @@ public class MethodDescriptor extends Descriptor implements Importable {
 	}
 	
 	
-	public void write(StringifyOutputStream out, StringifyContext context, Attributes attributes) {
+	public void write(StringifyOutputStream out, StringifyContext context, Attributes attributes, @Nullable MethodSignatureAttribute signature) {
 		
-		MethodSignatureAttribute signature = attributes.get("Signature");
-		
-		if(signature != null) {
-			signature.checkTypes(this, isEnumConstructor(context) ? 2 : 0);
-			
-			if(signature.parameters != null) {
-				out.writesp(signature.parameters, context.classinfo);
-			}
+		if(signature != null && signature.parameters != null) {
+			out.writesp(signature.parameters, context.classinfo);
 		}
 		
 		switch(type) {
@@ -182,7 +180,7 @@ public class MethodDescriptor extends Descriptor implements Importable {
 		
 		var classinfo = context.classinfo;
 		
-		int startIndex = isEnumConstructor(context) ? 2 : 0;
+		int startIndex = getVisibleStartIndex(context.classinfo);
 		
 		IntHolder varIndex = new IntHolder((context.modifiers.isNotStatic() ? 1 : 0) + startIndex);
 		

@@ -10,7 +10,6 @@ module x590.jdecompiler {
 	exports x590.jdecompiler.context;
 	exports x590.jdecompiler.operation;
 	exports x590.jdecompiler.operation.store;
-	exports x590.jdecompiler.operation.dup;
 	exports x590.jdecompiler.operation.load;
 	exports x590.jdecompiler.operation.arraystore;
 	exports x590.jdecompiler.operation.condition;

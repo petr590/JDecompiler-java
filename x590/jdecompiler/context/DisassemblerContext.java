@@ -115,9 +115,9 @@ public class DisassemblerContext extends Context {
 			case 0x0F: return Instructions.DCONST_1;
 			case 0x10: return new BIPushInstruction(readByte());
 			case 0x11: return new SIPushInstruction(readShort());
-			case 0x12: return new LdcInstruction(TypeSize.FOUR_BYTES, this, readUnsignedByte());
-			case 0x13: return new LdcInstruction(TypeSize.FOUR_BYTES, this, readUnsignedShort());
-			case 0x14: return new LdcInstruction(TypeSize.EIGHT_BYTES, this, readUnsignedShort());
+			case 0x12: return new LdcInstruction(TypeSize.WORD, this, readUnsignedByte());
+			case 0x13: return new LdcInstruction(TypeSize.WORD, this, readUnsignedShort());
+			case 0x14: return new LdcInstruction(TypeSize.LONG, this, readUnsignedShort());
 			
 			case 0x15: return new ILoadInstruction(readUnsignedByte());
 			case 0x16: return new LLoadInstruction(readUnsignedByte());

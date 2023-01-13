@@ -27,7 +27,7 @@ public abstract class ReturnOperation extends VoidOperation {
 			throw new DecompilationException("The method return type (" + methodReturnType + ")" +
 					" does not match type of the `" + getInstructionName() + "` instruction");
 		
-		this.operand = context.stack.popAsNarrowest(methodReturnType);
+		this.operand = context.popAsNarrowest(methodReturnType);
 	}
 	
 	

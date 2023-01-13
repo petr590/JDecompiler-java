@@ -23,7 +23,7 @@ public class GetInstanceFieldOperation extends GetFieldOperation {
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		if(!canOmitObject(context, object)) {
-			out.print(object, context).print('.');
+			out.printPrioritied(this, object, context, Associativity.LEFT).print('.');
 		}
 		
 		super.writeTo(out, context);

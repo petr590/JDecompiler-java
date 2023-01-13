@@ -21,14 +21,13 @@ public class AnnotationsAttribute extends Attribute implements StringWritable {
 	}
 	
 	@Override
-	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-		Arrays.stream(annotations).forEachOrdered(annotation -> out.printIndent().print(annotation, classinfo).println());
-	}
-	
-	
-	@Override
 	public void addImports(ClassInfo classinfo) {
 		ArrayUtil.forEach(annotations, annotation -> annotation.addImports(classinfo));
+	}
+	
+	@Override
+	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
+		ArrayUtil.forEach(annotations, annotation -> out.printIndent().print(annotation, classinfo).println());
 	}
 	
 	
@@ -38,6 +37,6 @@ public class AnnotationsAttribute extends Attribute implements StringWritable {
 	}
 	
 	public boolean equals(AnnotationsAttribute other) {
-		return this == other || Arrays.equals(this.annotations, other.annotations);
+		return this == other || Arrays.equals(annotations, other.annotations);
 	}
 }

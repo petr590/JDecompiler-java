@@ -20,14 +20,14 @@ public class IIncOperation extends OperationWithVariable {
 		
 		if(!context.hasBreakAtCurrentIndex()) {
 			
-			if(!context.stack.empty() && tryLoadSameVariable(context.stack.peek())) {
-				context.stack.pop();
+			if(!context.stackEmpty() && tryLoadSameVariable(context.peek())) {
+				context.pop();
 				
 			} else if(value == 1 || value == -1) {
-				context.stack.onNextPush(operation -> {
+				context.onNextPush(operation -> {
 					if(tryLoadSameVariable(operation)) {
 						isPreInc = true;
-						context.stack.push(this);
+						context.push(this);
 						context.currentScope().remove(this);
 						return false;
 					}
@@ -39,7 +39,7 @@ public class IIncOperation extends OperationWithVariable {
 	}
 	
 	private boolean tryLoadSameVariable(Operation operation) {
-		if(operation.original() instanceof LoadOperation loadOperation && loadOperation.getVariable().equals(variable)) {
+		if(operation instanceof LoadOperation loadOperation && loadOperation.getVariable().equals(variable)) {
 			returnType = variable.getType();
 			return true;
 		}

@@ -73,7 +73,7 @@ public final class InvokedynamicInstruction extends InstructionWithIndex {
 				
 				// pop arguments that already on stack
 				for(int i = descriptor.arguments.size(); i > 0; i--)
-					arguments.add(context.stack.pop());
+					arguments.add(context.pop());
 				
 				
 				MethodDescriptor invokedynamicDescriptor = new MethodDescriptor(referenceConstant);
@@ -112,7 +112,7 @@ public final class InvokedynamicInstruction extends InstructionWithIndex {
 					
 					// push non-static arguments on stack
 					for(var iter = arguments.listIterator(arguments.size()); iter.hasPrevious();)
-						context.stack.push(iter.previous());
+						context.push(iter.previous());
 					
 					return new ConcatStringsOperation(context, descriptor, pattern, staticArguments);
 				}

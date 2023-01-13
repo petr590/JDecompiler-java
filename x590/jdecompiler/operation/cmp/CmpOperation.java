@@ -12,8 +12,8 @@ public abstract class CmpOperation extends BooleanOperation {
 	public final Operation operand1, operand2;
 	
 	public CmpOperation(Type requiredType, DecompilationContext context) {
-		this.operand2 = context.stack.popAsNarrowest(requiredType);
-		this.operand1 = context.stack.popAsNarrowest(requiredType);
+		this.operand2 = context.popAsNarrowest(requiredType);
+		this.operand1 = context.popAsNarrowest(requiredType);
 	}
 	
 	@Override

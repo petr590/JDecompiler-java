@@ -46,7 +46,7 @@ public class CompareBinaryOperation extends CompareOperation {
 	}
 	
 	public CompareBinaryOperation(DecompilationContext context, CompareType compareType, Type requiredType) {
-		this(context.stack.pop(), context.stack.pop(), compareType, compareType.getRequiredType().castToNarrowest(requiredType));
+		this(context.pop(), context.pop(), compareType, compareType.getRequiredType().castToNarrowest(requiredType));
 	}
 	
 	

@@ -15,7 +15,7 @@ public final class FloatType extends PrimitiveType {
 	
 	@Override
 	public TypeSize getSize() {
-		return TypeSize.FOUR_BYTES;
+		return TypeSize.WORD;
 	}
 	
 	@Override

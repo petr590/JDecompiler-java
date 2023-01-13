@@ -14,6 +14,7 @@ import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.util.ArrayUtil;
 import x590.util.annotation.Immutable;
+import x590.util.annotation.Nullable;
 
 @Immutable
 public class Attributes implements JavaSerializable, Importable {
@@ -70,7 +71,7 @@ public class Attributes implements JavaSerializable, Importable {
 	
 	
 	@SuppressWarnings("unchecked")
-	public <T extends Attribute> T get(String name) {
+	public <T extends Attribute> @Nullable T get(String name) {
 		return (T)attributeByName.get(name);
 	}
 	
@@ -79,7 +80,7 @@ public class Attributes implements JavaSerializable, Importable {
 		return (T)attributeByName.getOrDefault(name, defaultValue);
 	}
 	
-	public StringWritable getAsWritable(String name) {
+	public @Nullable StringWritable getAsWritable(String name) {
 		return (StringWritable)attributeByName.get(name);
 	}
 	

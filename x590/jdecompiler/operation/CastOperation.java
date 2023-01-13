@@ -15,7 +15,10 @@ public class CastOperation extends Operation {
 	private boolean implicitCastAllowed;
 	
 	public CastOperation(Type requiredType, Type castedType, boolean implicitCast, DecompilationContext context) {
-		var operand = context.stack.popAsNarrowest(requiredType);
+		this(requiredType, castedType, implicitCast, context.popAsNarrowest(requiredType));
+	}
+	
+	public CastOperation(Type requiredType, Type castedType, boolean implicitCast, Operation operand) {
 		this.requiredType = requiredType;
 		this.castedType = castedType;
 		this.implicitCast = implicitCast;

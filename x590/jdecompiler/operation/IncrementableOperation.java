@@ -20,14 +20,15 @@ public interface IncrementableOperation {
 		public String operator;
 	}
 	
-	
-	public boolean canIncrement();
+	public static boolean canUseShortOperatorFor(Type type) {
+		return type.isPrimitive() || type.isWrapperClassType();
+	}
 	
 	public boolean isLoadOperation(Operation operation);
+
+	public Type getReturnType();
 	
 	public void setReturnType(Type returnType);
-	
-	public Type getReturnTypeFor(Operation operation);
 	
 	public default void setProbableType(Type probableType) {}
 	
@@ -38,31 +39,30 @@ public interface IncrementableOperation {
 		
 		IncrementData data = new IncrementData();
 		
-		if(canIncrement()) {
-			
-			Operation originalValue = value.original();
+		
+		if(!context.hasBreakAtCurrentIndex() && !context.stackEmpty() && context.peek().equals(value)) {
+			returnType = type;
+			context.pop();
+			data.preInc = true;
+		}
+		
+		if(getReturnType().canUseShortOperator()) {
 			
 			Operation notCastedValue;
 			
-			if(originalValue instanceof CastOperation) {
-				data.castOperation = (CastOperation)originalValue;
-				notCastedValue = data.castOperation.getOperand();
-				setProbableType(data.castOperation.getReturnType());
+			if(value instanceof CastOperation castOperation) {
+				data.castOperation = castOperation;
+				notCastedValue = castOperation.getOperand();
+				setProbableType(castOperation.getReturnType());
 				
 			} else {
-				notCastedValue = originalValue;
-			}
-			
-			if(!context.hasBreakAtCurrentIndex() && !context.stack.empty() && context.stack.peek().equals(originalValue)) {
-				returnType = type;
-				context.stack.pop();
-				data.preInc = true;
+				notCastedValue = value;
 			}
 			
 			
 			if(notCastedValue instanceof BinaryOperatorOperation binaryOperator) {
 				
-				Operation operand1 = binaryOperator.operand1().original();
+				Operation operand1 = binaryOperator.operand1();
 				
 				if(isLoadOperation(operand1)) {
 					
@@ -75,22 +75,20 @@ public interface IncrementableOperation {
 						
 						if(!context.hasBreakAtCurrentIndex()) {
 							
-							if(!data.preInc && !context.stack.empty() && context.stack.peek().equals(operand1)) {
+							if(!data.preInc && !context.stackEmpty() && context.peek().equals(operand1)) {
 								returnType = type;
-								context.stack.pop();
+								context.pop();
 								
 							} else if(data.shortInc) {
 								
-								context.stack.onNextPush(operation -> {
-									
-									operation = operation.original();
+								context.onNextPush(operation -> {
 									
 									if(isLoadOperation(operation)) {
-										setReturnType(getReturnTypeFor(operation));
+										setReturnType(operation.getReturnType());
 										data.preInc = true;
 										
 										Operation self = (Operation)this;
-										context.stack.push(self);
+										context.push(self);
 										context.currentScope().remove(self);
 										return false;
 									}

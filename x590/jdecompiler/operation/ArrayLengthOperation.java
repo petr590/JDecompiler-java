@@ -10,7 +10,7 @@ public class ArrayLengthOperation extends IntOperation {
 	private final Operation array;
 	
 	public ArrayLengthOperation(DecompilationContext context) {
-		this.array = context.stack.popAsNarrowest(ArrayType.ANY_ARRAY);
+		this.array = context.popAsNarrowest(ArrayType.ANY_ARRAY);
 	}
 	
 	@Override

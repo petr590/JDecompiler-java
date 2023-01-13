@@ -10,7 +10,7 @@ public class PopOperation extends VoidOperation {
 	public final Operation value;
 	
 	public PopOperation(TypeSize size, DecompilationContext context) {
-		this.value = context.stack.popWithSize(size);
+		this.value = context.popWithSize(size);
 	}
 	
 	@Override

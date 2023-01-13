@@ -14,7 +14,7 @@ public class InstanceofOperation extends BooleanOperation {
 	
 	public InstanceofOperation(DecompilationContext context, int index) {
 		this.clazz = context.pool.getClassConstant(index).toReferenceType();
-		this.object = context.stack.popAsNarrowest(Types.ANY_OBJECT_TYPE);
+		this.object = context.popAsNarrowest(Types.ANY_OBJECT_TYPE);
 	}
 	
 	@Override
@@ -24,6 +24,11 @@ public class InstanceofOperation extends BooleanOperation {
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-		out.print(object, context).print(" instanceof ").print(clazz, context.classinfo);
+		out.printPrioritied(this, object, context, Associativity.LEFT).print(" instanceof ").print(clazz, context.classinfo);
+	}
+	
+	@Override
+	public int getPriority() {
+		return Priority.INSTANCEOF;
 	}
 }

@@ -37,8 +37,8 @@ public class ElseScope extends Scope {
 	
 	@Override
 	public void finalizeScope(DecompilationContext context) {
-		if(ifScope.isEmpty() && this.isEmpty() && context.stack.size() >= 2) {
-			context.stack.push(new TernaryOperatorOperation(ifScope.getCondition(), context));
+		if(ifScope.isEmpty() && this.isEmpty() && context.stackSize() >= 2) {
+			context.push(new TernaryOperatorOperation(ifScope.getCondition(), context));
 			this.remove();
 			ifScope.remove();
 		}

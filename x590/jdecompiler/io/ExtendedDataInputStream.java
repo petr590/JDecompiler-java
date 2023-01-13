@@ -5,6 +5,8 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
@@ -193,14 +195,25 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 	}
 	
 	public <T> ArrayList<T> readArrayList(Supplier<T> elementSupplier) {
-		int length = readUnsignedShort();
-		
+		return readArrayList(readUnsignedShort(), elementSupplier);
+	}
+	
+	public <T> ArrayList<T> readArrayList(int length, Supplier<T> elementSupplier) {
 		ArrayList<T> list = new ArrayList<>(length);
 		
 		for(int i = 0; i < length; i++)
 			list.add(elementSupplier.get());
 		
 		return list;
+	}
+
+	
+	public <T> List<T> readImmutableList(Supplier<T> elementSupplier) {
+		return Collections.unmodifiableList(readArrayList(elementSupplier));
+	}
+	
+	public <T> List<T> readImmutableList(int length, Supplier<T> elementSupplier) {
+		return Collections.unmodifiableList(readArrayList(length, elementSupplier));
 	}
 	
 	

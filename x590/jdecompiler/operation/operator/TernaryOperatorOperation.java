@@ -19,8 +19,8 @@ public class TernaryOperatorOperation extends ReturnableOperation {
 	public TernaryOperatorOperation(ConditionOperation condition, DecompilationContext context) {
 		super(PrimitiveType.VOID);
 		this.condition = condition;
-		this.operand2 = context.stack.pop();
-		this.operand1 = context.stack.pop();
+		this.operand2 = context.pop();
+		this.operand1 = context.pop();
 		
 		returnType = operand1.getReturnTypeAsGeneralNarrowest(operand2);
 	}

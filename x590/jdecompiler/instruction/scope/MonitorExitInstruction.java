@@ -12,7 +12,7 @@ public class MonitorExitInstruction extends ScopeInstruction {
 	
 	@Override
 	public Scope toScope(DecompilationContext context) {
-		Operation value = context.stack.popAsNarrowest(Types.ANY_OBJECT_TYPE);
+		Operation value = context.popAsNarrowest(Types.ANY_OBJECT_TYPE);
 		
 		if(value instanceof ALoadOperation aloadOperation) {
 			aloadOperation.remove();

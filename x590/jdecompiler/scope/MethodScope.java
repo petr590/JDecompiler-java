@@ -61,7 +61,7 @@ public class MethodScope extends Scope {
 			for(Type argType : descriptor.arguments) {
 				addLocalVariable(variableCreator.apply(argType, i).define());
 				
-				if(argType.getSize() == TypeSize.EIGHT_BYTES) {
+				if(argType.getSize() == TypeSize.LONG) {
 					addLocalVariable(emptyVar);
 					i++;
 				}

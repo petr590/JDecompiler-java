@@ -15,7 +15,7 @@ public final class LongType extends PrimitiveType {
 	
 	@Override
 	public TypeSize getSize() {
-		return TypeSize.EIGHT_BYTES;
+		return TypeSize.LONG;
 	}
 	
 	@Override

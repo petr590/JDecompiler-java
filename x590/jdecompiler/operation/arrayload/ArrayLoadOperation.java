@@ -5,6 +5,7 @@ import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.ArrayType;
+import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 
 public abstract class ArrayLoadOperation extends Operation {
@@ -13,15 +14,23 @@ public abstract class ArrayLoadOperation extends Operation {
 	private final Type elementType;
 	
 	public ArrayLoadOperation(ArrayType requiredType, DecompilationContext context) {
-		this.index = context.stack.pop();
-		this.array = context.stack.pop();
+		this.index = context.popAsNarrowest(PrimitiveType.INT);
+		this.array = context.pop();
 		
 		this.elementType = array.getReturnTypeAsNarrowest(requiredType).getElementType();
 	}
 	
+	public Operation getArray() {
+		return array;
+	}
+	
+	public Operation getIndex() {
+		return index;
+	}
+	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-		out.print(array, context).print('[').print(index, context).print(']');
+		out.printPrioritied(this, array, context, Associativity.LEFT).print('[').print(index, context).print(']');
 	}
 	
 	@Override

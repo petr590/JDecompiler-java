@@ -6,18 +6,17 @@ import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.IncrementableOperation;
 import x590.jdecompiler.operation.Operation;
+import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 
 public abstract class PutFieldOperation extends FieldOperation implements IncrementableOperation {
 	
-	protected final Operation value;
-	
-	protected Type returnType;
-	
-	protected IncrementData incData;
+	private final Operation value;
+	private Type returnType = PrimitiveType.VOID;
+	private IncrementData incData;
 	
 	private Operation getValue(DecompilationContext context) {
-		Operation value = context.stack.popAsNarrowest(descriptor.type);
+		Operation value = context.popAsNarrowest(descriptor.type);
 		value.addVariableName(descriptor.name);
 		value.allowImplicitCast();
 		return value;
@@ -33,16 +32,15 @@ public abstract class PutFieldOperation extends FieldOperation implements Increm
 		this.value = getValue(context);
 	}
 	
+	public Operation getValue() {
+		return value;
+	}
+	
 	// Мы должны вызвать этот код только после popObject, поэтому он вызывается в дочернем инициализаторе
-	public void initIncData(DecompilationContext context) {
+	void initIncData(DecompilationContext context) {
 		this.incData = IncrementableOperation.super.init(context, value, descriptor.type);
 	}
 	
-	
-	@Override
-	public boolean canIncrement() {
-		return descriptor.type.isPrimitive();
-	}
 	
 	@Override
 	public boolean isLoadOperation(Operation operation) {
@@ -52,11 +50,6 @@ public abstract class PutFieldOperation extends FieldOperation implements Increm
 	@Override
 	public void setReturnType(Type returnType) {
 		this.returnType = returnType;
-	}
-	
-	@Override
-	public Type getReturnTypeFor(Operation operation) {
-		return ((GetFieldOperation)operation).descriptor.type;
 	}
 	
 	
