@@ -85,7 +85,19 @@ public abstract class Operation implements Importable {
 	}
 	
 	/** Разрешает опустить явное преобразование */
-	public void allowImplicitCast() {}
+	public final void allowImplicitCast() {
+		setImplicitCast(true);
+	}
+	
+	/** Запрещает опустить явное преобразование */
+	public final void denyImplicitCast() {
+		setImplicitCast(false);
+	}
+	
+	protected void setImplicitCast(boolean implicitCast) {}
+	
+	/** Убирает неявное объявление массива при вызове метода с varargs */
+	public void inlineVarargs() {}
 	
 	/** Нужно для {@link ConstOperation} */
 	@RemoveIfNotUsed

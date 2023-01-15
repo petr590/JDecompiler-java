@@ -1,4 +1,4 @@
-package x590.jdecompiler.operation.anew;
+package x590.jdecompiler.operation.array;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.context.DecompilationContext;

@@ -10,10 +10,13 @@ public class UncertainReferenceType extends SpecialType {
 	
 	private final ReferenceType widestType;
 	private final @Nullable ReferenceType narrowestType;
+	private final String encodedName;
 	
 	public UncertainReferenceType(ReferenceType widestType, @Nullable ReferenceType narrowestType) {
 		this.widestType = widestType;
 		this.narrowestType = narrowestType;
+		this.encodedName = "UncertainClassType:" + widestType.getClassEncodedName() + ":" +
+				(narrowestType == null ? "null" : narrowestType.getClassEncodedName());
 	}
 	
 	public UncertainReferenceType(ReferenceType widestType) {
@@ -33,8 +36,7 @@ public class UncertainReferenceType extends SpecialType {
 	
 	@Override
 	public String getEncodedName() {
-		return "UncertainClassType:" + widestType.getClassEncodedName() + ":" +
-				(narrowestType == null ? "null" : narrowestType.getClassEncodedName());
+		return encodedName;
 	}
 	
 	@Override
@@ -71,7 +73,7 @@ public class UncertainReferenceType extends SpecialType {
 	
 	
 	private Type castImpl0(Type other, boolean widest) {
-		if(this == other)
+		if(this.equals(other))
 			return this;
 		
 		if(other.isBasicReferenceType()) {

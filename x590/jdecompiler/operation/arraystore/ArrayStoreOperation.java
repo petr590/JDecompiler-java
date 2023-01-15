@@ -6,8 +6,8 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.IncrementableOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.ReturnableOperation;
+import x590.jdecompiler.operation.array.NewArrayOperation;
 import x590.jdecompiler.operation.constant.IConstOperation;
-import x590.jdecompiler.operation.anew.NewArrayOperation;
 import x590.jdecompiler.operation.arrayload.ArrayLoadOperation;
 import x590.jdecompiler.type.ArrayType;
 import x590.jdecompiler.type.PrimitiveType;
@@ -29,7 +29,7 @@ public abstract class ArrayStoreOperation extends ReturnableOperation implements
 		value.castReturnTypeToNarrowest(elementType);
 		
 		if(array instanceof NewArrayOperation newArray && index instanceof IConstOperation iconst
-				&& newArray.addToInitializer(this, iconst)) {
+				&& newArray.addToInitializer(value, iconst)) {
 			this.remove();
 		}
 		

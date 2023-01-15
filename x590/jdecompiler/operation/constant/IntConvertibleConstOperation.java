@@ -14,7 +14,7 @@ public abstract class IntConvertibleConstOperation extends ConstOperation {
 	public abstract Type getImplicitType();
 	
 	@Override
-	public void allowImplicitCast() {
-		implicit = true;
+	protected void setImplicitCast(boolean implicit) {
+		this.implicit = implicit;
 	}
 }

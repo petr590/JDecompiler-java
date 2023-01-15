@@ -7,6 +7,7 @@ import x590.util.Util;
 public abstract class Modifiers {
 	
 	public static final int
+			ACC_NONE         = 0x0000,
 			ACC_VISIBLE      = 0x0000, // class, field, method
 			ACC_PUBLIC       = 0x0001, // class, field, method
 			ACC_PRIVATE      = 0x0002, // nested class, field, method

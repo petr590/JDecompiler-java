@@ -55,8 +55,8 @@ public class CastOperation extends Operation {
 	
 	
 	@Override
-	public void allowImplicitCast() {
-		implicitCastAllowed = true;
+	protected void setImplicitCast(boolean implicitCastAllowed) {
+		this.implicitCastAllowed = implicitCastAllowed;
 	}
 	
 	@Override

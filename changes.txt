@@ -1,16 +1,4 @@
-Added signature in throws (in java, you can specify a generic in the throws attribute)
-Fixed reading of the type PrimitiveType.VOID in the Type.parseReferenceType(ExtendedStringReader) method
+Fixed the call of the `this` constructor in enums.
+Fixed a bug with decompilation of abstract methods (the `abstract` modifier was not output).
 
-Fixed the ArrayLoadOperation - added conversion of the index to the int type
-
-The dup instructions have been redesigned - now we don't create DupOperation, but duplicate the value directly,
-so it's easier and you don't have to write operation.original() everywhere.
-
-The constants were renamed to enum Type Size: ZERO_BYTES to VOID, FOUR_BYTES to WORD, EIGHT_BYTES to LONG.
-
-Fixed initialization of arrays (the eclipse compiler does not assign null and 0 to arrays during initialization).
-
-Added increment and shortened operators for array elements.
-
-The call to the print method has been replaced with printPriotitied in the GetInstanceFieldOperation, PutInstanceFieldOperation classes,
-Instance of Operation, CompareWithNullOperation
+Added array inlining in varargs methods (only if there is no other method with the same number of arguments. If the class is unavailable, the array is not inline).

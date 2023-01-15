@@ -4,7 +4,7 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.instruction.Instruction;
 import x590.jdecompiler.operation.Operation;
-import x590.jdecompiler.operation.anew.NewArrayOperation;
+import x590.jdecompiler.operation.array.NewArrayOperation;
 import x590.jdecompiler.type.ArrayType;
 import x590.util.Util;
 

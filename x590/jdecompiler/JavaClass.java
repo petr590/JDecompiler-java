@@ -286,7 +286,7 @@ public class JavaClass extends JavaClassElement {
 			str.append("strictfp");
 		
 		switch(modifiers.and(ACC_FINAL | ACC_ABSTRACT | ACC_INTERFACE | ACC_ANNOTATION | ACC_ENUM)) {
-			case 0 ->
+			case ACC_NONE ->
 				str.append("class");
 			case ACC_FINAL ->
 				str.append("final class");

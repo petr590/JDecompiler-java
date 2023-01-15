@@ -62,7 +62,7 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 	
 	
 	public boolean defineVariable() {
-		if(incData.operator == null) {
+		if(incData.getOperator() == null) {
 			variable.define();
 			varDefined = true;
 		}

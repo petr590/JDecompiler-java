@@ -181,10 +181,11 @@ public class JavaMethod extends JavaClassElement {
 	private IWhitespaceStringBuilder modifiersToString(ClassInfo classinfo) {
 		
 		if(descriptor.isStaticInitializer()) {
-			if(modifiers.getValue() == ACC_STATIC)
+			if(modifiers.getValue() == ACC_STATIC) {
 				return WhitespaceStringBuilder.empty();
-			
-			throw new IllegalModifiersException("Static initializer must have only static modifier");
+			} else {
+				throw new IllegalModifiersException("Static initializer must have only static modifier");
+			}
 		}
 		
 		IWhitespaceStringBuilder str = new WhitespaceStringBuilder().printTrailingSpace();
@@ -196,12 +197,12 @@ public class JavaMethod extends JavaClassElement {
 			case ACC_VISIBLE -> {}
 			
 			case ACC_PUBLIC -> { // Все нестатические методы интерфейса по умолчанию имеют модификатор public, поэтому в этом случае нам не нужно выводить public
-				if(classModifiers.isNotInterface() || classModifiers.isPublic() || modifiers.isStatic())
+				if(JDecompiler.getInstance().printImplicitModifiers() || classModifiers.isNotInterface())
 					str.append("public");
 			}
 			
 			case ACC_PRIVATE -> { // Конструкторы Enum по умолчанию имеют модификатор private, поэтому нам не нужно выводить private
-				if(!(classModifiers.isEnum() && descriptor.isConstructor() && descriptor.clazz.equals(classinfo.thisType)))
+				if(JDecompiler.getInstance().printImplicitModifiers() || !(classModifiers.isEnum() && descriptor.isConstructor() && descriptor.clazz.equals(classinfo.thisType)))
 					str.append("private");
 			}
 			
@@ -222,7 +223,7 @@ public class JavaMethod extends JavaClassElement {
 			if(modifiers.isAny(ACC_STATIC | ACC_FINAL | ACC_SYNCHRONIZED | ACC_NATIVE | ACC_STRICT))
 				throw new IllegalModifiersException(modifiers);
 			
-			if(classModifiers.isInterface())
+			if(classModifiers.isNotInterface())
 				str.append("abstract");
 			
 		} else {

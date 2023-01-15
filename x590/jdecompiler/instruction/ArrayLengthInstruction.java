@@ -1,8 +1,8 @@
 package x590.jdecompiler.instruction;
 
 import x590.jdecompiler.context.DecompilationContext;
-import x590.jdecompiler.operation.ArrayLengthOperation;
 import x590.jdecompiler.operation.Operation;
+import x590.jdecompiler.operation.array.ArrayLengthOperation;
 
 public class ArrayLengthInstruction extends Instruction {
 	

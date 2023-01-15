@@ -2,6 +2,7 @@ package x590.jdecompiler.operation.invoke;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.context.DecompilationContext;
@@ -9,33 +10,32 @@ import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.Priority;
-import x590.jdecompiler.operation.constant.EmptyStringConstOperation;
 import x590.jdecompiler.operation.constant.StringConstOperation;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
 import x590.util.Util;
 
 public final class ConcatStringsOperation extends InvokeOperation {
+
+	private final LinkedList<Operation> operands;
 	
-	protected final StringConstOperation pattern;
-	
-	protected final List<Operation> operands;
+	// Должно вызываться после сведения типов, поэтому реализовано через функцию
+	private BooleanSupplier canOmitEmptyStringFunc = () -> false;
 	
 	public ConcatStringsOperation(DecompilationContext context, MethodDescriptor concater,
 				StringConstOperation pattern, List<Operation> staticArguments) {
 		
 		super(context, concater, true);
 		
-		this.pattern = pattern;
-		
 		String patternStr = pattern.getValue();
 		
-		var arg = arguments.descendingIterator();
+		var arg = arguments.iterator();
 		var staticArg = staticArguments.iterator();
 		
 		StringBuilder str = new StringBuilder();
 		
-		this.operands = new LinkedList<>();
+		LinkedList<Operation> operands = new LinkedList<>();
+		this.operands = operands;
 		
 		for(int i = 0, length = patternStr.length(); i < length; i++) {
 			char ch = patternStr.charAt(i);
@@ -59,21 +59,34 @@ public final class ConcatStringsOperation extends InvokeOperation {
 		
 		if(!str.isEmpty())
 			operands.add(new StringConstOperation(str.toString()));
-		
-		insertEmptyStringIfNecessary();
 	}
 	
-	protected void insertEmptyStringIfNecessary() {
-		if((operands.size() == 1 && !operands.get(0).getReturnType().equals(ClassType.STRING)) ||
-			(operands.size() > 1 && !operands.get(0).getReturnType().equals(ClassType.STRING) &&
-					!operands.get(1).getReturnType().equals(ClassType.STRING))) {
+	
+	public Operation getFirstOperand() {
+		return operands.getFirst();
+	}
+	
+	public void removeFirstOperand() {
+		operands.removeFirst();
+	}
+	
+	public void setCanOmitEmptyStringFunc(BooleanSupplier canOmitEmptyStringFunc) {
+		this.canOmitEmptyStringFunc = canOmitEmptyStringFunc;
+	}
+	
+	
+	private void writeEmptyStringIfNecessary(StringifyOutputStream out) {
+		if((operands.size() == 1 && !canOmitEmptyStringFunc.getAsBoolean() || operands.size() > 1 && !operands.get(1).getReturnType().equals(ClassType.STRING))
+				&& !operands.getFirst().getReturnType().equals(ClassType.STRING)) {
 			
-			operands.add(0, EmptyStringConstOperation.INSTANCE);
+			out.write("\"\" + ");
 		}
 	}
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
+		writeEmptyStringIfNecessary(out);
+		
 		Util.forEachExcludingLast(operands,
 				operation -> out.writePrioritied(this, operation, context, Associativity.RIGHT),
 				operation -> out.write(" + "));

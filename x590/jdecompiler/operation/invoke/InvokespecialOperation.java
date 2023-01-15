@@ -6,7 +6,7 @@ import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
-import x590.jdecompiler.operation.anew.NewOperation;
+import x590.jdecompiler.operation.array.NewOperation;
 import x590.jdecompiler.operation.load.ALoadOperation;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.PrimitiveType;
@@ -73,6 +73,11 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 		} else {
 			super.writeTo(out, context);
 		}
+	}
+	
+	@Override
+	protected int skipArguments() {
+		return descriptor.isConstructor() && isEnum ? MethodDescriptor.IMPLICIT_ENUM_ARGUMENTS : 0;
 	}
 	
 	@Override

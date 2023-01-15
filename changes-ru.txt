@@ -1,16 +1,4 @@
-Добавлена сигнатура в throws (в джаве можно указать дженерик в атрибуте throws)
-Исправлено чтение типа PrimitiveType.VOID в методе Type.parseReferenceType(ExtendedStringReader)
+Исправлен вызов конструктора this в enum-ах.
+Исправлен баг с декомпиляцией абстрактных методов (модификатор abstract не выводился).
 
-Исправлена операция ArrayLoadOperation - добавлено приведение индекса к типу int
-
-Переработаны инструкции dup - теперь мы не создаём DupOperation, а дублируем значение напрямую,
-так проще и не надо писать везде operation.original().
-
-Переименованы константы в enum-е TypeSize: ZERO_BYTES в VOID, FOUR_BYTES в WORD, EIGHT_BYTES в LONG.
-
-Исправлена инициализация массивов (компилятор eclipse не присваивает null и 0 в массивы при инициализации).
-
-Добавлен инкремент и укороченные операторы для элементов массива.
-
-Вызов метода print заменён на printPriotitied в классах GetInstanceFieldOperation, PutInstanceFieldOperation,
-InstanceofOperation, CompareWithNullOperation
+Добавлен инлайнинг массива в varargs методах (только при условии, что нет другого метода с таким же числом аргументов. Если класс недоступен, массив не инлайнится).

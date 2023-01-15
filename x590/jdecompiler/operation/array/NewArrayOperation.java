@@ -1,4 +1,4 @@
-package x590.jdecompiler.operation.anew;
+package x590.jdecompiler.operation.array;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +24,7 @@ public class NewArrayOperation extends Operation {
 	private final Operation[] lengths;
 	private final int length;
 	private final List<Operation> initializers = new ArrayList<>();
+	private boolean varargsInlined;
 	
 	public NewArrayOperation(DecompilationContext context, int index) {
 		this(context, context.pool.getClassConstant(index).toArrayType());
@@ -58,6 +59,10 @@ public class NewArrayOperation extends Operation {
 		return arrayType;
 	}
 	
+	public int getLength() {
+		return length;
+	}
+	
 	private void fillInitializersWithZeros(int toIndex) {
 		for(int i = initializers.size(); i < toIndex; i++) {
 			initializers.add(arrayType.getElementType().isPrimitive() ? ZeroConstOperation.INSTANCE : AConstNullOperation.INSTANCE);
@@ -69,6 +74,7 @@ public class NewArrayOperation extends Operation {
 		
 		if(index >= 0 && (length == -1 || index < length)) {
 			fillInitializersWithZeros(index);
+			operation.allowImplicitCast();
 			initializers.add(operation);
 			return true;
 		}
@@ -76,15 +82,29 @@ public class NewArrayOperation extends Operation {
 		return false;
 	}
 	
+	@Override
+	public void inlineVarargs() {
+		if(canInitAsList()) {
+			varargsInlined = true;
+			initializers.forEach(Operation::denyImplicitCast);
+		}
+	}
 	
-	private boolean canInitAsList() {
+	
+	public boolean canInitAsList() {
 		return !initializers.isEmpty() || ((lengths.length == 1 || (lengths.length > 1 && lengths[1] == null)) && length == 0);
 	}
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-		if(canInitAsList())
+		if(varargsInlined) {
+			Util.forEachExcludingLast(initializers, element -> element.writeTo(out, context), element -> out.write(", "));
+			return;
+		}
+		
+		if(canInitAsList()) {
 			out.print("new ").print(arrayType, context.classinfo).printsp();
+		}
 		
 		writeAsArrayInitializer(out, context);
 	}

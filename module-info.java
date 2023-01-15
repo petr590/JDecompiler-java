@@ -17,7 +17,7 @@ module x590.jdecompiler {
 	exports x590.jdecompiler.operation.field;
 	exports x590.jdecompiler.operation.constant;
 	exports x590.jdecompiler.operation.invoke;
-	exports x590.jdecompiler.operation.anew;
+	exports x590.jdecompiler.operation.array;
 	exports x590.jdecompiler.operation.operator;
 	exports x590.jdecompiler.operation.arrayload;
 	exports x590.jdecompiler.operation.cmp;

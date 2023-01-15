@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import x590.jdecompiler.attribute.Attributes;
@@ -15,12 +16,18 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.modifiers.ClassModifiers;
 import x590.jdecompiler.type.ClassType;
+import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.util.IntegerConstants;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
 // @Immutable
 public class ClassInfo {
+	
+	
+	private static final Map<ReferenceType, ClassInfo> INSTANCES = new HashMap<>();
+	
 	
 	public final JavaClass clazz;
 	
@@ -48,13 +55,18 @@ public class ClassInfo {
 		this.superType = superType;
 		this.interfaces = interfaces;
 		imports.put(thisType, Integer.MAX_VALUE / 2);
+		
+		INSTANCES.put(thisType, this);
 	}
 	
-	private static final Integer ZERO = 0;
+	public static @Nullable ClassInfo findClassInfo(ReferenceType clazz) {
+		return INSTANCES.get(clazz);
+	}
+	
 	
 	public void addImport(ClassType clazz) {
 		ClassType rawClass = clazz.getRawType();
-		imports.put(rawClass, imports.getOrDefault(rawClass, ZERO) + 1);
+		imports.put(rawClass, imports.getOrDefault(rawClass, IntegerConstants.ZERO) + 1);
 		
 		clazz.addImportsForSignature(this);
 	}
@@ -144,11 +156,24 @@ public class ClassInfo {
 	}
 	
 	public Optional<JavaMethod> findMethod(MethodDescriptor descriptor) {
-		return clazz.getMethods().stream().filter(method -> method.descriptor.equals(descriptor)).findAny();
+		return findMethod(method -> method.descriptor.equals(descriptor));
 	}
 	
 	public boolean hasMethod(MethodDescriptor descriptor) {
-		return clazz.getMethods().stream().anyMatch(method -> method.descriptor.equals(descriptor));
+		return hasMethod(method -> method.descriptor.equals(descriptor));
+	}
+	
+	
+	public JavaMethod getMethod(Predicate<JavaMethod> predicate) {
+		return findMethod(predicate).orElseThrow(() -> new NoSuchMethodException());
+	}
+	
+	public Optional<JavaMethod> findMethod(Predicate<JavaMethod> predicate) {
+		return clazz.getMethods().stream().filter(predicate).findAny();
+	}
+	
+	public boolean hasMethod(Predicate<JavaMethod> predicate) {
+		return clazz.getMethods().stream().anyMatch(predicate);
 	}
 	
 	

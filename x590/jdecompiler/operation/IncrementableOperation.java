@@ -3,8 +3,10 @@ package x590.jdecompiler.operation;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.operation.invoke.ConcatStringsOperation;
 import x590.jdecompiler.operation.operator.BinaryOperatorOperation;
 import x590.jdecompiler.operation.operator.XorOperatorOperation;
+import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 
@@ -14,10 +16,35 @@ public interface IncrementableOperation {
 	 * и множественное наследование не поддерживается в Java,
 	 * все поля будут в этом классе. */
 	public static class IncrementData {
-		public Operation operatorOperand;
-		public CastOperation castOperation;
-		public boolean shortInc, preInc;
-		public String operator;
+		private Operation operatorOperand;
+		private CastOperation castOperation;
+		private boolean shortInc, preInc;
+		private String operator;
+		private Operation stringLoadOperation;
+
+		public Operation getOperatorOperand() {
+			return operatorOperand;
+		}
+		
+		public CastOperation getCastOperation() {
+			return castOperation;
+		}
+		
+		public boolean isShortInc() {
+			return shortInc;
+		}
+		
+		public boolean isPreInc() {
+			return preInc;
+		}
+		
+		public String getOperator() {
+			return operator;
+		}
+		
+		public Operation getStringLoadOperation() {
+			return stringLoadOperation;
+		}
 	}
 	
 	public static boolean canUseShortOperatorFor(Type type) {
@@ -103,6 +130,19 @@ public interface IncrementableOperation {
 						data.operatorOperand = null;
 					}
 				}
+				
+			} else if(value instanceof ConcatStringsOperation concatStrings) {
+				
+				Operation loadOperation = concatStrings.getFirstOperand();
+				
+				if(isLoadOperation(loadOperation)) {
+					concatStrings.removeFirstOperand();
+					concatStrings.setCanOmitEmptyStringFunc(() -> loadOperation.getReturnType().equals(ClassType.STRING));
+					
+					data.operator = "+";
+					data.operatorOperand = concatStrings;
+					data.stringLoadOperation = loadOperation;
+				}
 			}
 			
 			if(data.operatorOperand != null)
@@ -126,14 +166,21 @@ public interface IncrementableOperation {
 		
 		writeName(out, context);
 		
+		Operation stringLoadOperation = data.stringLoadOperation;
+		
 		if(operator != null && (data.castOperation == null ||
-				type == PrimitiveType.VOID || type.isSubtypeOf(data.castOperation.getReturnType()))) {
+				type == PrimitiveType.VOID || type.isSubtypeOf(data.castOperation.getReturnType())) &&
+				(stringLoadOperation == null || stringLoadOperation.getReturnType().equalsOneOf(ClassType.OBJECT, ClassType.STRING))) {
 			
 			if(data.shortInc) {
 				out.print(operator).print(operator);
 			} else {
 				out.printsp().print(operator).printsp('=').print(data.operatorOperand, context);
 			}
+			
+		} else if(stringLoadOperation != null) {
+			out.print(" = ").print(stringLoadOperation, context).print(" + ");
+			writeValue(out, context);
 			
 		} else {
 			out.write(" = ");

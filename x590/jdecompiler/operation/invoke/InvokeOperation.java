@@ -2,8 +2,10 @@ package x590.jdecompiler.operation.invoke;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
 import java.util.regex.Pattern;
 
+import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
@@ -11,6 +13,9 @@ import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.OperationWithDescriptor;
+import x590.jdecompiler.operation.array.NewArrayOperation;
+import x590.jdecompiler.type.ClassType;
+import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
 import x590.util.Util;
 
@@ -25,7 +30,14 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 		Deque<Operation> arguments = new ArrayDeque<>(length);
 		
 		for(int i = length; i > 0; ) {
-			arguments.addFirst(context.popAsNarrowest(descriptor.arguments.get(--i)));
+			Type argType = descriptor.arguments.get(--i);
+			Operation argument = context.popAsNarrowest(argType);
+			
+			if(argType.isBasicReferenceType() && !argType.equals(ClassType.OBJECT)) {
+				argument = argument.castIfNull((ReferenceType)argType);
+			}
+			
+			arguments.addFirst(argument);
 		}
 		
 		return arguments;
@@ -59,6 +71,27 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 		
 		this.arguments = popArguments(context);
 		this.isStatic = isStatic;
+		
+		
+		List<Type> argTypes = descriptor.arguments;
+		
+		if(!argTypes.isEmpty() && argTypes.get(argTypes.size() - 1).isBasicArrayType()) {
+			
+			ClassInfo otherClassinfo = ClassInfo.findClassInfo(descriptor.clazz);
+			
+			Operation lastOperation = arguments.getLast();
+			
+			if(lastOperation instanceof NewArrayOperation varargsArray && varargsArray.canInitAsList()) {
+				var name = descriptor.name;
+				var argumentsCount = arguments.size() - 1 + varargsArray.getLength();
+				
+				if(otherClassinfo != null && !otherClassinfo.hasMethod(
+						method -> method.descriptor != descriptor && method.descriptor.name.equals(name) && method.descriptor.arguments.size() == argumentsCount)) {
+					
+					arguments.getLast().inlineVarargs();
+				}
+			}
+		}
 	}
 	
 	protected boolean canInvokeConstructor() {
@@ -85,8 +118,12 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 	
 	protected void writeArguments(StringifyOutputStream out, StringifyContext context) {
 		out.write('(');
-		Util.forEachExcludingLast(arguments, arg -> out.write(arg, context), arg -> out.write(", "));
+		Util.forEachExcludingLast(arguments, arg -> out.write(arg, context), arg -> out.write(", "), skipArguments());
 		out.write(')');
+	}
+	
+	protected int skipArguments() {
+		return 0;
 	}
 	
 	@Override

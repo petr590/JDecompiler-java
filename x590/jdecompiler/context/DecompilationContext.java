@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
@@ -61,7 +60,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 			startScopes(index);
 			
 			
-			Logger.debugf("Stack: %d [%s]", index, stack.stream().map(operation -> operation.getClass().getSimpleName() + operation.getReturnType() + "]").collect(Collectors.joining(", ")));
+//			Logger.debugf("Stack: %d [%s]", index, stack.stream().map(operation -> operation.getClass().getSimpleName() + operation.getReturnType() + "]").collect(Collectors.joining(", ")));
 
 
 			expressionIndexTable[index] = expressionIndex;

@@ -1,6 +1,7 @@
 package x590.jdecompiler.type;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -223,14 +224,27 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 		return this == other || (this.getClass() == other.getClass() && this.getEncodedName().equals(other.getEncodedName()));
 	}
 	
-	/** Сравнивает типы без учёта сигнатуры */
-	public boolean baseEquals(Type other) {
-		return equals(other);
-	}
-	
 	@Override
 	public final int hashCode() {
 		return this.getEncodedName().hashCode();
+	}
+	
+	
+	public final boolean equalsOneOf(Type other1, Type other2) {
+		return this.equals(other1) || this.equals(other2);
+	}
+	
+	public final boolean equalsOneOf(Type other1, Type other2, Type other3) {
+		return this.equals(other1) || this.equals(other2) || this.equals(other3);
+	}
+	
+	public final boolean equalsOneOf(Type... others) {
+		return Arrays.stream(others).anyMatch(other -> this.equals(other));
+	}
+	
+	/** Сравнивает типы без учёта сигнатуры */
+	public boolean baseEquals(Type other) {
+		return this.equals(other);
 	}
 	
 	

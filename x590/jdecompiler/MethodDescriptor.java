@@ -35,6 +35,8 @@ import x590.util.annotation.Nullable;
 
 public class MethodDescriptor extends Descriptor implements Importable {
 	
+	public static final int IMPLICIT_ENUM_ARGUMENTS = 2;
+	
 	public final @Immutable List<Type> arguments;
 	public final Type returnType;
 	
@@ -128,14 +130,10 @@ public class MethodDescriptor extends Descriptor implements Importable {
 	public MethodDescriptor(ReferenceType clazz, ExtendedDataInputStream in, ConstantPool pool) {
 		this(clazz, pool.getUtf8String(in.readUnsignedShort()), pool.getUtf8String(in.readUnsignedShort()));
 	}
-
 	
-	public boolean isEnumConstructor(ClassInfo classinfo) {
-		return classinfo.modifiers.isEnum() && this.isConstructorOf(classinfo.thisType);
-	}
 	
 	int getVisibleStartIndex(ClassInfo classinfo) {
-		return isEnumConstructor(classinfo) ? 2 : 0;
+		return classinfo.modifiers.isEnum() && this.isConstructorOf(classinfo.thisType) ? IMPLICIT_ENUM_ARGUMENTS : 0;
 	}
 	
 	
@@ -176,7 +174,6 @@ public class MethodDescriptor extends Descriptor implements Importable {
 	
 	
 	private void writeArguments(StringifyOutputStream out, StringifyContext context, Attributes attributes, @Nullable MethodSignatureAttribute signature) {
-		out.write('(');
 		
 		var classinfo = context.classinfo;
 		
@@ -213,6 +210,7 @@ public class MethodDescriptor extends Descriptor implements Importable {
 					out.printsp(type, classinfo).print(getVariableName.apply(type));
 		}
 		
+		out.write('(');
 		
 		Util.forEachExcludingLast(signature != null ? signature.arguments : arguments,
 				(type, i) -> {
@@ -220,7 +218,7 @@ public class MethodDescriptor extends Descriptor implements Importable {
 					write.accept(type, i);
 				},
 				type -> out.write(", "),
-				0, startIndex);
+				signature == null ? startIndex : 0, startIndex);
 		
 		out.write(')');
 	}
