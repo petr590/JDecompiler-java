@@ -11,7 +11,7 @@ import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.Type;
 
-public class ConstantValueAttribute extends Attribute implements StringWritable {
+public final class ConstantValueAttribute extends Attribute implements StringWritable {
 	
 	public final int valueIndex;
 	public final ConstValueConstant value;

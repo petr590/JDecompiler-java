@@ -3,15 +3,16 @@ package x590.jdecompiler.operation.store;
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.IncrementableOperation;
 import x590.jdecompiler.operation.OperationWithVariable;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.operation.load.LoadOperation;
 import x590.jdecompiler.type.Type;
 
 public abstract class StoreOperation extends OperationWithVariable implements IncrementableOperation {
+	
 	private final int index;
 	private final Operation value;
 	
@@ -113,5 +114,11 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 	@Override
 	public int getPriority() {
 		return Priority.ASSIGNMENT;
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof StoreOperation operation &&
+				super.equals(operation) && value.equals(operation.value);
 	}
 }

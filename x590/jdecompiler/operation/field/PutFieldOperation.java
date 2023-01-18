@@ -3,9 +3,9 @@ package x590.jdecompiler.operation.field;
 import x590.jdecompiler.constpool.FieldrefConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.IncrementableOperation;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 
@@ -16,8 +16,8 @@ public abstract class PutFieldOperation extends FieldOperation implements Increm
 	private IncrementData incData;
 	
 	private Operation getValue(DecompilationContext context) {
-		Operation value = context.popAsNarrowest(descriptor.type);
-		value.addVariableName(descriptor.name);
+		Operation value = context.popAsNarrowest(descriptor.getType());
+		value.addVariableName(descriptor.getName());
 		value.allowImplicitCast();
 		return value;
 	}
@@ -38,7 +38,7 @@ public abstract class PutFieldOperation extends FieldOperation implements Increm
 	
 	// Мы должны вызвать этот код только после popObject, поэтому он вызывается в дочернем инициализаторе
 	void initIncData(DecompilationContext context) {
-		this.incData = IncrementableOperation.super.init(context, value, descriptor.type);
+		this.incData = IncrementableOperation.super.init(context, value, descriptor.getType());
 	}
 	
 	
@@ -60,7 +60,7 @@ public abstract class PutFieldOperation extends FieldOperation implements Increm
 	
 	@Override
 	public void writeName(StringifyOutputStream out, StringifyContext context) {
-		out.write(descriptor.name);
+		out.write(descriptor.getName());
 	}
 	
 	@Override
@@ -76,5 +76,11 @@ public abstract class PutFieldOperation extends FieldOperation implements Increm
 	@Override
 	public boolean requiresLocalContext() {
 		return value.requiresLocalContext();
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof PutFieldOperation operation &&
+				super.equals(operation) && value.equals(operation.value);
 	}
 }

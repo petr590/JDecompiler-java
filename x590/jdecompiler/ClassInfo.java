@@ -22,23 +22,25 @@ import x590.jdecompiler.util.IntegerConstants;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
-// @Immutable
-public class ClassInfo {
-	
+/** Представляет собой объект, через который хранит основную информацию о классе, а так же все импорты.
+ * Изначально появился из-за того, что в C++ нельзя использовать класс до его объявления, как в Java.
+ * Планируется добавление интерфейса для создания экземпляра ClassInfo из java.lang.Class
+ * без дополнительных танцов с бубном. */
+public final class ClassInfo {
 	
 	private static final Map<ReferenceType, ClassInfo> INSTANCES = new HashMap<>();
 	
+	private final JavaClass clazz;
 	
-	public final JavaClass clazz;
+	private final Version version;
+	private final ConstantPool pool;
+	private final ClassModifiers modifiers;
 	
-	public final Version version;
-	public final ConstantPool pool;
-	public final ClassModifiers modifiers;
-	
-	public final ClassType thisType, superType;
-	public final @Immutable List<ClassType> interfaces;
+	private final ClassType thisType, superType;
+	private final @Immutable List<ClassType> interfaces;
 	
 	private Attributes attributes;
+	private StringifyOutputStream out;
 	
 	private Map<ClassType, Integer> imports = new HashMap<>();
 	private boolean importsUniqued;
@@ -61,6 +63,46 @@ public class ClassInfo {
 	
 	public static @Nullable ClassInfo findClassInfo(ReferenceType clazz) {
 		return INSTANCES.get(clazz);
+	}
+	
+	
+	public Version getVersion() {
+		return version;
+	}
+	
+	public ConstantPool getConstPool() {
+		return pool;
+	}
+	
+	public ClassModifiers getModifiers() {
+		return modifiers;
+	}
+	
+	public ClassType getThisType() {
+		return thisType;
+	}
+	
+	public ClassType getSuperType() {
+		return superType;
+	}
+	
+	public List<ClassType> getInterfaces() {
+		return interfaces;
+	}
+	
+	public Attributes getAttributes() {
+		return attributes;
+	}
+	
+	void setAttributes(Attributes attributes) {
+		if(this.attributes != null)
+			throw new IllegalStateException("Attributes already setted");
+		
+		this.attributes = attributes;
+	}
+	
+	void setOutStream(StringifyOutputStream out) {
+		this.out = out;
 	}
 	
 	
@@ -106,7 +148,7 @@ public class ClassInfo {
 		boolean written = false;
 		
 		for(ClassType clazz : imports.keySet()) {
-			if(!clazz.getPackageName().isEmpty() && !clazz.getPackageName().equals("java.lang") && !clazz.getPackageName().equals(thisType.getPackageName())) {
+			if(!clazz.getPackageName().isEmpty() && !clazz.getPackageName().equals("java.lang") && !clazz.getPackageName().equals(getThisType().getPackageName())) {
 				out.printIndent().print("import ").print(clazz.getName()).println(';');
 				written = true;
 			}
@@ -134,11 +176,11 @@ public class ClassInfo {
 	}
 	
 	public Optional<JavaField> findField(FieldDescriptor descriptor) {
-		return clazz.getFields().stream().filter(field -> field.descriptor.equals(descriptor)).findAny();
+		return clazz.getFields().stream().filter(field -> field.getDescriptor().equals(descriptor)).findAny();
 	}
 	
 	public boolean hasField(FieldDescriptor descriptor) {
-		return clazz.getFields().stream().anyMatch(field -> field.descriptor.equals(descriptor));
+		return clazz.getFields().stream().anyMatch(field -> field.getDescriptor().equals(descriptor));
 	}
 	
 	
@@ -156,11 +198,11 @@ public class ClassInfo {
 	}
 	
 	public Optional<JavaMethod> findMethod(MethodDescriptor descriptor) {
-		return findMethod(method -> method.descriptor.equals(descriptor));
+		return findMethod(method -> method.getDescriptor().equals(descriptor));
 	}
 	
 	public boolean hasMethod(MethodDescriptor descriptor) {
-		return hasMethod(method -> method.descriptor.equals(descriptor));
+		return hasMethod(method -> method.getDescriptor().equals(descriptor));
 	}
 	
 	
@@ -177,22 +219,10 @@ public class ClassInfo {
 	}
 	
 	
-	protected void setAttributes(Attributes attributes) {
-		if(this.attributes != null)
-			throw new IllegalStateException("Attributes already setted");
-		
-		this.attributes = attributes;
+	public boolean hasMethodByDescriptor(Predicate<MethodDescriptor> predicate) {
+		return hasMethod(method -> predicate.test(method.getDescriptor()));
 	}
 	
-	public Attributes getAttributes() {
-		return attributes;
-	}
-	
-	private StringifyOutputStream out;
-	
-	public void setOutStream(StringifyOutputStream out) {
-		this.out = out;
-	}
 	
 	public void increaseIndent() {
 		out.increaseIndent();
@@ -216,7 +246,7 @@ public class ClassInfo {
 	
 	
 	public boolean canOmitClass(Descriptor descriptor) {
-		return JDecompiler.getInstance().canOmitThisClass() && descriptor.clazz.equals(thisType);
+		return JDecompiler.getInstance().canOmitThisClass() && descriptor.getDeclaringClass().equals(getThisType());
 	}
 	
 	
@@ -226,7 +256,7 @@ public class ClassInfo {
 		if(staticInitializerStringifyContext != null)
 			return staticInitializerStringifyContext;
 		
-		Optional<JavaMethod> staticInitializer = clazz.getMethods().stream().filter(method -> method.descriptor.isStaticInitializer()).findAny();
+		Optional<JavaMethod> staticInitializer = clazz.getMethods().stream().filter(method -> method.getDescriptor().isStaticInitializer()).findAny();
 		return staticInitializerStringifyContext = staticInitializer.isPresent() ? staticInitializer.get().getStringifyContext() : null;
 	}
 }

@@ -1,6 +1,7 @@
 package x590.jdecompiler.operation.condition;
 
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
 
 public abstract class BinaryConditionOperation extends ConditionOperation {
@@ -26,4 +27,11 @@ public abstract class BinaryConditionOperation extends ConditionOperation {
 	}
 	
 	protected abstract String getOperator();
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof BinaryConditionOperation operation &&
+				getOperator().equals(operation.getOperator()) &&
+				operand1.equals(operation.operand1) && operand2.equals(operation.operand2);
+	}
 }

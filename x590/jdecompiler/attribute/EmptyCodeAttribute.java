@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import x590.jdecompiler.context.DisassemblerContext;
 
-public class EmptyCodeAttribute extends CodeAttribute {
+public final class EmptyCodeAttribute extends CodeAttribute {
 	
 	public static final EmptyCodeAttribute INSTANCE = new EmptyCodeAttribute();
 	

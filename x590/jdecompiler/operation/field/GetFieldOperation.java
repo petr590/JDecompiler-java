@@ -18,11 +18,11 @@ public abstract class GetFieldOperation extends FieldOperation {
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-		out.write(descriptor.name);
+		out.write(descriptor.getName());
 	}
 	
 	@Override
 	public Type getReturnType() {
-		return descriptor.type;
+		return descriptor.getType();
 	}
 }

@@ -35,7 +35,7 @@ public class MethodScope extends Scope {
 		int i = 0;
 		
 		if(modifiers.isNotStatic()) {
-			addLocalVariable(new NamedVariable("this", this, classinfo.thisType, true).define());
+			addLocalVariable(new NamedVariable("this", this, classinfo.getThisType(), true).define());
 			i++;
 		}
 		
@@ -58,7 +58,7 @@ public class MethodScope extends Scope {
 					(argType, index) -> new UnnamedVariable(this, argType, true);
 			
 			
-			for(Type argType : descriptor.arguments) {
+			for(Type argType : descriptor.getArguments()) {
 				addLocalVariable(variableCreator.apply(argType, i).define());
 				
 				if(argType.getSize() == TypeSize.LONG) {

@@ -4,7 +4,7 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.DisassemblerContext;
 import x590.jdecompiler.operation.condition.CompareWithNullOperation;
 import x590.jdecompiler.operation.condition.ConditionOperation;
-import x590.jdecompiler.operation.condition.EqualsCompareType;
+import x590.jdecompiler.operation.condition.CompareType.EqualsCompareType;
 
 public abstract class IfANullInstruction extends IfInstruction {
 	

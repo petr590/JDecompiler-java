@@ -1,8 +1,8 @@
 package x590.jdecompiler.instruction.invoke;
 
 import x590.jdecompiler.context.DecompilationContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.instruction.InstructionWithIndex;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.invoke.InvokevirtualOperation;
 
 public final class InvokevirtualInstruction extends InstructionWithIndex {
@@ -13,6 +13,6 @@ public final class InvokevirtualInstruction extends InstructionWithIndex {
 	
 	@Override
 	public Operation toOperation(DecompilationContext context) {
-		return InvokevirtualOperation.valueOf(context, index);
+		return InvokevirtualOperation.operationOf(context, index);
 	}
 }

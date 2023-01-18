@@ -8,7 +8,7 @@ import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.constpool.MethodHandleConstant;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 
-public class BootstrapMethodsAttribute extends Attribute {
+public final class BootstrapMethodsAttribute extends Attribute {
 	
 	public final List<BootstrapMethod> bootstrapMethods;
 	

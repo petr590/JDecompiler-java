@@ -6,6 +6,7 @@ import java.util.List;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.exception.DecompilationException;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.type.TypeSize;
 
 public class Dup {

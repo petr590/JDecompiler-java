@@ -2,6 +2,7 @@ package x590.jdecompiler.operation;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.invoke.ConcatStringsOperation;
 import x590.jdecompiler.operation.operator.BinaryOperatorOperation;

@@ -1,14 +1,14 @@
-package x590.jdecompiler.operation.array;
+package x590.jdecompiler.operation;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
 
-public class NewOperation extends Operation {
+public final class NewOperation extends Operation {
 	
 	private final ClassType type;
 	
@@ -38,5 +38,11 @@ public class NewOperation extends Operation {
 	@Override
 	public Type getReturnType() {
 		return type;
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof NewOperation operation &&
+				type.equals(operation.type);
 	}
 }

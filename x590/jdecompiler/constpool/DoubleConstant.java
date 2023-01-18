@@ -4,14 +4,14 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.ExtendedDataInputStream;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.DConstOperation;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.util.StringUtil;
 
-public class DoubleConstant extends ConstValueConstant {
+public final class DoubleConstant extends ConstValueConstant {
 	
 	private final double value;
 	

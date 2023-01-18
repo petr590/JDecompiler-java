@@ -6,7 +6,7 @@ import x590.util.annotation.Nullable;
 /**
  * Когда ссылочный тип неизвестен точно
  */
-public class UncertainReferenceType extends SpecialType {
+public final class UncertainReferenceType extends SpecialType {
 	
 	private final ReferenceType widestType;
 	private final @Nullable ReferenceType narrowestType;

@@ -28,7 +28,7 @@ public class CodeAttribute extends Attribute {
 		in.readFully(code);
 		
 		this.exceptionTable = new ExceptionTable(in, pool);
-		this.attributes = new Attributes(in, pool, Location.CODE_ATTRIBUTE);
+		this.attributes = Attributes.read(in, pool, Location.CODE_ATTRIBUTE);
 	}
 	
 	CodeAttribute(int nameIndex, String name, int length, int maxStack, int maxLocals, byte[] code, ExceptionTable exceptionTable, Attributes attributes) {

@@ -1,9 +1,10 @@
-package x590.jdecompiler.operation;
+package x590.jdecompiler.exception;
 
 import x590.jdecompiler.FieldDescriptor;
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.operation.constant.AConstNullOperation;
 import x590.jdecompiler.operation.constant.ConstOperation;
 import x590.jdecompiler.type.PrimitiveType;
@@ -202,7 +203,5 @@ public abstract class Operation implements Importable {
 		return this == other || other instanceof Operation operation && this.equals(operation);
 	}
 	
-	public boolean equals(Operation other) {
-		return this == other;
-	}
+	public abstract boolean equals(Operation other);
 }

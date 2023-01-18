@@ -31,7 +31,7 @@ public class ClassType extends ReferenceType {
 		PACKAGE_INFO("package-info", true),
 		MODULE_INFO("module-info", true);
 		
-		public final String name;
+		private final String name;
 		private final boolean isSpecial;
 		
 		private ClassKind(String name, boolean isSpecial) {
@@ -257,7 +257,7 @@ public class ClassType extends ReferenceType {
 					rawType = ClassType.fromDescriptor(classEncodedNameBuilder.toString());
 					
 					classEncodedNameBuilder.append('<');
-					signature.types.forEach(parameter -> classEncodedNameBuilder.append(parameter.getEncodedName()));
+					signature.getTypes().forEach(parameter -> classEncodedNameBuilder.append(parameter.getEncodedName()));
 					classEncodedNameBuilder.append('>');
 					
 					
@@ -361,8 +361,8 @@ public class ClassType extends ReferenceType {
 	
 	@Override
 	public String getName(ClassInfo classinfo) {
-		return kind.isAnonymous() ? fullSimpleName : (classinfo.imported(this) ? simpleName : name) + (signature == null ? "" :
-			signature.toString(classinfo));
+		return kind.isAnonymous() ? fullSimpleName : (classinfo.imported(this) ? simpleName : name) +
+				(signature == null ? "" : signature.toString(classinfo));
 	}
 	
 	@Override

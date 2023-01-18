@@ -1,12 +1,13 @@
 package x590.jdecompiler.operation.condition;
 
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.Priority;
+import x590.jdecompiler.operation.condition.CompareType.EqualsCompareType;
 import x590.jdecompiler.type.PrimitiveType;
 
-public class CompareWithZeroOperation extends CompareUnaryOperation {
+public final class CompareWithZeroOperation extends CompareUnaryOperation {
 	
 	public CompareWithZeroOperation(Operation operand, CompareType compareType) {
 		super(operand, compareType);
@@ -29,5 +30,11 @@ public class CompareWithZeroOperation extends CompareUnaryOperation {
 			out.print(((EqualsCompareType)compareType).getUnaryOperator(inverted)).printPrioritied(this, operand, context, Associativity.RIGHT);
 		else
 			out.printPrioritied(this, operand, context, Associativity.LEFT).printsp().print(compareType.getOperator(inverted)).print(" 0");
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof CompareWithZeroOperation operation &&
+				operand.equals(operation.operand);
 	}
 }

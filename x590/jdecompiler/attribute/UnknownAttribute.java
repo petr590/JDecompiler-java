@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import x590.jdecompiler.io.ExtendedDataInputStream;
 
-public class UnknownAttribute extends Attribute {
+public final class UnknownAttribute extends Attribute {
 	
 	private final byte[] data;
 	

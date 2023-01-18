@@ -2,12 +2,12 @@ package x590.jdecompiler.operation.load;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.variable.Variable;
 
-public class LoadOperation extends Operation {
+public abstract class LoadOperation extends Operation {
 	
 	private final int index;
 	private final Variable variable;
@@ -55,6 +55,7 @@ public class LoadOperation extends Operation {
 	
 	@Override
 	public boolean equals(Operation other) {
-		return this == other || other instanceof LoadOperation load && variable.equals(load.variable);
+		return this == other || other instanceof LoadOperation operation &&
+				variable.equals(operation.variable);
 	}
 }

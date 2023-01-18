@@ -2,13 +2,13 @@ package x590.jdecompiler.operation.condition;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.cmp.CmpOperation;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 
-public class CompareBinaryOperation extends CompareOperation {
+public final class CompareBinaryOperation extends CompareOperation {
 	
 	private final Operation operand1, operand2;
 	
@@ -53,5 +53,11 @@ public class CompareBinaryOperation extends CompareOperation {
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		out.printPrioritied(this, operand1, context, Associativity.LEFT).printsp().print(compareType.getOperator(inverted)).printsp().printPrioritied(this, operand2, context, Associativity.RIGHT);
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof CompareBinaryOperation operation &&
+				operand1.equals(operation.operand1) && operand2.equals(operation.operand2);
 	}
 }

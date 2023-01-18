@@ -2,14 +2,14 @@ package x590.jdecompiler.operation.operator;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.operation.constant.IConstOperation;
 import x590.jdecompiler.operation.constant.LConstOperation;
 import x590.jdecompiler.type.Type;
 
-public class XorOperatorOperation extends BitwiseOperatorOperation {
+public final class XorOperatorOperation extends BitwiseOperatorOperation {
 	
 	private final boolean isBitNot;
 	

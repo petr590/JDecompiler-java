@@ -2,10 +2,11 @@ package x590.jdecompiler.operation;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.TypeSize;
 
-public class PopOperation extends VoidOperation {
+public final class PopOperation extends VoidOperation {
 	
 	public final Operation value;
 	
@@ -16,5 +17,11 @@ public class PopOperation extends VoidOperation {
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		value.writeTo(out, context);
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof PopOperation operation &&
+				value.equals(operation.value);
 	}
 }

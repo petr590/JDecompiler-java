@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import x590.jdecompiler.io.ExtendedDataInputStream;
 
-public class FieldrefConstant extends ReferenceConstant {
+public final class FieldrefConstant extends ReferenceConstant {
 	
 	protected FieldrefConstant(ExtendedDataInputStream in) {
 		super(in);

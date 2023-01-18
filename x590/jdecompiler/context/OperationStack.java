@@ -5,7 +5,7 @@ import java.util.Stack;
 import java.util.function.Predicate;
 
 import x590.jdecompiler.exception.DecompilationException;
-import x590.jdecompiler.operation.Operation;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.TypeSize;
 

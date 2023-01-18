@@ -4,15 +4,15 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.ExtendedDataInputStream;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.ClassConstOperation;
 import x590.jdecompiler.type.ArrayType;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
 
-public class ClassConstant extends ConstValueConstant {
+public final class ClassConstant extends ConstValueConstant {
 	
 	private final int nameIndex;
 	private Utf8Constant name;

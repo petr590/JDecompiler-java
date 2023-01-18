@@ -4,7 +4,7 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.type.Type;
 
-public class OrOperatorOperation extends BitwiseOperatorOperation {
+public final class OrOperatorOperation extends BitwiseOperatorOperation {
 	
 	public OrOperatorOperation(Type type, DecompilationContext context) {
 		super(type, context);

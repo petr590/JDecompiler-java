@@ -5,18 +5,19 @@ import x590.jdecompiler.FieldDescriptor;
 import x590.jdecompiler.constpool.FieldrefConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.WrapperClassType;
 
-public class GetStaticFieldOperation extends GetFieldOperation {
+public final class GetStaticFieldOperation extends GetFieldOperation {
 	
 	private final boolean isPrimitiveClass;
 	
 	private static boolean isPrimitiveClass(FieldDescriptor descriptor) {
-		return descriptor.clazz.isWrapperClassType() &&
-				descriptor.type.equals(ClassType.CLASS) &&
-				descriptor.name.equals("TYPE");
+		return descriptor.getDeclaringClass().isWrapperClassType() &&
+				descriptor.getType().equals(ClassType.CLASS) &&
+				descriptor.getName().equals("TYPE");
 	}
 	
 	public GetStaticFieldOperation(DecompilationContext context, int index) {
@@ -33,11 +34,11 @@ public class GetStaticFieldOperation extends GetFieldOperation {
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		
 		if(isPrimitiveClass) {
-			out.print(((WrapperClassType)descriptor.clazz).getPrimitiveType(), context.classinfo).print(".class");
+			out.print(((WrapperClassType)descriptor.getDeclaringClass()).getPrimitiveType(), context.classinfo).print(".class");
 			
 		} else {
 			if(!canOmitClass(context)) {
-				out.print(descriptor.clazz, context.classinfo).print('.');
+				out.print(descriptor.getDeclaringClass(), context.classinfo).print('.');
 			}
 			
 			super.writeTo(out, context);
@@ -47,6 +48,12 @@ public class GetStaticFieldOperation extends GetFieldOperation {
 	@Override
 	public void addImports(ClassInfo classinfo) {
 		if(!isPrimitiveClass)
-			classinfo.addImport(descriptor.clazz);
+			classinfo.addImport(descriptor.getDeclaringClass());
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof GetStaticFieldOperation operation &&
+				super.equals(operation);
 	}
 }

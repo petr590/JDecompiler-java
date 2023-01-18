@@ -7,7 +7,7 @@ import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.util.annotation.Immutable;
 
 @Immutable
-public class Version {
+public final class Version {
 	
 	public static final int
 	// I have not found an official indication of version JDK Beta, JDK 1.0 number,
@@ -51,8 +51,8 @@ public class Version {
 		this.majorVersion = majorVersion;
 	}
 	
-	public Version(ExtendedDataInputStream in) {
-		this(in.readUnsignedShort(), in.readUnsignedShort());
+	public static Version read(ExtendedDataInputStream in) {
+		return new Version(in.readUnsignedShort(), in.readUnsignedShort());
 	}
 	
 	

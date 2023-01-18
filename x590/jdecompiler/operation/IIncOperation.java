@@ -2,11 +2,12 @@ package x590.jdecompiler.operation;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.load.LoadOperation;
 import x590.jdecompiler.type.PrimitiveType;
 
-public class IIncOperation extends OperationWithVariable {
+public final class IIncOperation extends OperationWithVariable {
 	
 	private final int value;
 	private boolean isPreInc;
@@ -67,5 +68,11 @@ public class IIncOperation extends OperationWithVariable {
 	@Override
 	public int getPriority() {
 		return Priority.POST_INCREMENT;
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof IIncOperation operation &&
+				super.equals(operation) && value == operation.value;
 	}
 }

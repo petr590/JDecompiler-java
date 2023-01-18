@@ -5,7 +5,7 @@ import x590.jdecompiler.util.WhitespaceStringBuilder;
 
 import static x590.jdecompiler.type.PrimitiveType.CHAR_CAPACITY;
 
-public class UncertainIntegralType extends SpecialType {
+public final class UncertainIntegralType extends SpecialType {
 	
 	private static final UncertainIntegralType[] instances = new UncertainIntegralType[64];
 	

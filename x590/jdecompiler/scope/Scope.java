@@ -10,10 +10,10 @@ import java.util.function.Predicate;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.exception.VariableNotFoundException;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.VariableDefineOperation;
 import x590.jdecompiler.operation.store.StoreOperation;
 import x590.jdecompiler.type.PrimitiveType;
@@ -359,5 +359,10 @@ public abstract class Scope extends Operation {
 		code.remove(operation);
 		if(operation.isScope())
 			scopes.remove(operation);
+	}
+	
+	@Override
+	public final boolean equals(Operation other) {
+		return this == other;
 	}
 }

@@ -5,7 +5,7 @@ import x590.jdecompiler.io.ExtendedStringReader;
 import x590.jdecompiler.util.StringUtil;
 
 /** Описывает дженерик. Хранит только его имя */
-public class SignatureParameterType extends ReferenceType {
+public final class SignatureParameterType extends ReferenceType {
 	
 	public SignatureParameterType(ExtendedStringReader in) {
 		StringBuilder nameBuilder = new StringBuilder();

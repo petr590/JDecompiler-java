@@ -2,9 +2,9 @@ package x590.jdecompiler.operation.arraystore;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.IncrementableOperation;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.ReturnableOperation;
 import x590.jdecompiler.operation.array.NewArrayOperation;
 import x590.jdecompiler.operation.constant.IConstOperation;
@@ -84,5 +84,11 @@ public abstract class ArrayStoreOperation extends ReturnableOperation implements
 	@Override
 	public boolean requiresLocalContext() {
 		return !this.isRemoved() && (array.requiresLocalContext() || index.requiresLocalContext() || value.requiresLocalContext());
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof ArrayStoreOperation operation &&
+				array.equals(operation.array) && index.equals(operation.index) && value.equals(operation.value);
 	}
 }

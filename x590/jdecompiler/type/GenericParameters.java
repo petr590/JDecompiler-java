@@ -18,9 +18,9 @@ import x590.util.annotation.Immutable;
 import x590.util.annotation.Nonnull;
 import x590.util.annotation.Nullable;
 
-public class GenericParameters<T extends ReferenceType> implements Stringified, StringWritableAndImportable {
+public final class GenericParameters<T extends ReferenceType> implements Stringified, StringWritableAndImportable {
 	
-	public final @Immutable List<T> types;
+	private final @Immutable List<T> types;
 	
 	public GenericParameters(ExtendedStringReader in, Function<ExtendedStringReader, ? extends T> supplier) {
 		in.mark();
@@ -49,6 +49,11 @@ public class GenericParameters<T extends ReferenceType> implements Stringified, 
 	
 	public static <T extends ReferenceType> @Nullable GenericParameters<T> readNullable(ExtendedStringReader in, Function<ExtendedStringReader, ? extends T> supplier) {
 		return in.get() == '<' ? new GenericParameters<>(in, supplier) : null;
+	}
+	
+	
+	public @Immutable List<T> getTypes() {
+		return types;
 	}
 	
 	@Override

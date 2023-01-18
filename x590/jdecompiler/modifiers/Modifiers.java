@@ -128,7 +128,7 @@ public abstract class Modifiers {
 	}
 	
 	
-	protected IWhitespaceStringBuilder toStringBuilder() {
+	IWhitespaceStringBuilder toStringBuilder() {
 		IWhitespaceStringBuilder str = new WhitespaceStringBuilder();
 		
 		if(isPublic()) str.append("public");

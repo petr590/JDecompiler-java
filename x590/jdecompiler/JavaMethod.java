@@ -20,7 +20,6 @@ import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.modifiers.MethodModifiers;
-import x590.jdecompiler.modifiers.Modifiers;
 import x590.jdecompiler.scope.MethodScope;
 import x590.jdecompiler.type.ArrayType;
 import x590.jdecompiler.type.ClassType;
@@ -33,11 +32,10 @@ import x590.util.lazyloading.LazyLoadingBooleanValue;
 
 public class JavaMethod extends JavaClassElement {
 	
-	public final MethodModifiers modifiers;
-	public final MethodDescriptor descriptor;
-	public final ClassInfo classinfo;
+	private final MethodModifiers modifiers;
+	private final MethodDescriptor descriptor;
 	
-	public final Attributes attributes;
+	private final Attributes attributes;
 	private final CodeAttribute codeAttribute;
 	private final @Nullable MethodSignatureAttribute signature;
 	
@@ -55,12 +53,12 @@ public class JavaMethod extends JavaClassElement {
 		}
 		
 		var hasNoOtherConstructors =
-				new LazyLoadingBooleanValue(() -> !classinfo.getMethods().stream().anyMatch(method -> method != this && method.descriptor.isConstructor()));
+				new LazyLoadingBooleanValue(() -> !classinfo.hasMethod(method -> method != this && method.descriptor.isConstructor()));
 		
 		var descriptor = this.descriptor;
-		var thisClassType = classinfo.thisType;
+		var thisClassType = classinfo.getThisType();
 		
-		if(descriptor.isConstructorOf(thisClassType) && descriptor.argumentsEquals() && modifiers.and(ACC_ACCESS_FLAGS) == classinfo.modifiers.and(ACC_ACCESS_FLAGS) &&
+		if(descriptor.isConstructorOf(thisClassType) && descriptor.argumentsEquals() && modifiers.and(ACC_ACCESS_FLAGS) == classinfo.getModifiers().and(ACC_ACCESS_FLAGS) &&
 				methodScope.isEmpty() && hasNoOtherConstructors.getAsBoolean()) { // constructor by default
 			return true;
 		}
@@ -73,7 +71,7 @@ public class JavaMethod extends JavaClassElement {
 			return true;
 		}
 		
-		if(classinfo.modifiers.isEnum()) {
+		if(classinfo.getModifiers().isEnum()) {
 			
 			// enum constructor by default
 			if(descriptor.isConstructorOf(thisClassType) && descriptor.argumentsEquals(ClassType.STRING, PrimitiveType.INT)
@@ -91,12 +89,12 @@ public class JavaMethod extends JavaClassElement {
 		return false;
 	}
 	
-	public JavaMethod(MethodModifiers modifiers, MethodDescriptor descriptor, Attributes attributes, ClassInfo classinfo, ConstantPool pool) {
-		this.modifiers = modifiers;
-		this.descriptor = descriptor;
-		this.classinfo = classinfo;
+	
+	JavaMethod(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool) {
+		this.modifiers = new MethodModifiers(in.readUnsignedShort());
+		this.descriptor = new MethodDescriptor(classinfo.getThisType(), in, pool);
 		
-		this.attributes = attributes;
+		this.attributes = Attributes.read(in, pool, Location.METHOD);
 		this.codeAttribute = attributes.getOrDefault("Code", EmptyCodeAttribute.INSTANCE);
 		this.signature = attributes.get("Signature");
 		
@@ -113,15 +111,29 @@ public class JavaMethod extends JavaClassElement {
 	}
 	
 	
-	public JavaMethod(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool) {
-		this(new MethodModifiers(in.readUnsignedShort()), new MethodDescriptor(classinfo.thisType, in, pool),
-				new Attributes(in, pool, Location.METHOD), classinfo, pool);
+	static List<JavaMethod> readMethods(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool) {
+		int length = in.readUnsignedShort();
+		List<JavaMethod> methods = new ArrayList<>(length);
+		
+		for(int i = 0; i < length; i++) {
+			methods.add(new JavaMethod(in, classinfo, pool));
+		}
+		
+		return methods;
 	}
 	
 	
 	@Override
-	public Modifiers getModifiers() {
+	public MethodModifiers getModifiers() {
 		return modifiers;
+	}
+	
+	public MethodDescriptor getDescriptor() {
+		return descriptor;
+	}
+	
+	public Attributes getAttributes() {
+		return attributes;
 	}
 	
 	
@@ -130,7 +142,7 @@ public class JavaMethod extends JavaClassElement {
 	}
 	
 	
-	public void decompile(ClassInfo classinfo, ConstantPool pool) {
+	void decompile(ClassInfo classinfo, ConstantPool pool) {
 		Logger.logf("Decompiling of method %s", descriptor);
 		decompilationContext = DecompilationContext.decompile(disassemblerContext, classinfo, descriptor, modifiers, methodScope, disassemblerContext.getInstructions(), codeAttribute.maxLocals);
 		methodScope.reduceTypes();
@@ -191,7 +203,7 @@ public class JavaMethod extends JavaClassElement {
 		IWhitespaceStringBuilder str = new WhitespaceStringBuilder().printTrailingSpace();
 		
 		var modifiers = this.modifiers;
-		var classModifiers = classinfo.modifiers;
+		var classModifiers = classinfo.getModifiers();
 		
 		switch(modifiers.and(ACC_ACCESS_FLAGS)) {
 			case ACC_VISIBLE -> {}
@@ -202,7 +214,7 @@ public class JavaMethod extends JavaClassElement {
 			}
 			
 			case ACC_PRIVATE -> { // Конструкторы Enum по умолчанию имеют модификатор private, поэтому нам не нужно выводить private
-				if(JDecompiler.getInstance().printImplicitModifiers() || !(classModifiers.isEnum() && descriptor.isConstructor() && descriptor.clazz.equals(classinfo.thisType)))
+				if(JDecompiler.getInstance().printImplicitModifiers() || !(classModifiers.isEnum() && descriptor.isConstructor() && descriptor.getDeclaringClass().equals(classinfo.getThisType())))
 					str.append("private");
 			}
 			
@@ -239,16 +251,5 @@ public class JavaMethod extends JavaClassElement {
 		else if(modifiers.isStrictfp()) str.append("strictfp");
 		
 		return str;
-	}
-	
-	protected static List<JavaMethod> readMethods(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool) {
-		int length = in.readUnsignedShort();
-		List<JavaMethod> methods = new ArrayList<>(length);
-		
-		for(int i = 0; i < length; i++) {
-			methods.add(new JavaMethod(in, classinfo, pool));
-		}
-		
-		return methods;
 	}
 }

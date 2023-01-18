@@ -4,6 +4,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import x590.jdecompiler.ClassInfo;
@@ -12,41 +13,42 @@ import x590.jdecompiler.JavaSerializable;
 import x590.jdecompiler.StringWritable;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.io.ExtendedDataInputStream;
-import x590.util.ArrayUtil;
+import x590.util.Logger;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
 @Immutable
-public class Attributes implements JavaSerializable, Importable {
+public final class Attributes implements JavaSerializable, Importable {
 	
 	public static enum Location {
 		CLASS, FIELD, METHOD, CODE_ATTRIBUTE, OTHER
 	}
 	
 	
-	private static final Attributes EMPTY = new Attributes();
+	private static final Attributes EMPTY = new Attributes(Collections.emptyList(), Collections.emptyMap());
 	
-	private final Attribute[] attributes;
+	private final List<Attribute> attributes;
 	private final Map<String, Attribute> attributeByName;
 	
-	private Attributes() {
-		this.attributes = new Attribute[] {};
-		this.attributeByName = Collections.emptyMap();
+	private Attributes(List<Attribute> attributes, Map<String, Attribute> attributeByName) {
+		this.attributes = attributes;
+		this.attributeByName = attributeByName;
 	}
 	
-	public Attributes(ExtendedDataInputStream in, ConstantPool pool, Location location) {
+	public static Attributes read(ExtendedDataInputStream in, ConstantPool pool, Location location) {
 		int length = in.readUnsignedShort();
-		var attributes = this.attributes = new Attribute[length];
-		var attributeByName = this.attributeByName = new HashMap<>(length);
+		Map<String, Attribute> attributeByName = new HashMap<>(length);
 		
-		for(int i = 0; i < length; i++) {
+		List<Attribute> attributes = in.readArrayList(length, () -> {
 			Attribute attribute = Attribute.read(in, pool, location);
-			attributes[i] = attribute;
 			
-			if(attributeByName.put(attribute.getName(), attribute) != null) {
-				// warn
-			}
-		}
+			if(attributeByName.put(attribute.getName(), attribute) != null)
+				Logger.warning("Found two attributes with the same name \"" + attribute.getName() + "\"");
+			
+			return attribute;
+		});
+		
+		return new Attributes(attributes, attributeByName);
 	}
 	
 	
@@ -57,7 +59,7 @@ public class Attributes implements JavaSerializable, Importable {
 	
 	@Override
 	public void serialize(DataOutputStream out) throws IOException {
-		out.writeShort(attributes.length);
+		out.writeShort(attributes.size());
 		for(Attribute attribute : attributes)
 			attribute.serialize(out);
 	}
@@ -65,7 +67,7 @@ public class Attributes implements JavaSerializable, Importable {
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		ArrayUtil.forEach(attributes, attribute -> attribute.addImports(classinfo));
+		attributes.forEach(attribute -> attribute.addImports(classinfo));
 	}
 	
 	

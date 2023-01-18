@@ -4,9 +4,9 @@ import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.DecompilationException;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.Operation;
-import x590.jdecompiler.operation.array.NewOperation;
+import x590.jdecompiler.operation.NewOperation;
 import x590.jdecompiler.operation.load.ALoadOperation;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.PrimitiveType;
@@ -19,7 +19,7 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 	
 	private boolean initIsSuper(DecompilationContext context) {
 		return context.modifiers.isNotStatic() &&
-				descriptor.clazz.equals(context.classinfo.superType) &&
+				descriptor.getDeclaringClass().equals(context.classinfo.getSuperType()) &&
 				object instanceof ALoadOperation aload && aload.getIndex() == 0;
 	}
 	
@@ -37,21 +37,21 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 	public InvokespecialOperation(DecompilationContext context, int index) {
 		super(context, index);
 		this.isSuper = initIsSuper(context);
-		this.isEnum = context.classinfo.modifiers.isEnum();
+		this.isEnum = context.classinfo.getModifiers().isEnum();
 		this.returnType = initReturnType(context);
 	}
 	
 	public InvokespecialOperation(DecompilationContext context, MethodDescriptor descriptor) {
 		super(context, descriptor);
 		this.isSuper = initIsSuper(context);
-		this.isEnum = context.classinfo.modifiers.isEnum();
+		this.isEnum = context.classinfo.getModifiers().isEnum();
 		this.returnType = initReturnType(context);
 	}
 	
 	public InvokespecialOperation(DecompilationContext context, MethodDescriptor descriptor, Operation object) {
 		super(context, descriptor, object);
 		this.isSuper = initIsSuper(context);
-		this.isEnum = context.classinfo.modifiers.isEnum();
+		this.isEnum = context.classinfo.getModifiers().isEnum();
 		this.returnType = initReturnType(context);
 	}
 	
@@ -104,5 +104,11 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 	public boolean canOmit() {
 		return descriptor.isConstructor() && isSuper &&
 				(arguments.isEmpty() || isEnum && descriptor.argumentsEquals(ClassType.STRING, PrimitiveType.INT));
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof InvokespecialOperation operation &&
+				super.equals(operation) && returnType.equals(operation.returnType);
 	}
 }

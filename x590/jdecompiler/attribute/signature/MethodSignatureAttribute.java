@@ -21,7 +21,7 @@ import x590.util.Util;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
-public class MethodSignatureAttribute extends SignatureAttribute {
+public final class MethodSignatureAttribute extends SignatureAttribute {
 	
 	public final @Nullable GenericParameters<GenericParameterType> parameters;
 	public final @Immutable List<Type> arguments;
@@ -68,17 +68,17 @@ public class MethodSignatureAttribute extends SignatureAttribute {
 	}
 	
 	public void checkTypes(MethodDescriptor descriptor, int skip, @Nullable ExceptionsAttribute excepionsAttr) {
-		var iterator = descriptor.arguments.iterator();
+		var iterator = descriptor.getArguments().iterator();
 		
 		for(int i = 0; i < skip && iterator.hasNext(); i++)
 			iterator.next();
 		
 		if(!Util.iteratorsEquals(arguments.iterator(), iterator, Type::baseEquals)) {
-			throw new DecompilationException("Method signature doesn't matches the arguments: (" + argumentsToString(arguments.stream()) + ") and (" + argumentsToString(descriptor.arguments.stream().skip(skip)) + ")");
+			throw new DecompilationException("Method signature doesn't matches the arguments: (" + argumentsToString(arguments.stream()) + ") and (" + argumentsToString(descriptor.getArguments().stream().skip(skip)) + ")");
 		}
 		
-		if(!returnType.baseEquals(descriptor.returnType)) {
-			throw new DecompilationException("Method signature doesn't matches the return type: " + returnType + " and " + descriptor.returnType);
+		if(!returnType.baseEquals(descriptor.getReturnType())) {
+			throw new DecompilationException("Method signature doesn't matches the return type: " + returnType + " and " + descriptor.getReturnType());
 		}
 		
 		if(!throwsTypes.isEmpty()) {

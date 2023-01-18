@@ -13,4 +13,8 @@ public abstract class OperatorOperation extends ReturnableOperation {
 	
 	@Override
 	public abstract int getPriority();
+	
+	protected boolean equals(OperatorOperation other) {
+		return super.equals(other) && getOperator().equals(other.getOperator());
+	}
 }

@@ -38,7 +38,7 @@ public class ParameterAnnotationsAttribute extends Attribute {
 	}
 	
 	
-	public static class EmptyParameterAnnotationsAttribute extends ParameterAnnotationsAttribute {
+	public static final class EmptyParameterAnnotationsAttribute extends ParameterAnnotationsAttribute {
 		
 		private static final ParameterAnnotations[] EMPTY_PARAMETERS = {};
 		

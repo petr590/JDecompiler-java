@@ -4,7 +4,7 @@ import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.io.ExtendedStringReader;
 import x590.jdecompiler.io.StringifyOutputStream;
 
-public class SuperGenericType extends BoundedGenericType {
+public final class SuperGenericType extends BoundedGenericType {
 	
 	public SuperGenericType(ExtendedStringReader in) {
 		super(in);

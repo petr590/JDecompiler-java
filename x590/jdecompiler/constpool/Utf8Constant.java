@@ -6,7 +6,7 @@ import java.io.IOException;
 import x590.jdecompiler.exception.DisassemblingException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 
-public class Utf8Constant extends Constant {
+public final class Utf8Constant extends Constant {
 	
 	private final String value;
 	

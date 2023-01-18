@@ -2,6 +2,8 @@ package x590.jdecompiler.operation;
 
 public class Priority {
 	
+	private Priority() {}
+	
 	public static final int
 			DEFAULT_PRIORITY         = 17,
 			POST_INCREMENT           = 16,

@@ -1,6 +1,5 @@
 package x590.jdecompiler.exception;
 
-import x590.jdecompiler.NameDisassemblingException;
 import x590.jdecompiler.io.ExtendedStringReader;
 
 public class InvalidMethodDescriptorException extends NameDisassemblingException {

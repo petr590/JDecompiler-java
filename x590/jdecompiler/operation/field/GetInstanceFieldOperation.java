@@ -3,10 +3,10 @@ package x590.jdecompiler.operation.field;
 import x590.jdecompiler.constpool.FieldrefConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.Operation;
 
-public class GetInstanceFieldOperation extends GetFieldOperation {
+public final class GetInstanceFieldOperation extends GetFieldOperation {
 	
 	private final Operation object;
 	
@@ -32,5 +32,11 @@ public class GetInstanceFieldOperation extends GetFieldOperation {
 	@Override
 	public boolean requiresLocalContext() {
 		return object.requiresLocalContext();
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof GetInstanceFieldOperation operation &&
+				super.equals(operation) && object.equals(operation.object);
 	}
 }

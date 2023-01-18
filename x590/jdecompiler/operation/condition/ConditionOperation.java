@@ -19,4 +19,8 @@ public abstract class ConditionOperation extends BooleanOperation {
 	}
 	
 	protected void onInvert() {}
+	
+	public boolean equals(ConditionOperation other) {
+		return inverted == other.inverted;
+	}
 }

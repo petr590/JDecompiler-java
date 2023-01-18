@@ -7,8 +7,8 @@ import java.util.List;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.DecompilationException;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.AConstNullOperation;
 import x590.jdecompiler.operation.constant.IConstOperation;
 import x590.jdecompiler.operation.constant.ZeroConstOperation;
@@ -139,5 +139,12 @@ public class NewArrayOperation extends Operation {
 	public boolean requiresLocalContext() {
 		return initializers.stream().anyMatch(Operation::requiresLocalContext) ||
 				Arrays.stream(lengths).anyMatch(length -> length != null && length.requiresLocalContext());
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof NewArrayOperation operation &&
+				arrayType.equals(operation.arrayType) && Arrays.equals(lengths, operation.lengths) &&
+				initializers.equals(operation.initializers) && varargsInlined == operation.varargsInlined;
 	}
 }

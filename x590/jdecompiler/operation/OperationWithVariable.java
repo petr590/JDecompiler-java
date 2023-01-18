@@ -15,4 +15,8 @@ public abstract class OperationWithVariable extends ReturnableOperation {
 	public Variable getVariable() {
 		return variable;
 	}
+	
+	protected boolean equals(OperationWithVariable other) {
+		return super.equals(other) && variable.equals(other.variable);
+	}
 }

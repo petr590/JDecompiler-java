@@ -10,8 +10,8 @@ import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.DecompilationException;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.OperationWithDescriptor;
 import x590.jdecompiler.operation.array.NewArrayOperation;
 import x590.jdecompiler.type.ClassType;
@@ -25,12 +25,12 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 	protected final boolean isStatic;
 	
 	private Deque<Operation> popArguments(DecompilationContext context) {
-		int length = descriptor.arguments.size();
+		List<Type> argTypes = descriptor.getArguments();
 		
-		Deque<Operation> arguments = new ArrayDeque<>(length);
+		Deque<Operation> arguments = new ArrayDeque<>(argTypes.size());
 		
-		for(int i = length; i > 0; ) {
-			Type argType = descriptor.arguments.get(--i);
+		for(int i = argTypes.size(); i > 0; ) {
+			Type argType = argTypes.get(--i);
 			Operation argument = context.popAsNarrowest(argType);
 			
 			if(argType.isBasicReferenceType() && !argType.equals(ClassType.OBJECT)) {
@@ -73,20 +73,20 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 		this.isStatic = isStatic;
 		
 		
-		List<Type> argTypes = descriptor.arguments;
+		List<Type> argTypes = descriptor.getArguments();
 		
 		if(!argTypes.isEmpty() && argTypes.get(argTypes.size() - 1).isBasicArrayType()) {
 			
-			ClassInfo otherClassinfo = ClassInfo.findClassInfo(descriptor.clazz);
+			ClassInfo otherClassinfo = ClassInfo.findClassInfo(descriptor.getDeclaringClass());
 			
 			Operation lastOperation = arguments.getLast();
 			
 			if(lastOperation instanceof NewArrayOperation varargsArray && varargsArray.canInitAsList()) {
-				var name = descriptor.name;
+				var name = descriptor.getName();
 				var argumentsCount = arguments.size() - 1 + varargsArray.getLength();
 				
-				if(otherClassinfo != null && !otherClassinfo.hasMethod(
-						method -> method.descriptor != descriptor && method.descriptor.name.equals(name) && method.descriptor.arguments.size() == argumentsCount)) {
+				if(otherClassinfo != null && !otherClassinfo.hasMethodByDescriptor(
+						methodDescriptor -> methodDescriptor != descriptor && methodDescriptor.getName().equals(name) && methodDescriptor.getArguments().size() == argumentsCount)) {
 					
 					arguments.getLast().inlineVarargs();
 				}
@@ -102,7 +102,7 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 	
 	@Override
 	public Type getReturnType() {
-		return descriptor.returnType;
+		return descriptor.getReturnType();
 	}
 	
 	
@@ -112,7 +112,7 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 	protected boolean canOmitObject(StringifyContext context, Operation object) {
 		
 		// Не опускать this для вызовов методов, название которых начинается с is, get, set, equals
-		return super.canOmitObject(context, object) && !METHOD_NAME_PATTERN.matcher(descriptor.name).matches();
+		return super.canOmitObject(context, object) && !METHOD_NAME_PATTERN.matcher(descriptor.getName()).matches();
 	}
 	
 	
@@ -129,5 +129,9 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 	@Override
 	public boolean requiresLocalContext() {
 		return arguments.stream().anyMatch(Operation::requiresLocalContext);
+	}
+	
+	protected boolean equals(InvokeOperation other) {
+		return super.equals(other) && arguments.equals(other.arguments);
 	}
 }

@@ -14,9 +14,9 @@ import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.exception.DecompilationException;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.instruction.Instruction;
 import x590.jdecompiler.modifiers.MethodModifiers;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.returning.VReturnOperation;
 import x590.jdecompiler.scope.MethodScope;
 import x590.jdecompiler.scope.Scope;
@@ -42,6 +42,11 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	 * Нужно для корректной декомпиляции циклов и, возможно, других конструкций */
 	private final Set<Integer> breaks = new HashSet<>();
 	
+	
+	public static DecompilationContext decompile(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, MethodModifiers modifiers, MethodScope methodScope, List<Instruction> instructions, int maxLocals) {
+		return new DecompilationContext(otherContext, classinfo, descriptor, modifiers, methodScope, instructions, maxLocals);
+	}
+	
 	private DecompilationContext(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, MethodModifiers modifiers, MethodScope methodScope, List<Instruction> instructions, int maxLocals) {
 		super(otherContext, classinfo, descriptor, methodScope, modifiers);
 		
@@ -50,6 +55,8 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 		Set<Operation> operations = new HashSet<>(instructions.size());
 		this.operations = Collections.unmodifiableSet(operations);
 		this.mutableOperations = operations;
+		
+		final Operation vreturnOperation = VReturnOperation.getInstance();
 		
 		var expressionIndexTable = this.expressionIndexTable = new int[instructions.size()];
 		int expressionIndex = 0;
@@ -79,7 +86,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 				if(operation.getReturnType() == PrimitiveType.VOID) {
 					expressionIndex = index;
 					
-					if(operation != VReturnOperation.INSTANCE) {
+					if(operation != vreturnOperation) {
 						currentScope.addOperation(operation, this);
 						
 						if(operation instanceof Scope scope) {
@@ -289,10 +296,6 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 		scopesQueue.add(scope);
 	}
 	
-	
-	public static DecompilationContext decompile(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, MethodModifiers modifiers, MethodScope methodScope, List<Instruction> instructions, int maxLocals) {
-		return new DecompilationContext(otherContext, classinfo, descriptor, modifiers, methodScope, instructions, maxLocals);
-	}
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {

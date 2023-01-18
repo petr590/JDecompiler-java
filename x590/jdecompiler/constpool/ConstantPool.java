@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 import x590.jdecompiler.JavaSerializable;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 
-public class ConstantPool implements JavaSerializable {
+public final class ConstantPool implements JavaSerializable {
 	
 	private final List<Constant> data;
 	

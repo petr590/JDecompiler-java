@@ -37,14 +37,14 @@ import x590.util.annotation.Nullable;
  */
 public class JavaClass extends JavaClassElement {
 	
-	public final Version version;
-	public final ConstantPool pool;
-	public final ClassModifiers modifiers;
+	private final Version version;
+	private final ConstantPool pool;
+	private final ClassModifiers modifiers;
 	
-	public final ClassType thisType, superType;
-	public final @Immutable List<ClassType> interfaces;
+	private final ClassType thisType, superType;
+	private final @Immutable List<ClassType> interfaces;
 	
-	public final ClassInfo classinfo;
+	private final ClassInfo classinfo;
 	
 	// Суперкласс и интерфейсы, которые будут выведены в заголовок класса
 	// Например, все enum классы наследуются от java.lang.Enum,
@@ -54,10 +54,10 @@ public class JavaClass extends JavaClassElement {
 	private final @Immutable List<? extends Type> visibleInterfaces;
 	
 	private final @Immutable List<JavaField> fields, constants;
-	private final @Immutable @Nullable List<JavaEnumField> enumConstants;
+	private final @Nullable @Immutable List<JavaEnumField> enumConstants;
 	private final @Immutable List<JavaMethod> methods;
 	
-	public final Attributes attributes;
+	private final Attributes attributes;
 	private final @Nullable ClassSignatureAttribute signature;
 	
 	
@@ -92,15 +92,11 @@ public class JavaClass extends JavaClassElement {
 	}
 	
 	
-	public JavaClass(InputStream in) {
-		this(new ExtendedDataInputStream(in));
-	}
-	
-	public JavaClass(ExtendedDataInputStream in) {
+	JavaClass(ExtendedDataInputStream in) {
 		if(in.readInt() != 0xCAFEBABE)
 			throw new ClassFormatException("Illegal class header");
 		
-		this.version = new Version(in);
+		this.version = Version.read(in);
 		var pool = this.pool = new ConstantPool(in);
 		this.modifiers = new ClassModifiers(in.readUnsignedShort());
 		this.thisType = ClassType.fromConstant(pool.get(in.readUnsignedShort()));
@@ -119,9 +115,9 @@ public class JavaClass extends JavaClassElement {
 		this.methods = Collections.unmodifiableList(JavaMethod.readMethods(in, classinfo, pool));
 		
 		this.constants = fields.stream().filter(JavaField::isConstant).toList();
-		this.enumConstants = modifiers.isEnum() ? fields.stream().filter(field -> field.modifiers.isEnum()).map(field -> (JavaEnumField)field).toList() : null;
+		this.enumConstants = modifiers.isEnum() ? fields.stream().filter(field -> field.getModifiers().isEnum()).map(field -> (JavaEnumField)field).toList() : null;
 		
-		this.attributes = new Attributes(in, pool, Location.CLASS);
+		this.attributes = Attributes.read(in, pool, Location.CLASS);
 		
 		this.signature = attributes.get("Signature");
 		if(signature != null)
@@ -133,6 +129,44 @@ public class JavaClass extends JavaClassElement {
 		classinfo.setAttributes(attributes);
 	}
 	
+	public static JavaClass read(InputStream in) {
+		return new JavaClass(new ExtendedDataInputStream(in));
+	}
+	
+	public static JavaClass read(ExtendedDataInputStream in) {
+		return new JavaClass(in);
+	}
+	
+	
+	public Version getVersion() {
+		return version;
+	}
+	
+	public ConstantPool getConstPool() {
+		return pool;
+	}
+	
+	@Override
+	public ClassModifiers getModifiers() {
+		return modifiers;
+	}
+	
+	public ClassType getThisType() {
+		return thisType;
+	}
+	
+	public ClassType getSuperType() {
+		return superType;
+	}
+	
+	public @Immutable List<ClassType> getInterfaces() {
+		return interfaces;
+	}
+	
+	public ClassInfo getClassInfo() {
+		return classinfo;
+	}
+	
 	
 	public @Immutable List<JavaField> getFields() {
 		return fields;
@@ -142,16 +176,37 @@ public class JavaClass extends JavaClassElement {
 		return constants;
 	}
 	
-	public @Immutable @Nullable List<JavaEnumField> getEnumConstants() {
+	public @Nullable @Immutable List<JavaEnumField> getEnumConstants() {
 		return enumConstants;
 	}
 	
-	public @Immutable @Nullable List<JavaMethod> getMethods() {
+	public @Nullable @Immutable List<JavaMethod> getMethods() {
 		return methods;
+	}
+	
+	public Attributes getAttributes() {
+		return attributes;
+	}
+	
+	
+	private DecompilationStage stage = DecompilationStage.DISASSEMBLED;
+	
+	private void checkStage(DecompilationStage requiredStage, DecompilationStage nextStage) {
+		if(stage != requiredStage) {
+			throw new IllegalStateException(nextStage.getExceptionMessage() + ": " +
+					(stage.ordinal() < nextStage.ordinal() ? stage.next().getEarlyReason() : nextStage.getRepeatedReason()));
+		}
+	}
+	
+	private void nextStage(DecompilationStage requiredStage, DecompilationStage nextStage) {
+		checkStage(requiredStage, nextStage);
+		stage = nextStage;
 	}
 	
 	
 	public void decompile() {
+		nextStage(DecompilationStage.DISASSEMBLED, DecompilationStage.DECOMPILED);
+		
 		methods.forEach(method -> method.decompile(classinfo, pool));
 		if(enumConstants != null)
 			enumConstants.forEach(enumConstant -> enumConstant.checkHasEnumInitializer(classinfo));
@@ -163,6 +218,8 @@ public class JavaClass extends JavaClassElement {
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
+		nextStage(DecompilationStage.DECOMPILED, DecompilationStage.IMPORTS_RESOLVED);
+		
 		classinfo.addImportIfNotNull(visibleSuperType);
 		visibleInterfaces.forEach(interfaceType -> classinfo.addImport(interfaceType));
 		attributes.addImports(classinfo);
@@ -178,10 +235,6 @@ public class JavaClass extends JavaClassElement {
 		return super.canStringify(classinfo);
 	}
 	
-	@Override
-	public Modifiers getModifiers() {
-		return modifiers;
-	}
 	
 	public void writeTo(StringifyOutputStream out) {
 		classinfo.setOutStream(out);
@@ -190,6 +243,8 @@ public class JavaClass extends JavaClassElement {
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
+		
+		checkStage(DecompilationStage.IMPORTS_RESOLVED, DecompilationStage.WRITTEN);
 		
 		if(JDecompiler.getInstance().printClassVersion())
 			out.print("/* Java version: ").print(version.toString()).println(" */");
@@ -335,9 +390,9 @@ public class JavaClass extends JavaClassElement {
 			
 			if(prevFieldWritten) {
 				
-				boolean typesEquals = field.descriptor.type.equals(type);
+				boolean typesEquals = field.getDescriptor().getType().equals(type);
 				
-				if(field.modifiers.equals(modifiers) && typesEquals &&
+				if(typesEquals && field.getModifiers().equals(modifiers) &&
 						field.getAnnotationAttributes().equals(annotationAttributes) && Objects.equals(field.getSignature(), signature)) {
 					
 					out.write(", ");
@@ -357,8 +412,8 @@ public class JavaClass extends JavaClassElement {
 			
 			field.writeWithoutSemicolon(out, classinfo);
 			
-			modifiers = field.modifiers;
-			type = field.descriptor.type;
+			modifiers = field.getModifiers();
+			type = field.getDescriptor().getType();
 			annotationAttributes = field.getAnnotationAttributes();
 			signature = field.getSignature();
 		}

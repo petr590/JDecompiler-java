@@ -1,8 +1,8 @@
 package x590.jdecompiler.instruction;
 
 import x590.jdecompiler.context.DecompilationContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.operation.AThrowOperation;
-import x590.jdecompiler.operation.Operation;
 
 public class AThrowInstruction extends Instruction {
 	

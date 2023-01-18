@@ -2,8 +2,8 @@ package x590.jdecompiler.operation.operator;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.operation.ReturnableOperation;
 import x590.jdecompiler.operation.condition.ConditionOperation;
@@ -11,7 +11,7 @@ import x590.jdecompiler.operation.constant.IConstOperation;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 
-public class TernaryOperatorOperation extends ReturnableOperation {
+public final class TernaryOperatorOperation extends ReturnableOperation {
 	
 	private final ConditionOperation condition;
 	private final Operation operand1, operand2;
@@ -52,5 +52,12 @@ public class TernaryOperatorOperation extends ReturnableOperation {
 		super.onCastReturnType(newType);
 		operand1.castReturnTypeToNarrowest(returnType);
 		operand2.castReturnTypeToNarrowest(returnType);
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof TernaryOperatorOperation operation &&
+				super.equals(operation) && condition.equals(operation.condition) &&
+				operand1.equals(operation.operand1) && operand2.equals(operation.operand2);
 	}
 }

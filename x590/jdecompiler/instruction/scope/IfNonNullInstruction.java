@@ -2,7 +2,7 @@ package x590.jdecompiler.instruction.scope;
 
 import x590.jdecompiler.context.DisassemblerContext;
 import x590.jdecompiler.operation.condition.CompareType;
-import x590.jdecompiler.operation.condition.EqualsCompareType;
+import x590.jdecompiler.operation.condition.CompareType.EqualsCompareType;
 
 public class IfNonNullInstruction extends IfANullInstruction {
 	

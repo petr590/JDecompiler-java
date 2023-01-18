@@ -9,14 +9,15 @@ import x590.jdecompiler.attribute.Attributes.Location;
 import x590.jdecompiler.attribute.ConstantValueAttribute;
 import x590.jdecompiler.attribute.annotation.AnnotationsAttribute;
 import x590.jdecompiler.attribute.signature.FieldSignatureAttribute;
+import x590.jdecompiler.constpool.ConstValueConstant;
 import x590.jdecompiler.constpool.ConstantPool;
+import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.exception.IllegalModifiersException;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.modifiers.FieldModifiers;
-import x590.jdecompiler.modifiers.Modifiers;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.util.IWhitespaceStringBuilder;
 import x590.jdecompiler.util.WhitespaceStringBuilder;
 import x590.util.Pair;
@@ -24,25 +25,25 @@ import x590.util.annotation.Nullable;
 
 public class JavaField extends JavaClassElement {
 
-	public final FieldModifiers modifiers;
-	public final FieldDescriptor descriptor;
-	public final Attributes attributes;
+	private final FieldModifiers modifiers;
+	private final FieldDescriptor descriptor;
+	private final Attributes attributes;
 	
-	public final ConstantValueAttribute constantValueAttribute;
+	private final ConstantValueAttribute constantValueAttribute;
 	
-	protected Operation initializer;
-	protected final Pair<AnnotationsAttribute, AnnotationsAttribute> annotationAttributes;
+	private Operation initializer;
+	private final Pair<AnnotationsAttribute, AnnotationsAttribute> annotationAttributes;
 	
-	protected JavaField(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool, FieldModifiers modifiers) {
+	JavaField(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool, FieldModifiers modifiers) {
 		this.modifiers = modifiers;
-		this.descriptor = new FieldDescriptor(classinfo.thisType, in, pool);
-		this.attributes = new Attributes(in, pool, Location.FIELD);
+		this.descriptor = new FieldDescriptor(classinfo.getThisType(), in, pool);
+		this.attributes = Attributes.read(in, pool, Location.FIELD);
 		this.constantValueAttribute = attributes.get("ConstantValue");
 		this.annotationAttributes = new Pair<>(attributes.get("RuntimeVisibleAnnotations"), attributes.get("RuntimeInvisibleAnnotations"));
 	}
 	
 	
-	protected static List<JavaField> readFields(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool) {
+	static List<JavaField> readFields(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool) {
 		return in.readArrayList(() -> {
 			FieldModifiers modifiers = new FieldModifiers(in.readUnsignedShort());
 			return modifiers.isEnum() ? new JavaEnumField(in, classinfo, pool, modifiers) : new JavaField(in, classinfo, pool, modifiers);
@@ -51,11 +52,25 @@ public class JavaField extends JavaClassElement {
 	
 	
 	@Override
-	public Modifiers getModifiers() {
+	public FieldModifiers getModifiers() {
 		return modifiers;
 	}
 	
-	public boolean setInitializer(Operation initializer) {
+	public FieldDescriptor getDescriptor() {
+		return descriptor;
+	}
+	
+	public Attributes getAttributes() {
+		return attributes;
+	}
+	
+	
+	public boolean setStaticInitializer(Operation initializer) {
+		
+		if(modifiers.isNotStatic()) {
+			throw new DecompilationException("Cannot set static initializer to the non-static field \"" + descriptor.getName() + "\"");
+		}
+		
 		if(this.initializer == null && constantValueAttribute == null) {
 			this.initializer = initializer;
 			return true;
@@ -63,6 +78,48 @@ public class JavaField extends JavaClassElement {
 		
 		return false;
 	}
+	
+	
+	/** @throws IllegalArgumentException если поле не содержит атрибута ConstantValue */
+	public ConstValueConstant getConstantValue() {
+		if(constantValueAttribute != null)
+			return constantValueAttribute.value;
+		
+		throw new IllegalArgumentException("Field does not contains ConstantValueAttribute");
+	}
+	
+	
+	/** @throws IllegalArgumentException если поле не содержит атрибута ConstantValue
+	 * @throws IllegalArgumentException если поле содержит атрибут ConstantValue не того типа */
+	@SuppressWarnings("unchecked")
+	public <C extends ConstValueConstant> C getConstantValueAs(Class<C> constantClass) {
+		ConstValueConstant constant = getConstantValue();
+		
+		if(constantClass.isInstance(constant))
+			return (C)constant;
+		
+		throw new IllegalArgumentException("Field does not contains ConstantValueAttribute");
+	}
+	
+	
+	public boolean setInstanceInitializer(Operation initializer) {
+		
+		if(modifiers.isStatic()) {
+			throw new DecompilationException("Cannot set instance initializer to static field \"" + descriptor.getName() + "\"");
+		}
+		
+		if(this.initializer == null && constantValueAttribute == null) {
+			this.initializer = initializer;
+			return true;
+		}
+		
+		if(!this.initializer.equals(initializer)) {
+			this.initializer = null;
+		}
+		
+		return false;
+	}
+	
 	
 	public @Nullable Operation getInitializer() {
 		return initializer;
@@ -111,19 +168,19 @@ public class JavaField extends JavaClassElement {
 	
 	public void writeNameAndInitializer(StringifyOutputStream out, ClassInfo classinfo) {
 
-		out.write(descriptor.name);
+		out.write(descriptor.getName());
 		
 		if(initializer != null) {
 			out.write(" = ");
 			
-			if(descriptor.type.isBasicArrayType() && JDecompiler.getInstance().shortArrayInitAllowed())
+			if(descriptor.getType().isBasicArrayType() && JDecompiler.getInstance().shortArrayInitAllowed())
 				initializer.writeAsArrayInitializer(out, classinfo.getStaticInitializerStringifyContext());
 			else
 				initializer.writeTo(out, classinfo.getStaticInitializerStringifyContext());
 			
 		} else if(constantValueAttribute != null) {
 			out.write(" = ");
-			constantValueAttribute.writeAs(out, classinfo, descriptor.type);
+			constantValueAttribute.writeAs(out, classinfo, descriptor.getType());
 		}
 	}
 	

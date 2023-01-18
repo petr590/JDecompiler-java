@@ -80,7 +80,7 @@ public class Main {
 			try {
 				Timer timer = Timer.startNewTimer();
 				
-				classes.add(new JavaClass(in));
+				classes.add(JavaClass.read(in));
 				
 				timer.logElapsed("Class reading");
 				

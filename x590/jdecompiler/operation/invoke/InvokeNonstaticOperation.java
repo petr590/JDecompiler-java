@@ -3,8 +3,8 @@ package x590.jdecompiler.operation.invoke;
 import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.Types;
 
 public abstract class InvokeNonstaticOperation extends InvokeOperation {
@@ -19,12 +19,12 @@ public abstract class InvokeNonstaticOperation extends InvokeOperation {
 	// так как важен порядок: сначала со стека снимаются аргументы, затем объект
 	public InvokeNonstaticOperation(DecompilationContext context, MethodDescriptor descriptor) {
 		super(context, descriptor, false);
-		this.object = context.popAsNarrowest(Types.ANY_TYPE).castIfNull(descriptor.clazz);
+		this.object = context.popAsNarrowest(Types.ANY_TYPE).castIfNull(descriptor.getDeclaringClass());
 	}
 	
 	public InvokeNonstaticOperation(DecompilationContext context, MethodDescriptor descriptor, Operation object) {
 		super(context, descriptor, false);
-		this.object = object.castIfNull(descriptor.clazz);
+		this.object = object.castIfNull(descriptor.getDeclaringClass());
 	}
 	
 	@Override
@@ -33,7 +33,7 @@ public abstract class InvokeNonstaticOperation extends InvokeOperation {
 			out.write('.');
 		}
 		
-		out.write(descriptor.name);
+		out.write(descriptor.getName());
 		writeArguments(out, context);
 	}
 	

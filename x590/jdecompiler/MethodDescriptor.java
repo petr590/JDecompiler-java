@@ -33,52 +33,67 @@ import x590.util.Util;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
-public class MethodDescriptor extends Descriptor implements Importable {
+public final class MethodDescriptor extends Descriptor implements Importable {
 	
 	public static final int IMPLICIT_ENUM_ARGUMENTS = 2;
 	
-	public final @Immutable List<Type> arguments;
-	public final Type returnType;
+	final @Immutable
+	private List<Type> arguments;
+	private final Type returnType;
 	
-	private enum MethodType {
+	private enum MethodKind {
 		CONSTRUCTOR, STATIC_INITIALIZER, PLAIN
-	};
+	}
 	
-	private final MethodType type;
+	private final MethodKind kind;
 	
-	private MethodType typeForName(String name) {
-		MethodType type = switch(name) {
-			case "<init>"   -> MethodType.CONSTRUCTOR;
-			case "<clinit>" -> MethodType.STATIC_INITIALIZER;
-			default         -> MethodType.PLAIN;
+	private MethodKind typeForName(String name) {
+		MethodKind kind = switch(name) {
+			case "<init>"   -> MethodKind.CONSTRUCTOR;
+			case "<clinit>" -> MethodKind.STATIC_INITIALIZER;
+			default         -> MethodKind.PLAIN;
 		};
 		
-		if(type != MethodType.PLAIN) {
+		if(kind != MethodKind.PLAIN) {
 			
 			if(returnType != PrimitiveType.VOID)
 				throw new InvalidMethodDescriptorException("Method " + this.toString() + " must return void");
 			
-			if(!clazz.isBasicClassType())
-				throw new InvalidMethodDescriptorException("Class " + clazz + " cannot have " + this.toString() + " method");
+			if(!getDeclaringClass().isBasicClassType())
+				throw new InvalidMethodDescriptorException("Class " + getDeclaringClass() + " cannot have " + this.toString() + " method");
 		}
 		
-		return type;
+		return kind;
 	}
 	
+	
+	public @Immutable List<Type> getArguments() {
+		return arguments;
+	}
+	
+	public int getArgumentsCount() {
+		return arguments.size();
+	}
+	
+	public Type getReturnType() {
+		return returnType;
+	}
+	
+	
 	public boolean isConstructor() {
-		return type == MethodType.CONSTRUCTOR;
+		return kind == MethodKind.CONSTRUCTOR;
 	}
 	
 	public boolean isStaticInitializer() {
-		return type == MethodType.STATIC_INITIALIZER;
+		return kind == MethodKind.STATIC_INITIALIZER;
 	}
 	
 	public boolean isConstructorOf(ReferenceType clazz) {
-		return this.isConstructor() && this.clazz == clazz;
+		return this.isConstructor() && getDeclaringClass().equals(clazz);
 	}
 	
 	public boolean isStaticInitializerOf(ReferenceType clazz) {
-		return this.isStaticInitializer() && this.clazz == clazz;
+		return this.isStaticInitializer() && getDeclaringClass().equals(clazz);
 	}
 	
 	
@@ -123,7 +138,7 @@ public class MethodDescriptor extends Descriptor implements Importable {
 		super(clazz, name);
 		this.arguments = arguments;
 		this.returnType = returnType;
-		this.type = typeForName(name);
+		this.kind = typeForName(name);
 	}
 	
 	
@@ -133,7 +148,7 @@ public class MethodDescriptor extends Descriptor implements Importable {
 	
 	
 	int getVisibleStartIndex(ClassInfo classinfo) {
-		return classinfo.modifiers.isEnum() && this.isConstructorOf(classinfo.thisType) ? IMPLICIT_ENUM_ARGUMENTS : 0;
+		return classinfo.getModifiers().isEnum() && this.isConstructorOf(classinfo.getThisType()) ? IMPLICIT_ENUM_ARGUMENTS : 0;
 	}
 	
 	
@@ -155,9 +170,9 @@ public class MethodDescriptor extends Descriptor implements Importable {
 			out.writesp(signature.parameters, context.classinfo);
 		}
 		
-		switch(type) {
+		switch(kind) {
 			case CONSTRUCTOR -> {
-				out.print(clazz, context.classinfo);
+				out.print(getDeclaringClass(), context.classinfo);
 				this.writeArguments(out, context, attributes, signature);
 			}
 				
@@ -166,7 +181,7 @@ public class MethodDescriptor extends Descriptor implements Importable {
 			}
 				
 			case PLAIN -> {
-				out.print(signature != null ? signature.returnType : returnType, context.classinfo).printsp().print(name);
+				out.print(signature != null ? signature.returnType : returnType, context.classinfo).printsp().print(getName());
 				this.writeArguments(out, context, attributes, signature);
 			}
 		}
@@ -225,15 +240,15 @@ public class MethodDescriptor extends Descriptor implements Importable {
 	
 	@Override
 	public String toString() {
-		return clazz.getName() + "." +
-				(type == MethodType.STATIC_INITIALIZER ? "static {}" :
-				(type == MethodType.CONSTRUCTOR ? ((ClassType)clazz).getSimpleName() : name)
+		return getDeclaringClass().getName() + "." +
+				(kind == MethodKind.STATIC_INITIALIZER ? "static {}" :
+				(kind == MethodKind.CONSTRUCTOR ? ((ClassType)getDeclaringClass()).getSimpleName() : getName())
 						+ "(" + arguments.stream().map(Type::getName).collect(Collectors.joining(", ")) + ")");
 	}
 	
 	
 	public boolean equalsIgnoreClass(MethodDescriptor other) {
-		return this == other || name.equals(other.name) &&
+		return this == other || getName().equals(other.getName()) &&
 				returnType.equals(other.returnType) && arguments.equals(other.arguments);
 	}
 	
@@ -243,7 +258,7 @@ public class MethodDescriptor extends Descriptor implements Importable {
 	}
 	
 	public boolean equals(MethodDescriptor other) {
-		return this == other || name.equals(other.name) && clazz.equals(other.clazz) &&
+		return this == other || getName().equals(other.getName()) && getDeclaringClass().equals(other.getDeclaringClass()) &&
 				returnType.equals(other.returnType) && arguments.equals(other.arguments);
 	}
 	
@@ -269,7 +284,7 @@ public class MethodDescriptor extends Descriptor implements Importable {
 	}
 	
 	private boolean equalsRaw(String name, Type returnType) {
-		return this.name.equals(name) && this.returnType.equals(returnType);
+		return this.getName().equals(name) && this.returnType.equals(returnType);
 	}
 	
 	
@@ -294,7 +309,7 @@ public class MethodDescriptor extends Descriptor implements Importable {
 	}
 	
 	private boolean equalsRaw(ClassType clazz, String name, Type returnType) {
-		return this.clazz.equals(clazz) && this.name.equals(name) && this.returnType.equals(returnType);
+		return this.getDeclaringClass().equals(clazz) && this.getName().equals(name) && this.returnType.equals(returnType);
 	}
 	
 	

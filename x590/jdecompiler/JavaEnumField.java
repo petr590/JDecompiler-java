@@ -1,9 +1,5 @@
 package x590.jdecompiler;
 
-import static x590.jdecompiler.modifiers.Modifiers.ACC_FINAL;
-import static x590.jdecompiler.modifiers.Modifiers.ACC_PUBLIC;
-import static x590.jdecompiler.modifiers.Modifiers.ACC_STATIC;
-
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.exception.IllegalModifiersException;
@@ -13,12 +9,14 @@ import x590.jdecompiler.modifiers.FieldModifiers;
 import x590.jdecompiler.operation.invoke.InvokeOperation;
 import x590.util.Util;
 
+import static x590.jdecompiler.modifiers.Modifiers.*;
+
 public class JavaEnumField extends JavaField {
 	
 	protected JavaEnumField(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool, FieldModifiers modifiers) {
 		super(in, classinfo, pool, modifiers);
 		
-		if(classinfo.modifiers.isNotEnum()) {
+		if(classinfo.getModifiers().isNotEnum()) {
 			throw new IllegalModifiersException("Cannot declare enum field in not enum class");
 		}
 		
@@ -29,8 +27,8 @@ public class JavaEnumField extends JavaField {
 	
 	
 	public void checkHasEnumInitializer(ClassInfo classinfo) {
-		if(!(initializer instanceof InvokeOperation)) {
-			throw new DecompilationException("Enum constant " + descriptor.name + " must have enum initializer");
+		if(!(getInitializer() instanceof InvokeOperation)) {
+			throw new DecompilationException("Enum constant " + getDescriptor() + " must have enum initializer");
 		}
 	}
 	
@@ -53,8 +51,8 @@ public class JavaEnumField extends JavaField {
 		
 		var initializer = getEnumInitializer();
 		var context = classinfo.getStaticInitializerStringifyContext();
-
-		out.write(descriptor.name);
+		
+		out.write(getDescriptor().getName());
 		
 		if(initializer.argumentsCount() > 2) {
 			out.write('(');

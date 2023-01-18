@@ -11,7 +11,7 @@ import x590.jdecompiler.io.ExtendedStringReader;
 import x590.util.annotation.Immutable;
 
 /** Описывает объявление дженерика. Хранит имя и супертип */
-public class GenericParameterType extends ReferenceType {
+public final class GenericParameterType extends ReferenceType {
 	
 	private final @Immutable List<ReferenceType> types;
 	

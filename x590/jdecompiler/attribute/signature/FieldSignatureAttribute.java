@@ -9,7 +9,7 @@ import x590.jdecompiler.io.ExtendedStringReader;
 import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
 
-public class FieldSignatureAttribute extends SignatureAttribute {
+public final class FieldSignatureAttribute extends SignatureAttribute {
 	
 	public final ReferenceType type;
 	
@@ -21,8 +21,8 @@ public class FieldSignatureAttribute extends SignatureAttribute {
 	}
 	
 	public void checkType(FieldDescriptor descriptor) {
-		if(!type.baseEquals(descriptor.type))
-			throw new DecompilationException("Field signature doesn't matches the field type: " + type + " and " + descriptor.type);
+		if(!type.baseEquals(descriptor.getType()))
+			throw new DecompilationException("Field signature doesn't matches the field type: " + type + " and " + descriptor.getType());
 	}
 	
 	@Override

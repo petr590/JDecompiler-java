@@ -16,8 +16,8 @@ import x590.jdecompiler.constpool.StringConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.DisassemblerContext;
 import x590.jdecompiler.exception.DecompilationException;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.instruction.InstructionWithIndex;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.StringConstOperation;
 import x590.jdecompiler.operation.field.GetInstanceFieldOperation;
 import x590.jdecompiler.operation.field.GetStaticFieldOperation;
@@ -69,16 +69,16 @@ public final class InvokedynamicInstruction extends InstructionWithIndex {
 				MethodDescriptor descriptor =
 						new MethodDescriptor(referenceConstant.getClassConstant(), invokeDynamicConstant.getNameAndType());
 				
-				List<Operation> arguments = new ArrayList<>(descriptor.arguments.size());
+				List<Operation> arguments = new ArrayList<>(descriptor.getArgumentsCount());
 				
 				// pop arguments that already on stack
-				for(int i = descriptor.arguments.size(); i > 0; i--)
+				for(int i = descriptor.getArgumentsCount(); i > 0; i--)
 					arguments.add(context.pop());
 				
 				
 				MethodDescriptor invokedynamicDescriptor = new MethodDescriptor(referenceConstant);
 				
-				if(methodHandle.referenceKind == ReferenceKind.INVOKESTATIC && descriptor.name.equals("makeConcatWithConstants") &&
+				if(methodHandle.referenceKind == ReferenceKind.INVOKESTATIC && descriptor.getName().equals("makeConcatWithConstants") &&
 						invokedynamicDescriptor.equals(makeConcatWithConstantsDescriptor)) {
 					
 					// String concat

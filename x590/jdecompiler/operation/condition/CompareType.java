@@ -4,7 +4,7 @@ import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.Types;
 
-public class CompareType {
+public  class CompareType {
 	
 	public static final EqualsCompareType
 			EQUALS     = new EqualsCompareType("==", "!"),
@@ -17,8 +17,8 @@ public class CompareType {
 			LESS_OR_EQUALS    = new CompareType("<=");
 	
 	static {
-		EQUALS.invertedType = NOT_EQUALS;
-		NOT_EQUALS.invertedType = EQUALS;
+		((CompareType)EQUALS).invertedType = NOT_EQUALS;
+		((CompareType)NOT_EQUALS).invertedType = EQUALS;
 		
 		GREATER.invertedType = LESS_OR_EQUALS;
 		LESS_OR_EQUALS.invertedType = GREATER;
@@ -27,12 +27,12 @@ public class CompareType {
 		GREATER_OR_EQUALS.invertedType = LESS;
 	}
 	
-	protected final String binaryOperator;
-	protected CompareType invertedType;
+	private final String binaryOperator;
+	private CompareType invertedType;
 	
 	public final boolean isEqualsCompareType;
 	
-	public CompareType(String binaryOperator) {
+	private CompareType(String binaryOperator) {
 		this.binaryOperator = binaryOperator;
 		this.isEqualsCompareType = this instanceof EqualsCompareType;
 	}
@@ -51,5 +51,30 @@ public class CompareType {
 	
 	public int getPriority() {
 		return Priority.GREATER_LESS_COMPARASION;
+	}
+	
+	
+	public static final class EqualsCompareType extends CompareType {
+		
+		private final String unaryOperator;
+		
+		public EqualsCompareType(String binaryOperator, String unaryOperator) {
+			super(binaryOperator);
+			this.unaryOperator = unaryOperator;
+		}
+		
+		public String getUnaryOperator(boolean inverted) {
+			return (inverted ? (EqualsCompareType)getInverted() : this).unaryOperator;
+		}
+		
+		@Override
+		public Type getRequiredType() {
+			return Types.ANY_TYPE;
+		}
+		
+		@Override
+		public int getPriority() {
+			return Priority.EQUALS_COMPARASION;
+		}
 	}
 }

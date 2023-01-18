@@ -1,9 +1,9 @@
 package x590.jdecompiler.instruction.anew;
 
 import x590.jdecompiler.context.DecompilationContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.instruction.InstructionWithIndex;
-import x590.jdecompiler.operation.Operation;
-import x590.jdecompiler.operation.array.NewOperation;
+import x590.jdecompiler.operation.NewOperation;
 
 public class NewInstruction extends InstructionWithIndex {
 	

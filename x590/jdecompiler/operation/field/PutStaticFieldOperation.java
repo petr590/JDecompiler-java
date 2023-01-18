@@ -6,7 +6,7 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 
-public class PutStaticFieldOperation extends PutFieldOperation {
+public final class PutStaticFieldOperation extends PutFieldOperation {
 	
 	public PutStaticFieldOperation(DecompilationContext context, int index) {
 		super(context, index);
@@ -19,8 +19,10 @@ public class PutStaticFieldOperation extends PutFieldOperation {
 	}
 	
 	private void init(DecompilationContext context) {
-		if(!canOmit && context.descriptor.isStaticInitializer() && !getValue().requiresLocalContext()) {
-			if(context.classinfo.getField(descriptor).setInitializer(getValue()))
+		if(!canOmit && context.descriptor.isStaticInitializer() &&
+				context.currentScope() == context.methodScope && !getValue().requiresLocalContext()) {
+			
+			if(context.classinfo.getField(descriptor).setStaticInitializer(getValue()))
 				this.remove();
 		}
 		
@@ -30,7 +32,7 @@ public class PutStaticFieldOperation extends PutFieldOperation {
 	@Override
 	public void writeName(StringifyOutputStream out, StringifyContext context) {
 		if(!canOmitClass(context)) {
-			out.print(descriptor.clazz, context.classinfo).print('.');
+			out.print(descriptor.getDeclaringClass(), context.classinfo).print('.');
 		}
 		
 		super.writeName(out, context);
@@ -38,6 +40,6 @@ public class PutStaticFieldOperation extends PutFieldOperation {
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		classinfo.addImport(descriptor.clazz);
+		classinfo.addImport(descriptor.getDeclaringClass());
 	}
 }

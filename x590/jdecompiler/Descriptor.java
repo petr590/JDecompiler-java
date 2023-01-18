@@ -4,8 +4,8 @@ import x590.jdecompiler.type.ReferenceType;
 
 public abstract class Descriptor {
 	
-	public final ReferenceType clazz;
-	public final String name;
+	private final ReferenceType clazz;
+	private final String name;
 	
 	public Descriptor(ReferenceType clazz, String name) {
 		this.clazz = clazz;
@@ -14,4 +14,12 @@ public abstract class Descriptor {
 	
 	@Override
 	public abstract String toString();
+	
+	public ReferenceType getDeclaringClass() {
+		return clazz;
+	}
+	
+	public String getName() {
+		return name;
+	}
 }

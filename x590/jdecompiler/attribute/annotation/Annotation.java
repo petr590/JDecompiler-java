@@ -10,7 +10,7 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.ClassType;
 import x590.util.ArrayUtil;
 
-public class Annotation implements StringWritableAndImportable {
+public final class Annotation implements StringWritableAndImportable {
 	
 	private final ClassType type;
 	private final Element[] elements;

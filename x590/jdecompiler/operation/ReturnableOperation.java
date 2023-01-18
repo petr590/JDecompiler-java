@@ -2,6 +2,7 @@ package x590.jdecompiler.operation;
 
 import java.util.Objects;
 
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.type.Type;
 
 public abstract class ReturnableOperation extends Operation {
@@ -20,5 +21,9 @@ public abstract class ReturnableOperation extends Operation {
 	@Override
 	public void onCastReturnType(Type newType) {
 		this.returnType = Objects.requireNonNull(newType);
+	}
+	
+	protected boolean equals(ReturnableOperation other) {
+		return returnType.equals(other.returnType);
 	}
 }

@@ -3,12 +3,13 @@ package x590.jdecompiler.operation.constant;
 import x590.jdecompiler.JavaField;
 import x590.jdecompiler.constpool.StringConstant;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.util.StringUtil;
 
-public class StringConstOperation extends ConstOperation {
+public final class StringConstOperation extends ConstOperation {
 	
 	private final String value;
 	
@@ -58,6 +59,11 @@ public class StringConstOperation extends ConstOperation {
 	
 	@Override
 	protected boolean canUseConstant(JavaField constant) {
-		return super.canUseConstant(constant) && ((StringConstant)constant.constantValueAttribute.value).getString().equals(value);
+		return super.canUseConstant(constant) && constant.getConstantValueAs(StringConstant.class).getString().equals(value);
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof StringConstOperation operation && value.equals(operation.value);
 	}
 }

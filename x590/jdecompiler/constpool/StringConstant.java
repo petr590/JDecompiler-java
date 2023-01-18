@@ -4,14 +4,14 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.ExtendedDataInputStream;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.StringConstOperation;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.util.StringUtil;
 
-public class StringConstant extends ConstValueConstant {
+public final class StringConstant extends ConstValueConstant {
 	
 	private final int index;
 	private Utf8Constant value;

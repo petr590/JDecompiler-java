@@ -3,8 +3,8 @@ package x590.jdecompiler.instruction.constant;
 import x590.jdecompiler.constpool.ConstValueConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.DisassemblerContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.instruction.InstructionWithIndex;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.TypeSize;
 
 public class LdcInstruction extends InstructionWithIndex {

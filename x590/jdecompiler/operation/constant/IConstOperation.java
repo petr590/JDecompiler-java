@@ -3,14 +3,14 @@ package x590.jdecompiler.operation.constant;
 import x590.jdecompiler.JavaField;
 import x590.jdecompiler.constpool.IntegerConstant;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.UncertainIntegralType;
 import x590.jdecompiler.util.StringUtil;
 
-public class IConstOperation extends ConstOperation {
+public final class IConstOperation extends ConstOperation {
 	
 	private final int value;
 	
@@ -58,11 +58,11 @@ public class IConstOperation extends ConstOperation {
 	
 	@Override
 	protected boolean canUseConstant(JavaField constant) {
-		return super.canUseConstant(constant) && ((IntegerConstant)constant.constantValueAttribute.value).getValue() == value;
+		return super.canUseConstant(constant) && constant.getConstantValueAs(IntegerConstant.class).getValue() == value;
 	}
 	
 	@Override
 	public boolean equals(Operation other) {
-		return this == other || other instanceof IConstOperation iconst && value == iconst.value && returnType.equals(iconst.returnType);
+		return this == other || other instanceof IConstOperation operation && value == operation.value;
 	}
 }

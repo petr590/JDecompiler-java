@@ -2,8 +2,8 @@ package x590.jdecompiler.operation.operator;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.Type;
 
 public abstract class BinaryOperatorOperation extends OperatorOperation {
@@ -62,5 +62,11 @@ public abstract class BinaryOperatorOperation extends OperatorOperation {
 	@Override
 	public boolean requiresLocalContext() {
 		return operand1.requiresLocalContext() || operand2.requiresLocalContext();
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof BinaryOperatorOperation operation &&
+				super.equals(operation) && operand1.equals(operation.operand1) && operand2.equals(operation.operand2);
 	}
 }

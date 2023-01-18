@@ -4,7 +4,7 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.type.Type;
 
-public class MulOperatorOperation extends BinaryOperatorOperation {
+public final class MulOperatorOperation extends BinaryOperatorOperation {
 	
 	public MulOperatorOperation(Type type, DecompilationContext context) {
 		super(type, context);

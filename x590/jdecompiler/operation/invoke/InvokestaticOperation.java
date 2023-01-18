@@ -4,9 +4,9 @@ import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.CastOperation;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.PrimitiveType;
 
@@ -17,13 +17,13 @@ public final class InvokestaticOperation extends InvokeOperation {
 	}
 	
 	
-	public static Operation valueOf(DecompilationContext context, int index) {
-		MethodDescriptor descriptor = getDescriptor(context, index);
+	public static Operation operationOf(DecompilationContext context, int descriptorIndex) {
+		MethodDescriptor descriptor = getDescriptor(context, descriptorIndex);
 		
-		if(descriptor.name.equals("valueOf")) {
+		if(descriptor.getName().equals("valueOf")) {
 			
-			var clazz = descriptor.clazz;
-			var returnType = descriptor.returnType;
+			var clazz = descriptor.getDeclaringClass();
+			var returnType = descriptor.getReturnType();
 			
 			if(returnType.isBasicClassType() && returnType.equals(clazz)) {
 				
@@ -65,15 +65,21 @@ public final class InvokestaticOperation extends InvokeOperation {
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		if(!canOmitClass(context))
-			out.print(descriptor.clazz, context.classinfo).print('.');
+			out.print(descriptor.getDeclaringClass(), context.classinfo).print('.');
 		
-		out.write(descriptor.name);
+		out.write(descriptor.getName());
 		writeArguments(out, context);
 	}
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
 		super.addImports(classinfo);
-		classinfo.addImport(descriptor.clazz);
+		classinfo.addImport(descriptor.getDeclaringClass());
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof InvokestaticOperation operation &&
+				super.equals(operation);
 	}
 }

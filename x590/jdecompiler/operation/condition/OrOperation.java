@@ -2,7 +2,7 @@ package x590.jdecompiler.operation.condition;
 
 import x590.jdecompiler.operation.Priority;
 
-public class OrOperation extends BinaryConditionOperation {
+public final class OrOperation extends BinaryConditionOperation {
 	
 	public OrOperation(ConditionOperation operand1, ConditionOperation operand2) {
 		super(operand1, operand2);

@@ -3,6 +3,7 @@ package x590.jdecompiler.operation;
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.WrapperClassType;
@@ -86,5 +87,12 @@ public class CastOperation extends Operation {
 	@Override
 	public boolean requiresLocalContext() {
 		return operand.requiresLocalContext();
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof CastOperation operation && operand.equals(operation.operand) &&
+				requiredType.equals(operation.requiredType) && castedType.equals(operation.castedType) &&
+				implicitCast == operation.implicitCast && implicitCastAllowed == operation.implicitCastAllowed;
 	}
 }

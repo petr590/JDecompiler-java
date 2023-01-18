@@ -5,7 +5,7 @@ import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.type.Type;
 import x590.util.annotation.Nullable;
 
-public class LocalVariableTableAttribute extends Attribute {
+public final class LocalVariableTableAttribute extends Attribute {
 	
 	private final LocalVariableEntry[] table;
 	
@@ -26,7 +26,7 @@ public class LocalVariableTableAttribute extends Attribute {
 	}
 	
 	
-	public static class LocalVariableEntry {
+	public static final class LocalVariableEntry {
 		public final int startPos, endPos, slot;
 		public final String name;
 		public final Type type;

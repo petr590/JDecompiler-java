@@ -10,9 +10,9 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
 
-public class FieldDescriptor extends Descriptor implements Importable {
+public final class FieldDescriptor extends Descriptor implements Importable {
 	
-	public final Type type;
+	private final Type type;
 	
 	public FieldDescriptor(ClassType clazz, String name, Type type) {
 		super(clazz, name);
@@ -36,6 +36,11 @@ public class FieldDescriptor extends Descriptor implements Importable {
 	}
 	
 	
+	public Type getType() {
+		return type;
+	}
+	
+	
 	@Override
 	public void addImports(ClassInfo classinfo) {
 		classinfo.addImport(type);
@@ -44,11 +49,11 @@ public class FieldDescriptor extends Descriptor implements Importable {
 	
 	@Override
 	public String toString() {
-		return type.getName() + " " + name;
+		return type.getName() + " " + this.getName();
 	}
 	
 	public boolean equals(FieldDescriptor other) {
-		return this == other || (this.name.equals(other.name) && this.type.equals(other.type));
+		return this == other || (this.getName().equals(other.getName()) && type.equals(other.type));
 	}
 	
 	@Override
@@ -63,6 +68,6 @@ public class FieldDescriptor extends Descriptor implements Importable {
 			signature.checkType(this);
 		}
 		
-		out.writesp(signature != null ? signature.type : type, classinfo);
+		out.writesp(signature != null ? signature.type : getType(), classinfo);
 	}
 }

@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import x590.jdecompiler.io.ExtendedDataInputStream;
 
-public class InterfaceMethodrefConstant extends MethodrefConstant {
+public final class InterfaceMethodrefConstant extends MethodrefConstant {
 	
 	protected InterfaceMethodrefConstant(ExtendedDataInputStream in) {
 		super(in);

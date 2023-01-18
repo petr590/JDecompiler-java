@@ -2,6 +2,7 @@ package x590.jdecompiler.operation.invoke;
 
 import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.context.DecompilationContext;
+import x590.jdecompiler.exception.Operation;
 
 public final class InvokeinterfaceOperation extends InvokeNonstaticOperation {
 	
@@ -16,5 +17,11 @@ public final class InvokeinterfaceOperation extends InvokeNonstaticOperation {
 	@Override
 	protected String getInstructionName() {
 		return "invokeinterface";
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof InvokeinterfaceOperation operation &&
+				super.equals(operation);
 	}
 }

@@ -4,6 +4,7 @@ import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.JavaField;
 import x590.jdecompiler.constpool.ConstValueConstant;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.exception.TypeSizeMismatchException;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.TypeSize;
@@ -32,6 +33,12 @@ public abstract class LdcOperation<CT extends ConstValueConstant> extends ConstO
 	
 	@Override
 	protected boolean canUseConstant(JavaField constant) {
-		return super.canUseConstant(constant) && constant.constantValueAttribute.value.equals(value);
+		return super.canUseConstant(constant) && constant.getConstantValue().equals(value);
+	}
+	
+	@Override
+	@SuppressWarnings("rawtypes")
+	public boolean equals(Operation other) {
+		return this == other || other instanceof LdcOperation operation && value.equals(operation.value);
 	}
 }

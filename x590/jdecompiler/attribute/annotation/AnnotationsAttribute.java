@@ -10,7 +10,7 @@ import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.util.ArrayUtil;
 
-public class AnnotationsAttribute extends Attribute implements StringWritable {
+public final class AnnotationsAttribute extends Attribute implements StringWritable {
 	
 	private final Annotation[] annotations;
 	

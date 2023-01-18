@@ -1,4 +1,5 @@
-Fixed the call of the `this` constructor in enums.
-Fixed a bug with decompilation of abstract methods (the `abstract` modifier was not output).
+Refactoring: most of the fields are encapsulated, almost all classes in the x590 package.jdecompiler.operation declared as final.
+Added functionality: the JavaField.setInitializer method is divided into set Static Initializer, set Instance Initializer, and the corresponding checks are added.
 
-Added array inlining in varargs methods (only if there is no other method with the same number of arguments. If the class is unavailable, the array is not inline).
+Improved security in the Java Class: now, when a decompilation stage is called again (read and disassemble, decompile, resolve imports, writing),
+or if it was skipped, an exception is thrown.

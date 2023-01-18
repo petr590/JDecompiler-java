@@ -14,7 +14,7 @@ import x590.jdecompiler.type.GenericParameters;
 import x590.jdecompiler.type.Type;
 import x590.util.annotation.Nullable;
 
-public class ClassSignatureAttribute extends SignatureAttribute {
+public final class ClassSignatureAttribute extends SignatureAttribute {
 	
 	public final @Nullable GenericParameters<GenericParameterType> parameters;
 	public final ClassType superType;

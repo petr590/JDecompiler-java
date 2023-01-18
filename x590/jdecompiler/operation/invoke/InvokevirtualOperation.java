@@ -2,8 +2,8 @@ package x590.jdecompiler.operation.invoke;
 
 import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.context.DecompilationContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.operation.CastOperation;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.PrimitiveType;
 
@@ -14,14 +14,14 @@ public final class InvokevirtualOperation extends InvokeNonstaticOperation {
 	}
 	
 	
-	public static Operation valueOf(DecompilationContext context, int index) {
-		MethodDescriptor descriptor = getDescriptor(context, index);
+	public static Operation operationOf(DecompilationContext context, int descriptorIndex) {
+		MethodDescriptor descriptor = getDescriptor(context, descriptorIndex);
 		
-		var returnType = descriptor.returnType;
+		var returnType = descriptor.getReturnType();
 		
-		if(returnType.isPrimitive() && descriptor.clazz.equals(((PrimitiveType)returnType).getWrapperType()) && descriptor.argumentsEquals()) {
+		if(returnType.isPrimitive() && descriptor.getDeclaringClass().equals(((PrimitiveType)returnType).getWrapperType()) && descriptor.argumentsEquals()) {
 			
-			var name = descriptor.name;
+			var name = descriptor.getName();
 			
 			if(returnType.equals(PrimitiveType.BYTE) && name.equals("byteValue"))
 				return new CastOperation(ClassType.BYTE, PrimitiveType.BYTE, true, context);
@@ -55,5 +55,11 @@ public final class InvokevirtualOperation extends InvokeNonstaticOperation {
 	@Override
 	protected String getInstructionName() {
 		return "invokevirtual";
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof InvokevirtualOperation operation &&
+				super.equals(operation);
 	}
 }

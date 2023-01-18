@@ -7,8 +7,8 @@ import java.util.function.BooleanSupplier;
 import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.operation.constant.StringConstOperation;
 import x590.jdecompiler.type.ClassType;
@@ -105,5 +105,11 @@ public final class ConcatStringsOperation extends InvokeOperation {
 	@Override
 	public int getPriority() {
 		return Priority.PLUS;
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof ConcatStringsOperation operation &&
+				super.equals(operation) && operands.equals(operation.operands);
 	}
 }

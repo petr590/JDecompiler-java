@@ -39,10 +39,10 @@ public abstract class ConstOperation extends ReturnableOperation {
 		if(constantLoader.isNonNull(context.classinfo)) {
 			JavaField constant = constantLoader.get();
 			
-			if(!context.classinfo.canOmitClass(constant.descriptor))
-				out.print(constant.descriptor.clazz, context.classinfo).print('.');
+			if(!context.classinfo.canOmitClass(constant.getDescriptor()))
+				out.print(constant.getDescriptor().getDeclaringClass(), context.classinfo).print('.');
 			
-			out.write(constant.descriptor.name);
+			out.write(constant.getDescriptor().getName());
 			
 		} else {
 			this.writeValue(out, context);
@@ -52,6 +52,6 @@ public abstract class ConstOperation extends ReturnableOperation {
 	public abstract void writeValue(StringifyOutputStream out, StringifyContext context);
 	
 	protected boolean canUseConstant(JavaField constant) {
-		return constant.descriptor.type.isSubtypeOf(returnType);
+		return constant.getDescriptor().getType().isSubtypeOf(returnType);
 	}
 }

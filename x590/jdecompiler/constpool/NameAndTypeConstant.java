@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import x590.jdecompiler.io.ExtendedDataInputStream;
 
-public class NameAndTypeConstant extends Constant {
+public final class NameAndTypeConstant extends Constant {
 	
 	private final int nameIndex, descriptorIndex;
 	private Utf8Constant name, descriptor;

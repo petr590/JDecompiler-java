@@ -7,9 +7,9 @@ import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.StringWritable;
 import x590.jdecompiler.Stringified;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
+import x590.jdecompiler.exception.Operation.Associativity;
 import x590.jdecompiler.main.JDecompiler;
-import x590.jdecompiler.operation.Operation;
-import x590.jdecompiler.operation.Operation.Associativity;
 import x590.util.annotation.Nullable;
 
 public class StringifyOutputStream extends UncheckedOutputStream {

@@ -5,8 +5,8 @@ import java.util.function.Predicate;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.DecompilationException;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.VoidOperation;
 import x590.jdecompiler.type.Type;
 
@@ -21,7 +21,7 @@ public abstract class ReturnOperation extends VoidOperation {
 	
 	public ReturnOperation(Predicate<Type> predicate, DecompilationContext context) {
 		
-		Type methodReturnType = context.descriptor.returnType;
+		Type methodReturnType = context.descriptor.getReturnType();
 		
 		if(!predicate.test(methodReturnType))
 			throw new DecompilationException("The method return type (" + methodReturnType + ")" +
@@ -37,5 +37,11 @@ public abstract class ReturnOperation extends VoidOperation {
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		out.print("return ").print(operand, context);
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || this.getClass() == other.getClass() &&
+				operand.equals(((ReturnOperation)other).operand);
 	}
 }

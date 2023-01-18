@@ -1,6 +1,5 @@
-package x590.jdecompiler;
+package x590.jdecompiler.exception;
 
-import x590.jdecompiler.exception.DisassemblingException;
 import x590.jdecompiler.io.ExtendedStringReader;
 
 public class NameDisassemblingException extends DisassemblingException {

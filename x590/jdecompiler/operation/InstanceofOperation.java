@@ -3,11 +3,12 @@ package x590.jdecompiler.operation;
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Types;
 
-public class InstanceofOperation extends BooleanOperation {
+public final class InstanceofOperation extends BooleanOperation {
 	
 	private final ReferenceType clazz;
 	private final Operation object;
@@ -30,5 +31,11 @@ public class InstanceofOperation extends BooleanOperation {
 	@Override
 	public int getPriority() {
 		return Priority.INSTANCEOF;
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof InstanceofOperation operation &&
+				clazz.equals(operation.clazz) && object.equals(operation.object);
 	}
 }

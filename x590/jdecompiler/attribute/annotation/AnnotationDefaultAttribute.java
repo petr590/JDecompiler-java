@@ -7,7 +7,7 @@ import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 
-public class AnnotationDefaultAttribute extends Attribute implements StringWritableAndImportable {
+public final class AnnotationDefaultAttribute extends Attribute implements StringWritableAndImportable {
 	
 	private final ElementValue value;
 	

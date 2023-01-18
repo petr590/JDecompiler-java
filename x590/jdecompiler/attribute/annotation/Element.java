@@ -6,7 +6,7 @@ import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 
-public class Element implements StringWritableAndImportable {
+public final class Element implements StringWritableAndImportable {
 	
 	private final String name;
 	private final ElementValue value;

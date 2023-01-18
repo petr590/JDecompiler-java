@@ -3,12 +3,13 @@ package x590.jdecompiler.operation.constant;
 import x590.jdecompiler.JavaField;
 import x590.jdecompiler.constpool.LongConstant;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.util.StringUtil;
 
-public class LConstOperation extends IntConvertibleConstOperation {
+public final class LConstOperation extends IntConvertibleConstOperation {
 	
 	private final long value;
 	
@@ -39,6 +40,11 @@ public class LConstOperation extends IntConvertibleConstOperation {
 	
 	@Override
 	protected boolean canUseConstant(JavaField constant) {
-		return super.canUseConstant(constant) && ((LongConstant)constant.constantValueAttribute.value).getValue() == value;
+		return super.canUseConstant(constant) && constant.getConstantValueAs(LongConstant.class).getValue() == value;
+	}
+	
+	@Override
+	public boolean equals(Operation other) {
+		return this == other || other instanceof LConstOperation operation && value == operation.value;
 	}
 }

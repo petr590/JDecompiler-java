@@ -4,13 +4,13 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.ExtendedDataInputStream;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.MethodTypeConstOperation;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
 
-public class MethodTypeConstant extends ConstValueConstant {
+public final class MethodTypeConstant extends ConstValueConstant {
 	
 	public final int descriptorIndex;
 	private Utf8Constant descriptor;
