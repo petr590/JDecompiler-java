@@ -1,0 +1,42 @@
+NARROWEST CAST
+
+T5
+
+// use as (T2, T4)
+
+T5
+
+// use as (T5, T6)
+
+T5
+
+// T5 subtype of widest
+
+
+WIDEST CAST
+
+// assign (T2, T4)
+
+null
+
+// assign (T5, T6)
+
+T5
+
+// assign (T4, T5)
+
+null
+
+// widest subtype of T5 || T5 subtype of narrowest
+
+--------------------
+
+// assign (T6, null)
+
+T5
+
+// assign (T4, null)
+
+null
+
+// widest subtype of T5

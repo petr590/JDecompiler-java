@@ -1,0 +1,18 @@
+T3
+T4
+
+// use as T1
+
+T3
+T4
+
+T3 subtype of T1
+w			  r
+
+// assign T6
+
+T3
+T4
+
+T6 subtype of T4
+r			  n

@@ -1,0 +1,2 @@
+T5 use as (T3, T4) = T5
+T5 use as (T5, T6) = T5

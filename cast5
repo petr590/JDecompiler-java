@@ -1,0 +1,8 @@
+ArrayList  narrowset  AnyObjectType  ->  (ArraysList)
+
+
+Object---------+--------------
+  |            |              |
+List ------ ArrayList         |
+  |                           |
+   ---------------------- LinkedList

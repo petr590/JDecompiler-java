@@ -1,5 +1,2 @@
-Рефакторинг: большая часть полей инкапсулирована, почти все классы в пакете x590.jdecompiler.operation объявлены как final.
-Добавлен функционал: метод JavaField.setInitializer разделён на setStaticInitializer, setInstanceInitializer, дбавлены соответствующие проверки.
-
-Улучшена безопасность в классе JavaClass: теперь при повторном вызове какой-то стадии декомпиляции (read and disassemble, decompile, resolve imports, writing),
-или если она была пропущена, выбрасывается исключение.
+Добавлена папка src в коммит (так удобнее собирать проект).
+Обновлены README.md и README-ru.md
