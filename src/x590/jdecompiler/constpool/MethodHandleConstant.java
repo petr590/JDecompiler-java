@@ -4,8 +4,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.ExtendedDataInputStream;
+import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.MethodHandleConstOperation;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
@@ -47,11 +48,6 @@ public final class MethodHandleConstant extends ConstValueConstant {
 	}
 	
 	@Override
-	public String toString(ClassInfo classinfo) {
-		return "#MethodHandle#";
-	}
-	
-	@Override
 	public Type getType() {
 		return ClassType.METHOD_HANDLE;
 	}
@@ -64,6 +60,11 @@ public final class MethodHandleConstant extends ConstValueConstant {
 	@Override
 	public Operation toOperation() {
 		return new MethodHandleConstOperation(this);
+	}
+	
+	@Override
+	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
+		out.write("#MethodHandle#");
 	}
 	
 	@Override

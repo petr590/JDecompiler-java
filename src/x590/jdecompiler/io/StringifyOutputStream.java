@@ -3,15 +3,18 @@ package x590.jdecompiler.io;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.StringWritable;
-import x590.jdecompiler.Stringified;
+import x590.jdecompiler.StringWritableWithTwoArgs;
 import x590.jdecompiler.context.StringifyContext;
-import x590.jdecompiler.exception.Operation;
-import x590.jdecompiler.exception.Operation.Associativity;
 import x590.jdecompiler.main.JDecompiler;
+import x590.jdecompiler.operation.Operation;
+import x590.jdecompiler.operation.Operation.Associativity;
 import x590.util.annotation.Nullable;
 
+/**
+ * Класс, представляющий реализацию {@link OutputStream}.
+ * Содержит много удобных методов для записи текста.
+ */
 public class StringifyOutputStream extends UncheckedOutputStream {
 	
 	private final OutputStream out;
@@ -117,41 +120,23 @@ public class StringifyOutputStream extends UncheckedOutputStream {
 		}
 	}
 	
-	public void write(StringWritable writable, ClassInfo classinfo) {
-		writable.writeTo(this, classinfo);
+	public <T> void write(StringWritable<T> writable, T param) {
+		writable.writeTo(this, param);
 	}
 	
-	public void write(Stringified stringified, ClassInfo classinfo) {
-		write(stringified.toString(classinfo));
-	}
-	
-	public <T extends Object /* Genius :) */ & StringWritable & Stringified> void write(T writable, ClassInfo classinfo) {
-		write((StringWritable)writable, classinfo);
-	}
-	
-	public void write(Operation operation, StringifyContext context) {
-		operation.writeTo(this, context);
+	public <T, U> void write(StringWritableWithTwoArgs<T, U> writable, T param1, U param2) {
+		writable.writeTo(this, param1, param2);
 	}
 	
 	
-	public void writeIfNotNull(@Nullable StringWritable writable, ClassInfo classinfo) {
+	public <T> void writeIfNotNull(@Nullable StringWritable<T> writable, T param) {
 		if(writable != null)
-			write(writable, classinfo);
+			write(writable, param);
 	}
 	
-	public void writeIfNotNull(@Nullable Stringified stringified, ClassInfo classinfo) {
-		if(stringified != null)
-			write(stringified, classinfo);
-	}
-	
-	public <T extends Object & StringWritable & Stringified> void writeIfNotNull(@Nullable T writable, ClassInfo classinfo) {
+	public <T, U> void writeIfNotNull(@Nullable StringWritableWithTwoArgs<T, U> writable, T param1, U param2) {
 		if(writable != null)
-			write(writable, classinfo);
-	}
-	
-	public void writeIfNotNull(@Nullable Operation operation, StringifyContext context) {
-		if(operation != null)
-			write(operation, context);
+			writable.writeTo(this, param1, param2);
 	}
 	
 	
@@ -165,44 +150,24 @@ public class StringifyOutputStream extends UncheckedOutputStream {
 		return this;
 	}
 	
-	public StringifyOutputStream print(StringWritable writable, ClassInfo classinfo) {
-		write(writable, classinfo);
+	public <T> StringifyOutputStream print(StringWritable<T> writable, T param) {
+		write(writable, param);
 		return this;
 	}
 	
-	public StringifyOutputStream print(Stringified stringified, ClassInfo classinfo) {
-		write(stringified, classinfo);
-		return this;
-	}
-	
-	public <T extends Object & StringWritable & Stringified> StringifyOutputStream print(@Nullable T writable, ClassInfo classinfo) {
-		write(writable, classinfo);
-		return this;
-	}
-	
-	public StringifyOutputStream print(Operation operation, StringifyContext context) {
-		write(operation, context);
+	public <T, U> StringifyOutputStream print(StringWritableWithTwoArgs<T, U> writable, T param1, U param2) {
+		write(writable, param1, param2);
 		return this;
 	}
 	
 	
-	public StringifyOutputStream printIfNotNull(@Nullable StringWritable writable, ClassInfo classinfo) {
-		writeIfNotNull(writable, classinfo);
+	public <T> StringifyOutputStream printIfNotNull(@Nullable StringWritable<T> writable, T param) {
+		writeIfNotNull(writable, param);
 		return this;
 	}
 	
-	public StringifyOutputStream printIfNotNull(@Nullable Stringified stringified, ClassInfo classinfo) {
-		writeIfNotNull(stringified, classinfo);
-		return this;
-	}
-	
-	public <T extends Object & StringWritable & Stringified> StringifyOutputStream printIfNotNull(@Nullable T writable, ClassInfo classinfo) {
-		writeIfNotNull(writable, classinfo);
-		return this;
-	}
-	
-	public StringifyOutputStream printIfNotNull(@Nullable Operation operation, StringifyContext context) {
-		writeIfNotNull(operation, context);
+	public <T, U> StringifyOutputStream printIfNotNull(@Nullable StringWritableWithTwoArgs<T, U> writable, T param1, U param2) {
+		writeIfNotNull(writable, param1, param2);
 		return this;
 	}
 	
@@ -221,13 +186,13 @@ public class StringifyOutputStream extends UncheckedOutputStream {
 		write('\n');
 	}
 	
-	public void writeln(StringWritable writable, ClassInfo classinfo) {
-		write(writable, classinfo);
+	public <T> void writeln(StringWritable<T> writable, T param) {
+		write(writable, param);
 		write('\n');
 	}
 	
-	public void writeln(Operation operation, StringifyContext context) {
-		write(operation, context);
+	public <T, U> void writeln(StringWritableWithTwoArgs<T, U> writable, T param1, U param2) {
+		write(writable, param1, param2);
 		write('\n');
 	}
 	
@@ -244,13 +209,14 @@ public class StringifyOutputStream extends UncheckedOutputStream {
 		return print(str).print('\n');
 	}
 	
-	public StringifyOutputStream println(StringWritable writable, ClassInfo classinfo) {
-		return print(writable, classinfo).print('\n');
+	public <T> StringifyOutputStream println(StringWritable<T> writable, T param) {
+		return print(writable, param).print('\n');
 	}
 	
-	public StringifyOutputStream println(Operation operation, StringifyContext context) {
-		return print(operation, context).print('\n');
+	public <T, U> StringifyOutputStream println(StringWritableWithTwoArgs<T, U> writable, T param1, U param2) {
+		return print(writable, param1, param2).print('\n');
 	}
+	
 	
 	public void writesp() {
 		write(' ');
@@ -266,13 +232,13 @@ public class StringifyOutputStream extends UncheckedOutputStream {
 		write(' ');
 	}
 	
-	public void writesp(StringWritable writable, ClassInfo classinfo) {
-		write(writable, classinfo);
+	public <T> void writesp(StringWritable<T> writable, T param) {
+		write(writable, param);
 		write(' ');
 	}
 	
-	public void writesp(Operation operation, StringifyContext context) {
-		write(operation, context);
+	public <T, U> void writesp(StringWritableWithTwoArgs<T, U> writable, T param1, U param2) {
+		write(writable, param1, param2);
 		write(' ');
 	}
 	
@@ -289,31 +255,31 @@ public class StringifyOutputStream extends UncheckedOutputStream {
 		return print(str).print(' ');
 	}
 	
-	public StringifyOutputStream printsp(StringWritable writable, ClassInfo classinfo) {
-		return print(writable, classinfo).print(' ');
+	public <T> StringifyOutputStream printsp(StringWritable<T> writable, T param) {
+		return print(writable, param).print(' ');
 	}
 	
-	public StringifyOutputStream printsp(Operation operation, StringifyContext context) {
-		return print(operation, context).print(' ');
-	}
-	
-	
-	public void writePrioritied(Operation thisOperation, Operation otherOperation, StringifyContext context, Associativity associativity) {
-		thisOperation.writePrioritied(this, otherOperation, context, associativity);
-	}
-	
-	public void writePrioritied(Operation thisOperation, Operation otherOperation, StringifyContext context, int thisPriority, Associativity associativity) {
-		thisOperation.writePrioritied(this, otherOperation, context, thisPriority, associativity);
+	public <T, U> StringifyOutputStream printsp(StringWritableWithTwoArgs<T, U> writable, T param1, U param2) {
+		return print(writable, param1, param2).print(' ');
 	}
 	
 	
-	public StringifyOutputStream printPrioritied(Operation thisOperation, Operation otherOperation, StringifyContext context, Associativity associativity) {
-		writePrioritied(thisOperation, otherOperation, context, associativity);
+	public void writePrioritied(Operation thisOperation, Operation otherOperation, StringifyContext param, Associativity associativity) {
+		thisOperation.writePrioritied(this, otherOperation, param, associativity);
+	}
+	
+	public void writePrioritied(Operation thisOperation, Operation otherOperation, StringifyContext param, int thisPriority, Associativity associativity) {
+		thisOperation.writePrioritied(this, otherOperation, param, thisPriority, associativity);
+	}
+	
+	
+	public StringifyOutputStream printPrioritied(Operation thisOperation, Operation otherOperation, StringifyContext param, Associativity associativity) {
+		writePrioritied(thisOperation, otherOperation, param, associativity);
 		return this;
 	}
 	
-	public StringifyOutputStream printPrioritied(Operation thisOperation, Operation otherOperation, StringifyContext context, int thisPriority, Associativity associativity) {
-		writePrioritied(thisOperation, otherOperation, context, thisPriority, associativity);
+	public StringifyOutputStream printPrioritied(Operation thisOperation, Operation otherOperation, StringifyContext param, int thisPriority, Associativity associativity) {
+		writePrioritied(thisOperation, otherOperation, param, thisPriority, associativity);
 		return this;
 	}
 	
@@ -322,7 +288,7 @@ public class StringifyOutputStream extends UncheckedOutputStream {
 	public void flush() {
 		try {
 			out.flush();
-		} catch (IOException ex) {
+		} catch(IOException ex) {
 			throw getUncheckedException(ex);
 		}
 	}

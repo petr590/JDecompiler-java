@@ -98,6 +98,14 @@ public class ClassType extends ReferenceType {
 			VOID      = new WrapperClassType("java/lang/Void", Void.class, PrimitiveType.VOID);
 	
 	
+	public static ClassType fromClass(Class<?> clazz) {
+		String classEncodedName = clazz.descriptorString();
+		classEncodedName = classEncodedName.substring(1, classEncodedName.length() - 1);
+		
+		ClassType classType = CLASS_TYPES.get(classEncodedName);
+		return classType != null ? classType : new ClassType(classEncodedName, clazz);
+	}
+	
 	public static ClassType fromConstant(ClassConstant clazz) {
 		return fromDescriptor(clazz.getNameConstant().getString());
 	}
@@ -105,10 +113,8 @@ public class ClassType extends ReferenceType {
 	
 	/** Принимает строку без префикса 'L', т.е. в виде "java/lang/Object;" */
 	public static ClassType fromDescriptor(String classEncodedName) {
-		if(CLASS_TYPES.containsKey(classEncodedName))
-			return CLASS_TYPES.get(classEncodedName);
-		
-		return new ClassType(classEncodedName);
+		ClassType classType = CLASS_TYPES.get(classEncodedName);
+		return classType != null ? classType : new ClassType(classEncodedName);
 	}
 	
 	/** Принимает строку с префиксом 'L', т.е. в виде "Ljava/lang/Object;" */
@@ -197,9 +203,9 @@ public class ClassType extends ReferenceType {
 	}
 	
 	
-	ClassType(String encodedName, Class<?> thisClass) {
+	ClassType(String encodedName, Class<?> clazz) {
 		this(encodedName);
-		initSuperType(thisClass);
+		initSuperType(clazz);
 		triedLoadClass = true;
 	}
 	

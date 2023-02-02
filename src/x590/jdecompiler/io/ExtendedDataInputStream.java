@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
+import x590.util.annotation.Immutable;
+
 public class ExtendedDataInputStream extends UncheckedInputStream implements DataInput {
 	
 	private final DataInputStream in;
@@ -206,13 +208,13 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		
 		return list;
 	}
-
 	
-	public <T> List<T> readImmutableList(Supplier<T> elementSupplier) {
+	
+	public <T> @Immutable List<T> readImmutableList(Supplier<T> elementSupplier) {
 		return Collections.unmodifiableList(readArrayList(elementSupplier));
 	}
 	
-	public <T> List<T> readImmutableList(int length, Supplier<T> elementSupplier) {
+	public <T> @Immutable List<T> readImmutableList(int length, Supplier<T> elementSupplier) {
 		return Collections.unmodifiableList(readArrayList(length, elementSupplier));
 	}
 	

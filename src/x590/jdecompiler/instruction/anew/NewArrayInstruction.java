@@ -2,11 +2,11 @@ package x590.jdecompiler.instruction.anew;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.exception.DecompilationException;
-import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.instruction.Instruction;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.array.NewArrayOperation;
 import x590.jdecompiler.type.ArrayType;
-import x590.util.Util;
+import x590.util.IntegerUtil;
 
 public class NewArrayInstruction extends Instruction {
 	
@@ -21,7 +21,7 @@ public class NewArrayInstruction extends Instruction {
 			case 0xA: return ArrayType.INT_ARRAY;
 			case 0xB: return ArrayType.LONG_ARRAY;
 			default:
-				throw new DecompilationException("Illegal array type code 0x" + Util.hex(code));
+				throw new DecompilationException("Illegal array type code 0x" + IntegerUtil.hex(code));
 		}
 	}
 	

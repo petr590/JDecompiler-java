@@ -2,9 +2,9 @@ package x590.jdecompiler.operation.array;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
-import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.IntOperation;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.ArrayType;
 
 public final class ArrayLengthOperation extends IntOperation {

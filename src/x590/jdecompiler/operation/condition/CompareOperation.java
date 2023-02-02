@@ -1,7 +1,7 @@
 package x590.jdecompiler.operation.condition;
 
 import x590.jdecompiler.context.DecompilationContext;
-import x590.jdecompiler.exception.Operation;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.cmp.CmpOperation;
 
 public abstract class CompareOperation extends ConditionOperation {

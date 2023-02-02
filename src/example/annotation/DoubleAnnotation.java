@@ -10,4 +10,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DoubleAnnotation {
 	public double value() default 0;
+	public double anotherValue() default 0;
 }

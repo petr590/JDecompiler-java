@@ -13,11 +13,11 @@ import x590.jdecompiler.constpool.ConstValueConstant;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.exception.IllegalModifiersException;
-import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.modifiers.FieldModifiers;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.util.IWhitespaceStringBuilder;
 import x590.jdecompiler.util.WhitespaceStringBuilder;
 import x590.util.Pair;
@@ -45,7 +45,7 @@ public class JavaField extends JavaClassElement {
 	
 	static List<JavaField> readFields(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool) {
 		return in.readArrayList(() -> {
-			FieldModifiers modifiers = new FieldModifiers(in.readUnsignedShort());
+			FieldModifiers modifiers = FieldModifiers.read(in);
 			return modifiers.isEnum() ? new JavaEnumField(in, classinfo, pool, modifiers) : new JavaField(in, classinfo, pool, modifiers);
 		});
 	}
@@ -98,7 +98,7 @@ public class JavaField extends JavaClassElement {
 		if(constantClass.isInstance(constant))
 			return (C)constant;
 		
-		throw new IllegalArgumentException("Field does not contains ConstantValueAttribute");
+		throw new IllegalArgumentException("Field does not contains ConstantValueAttribute of type " + constantClass.getName());
 	}
 	
 	
@@ -113,11 +113,13 @@ public class JavaField extends JavaClassElement {
 			return true;
 		}
 		
-		if(!this.initializer.equals(initializer)) {
+		if(this.initializer.equals(initializer)) {
+			return true;
+			
+		} else {
 			this.initializer = null;
+			return false;
 		}
-		
-		return false;
 	}
 	
 	
@@ -180,7 +182,7 @@ public class JavaField extends JavaClassElement {
 			
 		} else if(constantValueAttribute != null) {
 			out.write(" = ");
-			constantValueAttribute.writeAs(out, classinfo, descriptor.getType());
+			constantValueAttribute.writeTo(out, classinfo, descriptor.getType(), descriptor);
 		}
 	}
 	
@@ -207,5 +209,10 @@ public class JavaField extends JavaClassElement {
 		if(modifiers.isVolatile())  str.append("volatile");
 		
 		return str;
+	}
+	
+	@Override
+	public String toString() {
+		return modifiers + " " + descriptor;
 	}
 }

@@ -6,7 +6,7 @@ import java.io.IOException;
 import x590.jdecompiler.exception.DisassemblingException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 
-public final class Utf8Constant extends Constant {
+public final class Utf8Constant extends Constant implements ICachedConstant<String> {
 	
 	private final String value;
 	
@@ -19,6 +19,11 @@ public final class Utf8Constant extends Constant {
 	}
 	
 	public String getString() {
+		return value;
+	}
+	
+	@Override
+	public String getValueAsObject() {
 		return value;
 	}
 	

@@ -1,19 +1,18 @@
 package x590.jdecompiler.instruction.constant;
 
+import x590.jdecompiler.constpool.DoubleConstant;
 import x590.jdecompiler.context.DecompilationContext;
-import x590.jdecompiler.exception.Operation;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.DConstOperation;
 
-public class DConstInstruction extends ConstInstruction {
+public class DConstInstruction extends ConstInstruction<DoubleConstant> {
 	
-	private final double value;
-	
-	public DConstInstruction(double value) {
-		this.value = value;
+	public DConstInstruction(DoubleConstant constant) {
+		super(constant);
 	}
 	
 	@Override
 	public Operation toOperation(DecompilationContext context) {
-		return new DConstOperation(value);
+		return new DConstOperation(constant);
 	}
 }

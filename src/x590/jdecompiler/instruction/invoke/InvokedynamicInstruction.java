@@ -16,8 +16,8 @@ import x590.jdecompiler.constpool.StringConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.DisassemblerContext;
 import x590.jdecompiler.exception.DecompilationException;
-import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.instruction.InstructionWithIndex;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.StringConstOperation;
 import x590.jdecompiler.operation.field.GetInstanceFieldOperation;
 import x590.jdecompiler.operation.field.GetStaticFieldOperation;
@@ -26,7 +26,7 @@ import x590.jdecompiler.operation.field.PutStaticFieldOperation;
 import x590.jdecompiler.operation.invoke.ConcatStringsOperation;
 import x590.jdecompiler.type.ArrayType;
 import x590.jdecompiler.type.ClassType;
-import x590.util.Util;
+import x590.util.IntegerUtil;
 
 public final class InvokedynamicInstruction extends InstructionWithIndex {
 	
@@ -34,7 +34,7 @@ public final class InvokedynamicInstruction extends InstructionWithIndex {
 		super(index);
 		
 		if(zeroShort != 0)
-			context.warning("illegal format of instruction invokedynamic at pos 0x" + Util.hex(context.currentPos()) +
+			context.warning("illegal format of instruction invokedynamic at pos 0x" + IntegerUtil.hex(context.currentPos()) +
 					": by specification, third and fourth bytes must be zero");
 	}
 	

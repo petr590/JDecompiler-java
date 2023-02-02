@@ -3,7 +3,8 @@ package x590.jdecompiler.attribute.annotation;
 import java.util.Arrays;
 
 import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.StringWritableAndImportable;
+import x590.jdecompiler.Importable;
+import x590.jdecompiler.StringWritable;
 import x590.jdecompiler.constpool.ConstValueConstant;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DisassemblingException;
@@ -14,9 +15,9 @@ import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.util.StringUtil;
 import x590.util.ArrayUtil;
-import x590.util.Util;
+import x590.util.IntegerUtil;
 
-public abstract class ElementValue implements StringWritableAndImportable {
+public abstract class ElementValue implements StringWritable<ClassInfo>, Importable {
 	
 	public static class ConstElementValue extends ElementValue {
 		
@@ -30,7 +31,7 @@ public abstract class ElementValue implements StringWritableAndImportable {
 		
 		@Override
 		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-			out.write(value.toStringAs(type, classinfo));
+			value.writeTo(out, classinfo, type);
 		}
 		
 		
@@ -225,7 +226,7 @@ public abstract class ElementValue implements StringWritableAndImportable {
 			case '@': return new AnnotationElementValue(in, pool);
 			case '[': return new ArrayElementValue(in, pool);
 			default:
-				throw new DisassemblingException("Illegal anntotation element value tag: '" + tag + "' (" + Util.hex1WithPrefix(tag) + ")");
+				throw new DisassemblingException("Illegal anntotation element value tag: '" + tag + "' (" + IntegerUtil.hex1WithPrefix(tag) + ")");
 		}
 	}
 }

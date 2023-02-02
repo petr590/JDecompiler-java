@@ -4,8 +4,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.ExtendedDataInputStream;
+import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.ClassConstOperation;
 import x590.jdecompiler.type.ArrayType;
 import x590.jdecompiler.type.ClassType;
@@ -51,8 +52,8 @@ public final class ClassConstant extends ConstValueConstant {
 	}
 	
 	@Override
-	public String toString(ClassInfo classinfo) {
-		return this.toReferenceType().toString(classinfo) + ".class";
+	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
+		out.print(this.toReferenceType(), classinfo).print(".class");
 	}
 	
 	
@@ -116,6 +117,6 @@ public final class ClassConstant extends ConstValueConstant {
 	}
 	
 	public boolean equals(ClassConstant other) {
-		return this == other || this.name.equals(other.name);
+		return this == other || name.equals(other.name);
 	}
 }

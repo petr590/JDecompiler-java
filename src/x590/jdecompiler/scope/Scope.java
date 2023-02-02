@@ -1,6 +1,7 @@
 package x590.jdecompiler.scope;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,19 +11,20 @@ import java.util.function.Predicate;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
-import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.exception.VariableNotFoundException;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.VariableDefineOperation;
 import x590.jdecompiler.operation.store.StoreOperation;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
-import x590.jdecompiler.util.IntegerConstants;
 import x590.jdecompiler.variable.EmptyableVariable;
 import x590.jdecompiler.variable.UnnamedVariable;
 import x590.jdecompiler.variable.Variable;
+import x590.util.IntegerUtil;
 import x590.util.Util;
+import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
 /**
@@ -59,6 +61,7 @@ public abstract class Scope extends Operation {
 	
 	public Scope(int startIndex, int endIndex, @Nullable Scope superScope, List<EmptyableVariable> locals) {
 		assert startIndex <= endIndex;
+		assert superScope != this;
 		
 		this.startIndex = startIndex;
 		this.endIndex = endIndex;
@@ -220,21 +223,21 @@ public abstract class Scope extends Operation {
 		if(operation.isScope())
 			scopes.add((Scope)operation);
 	}
-
+	
 	public void addOperations(List<Operation> operations, int fromIndex) {
 		for(Operation operation : operations)
 			addOperation(operation, fromIndex);
 	}
 	
 	
-	private int getIndexInTable(int index) {
+	private int getIndexFromTable(int index) {
 		Integer foundIndex = indexTable.get(index);
 		
 		if(foundIndex != null)
 			return foundIndex;
 		
 		int srcIndex = index;
-		int maxIndex = indexTable.keySet().stream().max(Integer::compare).orElse(IntegerConstants.ZERO);
+		int maxIndex = indexTable.keySet().stream().max(Integer::compare).orElse(IntegerUtil.ZERO);
 		
 		while(foundIndex == null && index < maxIndex) {
 			foundIndex = indexTable.get(++index);
@@ -247,20 +250,33 @@ public abstract class Scope extends Operation {
 	}
 	
 	
-	/** Удаляет все элементы, начиная с заданного индекса, и возвращает их.
+	/** Возвращает неизменяемый список операций, начиная с заданного индекса.
+	 * @param fromIndex - индекс, с которого будут возвращаться операции.
+	 * @implNote Может изменить внутреннее состояние при добавлении и удалении операций в scope,
+	 * в том числе и при вызове метода {@link #pullOperationsFromIndex(int)} */
+	public @Immutable List<Operation> getOperationsFromIndex(int fromIndex) {
+		
+		assert fromIndex >= startIndex && fromIndex <= endIndex :
+			"startIndex = " + startIndex + ", endIndex = " + endIndex + ", fromIndex = " + fromIndex;
+		
+		return Collections.unmodifiableList(code.subList(getIndexFromTable(fromIndex), code.size()));
+	}
+	
+	
+	/** Удаляет все операции, начиная с заданного индекса, и возвращает их.
 	 * @param fromIndex - индекс операции в коде (тот индекс, который возвращается,
 	 * например, методом {@link DecompilationContext#currentIndex()}).
-	 * Этот индекс уже преобразуется в индекс для внутреннего массива.
+	 * {@code fromIndex} преобразуется в индекс для внутреннего массива.
 	 * Не должен быть меньше {@link #startIndex} или больше {@link #endIndex}. */
 	public List<Operation> pullOperationsFromIndex(int fromIndex) {
 		
 		assert fromIndex >= startIndex && fromIndex <= endIndex :
 			"startIndex = " + startIndex + ", endIndex = " + endIndex + ", fromIndex = " + fromIndex;
 		
-		int indexInCode = getIndexInTable(fromIndex);
+		int indexInCode = getIndexFromTable(fromIndex);
 		
 		// Метод List.subList(int, int) не копирует внутренний массив,
-		// поэтому мы модем удалить все элементы, начиная с indexInCode, просто очистив sublist
+		// поэтому мы можем удалить все элементы, начиная с indexInCode, просто очистив sublist
 		List<Operation> sublist = code.subList(indexInCode, code.size());
 		List<Operation> sublistCopy = new ArrayList<>(sublist);
 		sublist.clear();
@@ -273,8 +289,19 @@ public abstract class Scope extends Operation {
 	}
 	
 	
+	public @Immutable List<Operation> getOperations() {
+		return Collections.unmodifiableList(code);
+	}
+	
+	
+	@Override
+	public void remove() {
+		super.remove();
+		code.forEach(Operation::remove);
+	}
+	
 	/** Удаляет все операции с установленным флагом {@link Operation#removed} */
-	public void deleteRemovedOperations() {
+	protected void deleteRemovedOperations() {
 		code.removeIf(operation -> operation.isRemoved() || operation.canOmit());
 	}
 	
@@ -334,8 +361,11 @@ public abstract class Scope extends Operation {
 	}
 	
 	
-	/** Выполняется перед тем, как scope будет завершён и убран со стека scope-ов */
-	public void finalizeScope(DecompilationContext context) {}
+	/** Выполняется перед тем, как scope будет завершён и убран со стека scope-ов.
+	 * По умолчанию вызывает метод {@link #deleteRemovedOperations()} */
+	public void finalizeScope(DecompilationContext context) {
+		deleteRemovedOperations();
+	}
 	
 	
 	@Override

@@ -3,11 +3,11 @@ package x590.jdecompiler;
 import static x590.jdecompiler.modifiers.Modifiers.*;
 
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import x590.jdecompiler.attribute.Attributes;
 import x590.jdecompiler.attribute.Attributes.Location;
@@ -97,17 +97,14 @@ public class JavaClass extends JavaClassElement {
 			throw new ClassFormatException("Illegal class header");
 		
 		this.version = Version.read(in);
-		var pool = this.pool = new ConstantPool(in);
-		this.modifiers = new ClassModifiers(in.readUnsignedShort());
+		this.pool = ConstantPool.read(in);
+		var pool = this.pool;
+		
+		this.modifiers = ClassModifiers.read(in);
 		this.thisType = ClassType.fromConstant(pool.get(in.readUnsignedShort()));
 		this.superType = ClassType.fromNullableConstant(pool.get(in.readUnsignedShort()), ClassType.OBJECT);
 		
-		int interfacesCount = in.readUnsignedShort();
-		List<ClassType> interfaces = new ArrayList<>(interfacesCount);
-		for(int i = 0; i < interfacesCount; i++)
-			interfaces.add(pool.getClassConstant(in.readUnsignedShort()).toClassType());
-		
-		this.interfaces = Collections.unmodifiableList(interfaces);
+		this.interfaces = in.readImmutableList(() -> pool.getClassConstant(in.readUnsignedShort()).toClassType());
 		
 		this.classinfo = new ClassInfo(this, version, pool, modifiers, thisType, superType, interfaces);
 		
@@ -118,6 +115,7 @@ public class JavaClass extends JavaClassElement {
 		this.enumConstants = modifiers.isEnum() ? fields.stream().filter(field -> field.getModifiers().isEnum()).map(field -> (JavaEnumField)field).toList() : null;
 		
 		this.attributes = Attributes.read(in, pool, Location.CLASS);
+		classinfo.setAttributes(attributes);
 		
 		this.signature = attributes.get("Signature");
 		if(signature != null)
@@ -125,8 +123,6 @@ public class JavaClass extends JavaClassElement {
 		
 		this.visibleSuperType = getVisibleSuperType();
 		this.visibleInterfaces = getVisibleInterfaces();
-		
-		classinfo.setAttributes(attributes);
 	}
 	
 	public static JavaClass read(InputStream in) {
@@ -258,6 +254,8 @@ public class JavaClass extends JavaClassElement {
 		
 		writeHeader(out, classinfo);
 		
+		// Мы можем опустить указание класса только внутри тела класса, поэтому этот метод вызывается здесь
+		classinfo.enableClassOmitting();
 		out.print(" {").increaseIndent();
 		
 		if(enumConstants != null) {
@@ -420,5 +418,11 @@ public class JavaClass extends JavaClassElement {
 		
 		if(prevFieldWritten)
 			out.writeln(';');
+	}
+	
+	@Override
+	public String toString() {
+		return modifiers + " " + thisType + " extends " + superType.getName() +
+				" implements " + interfaces.stream().map(Type::getName).collect(Collectors.joining(", "));
 	}
 }

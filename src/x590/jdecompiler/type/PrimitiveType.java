@@ -79,7 +79,7 @@ public abstract class PrimitiveType extends BasicType {
 		return this.canCastToWidest(other) ? this : null;
 	}
 	
-	public Type toVariableCapacityIntegralType() {
+	public Type toUncertainIntegralType() {
 		return this;
 	}
 	

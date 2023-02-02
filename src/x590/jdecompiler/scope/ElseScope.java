@@ -13,7 +13,7 @@ public class ElseScope extends Scope {
 		super(context, endIndex, ifScope.superScope());
 		this.ifScope = ifScope;
 	}
-
+	
 	
 	protected boolean canSelfOmitCurlyBrackets() {
 		return super.canOmitCurlyBrackets();
@@ -37,6 +37,8 @@ public class ElseScope extends Scope {
 	
 	@Override
 	public void finalizeScope(DecompilationContext context) {
+		super.finalizeScope(context);
+		
 		if(ifScope.isEmpty() && this.isEmpty() && context.stackSize() >= 2) {
 			context.push(new TernaryOperatorOperation(ifScope.getCondition(), context));
 			this.remove();

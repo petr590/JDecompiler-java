@@ -2,8 +2,9 @@ package x590.jdecompiler.main;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,7 +14,12 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.util.Logger;
 import x590.util.Timer;
 
-public class Main {
+/**
+ * Точка входа программы
+ */
+public final class Main {
+	
+	private Main() {}
 	
 	public static void main(String[] args) throws IOException {
 		
@@ -33,7 +39,7 @@ public class Main {
 //					"bin/example/Cast.class",
 //					"bin/example/Charset.class",
 					
-					"bin/example/Increment1.class",
+//					"bin/example/Increment1.class",
 //					"bin/example/Increment2.class",
 //					"bin/example/StaticFieldsIncrement.class",
 //					"bin/example/NonStaticFieldsIncrement.class",
@@ -66,6 +72,8 @@ public class Main {
 //					"--no-omit-curly-brackets",
 //					"--no-omit-this-class",
 //					"--no-brackets-around-bitwise-operands",
+					
+					"bin/x590/jdecompiler/modifiers/Modifiers.class",
 			});
 		}
 		
@@ -74,7 +82,7 @@ public class Main {
 		
 		for(String file : JDecompiler.getInstance().getFiles()) {
 			
-			DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
+			DataInputStream in = new DataInputStream(new BufferedInputStream(Files.newInputStream(Paths.get(file))));
 			int available = in.available();
 			
 			try {

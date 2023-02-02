@@ -3,7 +3,8 @@ package x590.jdecompiler.attribute.annotation;
 import java.util.Arrays;
 
 import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.StringWritableAndImportable;
+import x590.jdecompiler.Importable;
+import x590.jdecompiler.StringWritable;
 import x590.jdecompiler.attribute.Attribute;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.io.ExtendedDataInputStream;
@@ -71,7 +72,7 @@ public class ParameterAnnotationsAttribute extends Attribute {
 	}
 	
 	
-	public static class ParameterAnnotations implements StringWritableAndImportable {
+	public static class ParameterAnnotations implements StringWritable<ClassInfo>, Importable {
 		
 		private final Annotation[] annotations;
 		

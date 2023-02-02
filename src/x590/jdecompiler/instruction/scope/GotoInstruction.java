@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.DisassemblerContext;
+import x590.jdecompiler.scope.ElseScope;
 import x590.jdecompiler.scope.EmptyInfiniteLoopScope;
 import x590.jdecompiler.scope.IfScope;
 import x590.jdecompiler.scope.LoopScope;
@@ -21,8 +22,14 @@ public class GotoInstruction extends EndPosInstruction {
 		super(context, offset);
 	}
 	
-	private void apply() {
+	private Scope apply() {
 		applied = true;
+		return null;
+	}
+	
+	private Scope apply(Scope scope) {
+		applied = true;
+		return scope;
 	}
 	
 	@Override
@@ -35,8 +42,16 @@ public class GotoInstruction extends EndPosInstruction {
 			
 			if(currentScope instanceof IfScope currentIf) {
 				if(recognizeElse(context, endIndex, currentIndex, currentIf)) {
-					apply();
-					return null;
+					return apply();
+				}
+				
+			} else if(currentScope instanceof ElseScope elseScope &&
+					elseScope.superScope() instanceof IfScope currentIf) {
+				
+				if(recognizeElse(context, endIndex, currentIndex, currentIf)) {
+					elseScope.setEndIndex(currentIf.endIndex() - 1);
+					
+					return apply();
 				}
 			}
 			
@@ -44,8 +59,7 @@ public class GotoInstruction extends EndPosInstruction {
 			Logger.debug("Loop");
 			
 		} else {
-			apply();
-			return new EmptyInfiniteLoopScope(context);
+			return apply(new EmptyInfiniteLoopScope(context));
 		}
 		
 		context.addBreak(endIndex - 1);
@@ -90,9 +104,13 @@ public class GotoInstruction extends EndPosInstruction {
 			int currentIndexP1 = context.currentIndex() + 1;
 			int endIndexM1 = endIndex - 1;
 			
-			Optional<LoopScope> foundScope = context.getOperations().stream().filter(
-					operation -> operation instanceof LoopScope scope && scope.startIndex() == currentIndexP1 && scope.conditionStartIndex() == endIndexM1
-				).map(operation -> (LoopScope)operation).findAny();
+			Optional<LoopScope> foundScope = context.getOperations().stream()
+					.filter(
+						operation -> !operation.isRemoved() && operation instanceof LoopScope scope &&
+								scope.startIndex() == currentIndexP1 && scope.conditionStartIndex() == endIndexM1
+							
+					).map(operation -> (LoopScope)operation).findAny();
+			
 			
 			if(foundScope.isPresent()) {
 				apply();

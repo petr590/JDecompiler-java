@@ -5,6 +5,12 @@ import x590.jdecompiler.util.WhitespaceStringBuilder;
 
 import static x590.jdecompiler.type.PrimitiveType.CHAR_CAPACITY;
 
+/**
+ * Класс, который представляет возможный целочисленный тип
+ * размером не больше 32 бит ({@literal byte}, {@literal short}, {@literal int}, {@literal char}, {@literal boolean}).
+ * Хранит минимальный и максимальный размер типа, а также два флага,
+ * которые отвечают за типы {@literal boolean} и {@literal char}.
+ */
 public final class UncertainIntegralType extends SpecialType {
 	
 	private static final UncertainIntegralType[] instances = new UncertainIntegralType[64];
@@ -266,7 +272,7 @@ public final class UncertainIntegralType extends SpecialType {
 	}
 	
 	
-	/** Возвращает верхнюю границу типа или boolean */
+	/** Возвращает верхнюю границу типа или boolean, если установлен флаг {@link #includeBoolean()} */
 	@Override
 	public Type reduced() {
 		return includeBoolean ? PrimitiveType.BOOLEAN : highPrimitiveType;

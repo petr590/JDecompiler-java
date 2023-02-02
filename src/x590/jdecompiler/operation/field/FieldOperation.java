@@ -4,7 +4,7 @@ import x590.jdecompiler.FieldDescriptor;
 import x590.jdecompiler.constpool.FieldrefConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
-import x590.jdecompiler.exception.Operation;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.OperationWithDescriptor;
 
 public abstract class FieldOperation extends OperationWithDescriptor<FieldDescriptor> {

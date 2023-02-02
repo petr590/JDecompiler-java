@@ -3,7 +3,10 @@ package x590.jdecompiler.constpool;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -13,15 +16,16 @@ import x590.jdecompiler.io.ExtendedDataInputStream;
 public final class ConstantPool implements JavaSerializable {
 	
 	private final List<Constant> data;
+	private final Map<Object, ICachedConstant<?>> constants = new HashMap<>();
 	
-	public ConstantPool(ExtendedDataInputStream in) {
+	private ConstantPool(ExtendedDataInputStream in) {
 		var length = in.readUnsignedShort();
 		var data = this.data = new ArrayList<>(length);
 		data.add(null); // 0-й элемент всегда null
 		
 		for(int i = 1; i < length; ) {
-			Constant constant;
-			data.add(constant = Constant.readConstant(in));
+			Constant constant = Constant.readConstant(in);
+			data.add(constant);
 			
 			if(constant.holdsTwo()) {
 				data.add(null);
@@ -32,10 +36,20 @@ public final class ConstantPool implements JavaSerializable {
 		}
 		
 		for(Constant constant : data) {
-			if(constant != null)
+			if(constant != null) {
 				constant.init(this);
+				
+				if(constant instanceof ICachedConstant<?> constableValueConstant) {
+					constants.put(constableValueConstant.getValueAsObject(), constableValueConstant);
+				}
+			}
 		}
 	}
+	
+	public static ConstantPool read(ExtendedDataInputStream in) {
+		return new ConstantPool(in);
+	}
+	
 	
 	@SuppressWarnings("unchecked")
 	public <C extends Constant> C get(int index) {
@@ -117,5 +131,42 @@ public final class ConstantPool implements JavaSerializable {
 			if(conatant != null)
 				conatant.serialize(out);
 		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private <T, C extends ICachedConstant<T>> C findOrCreateConstant(T value, Function<T, ICachedConstant<T>> creator) {
+		
+		ICachedConstant<T> constant = (ICachedConstant<T>)constants.get(value);
+		
+		if(constant != null)
+			return (C)constant;
+		
+		constant = creator.apply(value);
+		constants.put(value, constant);
+		return (C)constant;
+	}
+	
+	public IntegerConstant findOrCreateConstant(int value) {
+		return findOrCreateConstant(value, IntegerConstant::new);
+	}
+	
+	public LongConstant findOrCreateConstant(long value) {
+		return findOrCreateConstant(value, LongConstant::new);
+	}
+	
+	public FloatConstant findOrCreateConstant(float value) {
+		return findOrCreateConstant(value, FloatConstant::new);
+	}
+	
+	public DoubleConstant findOrCreateConstant(double value) {
+		return findOrCreateConstant(value, DoubleConstant::new);
+	}
+	
+	public StringConstant findOrCreateConstant(String value) {
+		return findOrCreateConstant(value, string -> new StringConstant(findOrCreateUtf8Constant(string)));
+	}
+	
+	public Utf8Constant findOrCreateUtf8Constant(String value) {
+		return findOrCreateConstant(value, Utf8Constant::new);
 	}
 }

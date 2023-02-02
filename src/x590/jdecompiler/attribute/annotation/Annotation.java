@@ -3,14 +3,15 @@ package x590.jdecompiler.attribute.annotation;
 import java.util.Arrays;
 
 import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.StringWritableAndImportable;
+import x590.jdecompiler.Importable;
+import x590.jdecompiler.StringWritable;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.ClassType;
 import x590.util.ArrayUtil;
 
-public final class Annotation implements StringWritableAndImportable {
+public final class Annotation implements StringWritable<ClassInfo>, Importable {
 	
 	private final ClassType type;
 	private final Element[] elements;
@@ -26,9 +27,16 @@ public final class Annotation implements StringWritableAndImportable {
 		
 		if(elements.length > 0) {
 			out.write('(');
-			ArrayUtil.forEachExcludingLast(elements,
-					element -> out.write(element, classinfo),
-					element -> out.write(", "));
+			
+			if(elements.length == 1 && elements[0].getName().equals("value")) {
+				out.write(elements[0].getValue(), classinfo);
+				
+			} else {
+				ArrayUtil.forEachExcludingLast(elements,
+						element -> out.write(element, classinfo),
+						element -> out.write(", "));
+			}
+			
 			out.write(')');
 		 }
 	}

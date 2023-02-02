@@ -15,8 +15,8 @@ import x590.jdecompiler.instruction.load.*;
 import x590.jdecompiler.instruction.scope.*;
 import x590.jdecompiler.instruction.store.*;
 import x590.jdecompiler.type.TypeSize;
+import x590.util.IntegerUtil;
 import x590.util.Logger;
-import x590.util.Util;
 import x590.util.annotation.Nullable;
 
 public class DisassemblerContext extends Context {
@@ -113,8 +113,8 @@ public class DisassemblerContext extends Context {
 			case 0x0D: return Instructions.FCONST_2;
 			case 0x0E: return Instructions.DCONST_0;
 			case 0x0F: return Instructions.DCONST_1;
-			case 0x10: return new BIPushInstruction(readByte());
-			case 0x11: return new SIPushInstruction(readShort());
+			case 0x10: return new IPushInstruction(readByte());
+			case 0x11: return new IPushInstruction(readShort());
 			case 0x12: return new LdcInstruction(TypeSize.WORD, this, readUnsignedByte());
 			case 0x13: return new LdcInstruction(TypeSize.WORD, this, readUnsignedShort());
 			case 0x14: return new LdcInstruction(TypeSize.LONG, this, readUnsignedShort());
@@ -347,7 +347,7 @@ public class DisassemblerContext extends Context {
 				case 0x84: return new IIncInstruction(readUnsignedShort(), readShort());
 //				case 0xA9: return ret(readUnsignedShort());
 				default:
-					throw new InvalidOpcodeException("Illegal wide opcode 0x" + Util.hex(bytes[pos]));
+					throw new InvalidOpcodeException("Illegal wide opcode 0x" + IntegerUtil.hex(bytes[pos]));
 			}
 			
 			case 0xC5: return new MultiANewArrayInstruction(readUnsignedShort(), readUnsignedByte());
@@ -360,7 +360,7 @@ public class DisassemblerContext extends Context {
 			case 0xFE: return impdep1;
 			case 0xFF: return impdep2;*/
 			default:
-				throw new InvalidOpcodeException(Util.hex2WithPrefix(bytes[pos]));
+				throw new InvalidOpcodeException(IntegerUtil.hex2WithPrefix(bytes[pos]));
 		}
 	}
 	

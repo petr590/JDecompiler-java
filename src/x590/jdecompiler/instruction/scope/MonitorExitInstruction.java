@@ -1,7 +1,7 @@
 package x590.jdecompiler.instruction.scope;
 
 import x590.jdecompiler.context.DecompilationContext;
-import x590.jdecompiler.exception.Operation;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.load.ALoadOperation;
 import x590.jdecompiler.scope.Scope;
 import x590.jdecompiler.scope.SynchronizedScope;

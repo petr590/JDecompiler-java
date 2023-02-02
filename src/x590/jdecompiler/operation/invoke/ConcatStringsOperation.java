@@ -7,8 +7,8 @@ import java.util.function.BooleanSupplier;
 import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
-import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.operation.constant.StringConstOperation;
 import x590.jdecompiler.type.ClassType;
@@ -42,7 +42,7 @@ public final class ConcatStringsOperation extends InvokeOperation {
 			
 			if(ch == '\1' || ch == '\2') {
 				if(!str.isEmpty()) {
-					operands.add(new StringConstOperation(str.toString()));
+					operands.add(new StringConstOperation(context, str.toString()));
 					str.setLength(0);
 				}
 				
@@ -58,7 +58,7 @@ public final class ConcatStringsOperation extends InvokeOperation {
 		}
 		
 		if(!str.isEmpty())
-			operands.add(new StringConstOperation(str.toString()));
+			operands.add(new StringConstOperation(context, str.toString()));
 	}
 	
 	

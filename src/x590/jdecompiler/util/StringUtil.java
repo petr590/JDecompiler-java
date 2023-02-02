@@ -4,7 +4,10 @@ import java.nio.charset.Charset;
 
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.main.JDecompiler;
-import x590.util.Util;
+import x590.jdecompiler.main.JDecompiler.UsagePolicy;
+import x590.util.IntegerUtil;
+import x590.util.LongUtil;
+import x590.util.MathUtil;
 
 public class StringUtil {
 	
@@ -49,7 +52,7 @@ public class StringUtil {
 		if(c < 0x80000000) return new String(new byte[] { (byte)((c >> 30 &  0x1) | 0xFC), (byte)((c >> 24 & 0x3F) | 0x80), (byte)((c >> 18 & 0x3F) | 0x80),
 									(byte)((c >> 12 & 0x3F) | 0x80), (byte)((c >>  6 & 0x3F) | 0x80), (byte)((c >>  0 & 0x3F) | 0x80) }, UTF8_CHARSET);
 		
-		throw new IllegalArgumentException("Char code U+" + Util.hex(c) + " is too large for encode");
+		throw new IllegalArgumentException("Char code U+" + IntegerUtil.hex(c) + " is too large for encode");
 	}
 	
 	
@@ -59,10 +62,10 @@ public class StringUtil {
 		
 		if(ch > 0xFFFF) {
 			ch -= 0x10000;
-			return "\\u" + Util.hex4(((ch >> 10) & 0x3FF) | 0xD800) + "\\u" + Util.hex4((ch & 0x3FF) | 0xDC00);
+			return "\\u" + IntegerUtil.hex4(((ch >> 10) & 0x3FF) | 0xD800) + "\\u" + IntegerUtil.hex4((ch & 0x3FF) | 0xDC00);
 		}
 		
-		return "\\u" + Util.hex4(ch);
+		return "\\u" + IntegerUtil.hex4(ch);
 	}
 	
 	private static String escapeUtf16Octal(int ch) {
@@ -94,7 +97,7 @@ public class StringUtil {
 			case '\r': return "\\r";
 			case '\\': return "\\\\";
 			default:   return ch == quote ? "\\" + quote :
-					isNotDisplayedChar(ch) || (JDecompiler.getInstance().escapeUnicodeChars() && ch >= 0x80) ?
+					isNotDisplayedChar(ch) || (JDECOMPILER.escapeUnicodeChars() && ch >= 0x80) ?
 							quote == '\'' && ch < 0x100 ?
 									escapeUtf16Octal(ch) :
 									escapeUtf16(ch) :
@@ -107,14 +110,14 @@ public class StringUtil {
 		
 		StringBuilder result = new StringBuilder(bytes.length).append('"');
 		
-		for(int i = 0, end = bytes.length; i < end; ++i) {
+		for(int i = 0, length = bytes.length; i < length; ++i) {
 			int ch = bytes[i] & 0xFF;
 			
 			if((ch & 0xE0) == 0xC0) {
 				i++;
 				
-				if(i >= end)
-					throw new DecompilationException("Unexpected end of the string: " + i + " >= " + end);
+				if(i >= length)
+					throw new DecompilationException("Unexpected end of the string: " + i + " >= " + length);
 				
 				if((bytes[i] & 0xC0) != 0x80)
 					throw new DecompilationException("Invalid string encoding");
@@ -123,7 +126,7 @@ public class StringUtil {
 				
 			} else if((ch & 0xF0) == 0xE0) {
 				
-				if(ch == 0xED && i + 5 < end &&
+				if(ch == 0xED && i + 5 < length &&
 						(bytes[i + 1] & 0xF0) == 0xA0 && (bytes[i + 2] & 0xC0) == 0x80 && (bytes[i + 3] & 0xFF) == 0xED
 					 && (bytes[i + 4] & 0xF0) == 0xB0 && (bytes[i + 5] & 0xC0) == 0x80) {
 					
@@ -133,8 +136,8 @@ public class StringUtil {
 					continue;
 				}
 				
-				if(i + 2 >= end)
-					throw new DecompilationException("Unexpected end of the string: " + i + " + " + 2 + " >= " + end);
+				if(i + 2 >= length)
+					throw new DecompilationException("Unexpected end of the string: " + i + " + " + 2 + " >= " + length);
 				
 				if((bytes[i + 1] & 0xC0) != 0x80 || (bytes[i + 2] & 0xC0) != 0x80)
 					throw new DecompilationException("Invalid string encoding");
@@ -143,7 +146,7 @@ public class StringUtil {
 			}
 			
 			if(ch > 0x10FFFF)
-				throw new DecompilationException("Invalid string: char code U+" + Util.hex(ch) + " is out of range");
+				throw new DecompilationException("Invalid string: char code U+" + IntegerUtil.hex(ch) + " is out of range");
 			
 			result.append(charToString('"', ch));
 		}
@@ -152,17 +155,44 @@ public class StringUtil {
 	}
 	
 	
+	private static final JDecompiler JDECOMPILER = JDecompiler.getInstance();
+	
+	
+	private static String numberConstantToString(int value) {
+		UsagePolicy hexNumbersUsagePolicy = JDECOMPILER.hexNumbersUsagePolicy();
+		
+		if(hexNumbersUsagePolicy == UsagePolicy.ALWAYS)
+			return IntegerUtil.hexWithPrefix(value);
+			
+		if(hexNumbersUsagePolicy == UsagePolicy.AUTO && (value >= 16 || value <= -16) && (MathUtil.isPowerOfTwo(value) || MathUtil.isPowerOfTwo(value + 1)))
+			return IntegerUtil.hexWithPrefix(value);
+				
+		return Integer.toString(value);
+	}
+	
+	private static String numberConstantToString(long value) {
+		UsagePolicy hexNumbersUsagePolicy = JDECOMPILER.hexNumbersUsagePolicy();
+		
+		if(hexNumbersUsagePolicy == UsagePolicy.ALWAYS)
+			return LongUtil.hexWithPrefix(value);
+			
+		if(hexNumbersUsagePolicy == UsagePolicy.AUTO && (value >= 16 || value <= -16) && (MathUtil.isPowerOfTwo(value) || MathUtil.isPowerOfTwo(value + 1)))
+			return LongUtil.hexWithPrefix(value);
+				
+		return Long.toString(value);
+	}
+	
 	
 	public static String toLiteral(boolean value) {
 		return Boolean.toString(value);
 	}
 	
 	public static String toLiteral(byte value) {
-		return Byte.toString(value);
+		return numberConstantToString(value);
 	}
 	
 	public static String toLiteral(short value) {
-		return Short.toString(value);
+		return numberConstantToString(value);
 	}
 	
 	public static String toLiteral(char value) {
@@ -170,23 +200,41 @@ public class StringUtil {
 	}
 	
 	public static String toLiteral(int value) {
-		return Integer.toString(value);
+		return numberConstantToString(value);
 	}
 	
 	public static String toLiteral(long value) {
-		return Long.toString(value) + JDecompiler.getInstance().getLongSuffix();
+		return numberConstantToString(value) + JDECOMPILER.getLongSuffix();
 	}
 	
 	public static String toLiteral(float value) {
-		return (JDecompiler.getInstance().printTrailingZero() && (int)value == value ? Integer.toString((int)value) : Float.toString(value)) +
-				JDecompiler.getInstance().getFloatSuffix();
+		if(!Float.isFinite(value)) {
+			
+			String end = (JDECOMPILER.printTrailingZero() ? ".0" : "") + Character.toString(JDECOMPILER.getDoubleSuffix());
+			
+			return  value == Float.POSITIVE_INFINITY ? "1" + end + " / 0" + end :
+					value == Float.NEGATIVE_INFINITY ? "-1" + end + " / 0" + end : "0" + end + " / 0" + end;
+		}
+		
+		return (!JDECOMPILER.printTrailingZero() && (int)value == value ? Integer.toString((int)value) : Float.toString(value)) +
+				 JDECOMPILER.getFloatSuffix();
 	}
 	
 	public static String toLiteral(double value) {
-		return  JDecompiler.getInstance().printTrailingZero() && (int)value == value ?
-					Integer.toString((int)value) + JDecompiler.getInstance().getDoubleSuffix() :
-					JDecompiler.getInstance().printDoubleSuffix() ?
-						Double.toString(value) + JDecompiler.getInstance().getDoubleSuffix() :
+		if(!Double.isFinite(value)) {
+			
+			String end = JDECOMPILER.printTrailingZero() ?
+					JDECOMPILER.printDoubleSuffix() ? ".0" + JDECOMPILER.getDoubleSuffix() : ".0" :
+					Character.toString(JDECOMPILER.getDoubleSuffix());
+			
+			return  value == Double.POSITIVE_INFINITY ? "1" + end + " / 0" + end :
+					value == Double.NEGATIVE_INFINITY ? "-1" + end + " / 0" + end : "0" + end + " / 0" + end;
+		}
+		
+		return !JDECOMPILER.printTrailingZero() && (int)value == value ?
+					Integer.toString((int)value) + JDECOMPILER.getDoubleSuffix() :
+					JDECOMPILER.printDoubleSuffix() ?
+						Double.toString(value) + JDECOMPILER.getDoubleSuffix() :
 						Double.toString(value);
 	}
 }

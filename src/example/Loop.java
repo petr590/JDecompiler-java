@@ -35,4 +35,22 @@ public class Loop {
 		
 		System.out.println("after");
 	}
+	
+	public static void whileLoopWithAndCondition(int i, int j) {
+		while(i < 10 && j > 10) {
+			System.out.println(i++ + " " + j--);
+		}
+	}
+	
+	public static void whileLoopWithOrCondition(int i, int j) {
+		while(i < 10 || j > 10) {
+			System.out.println(i++ + " " + j--);
+		}
+	}
+	
+	public static void whileLoopWithDifficultCondition(int i, int j, int k) {
+		while(i > -1 && i < 10 && (j != 0 || k != 0)) {
+			System.out.println(i++ + " " + j--);
+		}
+	}
 }

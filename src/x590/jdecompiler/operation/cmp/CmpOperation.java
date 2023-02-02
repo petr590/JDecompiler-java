@@ -2,9 +2,9 @@ package x590.jdecompiler.operation.cmp;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
-import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.BooleanOperation;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.Type;
 
 public abstract class CmpOperation extends BooleanOperation {

@@ -19,7 +19,7 @@ public final class CharType extends PrimitiveType {
 	}
 	
 	@Override
-	public Type toVariableCapacityIntegralType() {
+	public Type toUncertainIntegralType() {
 		return PrimitiveType.INT_CHAR;
 	}
 	

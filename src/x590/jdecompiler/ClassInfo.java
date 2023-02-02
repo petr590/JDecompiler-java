@@ -18,7 +18,7 @@ import x590.jdecompiler.modifiers.ClassModifiers;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
-import x590.jdecompiler.util.IntegerConstants;
+import x590.util.IntegerUtil;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
@@ -91,7 +91,10 @@ public final class ClassInfo {
 	}
 	
 	public Attributes getAttributes() {
-		return attributes;
+		if(attributes != null)
+			return attributes;
+		
+		throw new IllegalStateException("Attributes yet not setted");
 	}
 	
 	void setAttributes(Attributes attributes) {
@@ -108,7 +111,7 @@ public final class ClassInfo {
 	
 	public void addImport(ClassType clazz) {
 		ClassType rawClass = clazz.getRawType();
-		imports.put(rawClass, imports.getOrDefault(rawClass, IntegerConstants.ZERO) + 1);
+		imports.put(rawClass, imports.getOrDefault(rawClass, IntegerUtil.ZERO) + 1);
 		
 		clazz.addImportsForSignature(this);
 	}
@@ -148,7 +151,7 @@ public final class ClassInfo {
 		boolean written = false;
 		
 		for(ClassType clazz : imports.keySet()) {
-			if(!clazz.getPackageName().isEmpty() && !clazz.getPackageName().equals("java.lang") && !clazz.getPackageName().equals(getThisType().getPackageName())) {
+			if(!clazz.getPackageName().isEmpty() && !clazz.getPackageName().equals("java.lang") && !clazz.getPackageName().equals(thisType.getPackageName())) {
 				out.printIndent().print("import ").print(clazz.getName()).println(';');
 				written = true;
 			}
@@ -243,10 +246,16 @@ public final class ClassInfo {
 	public String getIndent() {
 		return out.getIndent();
 	}
+
 	
+	private boolean canOmitClass;
+	
+	void enableClassOmitting() {
+		canOmitClass = JDecompiler.getInstance().canOmitThisAndClass();
+	}
 	
 	public boolean canOmitClass(Descriptor descriptor) {
-		return JDecompiler.getInstance().canOmitThisClass() && descriptor.getDeclaringClass().equals(getThisType());
+		return canOmitClass && descriptor.getDeclaringClass().equals(thisType);
 	}
 	
 	

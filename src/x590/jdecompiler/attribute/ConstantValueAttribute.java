@@ -4,17 +4,18 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.StringWritable;
-import x590.jdecompiler.constpool.ConstValueConstant;
+import x590.jdecompiler.FieldDescriptor;
+import x590.jdecompiler.constpool.ConstableValueConstant;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.Type;
+import x590.util.annotation.Nullable;
 
-public final class ConstantValueAttribute extends Attribute implements StringWritable {
+public final class ConstantValueAttribute extends Attribute {
 	
 	public final int valueIndex;
-	public final ConstValueConstant value;
+	public final ConstableValueConstant<?> value;
 	
 	protected ConstantValueAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
 		super(nameIndex, name, length);
@@ -22,13 +23,8 @@ public final class ConstantValueAttribute extends Attribute implements StringWri
 		this.value = pool.get(valueIndex);
 	}
 	
-	@Override
-	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-		out.write(value, classinfo);
-	}
-	
-	public void writeAs(StringifyOutputStream out, ClassInfo classinfo, Type type) {
-		out.write(value.toStringAs(type, classinfo));
+	public void writeTo(StringifyOutputStream out, ClassInfo classinfo, Type type, @Nullable FieldDescriptor descriptor) {
+		value.writeValue(out, classinfo, type, true, descriptor);
 	}
 	
 	@Override

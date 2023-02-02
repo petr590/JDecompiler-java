@@ -19,7 +19,7 @@ public final class ByteType extends IntegralType {
 	}
 	
 	@Override
-	public Type toVariableCapacityIntegralType() {
+	public Type toUncertainIntegralType() {
 		return PrimitiveType.BYTE_SHORT_INT_CHAR;
 	}
 }

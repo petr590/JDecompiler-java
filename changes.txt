@@ -1,2 +1,12 @@
-The src folder has been added to the commit (it is more convenient to build the project this way).
-Updated README.md and README-ru.md
+Fixed decompilation of if-else
+
+The API of the StringWritable and Stringified interfaces has been redesigned, now they work via generics,
+and any objects that implement the necessary interfaces can be passed to the methods of the StringifyOutputStream class.
+
+The system of constants has been redesigned. A bunch of code was moved from the ConstOperation class to ConstValueConstant,
+which made it possible to recognize constants of primitive types and String in annotations where there are no operations.
+Fixed constant referencing to itself.
+
+Added recognition of constants MAX_VALUE, MIN_VALUE, MIN_NORMAL, POSITIVE_INFINITY, NEGATIVE_INFINITY, NaN, Math.PI, Math.E
+for int, long, float and double types. Fixed the conversion of float and double to a string, now output is Float.NaN or Double.NaN.
+If these constants cannot be used, then 0.0 / 0.0 is output. For plus and minus infinity, it is the same.

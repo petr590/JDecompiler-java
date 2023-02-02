@@ -91,7 +91,7 @@ public class JavaMethod extends JavaClassElement {
 	
 	
 	JavaMethod(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool) {
-		this.modifiers = new MethodModifiers(in.readUnsignedShort());
+		this.modifiers = MethodModifiers.read(in);
 		this.descriptor = new MethodDescriptor(classinfo.getThisType(), in, pool);
 		
 		this.attributes = Attributes.read(in, pool, Location.METHOD);
@@ -251,5 +251,10 @@ public class JavaMethod extends JavaClassElement {
 		else if(modifiers.isStrictfp()) str.append("strictfp");
 		
 		return str;
+	}
+	
+	@Override
+	public String toString() {
+		return modifiers + " " + descriptor;
 	}
 }

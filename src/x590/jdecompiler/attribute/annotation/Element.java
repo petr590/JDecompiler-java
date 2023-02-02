@@ -1,12 +1,13 @@
 package x590.jdecompiler.attribute.annotation;
 
 import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.StringWritableAndImportable;
+import x590.jdecompiler.Importable;
+import x590.jdecompiler.StringWritable;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 
-public final class Element implements StringWritableAndImportable {
+public final class Element implements StringWritable<ClassInfo>, Importable {
 	
 	private final String name;
 	private final ElementValue value;
@@ -16,9 +17,17 @@ public final class Element implements StringWritableAndImportable {
 		this.value = ElementValue.read(in, pool);
 	}
 	
+	public String getName() {
+		return name;
+	}
+	
+	public ElementValue getValue() {
+		return value;
+	}
+	
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-		out.print(name).print('=').print(value, classinfo);
+		out.print(name).print(" = ").print(value, classinfo);
 	}
 	
 	

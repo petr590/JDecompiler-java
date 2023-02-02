@@ -1,17 +1,28 @@
 package x590.jdecompiler.operation.constant;
 
+import x590.jdecompiler.constpool.ConstableValueConstant;
+import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 
-public abstract class IntConvertibleConstOperation extends ConstOperation {
+public abstract class IntConvertibleConstOperation<C extends ConstableValueConstant<?>> extends ConstOperation<C> {
 	
 	protected boolean implicit;
 	
-	public IntConvertibleConstOperation(Type returnType) {
-		super(returnType);
+	public IntConvertibleConstOperation(C constant) {
+		super(constant);
 	}
 	
 	@Override
-	public abstract Type getImplicitType();
+	public Type getImplicitType() {
+		return constant.canImlicitCastToInt() ? PrimitiveType.INT : returnType;
+	}
+	
+	@Override
+	public void writeTo(StringifyOutputStream out, StringifyContext context) {
+		constant.writeTo(out, context.classinfo, returnType, implicit);
+	}
 	
 	@Override
 	protected void setImplicitCast(boolean implicit) {

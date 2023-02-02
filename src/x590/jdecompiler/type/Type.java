@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.function.Function;
 
 import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.StringWritableAndImportable;
+import x590.jdecompiler.Importable;
+import x590.jdecompiler.StringWritable;
 import x590.jdecompiler.Stringified;
 import x590.jdecompiler.exception.IncopatibleTypesException;
 import x590.jdecompiler.exception.InvalidMethodDescriptorException;
@@ -22,7 +23,7 @@ import x590.util.annotation.Nullable;
  * Класс, описывающий тип в Java: int, double, String и т.д.
  */
 @Immutable
-public abstract class Type implements Stringified, StringWritableAndImportable {
+public abstract class Type implements Stringified<ClassInfo>, StringWritable<ClassInfo>, Importable {
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
@@ -145,19 +146,33 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 	protected abstract boolean canCastTo(Type other);
 	
 	
+	/** Реализация метода преобразования к наиболее узкому типу.
+	 * @return результат преобразования или {@literal null}, если преобразование невозможно */
 	protected abstract Type castToNarrowestImpl(Type other);
 	
+	/** Реализация метода преобразования к наиболее широкому типу.
+	 * @return результат преобразования или {@literal null}, если преобразование невозможно */
 	protected abstract Type castToWidestImpl(Type other);
 	
+	/** Реализация метода преобразования к наиболее узкому типу.
+	 * Вызывается, если метод {@link #castToNarrowestImpl(Type)} вернул {@literal null}.
+	 * @return результат преобразования или {@literal null}, если преобразование невозможно.
+	 * Реализация по умолчанию возвращает {@literal null} */
 	protected Type reversedCastToNarrowestImpl(Type other) {
 		return null;
 	}
 	
+	/** Реализация метода преобразования к наиболее широкому типу.
+	 * Вызывается, если метод {@link #castToWidestImpl(Type)} вернул {@literal null}.
+	 * @return результат преобразования или {@literal null}, если преобразование невозможно.
+	 * Реализация по умолчанию возвращает {@literal null} */
 	protected Type reversedCastToWidestImpl(Type other) {
 		return null;
 	}
 	
 	
+	/** Преобразует тип к наиболее узкому типу.
+	 * @return результат преобразования или {@literal null}, если преобразование невозможно */
 	public final @Nullable Type castToNarrowestNoexcept(Type other) {
 		Type type = castToNarrowestImpl(other);
 		
@@ -167,6 +182,8 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 	}
 	
 	
+	/** Преобразует тип к наиболее широкому типу.
+	 * @return результат преобразования или {@literal null}, если преобразование невозможно */
 	public final @Nullable Type castToWidestNoexcept(Type other) {
 		Type type = castToWidestImpl(other);
 		
@@ -176,7 +193,9 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 	}
 	
 	
-	/** Преобразует тип к наиболее узкому типу (когда мы используем значение как значение какого-то типа) */
+	/** Преобразует тип к наиболее узкому типу (когда мы используем значение как значение какого-то типа)
+	 * @return результат преобразования
+	 * @throws IncopatibleTypesException, если преобразование невозможно */
 	public final Type castToNarrowest(Type other) {
 		Type type = castToNarrowestNoexcept(other);
 		
@@ -185,7 +204,9 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 		throw new IncopatibleTypesException(this, other);
 	}
 
-	/** Преобразует тип к наиболее широкрму типу (используется при присвоении значения переменной) */
+	/** Преобразует тип к наиболее широкрму типу (используется при присвоении значения переменной)
+	 * @return результат преобразования
+	 * @throws IncopatibleTypesException, если преобразование невозможно */
 	public final Type castToWidest(Type other) {
 		Type type = castToWidestNoexcept(other);
 		
@@ -221,7 +242,7 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 	}
 	
 	public final boolean equals(Type other) {
-		return this == other || (this.getClass() == other.getClass() && this.getEncodedName().equals(other.getEncodedName()));
+		return this == other || this.getClass() == other.getClass() && this.getEncodedName().equals(other.getEncodedName());
 	}
 	
 	@Override
@@ -248,16 +269,20 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 	}
 	
 	
+	/** @return статус неявного преобразование к типу.
+	 * (для компилятора, т.е. мы можем конвертировать int в long в коде, но не можем сделать это на уровне байткода).
+	 * Чем меньше статус, тем выше приоритет. Если статус больше или равен {@link CastStatus.EXTEND}, значит преобразование невозможно */
 	public int implicitCastStatus(Type other) {
 		return this == other ? CastStatus.SAME : this.canCastTo(other) ? CastStatus.EXTEND : CastStatus.NONE;
 	}
 	
 	
-	
+	/** @see #parseType(ExtendedStringReader) */
 	public static BasicType parseType(String str) {
 		return parseType(new ExtendedStringReader(str));
 	}
 	
+	/** Парсит любой тип, кроме {@link PrimitiveType#VOID} */
 	public static BasicType parseType(ExtendedStringReader in) {
 		switch(in.get()) {
 			case 'B': in.incPos(); return PrimitiveType.BYTE;
@@ -277,10 +302,12 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 	}
 	
 	
+	/** @see #parseMethodArguments(ExtendedStringReader) */
 	public static @Immutable List<Type> parseMethodArguments(String str) {
 		return parseMethodArguments(new ExtendedStringReader(str));
 	}
 	
+	/** Парсит сигнатуру метода, возвращает список аргументов */
 	public static @Immutable List<Type> parseMethodArguments(ExtendedStringReader in) {
 		in.mark();
 		
@@ -301,10 +328,12 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 	}
 	
 	
+	/** @see #parseMethodArguments(ExtendedStringReader) */
 	public static BasicType parseReturnType(String in) {
 		return in.charAt(0) == 'V' ? PrimitiveType.VOID : parseType(in);
 	}
 	
+	/** Парсит возвращаемый тип метода, который может быть {@link PrimitiveType#VOID} */
 	public static BasicType parseReturnType(ExtendedStringReader in) {
 		if(in.get() == 'V') {
 			in.incPos();
@@ -315,11 +344,13 @@ public abstract class Type implements Stringified, StringWritableAndImportable {
 	}
 	
 	
+	/** Парсит тип массива или класса (без префикса 'L') */
 	public static ReferenceType parseReferenceType(String encodedName) {
 		return encodedName.charAt(0) == '[' ? ArrayType.fromDescriptor(encodedName) : ClassType.fromDescriptor(encodedName);
 	}
 	
 	
+	/** Парсит тип массива, класса или параметра */
 	public static ReferenceType parseSignatureParameter(ExtendedStringReader in) {
 		switch(in.get()) {
 			case 'L': return ClassType.read(in.next());

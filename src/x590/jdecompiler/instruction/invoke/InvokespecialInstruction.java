@@ -1,8 +1,8 @@
 package x590.jdecompiler.instruction.invoke;
 
 import x590.jdecompiler.context.DecompilationContext;
-import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.instruction.InstructionWithIndex;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.invoke.InvokespecialOperation;
 
 public final class InvokespecialInstruction extends InstructionWithIndex {

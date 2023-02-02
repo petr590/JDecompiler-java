@@ -40,7 +40,6 @@ public abstract class IntegralType extends PrimitiveType {
 	
 	@Override
 	public boolean isImplicitSubtypeOf(Type other) {
-		return isSubtypeOf(other) || other.isPrimitive() &&
-				(other == PrimitiveType.LONG || other == PrimitiveType.FLOAT || other == PrimitiveType.DOUBLE);
+		return isSubtypeOf(other) || other.isPrimitive() && other.isLongOrFloatOrDouble();
 	}
 }

@@ -2,7 +2,7 @@ package x590.jdecompiler.modifiers;
 
 import x590.jdecompiler.util.IWhitespaceStringBuilder;
 import x590.jdecompiler.util.WhitespaceStringBuilder;
-import x590.util.Util;
+import x590.util.IntegerUtil;
 
 public abstract class Modifiers {
 	
@@ -120,11 +120,11 @@ public abstract class Modifiers {
 	
 	
 	public String toHex() {
-		return Util.hex4(value);
+		return IntegerUtil.hex4(value);
 	}
 	
 	public String toHexWithPrefix() {
-		return Util.hex4WithPrefix(value);
+		return IntegerUtil.hex4WithPrefix(value);
 	}
 	
 	

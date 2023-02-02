@@ -5,7 +5,6 @@ import x590.jdecompiler.io.StringifyOutputStream;
 /**
  * Описывает объект, который можно записать в StringifyOutputStream
  */
-public interface StringWritable {
-	
-	public void writeTo(StringifyOutputStream out, ClassInfo classinfo);
+public interface StringWritable<T> {
+	public void writeTo(StringifyOutputStream out, T param);
 }

@@ -1,6 +1,6 @@
 package x590.jdecompiler.operation.condition;
 
-import x590.jdecompiler.exception.Operation;
+import x590.jdecompiler.operation.Operation;
 
 public abstract class CompareUnaryOperation extends CompareOperation {
 	

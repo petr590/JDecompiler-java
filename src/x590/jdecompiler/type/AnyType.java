@@ -52,7 +52,7 @@ public final class AnyType extends SpecialType {
 	
 	@Override
 	protected Type castToWidestImpl(Type other) {
-		return other.isPrimitive() ? ((PrimitiveType)other).toVariableCapacityIntegralType() : other;
+		return other.isPrimitive() ? ((PrimitiveType)other).toUncertainIntegralType() : other;
 	}
 	
 	@Override

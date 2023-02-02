@@ -2,19 +2,16 @@ package example;
 
 public class Initalization {
 	
-	public static final int CONST;
+	public static final int CONST1, CONST2;
 	
 	static {
-//		if(Math.random() > 0.5)
-//			CONST = 1;
-//		else
-//			CONST = 0;
+		if(Math.random() > 0.5)
+			CONST1 = 1;
+		else
+			CONST1 = 0;
 		
-		CONST = Math.random() > 0.5 ? 1 : 0;
+		CONST2 = Math.random() > 0.5 ? 1 : 0;
 	}
-	
-	
-	public final int value = CONST;
 	
 	
 	public static void main(String[] args) {

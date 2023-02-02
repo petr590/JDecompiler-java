@@ -7,7 +7,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.StringWritableAndImportable;
+import x590.jdecompiler.Importable;
+import x590.jdecompiler.StringWritable;
 import x590.jdecompiler.Stringified;
 import x590.jdecompiler.exception.InvalidSignatureException;
 import x590.jdecompiler.exception.InvalidTypeNameException;
@@ -18,7 +19,7 @@ import x590.util.annotation.Immutable;
 import x590.util.annotation.Nonnull;
 import x590.util.annotation.Nullable;
 
-public final class GenericParameters<T extends ReferenceType> implements Stringified, StringWritableAndImportable {
+public final class GenericParameters<T extends ReferenceType> implements Stringified<ClassInfo>, StringWritable<ClassInfo>, Importable {
 	
 	private final @Immutable List<T> types;
 	

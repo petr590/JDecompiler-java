@@ -1,19 +1,18 @@
 package x590.jdecompiler.instruction.constant;
 
+import x590.jdecompiler.constpool.IntegerConstant;
 import x590.jdecompiler.context.DecompilationContext;
-import x590.jdecompiler.exception.Operation;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.IConstOperation;
 
-public class IConstInstruction extends ConstInstruction {
+public class IConstInstruction extends ConstInstruction<IntegerConstant> {
 	
-	private final int value;
-	
-	public IConstInstruction(int value) {
-		this.value = value;
+	public IConstInstruction(IntegerConstant constant) {
+		super(constant);
 	}
 	
 	@Override
 	public Operation toOperation(DecompilationContext context) {
-		return new IConstOperation(value);
+		return new IConstOperation(constant);
 	}
 }

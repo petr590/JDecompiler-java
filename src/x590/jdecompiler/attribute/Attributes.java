@@ -82,8 +82,9 @@ public final class Attributes implements JavaSerializable, Importable {
 		return (T)attributeByName.getOrDefault(name, defaultValue);
 	}
 	
-	public @Nullable StringWritable getAsWritable(String name) {
-		return (StringWritable)attributeByName.get(name);
+	@SuppressWarnings("unchecked")
+	public @Nullable StringWritable<ClassInfo> getAsWritable(String name) {
+		return (StringWritable<ClassInfo>)attributeByName.get(name);
 	}
 	
 	public boolean has(String name) {

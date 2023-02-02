@@ -8,6 +8,7 @@ import x590.jdecompiler.constpool.NameAndTypeConstant;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.ClassType;
+import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
 
 public final class FieldDescriptor extends Descriptor implements Importable {
@@ -53,7 +54,11 @@ public final class FieldDescriptor extends Descriptor implements Importable {
 	}
 	
 	public boolean equals(FieldDescriptor other) {
-		return this == other || (this.getName().equals(other.getName()) && type.equals(other.type));
+		return this == other || this.equals(other.getDeclaringClass(), other.getName(), other.type);
+	}
+	
+	public boolean equals(ReferenceType clazz, String name, Type type) {
+		return this.getDeclaringClass().equals(clazz) && this.getName().equals(name) && this.type.equals(type);
 	}
 	
 	@Override

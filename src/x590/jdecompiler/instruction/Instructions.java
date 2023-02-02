@@ -20,23 +20,23 @@ public class Instructions {
 	public static final Instruction
 			ACONST_NULL = AConstNullInstruction.INSTANCE,
 			
-			ICONST_M1 = new IConstInstruction(-1),
-			ICONST_0  = new IConstInstruction(0),
-			ICONST_1  = new IConstInstruction(1),
-			ICONST_2  = new IConstInstruction(2),
-			ICONST_3  = new IConstInstruction(3),
-			ICONST_4  = new IConstInstruction(4),
-			ICONST_5  = new IConstInstruction(5),
+			ICONST_M1 = new IPushInstruction(-1),
+			ICONST_0  = new IPushInstruction(0),
+			ICONST_1  = new IPushInstruction(1),
+			ICONST_2  = new IPushInstruction(2),
+			ICONST_3  = new IPushInstruction(3),
+			ICONST_4  = new IPushInstruction(4),
+			ICONST_5  = new IPushInstruction(5),
 			
-			LCONST_0  = new LConstInstruction(0),
-			LCONST_1  = new LConstInstruction(1),
+			LCONST_0  = new LPushInstruction(0),
+			LCONST_1  = new LPushInstruction(1),
 			
-			FCONST_0  = new FConstInstruction(0),
-			FCONST_1  = new FConstInstruction(1),
-			FCONST_2  = new FConstInstruction(2),
+			FCONST_0  = new FPushInstruction(0),
+			FCONST_1  = new FPushInstruction(1),
+			FCONST_2  = new FPushInstruction(2),
 			
-			DCONST_0  = new DConstInstruction(0),
-			DCONST_1  = new DConstInstruction(1),
+			DCONST_0  = new DPushInstruction(0),
+			DCONST_1  = new DPushInstruction(1),
 			
 			
 			ILOAD_0 = new ILoadInstruction(0),

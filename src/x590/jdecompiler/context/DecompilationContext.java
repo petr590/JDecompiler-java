@@ -14,9 +14,9 @@ import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.exception.DecompilationException;
-import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.instruction.Instruction;
 import x590.jdecompiler.modifiers.MethodModifiers;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.returning.VReturnOperation;
 import x590.jdecompiler.scope.MethodScope;
 import x590.jdecompiler.scope.Scope;
@@ -115,6 +115,16 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 		});
 		
 		operations.removeIf(Operation::isRemoved);
+		operations.forEach(Operation::reduceType);
+	}
+	
+	
+	/** Убирает все scope-ы, которые вышли за границу видимости или были удалены.
+	 * Затем кладёт на стек все scope-ы, до которых дошла очередь.
+	 * Нужен, если мы хотим обновить scope-ы немедленно, не дожидаясь следующего хода */
+	public void updateScopes() {
+		finalizeScopes(index);
+		startScopes(index);
 	}
 	
 	
@@ -128,7 +138,6 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 		Scope currentScope = this.currentScope;
 		
 		while(currentScope != null && (currentScope.isRemoved() || index >= currentScope.endIndex())) {
-			currentScope.deleteRemovedOperations();
 			currentScope.finalizeScope(this);
 			
 			Logger.logf("%s: %s %s", strIndex, currentScope, currentScope.isRemoved() ? "removed" : "finalized");
@@ -149,10 +158,10 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 				
 			} else if(index > scope.startIndex()) {
 				
-				assert scope.superScope() == currentScope;
+				assert scope.superScope() == currentScope : scope + " must have parent scope " + currentScope + ", got " + scope.superScope();
 				currentScope = scope;
 				
-				Logger.logf("%d: %s startted", index, scope);
+				Logger.logf("%d: %s started", index, scope);
 				
 				iter.remove();
 			}

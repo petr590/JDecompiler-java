@@ -1,11 +1,16 @@
 package x590.jdecompiler.modifiers;
 
+import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.util.IWhitespaceStringBuilder;
 
 public final class MethodModifiers extends Modifiers {
 	
 	public MethodModifiers(int value) {
 		super(value);
+	}
+	
+	public static MethodModifiers read(ExtendedDataInputStream in) {
+		return new MethodModifiers(in.readUnsignedShort());
 	}
 	
 	

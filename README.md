@@ -27,6 +27,7 @@ Maybe I'll finish it someday, but I need to add a more functionality.
 - Ability to omit `this` and the current class
 - Declaration of fields separated by commas
 - Variable names from LocalVariableTable
+- Recognition of constants in the current class, as well as standard constants (Math.PI, Double.NaN, etc.)
 
 ## Used libraries:
 - ArgParser - https://github.com/petr590/ArgParser

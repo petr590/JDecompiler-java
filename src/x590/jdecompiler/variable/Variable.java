@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import x590.jdecompiler.attribute.LocalVariableTableAttribute.LocalVariableEntry;
-import x590.jdecompiler.exception.Operation;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.scope.Scope;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.Types;
@@ -120,6 +120,7 @@ public abstract class Variable extends EmptyableVariable {
 	protected abstract String chooseName();
 	
 	
+	/** Добавляет переменной возможное имя */
 	public abstract void addName(String name);
 	
 	
@@ -152,8 +153,8 @@ public abstract class Variable extends EmptyableVariable {
 		for(Operation operation : assignedOperations) {
 			if(widest) {
 				type = type.castToWidest(operation.getReturnType());
-				
 				operation.castReturnTypeToNarrowest(type);
+				
 			} else {
 				type = operation.getReturnTypeAsNarrowest(type);
 			}

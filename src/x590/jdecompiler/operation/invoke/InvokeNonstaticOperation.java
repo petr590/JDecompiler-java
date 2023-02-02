@@ -3,8 +3,8 @@ package x590.jdecompiler.operation.invoke;
 import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
-import x590.jdecompiler.exception.Operation;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.Types;
 
 public abstract class InvokeNonstaticOperation extends InvokeOperation {

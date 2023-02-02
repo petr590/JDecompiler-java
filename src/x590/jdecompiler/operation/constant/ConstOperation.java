@@ -1,57 +1,48 @@
 package x590.jdecompiler.operation.constant;
 
 import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.FieldDescriptor;
-import x590.jdecompiler.JavaField;
 import x590.jdecompiler.constpool.ConstValueConstant;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.ReturnableOperation;
-import x590.jdecompiler.type.Type;
-import x590.util.annotation.RemoveIfNotUsed;
-import x590.util.lazyloading.FunctionalLazyLoadingValue;
 
-public abstract class ConstOperation extends ReturnableOperation {
+public abstract class ConstOperation<C extends ConstValueConstant> extends ReturnableOperation {
 	
-	@RemoveIfNotUsed
-	private FieldDescriptor ownerConstant;
+	protected final C constant;
 	
-	private final FunctionalLazyLoadingValue<ClassInfo, JavaField> constantLoader = ConstValueConstant.getConstantLoader(constant -> canUseConstant(constant));
+	public ConstOperation(C constant) {
+		super(constant.getType());
+		this.constant = constant;
+	}
 	
-	public ConstOperation(Type returnType) {
-		super(returnType);
+	public C getConstant() {
+		return constant;
 	}
 	
 	@Override
-	public final void setOwnerConstant(FieldDescriptor ownerConstant) {
-		this.ownerConstant = ownerConstant;
+	public final boolean isOne() {
+		return constant.isOne();
 	}
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		if(constantLoader.isNonNull(classinfo))
-			constantLoader.get().addImports(classinfo);
+		constant.addImports(classinfo);
 	}
 	
 	@Override
-	public final void writeTo(StringifyOutputStream out, StringifyContext context) {
-		
-		if(constantLoader.isNonNull(context.classinfo)) {
-			JavaField constant = constantLoader.get();
-			
-			if(!context.classinfo.canOmitClass(constant.getDescriptor()))
-				out.print(constant.getDescriptor().getDeclaringClass(), context.classinfo).print('.');
-			
-			out.write(constant.getDescriptor().getName());
-			
-		} else {
-			this.writeValue(out, context);
-		}
+	public void writeTo(StringifyOutputStream out, StringifyContext context) {
+		constant.writeTo(out, context.classinfo, returnType);
 	}
 	
-	public abstract void writeValue(StringifyOutputStream out, StringifyContext context);
+	@Override
+	public int getPriority() {
+		return constant.getPriority();
+	}
 	
-	protected boolean canUseConstant(JavaField constant) {
-		return constant.getDescriptor().getType().isSubtypeOf(returnType);
+	@Override
+	@SuppressWarnings("rawtypes")
+	public boolean equals(Operation other) {
+		return this == other || other instanceof ConstOperation operation && constant.equals(operation.constant);
 	}
 }

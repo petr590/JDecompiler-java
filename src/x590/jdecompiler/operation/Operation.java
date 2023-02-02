@@ -1,10 +1,10 @@
-package x590.jdecompiler.exception;
+package x590.jdecompiler.operation;
 
 import x590.jdecompiler.FieldDescriptor;
 import x590.jdecompiler.Importable;
+import x590.jdecompiler.StringWritable;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.operation.constant.AConstNullOperation;
 import x590.jdecompiler.operation.constant.ConstOperation;
 import x590.jdecompiler.type.PrimitiveType;
@@ -19,7 +19,7 @@ import x590.util.annotation.RemoveIfNotUsed;
  * Все обычные классы операций, которые не являются Scope-ами,
  * объявлены в пакете {@link x590.jdecompiler.operation} и его подпакетах.
  */
-public abstract class Operation implements Importable {
+public abstract class Operation implements StringWritable<StringifyContext>, Importable {
 	
 	/**
 	 * Ассоциативность (направленность) операций. Например, сложение
@@ -36,6 +36,7 @@ public abstract class Operation implements Importable {
 	
 	
 	/** Метод записи в поток */
+	@Override
 	public abstract void writeTo(StringifyOutputStream out, StringifyContext context);
 	
 	/** Метод записи в поток в качестве инициализатора массива */
@@ -142,6 +143,8 @@ public abstract class Operation implements Importable {
 	
 	
 	public void onCastReturnType(Type type) {}
+	
+	public void reduceType() {}
 	
 	/** Устарел, так как был удалён класс {@link AbstractDupOperation} */
 	@Deprecated(since="0.7.6")
