@@ -1,6 +1,6 @@
 package x590.jdecompiler.instruction;
 
-public abstract class InstructionWithIndex extends Instruction {
+public abstract class InstructionWithIndex implements Instruction {
 	
 	public final int index;
 	

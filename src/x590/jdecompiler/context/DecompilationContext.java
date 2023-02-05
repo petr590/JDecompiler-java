@@ -67,9 +67,10 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 			startScopes(index);
 			
 			
-//			Logger.debugf("Stack: %d [%s]", index, stack.stream().map(operation -> operation.getClass().getSimpleName() + operation.getReturnType() + "]").collect(Collectors.joining(", ")));
-
-
+//			Logger.debugf("%d: operation stack: [%s]", index, stack.stream().map(operation -> operation.getClass().getSimpleName() + " " + operation.getReturnType()).collect(Collectors.joining(", ")));
+//			Logger.debugf("%d: scope stack: [%s]", index, StreamSupport.stream(this.getCurrentScopes().spliterator(), false).map(Scope::toString).collect(Collectors.joining(", ")));
+			
+			
 			expressionIndexTable[index] = expressionIndex;
 			
 			Operation operation;
@@ -159,11 +160,18 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 			} else if(index > scope.startIndex()) {
 				
 				assert scope.superScope() == currentScope : scope + " must have parent scope " + currentScope + ", got " + scope.superScope();
-				currentScope = scope;
 				
 				Logger.logf("%d: %s started", index, scope);
 				
 				iter.remove();
+				
+				if(index >= scope.endIndex()) {
+					scope.finalizeScope(this);
+					Logger.logf("%d: %s finalized", index, scope);
+					
+				} else {
+					currentScope = scope;
+				}
 			}
 		}
 	}

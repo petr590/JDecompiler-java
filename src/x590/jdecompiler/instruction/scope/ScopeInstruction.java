@@ -5,13 +5,12 @@ import x590.jdecompiler.instruction.Instruction;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.scope.Scope;
 
-public abstract class ScopeInstruction extends Instruction {
+public abstract class ScopeInstruction implements Instruction {
 	
 	@Override
 	public final Operation toOperation(DecompilationContext context) {
 		return toScope(context);
 	}
 	
-	@Override
 	public abstract Scope toScope(DecompilationContext context);
 }

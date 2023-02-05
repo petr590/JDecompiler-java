@@ -148,11 +148,6 @@ public final class ArrayType extends ReferenceType {
 		return (memberType.isPrimitive() ? memberType.getName() : memberType.getNameForVariable()) + "Array";
 	}
 	
-	@Override
-	public final boolean isBasicArrayType() {
-		return true;
-	}
-	
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
@@ -166,9 +161,7 @@ public final class ArrayType extends ReferenceType {
 			return true;
 		}
 		
-		if(other.isBasicArrayType()) {
-			ArrayType arrayType = (ArrayType)other;
-			
+		if(other instanceof ArrayType arrayType) {
 			return (nestingLevel == arrayType.nestingLevel && memberType.isSubtypeOf(arrayType.memberType))
 					|| elementType.isSubtypeOf(arrayType.elementType);
 		}

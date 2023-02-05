@@ -13,8 +13,6 @@ public interface Interface extends Serializable {
 	private void foo3() {}
 	
 	static void main(String[] args) {
-		ExampleTesting.runDecompiler(Interface.class
-//				, "--no-print-implicit-modifiers"
-		);
+		ExampleTesting.runDecompiler(Interface.class, "--no-print-implicit-modifiers");
 	}
 }

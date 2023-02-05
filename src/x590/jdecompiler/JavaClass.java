@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import x590.jdecompiler.attribute.AttributeNames;
 import x590.jdecompiler.attribute.Attributes;
 import x590.jdecompiler.attribute.Attributes.Location;
 import x590.jdecompiler.attribute.annotation.AnnotationsAttribute;
@@ -117,7 +118,7 @@ public class JavaClass extends JavaClassElement {
 		this.attributes = Attributes.read(in, pool, Location.CLASS);
 		classinfo.setAttributes(attributes);
 		
-		this.signature = attributes.get("Signature");
+		this.signature = attributes.get(AttributeNames.SIGNATURE);
 		if(signature != null)
 			signature.checkTypes(superType, interfaces);
 		

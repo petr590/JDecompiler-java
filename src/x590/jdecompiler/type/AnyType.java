@@ -2,7 +2,7 @@ package x590.jdecompiler.type;
 
 import x590.jdecompiler.ClassInfo;
 
-public final class AnyType extends SpecialType {
+public final class AnyType extends Type {
 	
 	public static final AnyType INSTANCE = new AnyType();
 	
@@ -52,7 +52,7 @@ public final class AnyType extends SpecialType {
 	
 	@Override
 	protected Type castToWidestImpl(Type other) {
-		return other.isPrimitive() ? ((PrimitiveType)other).toUncertainIntegralType() : other;
+		return other instanceof PrimitiveType primitiveType ? primitiveType.toUncertainIntegralType() : other;
 	}
 	
 	@Override

@@ -16,11 +16,6 @@ public abstract class IntegralType extends PrimitiveType {
 		return TypeSize.WORD;
 	}
 	
-	@Override
-	public final boolean isIntegral() {
-		return true;
-	}
-	
 	/** Фактический размер типа данных */
 	public abstract int getCapacity();
 	
@@ -28,18 +23,18 @@ public abstract class IntegralType extends PrimitiveType {
 	@Override
 	protected boolean canCastTo(Type other) {
 		return this == other ||
-				other.isIntegral() && ((IntegralType)other).getCapacity() >= this.getCapacity();
+				other instanceof IntegralType integralType && integralType.getCapacity() >= this.getCapacity();
 	}
 	
 	@Override
 	protected boolean canCastToWidest(Type other) {
 		return this == other ||
-				other.isIntegral() && ((IntegralType)other).getCapacity() <= this.getCapacity() ||
+				other instanceof IntegralType integralType && integralType.getCapacity() <= this.getCapacity() ||
 				other == PrimitiveType.CHAR && this.getCapacity() > CHAR_CAPACITY;
 	}
 	
 	@Override
 	public boolean isImplicitSubtypeOf(Type other) {
-		return isSubtypeOf(other) || other.isPrimitive() && other.isLongOrFloatOrDouble();
+		return isSubtypeOf(other) || other.isLongOrFloatOrDouble();
 	}
 }

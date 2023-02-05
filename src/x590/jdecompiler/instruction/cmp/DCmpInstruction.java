@@ -5,7 +5,7 @@ import x590.jdecompiler.instruction.Instruction;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.cmp.DCmpOperation;
 
-public class DCmpInstruction extends Instruction {
+public class DCmpInstruction implements Instruction {
 	
 	@Override
 	public Operation toOperation(DecompilationContext context) {

@@ -12,13 +12,14 @@ import x590.jdecompiler.instruction.load.*;
 import x590.jdecompiler.instruction.operator.*;
 import x590.jdecompiler.instruction.returning.*;
 import x590.jdecompiler.instruction.store.*;
+import x590.jdecompiler.operationinstruction.constant.AConstNullOperationInstruction;
 
 import static x590.jdecompiler.type.PrimitiveType.*;
 
 public class Instructions {
 	
 	public static final Instruction
-			ACONST_NULL = AConstNullInstruction.INSTANCE,
+			ACONST_NULL = AConstNullOperationInstruction.INSTANCE,
 			
 			ICONST_M1 = new IPushInstruction(-1),
 			ICONST_0  = new IPushInstruction(0),

@@ -4,7 +4,7 @@ public class Types {
 	
 	private Types() {}
 	
-	public static final SpecialType
+	public static final Type
 			ANY_TYPE = AnyType.INSTANCE,
 			ANY_OBJECT_TYPE = AnyObjectType.INSTANCE,
 			EXCLUDING_BOOLEAN_TYPE = ExcludingBooleanType.INSTANCE;

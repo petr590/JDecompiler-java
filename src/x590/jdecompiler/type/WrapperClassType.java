@@ -12,9 +12,4 @@ public final class WrapperClassType extends ClassType {
 	public PrimitiveType getPrimitiveType() {
 		return primitiveType;
 	}
-	
-	@Override
-	public boolean isWrapperClassType() {
-		return true;
-	}
 }

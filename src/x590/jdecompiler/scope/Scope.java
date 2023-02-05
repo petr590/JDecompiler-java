@@ -220,8 +220,8 @@ public abstract class Scope extends Operation {
 		
 		code.add(operation);
 		
-		if(operation.isScope())
-			scopes.add((Scope)operation);
+		if(operation instanceof Scope scope)
+			scopes.add(scope);
 	}
 	
 	public void addOperations(List<Operation> operations, int fromIndex) {
@@ -297,8 +297,21 @@ public abstract class Scope extends Operation {
 	@Override
 	public void remove() {
 		super.remove();
-		code.forEach(Operation::remove);
+		code.forEach(operation -> {
+				if(operation instanceof Scope scope)
+					scope.removeIfInBounds(startIndex, endIndex);
+				else
+					operation.remove();
+			});
 	}
+	
+	
+	private void removeIfInBounds(int startIndex, int endIndex) {
+		if(this.startIndex >= startIndex && this.endIndex <= endIndex) {
+			this.remove();
+		}
+	}
+	
 	
 	/** Удаляет все операции с установленным флагом {@link Operation#removed} */
 	protected void deleteRemovedOperations() {
@@ -339,7 +352,7 @@ public abstract class Scope extends Operation {
 	 */
 	protected boolean canOmitCurlyBrackets() {
 		return JDecompiler.getInstance().canOmitCurlyBrackets() &&
-				(code.isEmpty() || code.size() == 1 && (!code.get(0).isScope() || ((Scope)code.get(0)).canOmitCurlyBrackets()));
+				(code.isEmpty() || code.size() == 1 && (!(code.get(0) instanceof Scope scope) || (scope.canOmitCurlyBrackets())));
 	}
 	
 	protected void writeHeader(StringifyOutputStream out, StringifyContext context) {}
@@ -371,12 +384,6 @@ public abstract class Scope extends Operation {
 	@Override
 	public Type getReturnType() {
 		return PrimitiveType.VOID;
-	}
-	
-	
-	@Override
-	public final boolean isScope() {
-		return true;
 	}
 	
 	

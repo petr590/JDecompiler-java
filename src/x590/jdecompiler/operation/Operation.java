@@ -5,8 +5,8 @@ import x590.jdecompiler.Importable;
 import x590.jdecompiler.StringWritable;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.constant.AConstNullOperation;
 import x590.jdecompiler.operation.constant.ConstOperation;
+import x590.jdecompiler.scope.Scope;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
@@ -67,7 +67,7 @@ public abstract class Operation implements StringWritable<StringifyContext>, Imp
 	
 	/** Выставляет флаг {@link #removed}, не удаляет операцию физически из какого-то списка */
 	public void remove() {
-		removed = true;
+		this.removed = true;
 	}
 	
 	/** Удалена ли операция, т.е. выставлен ли флаг {@link #removed} */
@@ -147,7 +147,7 @@ public abstract class Operation implements StringWritable<StringifyContext>, Imp
 	public void reduceType() {}
 	
 	/** Устарел, так как был удалён класс {@link AbstractDupOperation} */
-	@Deprecated(since="0.7.6")
+	@Deprecated(since = "0.7.6")
 	public Operation original() {
 		return this;
 	}
@@ -172,8 +172,8 @@ public abstract class Operation implements StringWritable<StringifyContext>, Imp
 	
 	
 	/** Гарантирует, что операция является scope-ом */
-	public boolean isScope() {
-		return false;
+	public final boolean isScope() {
+		return this instanceof Scope;
 	}
 	
 	/** Проверяет, что операция является константой 1 (любого типа) */

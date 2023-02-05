@@ -4,6 +4,7 @@ import static x590.jdecompiler.modifiers.Modifiers.*;
 
 import java.util.List;
 
+import x590.jdecompiler.attribute.AttributeNames;
 import x590.jdecompiler.attribute.Attributes;
 import x590.jdecompiler.attribute.Attributes.Location;
 import x590.jdecompiler.attribute.ConstantValueAttribute;
@@ -141,7 +142,7 @@ public class JavaField extends JavaClassElement {
 	
 	
 	public boolean hasAnnotation() {
-		return attributes.has("RuntimeVisibleAnnotations") || attributes.has("RuntimeInvisibleAnnotations");
+		return attributes.has(AttributeNames.RUNTIME_VISIBLE_ANNOTATIONS) || attributes.has(AttributeNames.RUNTIME_INVISIBLE_ANNOTATIONS);
 	}
 	
 	public Pair<AnnotationsAttribute, AnnotationsAttribute> getAnnotationAttributes() {
@@ -149,7 +150,7 @@ public class JavaField extends JavaClassElement {
 	}
 	
 	public FieldSignatureAttribute getSignature() {
-		return attributes.get("Signature");
+		return attributes.get(AttributeNames.SIGNATURE);
 	}
 	
 	

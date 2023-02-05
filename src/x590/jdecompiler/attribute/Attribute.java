@@ -16,7 +16,9 @@ import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DisassemblingException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 
-public class Attribute implements JavaSerializable, Importable {
+import static x590.jdecompiler.attribute.AttributeNames.*;
+
+public abstract class Attribute implements JavaSerializable, Importable {
 	
 	private final int nameIndex;
 	private final String name;
@@ -37,26 +39,28 @@ public class Attribute implements JavaSerializable, Importable {
 		
 		
 		Attribute attribute = switch(name) {
-			case "ConstantValue" -> new ConstantValueAttribute(nameIndex, name, length, in, pool);
-			case "Code"			 -> new CodeAttribute(nameIndex, name, length, in, pool);
-			case "Exceptions"	 -> new ExceptionsAttribute(nameIndex, name, length, in, pool);
+			case CONSTANT_VALUE     -> new ConstantValueAttribute(nameIndex, name, length, in, pool);
+			case DEPRECATED         -> DeprecatedAttribute.get(nameIndex, name, length);
+			case SYNTHETIC          -> SyntheticAttribute.get(nameIndex, name, length);
+			case EXCEPTIONS         -> new ExceptionsAttribute(nameIndex, name, length, in, pool);
+			case ANNOTATION_DEFAULT -> new AnnotationDefaultAttribute(nameIndex, name, length, in, pool);
 			
-			case "RuntimeVisibleAnnotations", "RuntimeInvisibleAnnotations" ->
-				new AnnotationsAttribute(nameIndex, name, length, in, pool);
-			
-			case "RuntimeVisibleParameterAnnotations", "RuntimeInvisibleParameterAnnotations" ->
-				new ParameterAnnotationsAttribute(nameIndex, name, length, in, pool);
-			
-			case "AnnotationDefault"  -> new AnnotationDefaultAttribute(nameIndex, name, length, in, pool);
-			case "BootstrapMethods"	  -> new BootstrapMethodsAttribute(nameIndex, name, length, in, pool);
-			case "LocalVariableTable" -> new LocalVariableTableAttribute(nameIndex, name, length, in, pool);
-			
-			case "Signature" -> switch(location) {
+			case SIGNATURE -> switch(location) {
 				case CLASS -> new ClassSignatureAttribute(nameIndex, name, length, in, pool);
 				case FIELD -> new FieldSignatureAttribute(nameIndex, name, length, in, pool);
 				case METHOD -> new MethodSignatureAttribute(nameIndex, name, length, in, pool);
 				default -> new UnknownAttribute(nameIndex, name, length, in);
 			};
+			
+			case CODE                 -> new CodeAttribute(nameIndex, name, length, in, pool);
+			case BOOTSTRAP_METHODS    -> new BootstrapMethodsAttribute(nameIndex, name, length, in, pool);
+			case LOCAL_VARIABLE_TABLE -> new LocalVariableTableAttribute(nameIndex, name, length, in, pool);
+			
+			case RUNTIME_VISIBLE_ANNOTATIONS, RUNTIME_INVISIBLE_ANNOTATIONS ->
+				new AnnotationsAttribute(nameIndex, name, length, in, pool);
+			
+			case RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS, RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS ->
+				new ParameterAnnotationsAttribute(nameIndex, name, length, in, pool);
 			
 			default -> new UnknownAttribute(nameIndex, name, length, in);
 		};

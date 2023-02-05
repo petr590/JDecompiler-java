@@ -3,7 +3,7 @@ package example;
 public class Autoboxing {
 	
 	public static void main(String[] args) {
-		ExampleTesting.runDecompiler(Autoboxing.class);
+		ExampleTesting.runDecompiler(Autoboxing.class, "--no-trailing-zero");
 	}
 	
 	@SuppressWarnings("unused")
@@ -16,7 +16,5 @@ public class Autoboxing {
 		Float f = 0f;
 		Double d = 0d;
 		Boolean z = false;
-		Void v = null;
-		String str = "";
 	}
 }

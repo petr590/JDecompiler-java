@@ -18,13 +18,17 @@ public class Example {
 			}
 	};
 	
+	
+	public static void main(String[] args) {
+		ExampleTesting.runDecompiler(Example.class);
+	}
+	
+	
 	public final int i;
 	
 	public Example() {
 		this.i = 10;
 	}
-	
-	/*- Comment!!! */
 	
 	public Example(int i) {
 		assert i >= 0;

@@ -441,11 +441,6 @@ public class ClassType extends ReferenceType {
 		return kind.isModuleInfo();
 	}
 	
-	@Override
-	public final boolean isBasicClassType() {
-		return true;
-	}
-	
 	
 	@Override
 	protected void tryLoadSuperType() {
@@ -495,7 +490,7 @@ public class ClassType extends ReferenceType {
 	
 	@Override
 	public int implicitCastStatus(Type other) {
-		return other.isPrimitive() && ((PrimitiveType)other).getWrapperType().equals(this) ?
+		return other instanceof PrimitiveType primitiveType && primitiveType.getWrapperType().equals(this) ?
 				CastStatus.AUTOBOXING : super.implicitCastStatus(other);
 	}
 	

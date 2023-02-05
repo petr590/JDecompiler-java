@@ -33,7 +33,12 @@ public abstract class ElementValue implements StringWritable<ClassInfo>, Importa
 		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 			value.writeTo(out, classinfo, type);
 		}
+
 		
+		@Override
+		public void addImports(ClassInfo classinfo) {
+			value.addImports(classinfo);
+		}
 		
 		@Override
 		public boolean equals(Object other) {
@@ -41,7 +46,7 @@ public abstract class ElementValue implements StringWritable<ClassInfo>, Importa
 		}
 		
 		public boolean equals(ConstElementValue other) {
-			return this == other || this.type.equals(other.type) && this.value.equals(other.value);
+			return this == other || type.equals(other.type) && value.equals(other.value);
 		}
 	}
 	
@@ -66,7 +71,7 @@ public abstract class ElementValue implements StringWritable<ClassInfo>, Importa
 		}
 		
 		public boolean equals(StringElementValue other) {
-			return this == other || this.value.equals(other.value);
+			return this == other || value.equals(other.value);
 		}
 	}
 	
@@ -130,7 +135,7 @@ public abstract class ElementValue implements StringWritable<ClassInfo>, Importa
 		}
 		
 		public boolean equals(ClassElementValue other) {
-			return this == other || this.clazz.equals(other.clazz);
+			return this == other || clazz.equals(other.clazz);
 		}
 	}
 	
@@ -176,13 +181,22 @@ public abstract class ElementValue implements StringWritable<ClassInfo>, Importa
 		
 		@Override
 		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-			out.write('{');
 			
-			ArrayUtil.forEachExcludingLast(values,
-					element -> out.write(element, classinfo),
-					element -> out.write(", "));
-			
-			out.write('}');
+			if(values.length == 0) {
+				out.write("{}");
+				
+			} else if(values.length == 1) {
+				out.write(values[0], classinfo);
+				
+			} else {
+				out.write("{ ");
+				
+				ArrayUtil.forEachExcludingLast(values,
+						element -> out.write(element, classinfo),
+						element -> out.write(", "));
+				
+				out.write(" }");
+			}
 		}
 		
 		

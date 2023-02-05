@@ -13,7 +13,7 @@ public class TernaryOperator {
 	}
 	
 	public static boolean bar() {
-		return !!x;
+		return !!x; // Декомпилирует точно так же! Я даже не предусматривал это в коде.
 	}
 	
 	public static boolean baz1(int x) {

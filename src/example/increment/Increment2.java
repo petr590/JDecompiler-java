@@ -1,18 +1,13 @@
-package example;
+package example.increment;
+
+import example.ExampleTesting;
 
 @SuppressWarnings("unused")
 public class Increment2 {
 	
-//	public static void foo(String[] args) {
-//		
-//		int x = 0x7FFF;
-//		
-//		x = (short)(x + 1;
-//		
-//		x++;
-//	}
-	
-	
+	public static void main(String[] args) {
+		ExampleTesting.runDecompiler(Increment2.class);
+	}
 	
 	public static void foo() {
 		

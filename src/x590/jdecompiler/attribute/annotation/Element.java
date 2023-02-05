@@ -43,6 +43,6 @@ public final class Element implements StringWritable<ClassInfo>, Importable {
 	}
 	
 	public boolean equals(Element other) {
-		return this == other || this.name.equals(other.name) && this.value.equals(other.value);
+		return this == other || name.equals(other.name) && value.equals(other.value);
 	}
 }

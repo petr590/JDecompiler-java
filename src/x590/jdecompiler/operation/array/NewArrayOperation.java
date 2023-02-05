@@ -9,9 +9,9 @@ import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
-import x590.jdecompiler.operation.constant.AConstNullOperation;
 import x590.jdecompiler.operation.constant.IConstOperation;
 import x590.jdecompiler.operation.constant.ZeroConstOperation;
+import x590.jdecompiler.operationinstruction.constant.AConstNullOperationInstruction;
 import x590.jdecompiler.type.ArrayType;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
@@ -65,7 +65,7 @@ public class NewArrayOperation extends Operation {
 	
 	private void fillInitializersWithZeros(int toIndex) {
 		for(int i = initializers.size(); i < toIndex; i++) {
-			initializers.add(arrayType.getElementType().isPrimitive() ? ZeroConstOperation.INSTANCE : AConstNullOperation.INSTANCE);
+			initializers.add(arrayType.getElementType().isPrimitive() ? ZeroConstOperation.INSTANCE : AConstNullOperationInstruction.INSTANCE);
 		}
 	}
 	

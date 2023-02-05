@@ -1,4 +1,6 @@
-package example;
+package example.scope;
+
+import example.ExampleTesting;
 
 public class Loop {
 	
@@ -48,8 +50,15 @@ public class Loop {
 		}
 	}
 	
-	public static void whileLoopWithDifficultCondition(int i, int j, int k) {
+	public static void whileLoopWithDifficultCondition1(int i, int j, int k) {
 		while(i > -1 && i < 10 && (j != 0 || k != 0)) {
+			System.out.println(i++ + " " + j--);
+		}
+	}
+	
+	public static void whileLoopWithDifficultCondition2(int i, int j, int k) {
+		// Всё, что здесь написано, не имеет смысла, оно нужно просто для тестирования
+		while(i > -1 && i < 10 && (j != 0 || k != 0 || (i == 999 && j < 0)) && (j == -1 || k != 47)) {
 			System.out.println(i++ + " " + j--);
 		}
 	}

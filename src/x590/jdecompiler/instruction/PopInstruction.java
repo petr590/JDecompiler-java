@@ -5,7 +5,7 @@ import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.PopOperation;
 import x590.jdecompiler.type.TypeSize;
 
-public class PopInstruction extends Instruction {
+public class PopInstruction implements Instruction {
 	
 	private final TypeSize size;
 	

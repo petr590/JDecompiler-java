@@ -6,7 +6,7 @@ import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.IConstOperation;
 import x590.util.annotation.Nullable;
 
-public class IPushInstruction extends Instruction {
+public class IPushInstruction implements Instruction {
 	
 	protected final int value;
 	

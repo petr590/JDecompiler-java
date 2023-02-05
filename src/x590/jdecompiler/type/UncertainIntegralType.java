@@ -11,7 +11,7 @@ import static x590.jdecompiler.type.PrimitiveType.CHAR_CAPACITY;
  * Хранит минимальный и максимальный размер типа, а также два флага,
  * которые отвечают за типы {@literal boolean} и {@literal char}.
  */
-public final class UncertainIntegralType extends SpecialType {
+public final class UncertainIntegralType extends Type {
 	
 	private static final UncertainIntegralType[] instances = new UncertainIntegralType[64];
 	
@@ -174,8 +174,8 @@ public final class UncertainIntegralType extends SpecialType {
 			return includeChar || maxCapacity > CHAR_CAPACITY;
 		}
 		
-		if(other.isIntegral()) {
-			return ((IntegralType)other).getCapacity() >= minCapacity;
+		if(other instanceof IntegralType integralType) {
+			return integralType.getCapacity() >= minCapacity;
 		}
 		
 		if(other instanceof UncertainIntegralType integralType) {
@@ -197,8 +197,8 @@ public final class UncertainIntegralType extends SpecialType {
 				return widest && type.maxCapacity > CHAR_CAPACITY ? getInstanceNoexcept(CHAR_CAPACITY * 2, type.maxCapacity, false, type.includeChar) :  
 						type.includeChar ? other : null;
 			
-			if(other.isIntegral()) {
-				int capacity = ((IntegralType)other).getCapacity();
+			if(other instanceof IntegralType integralType) {
+				int capacity = integralType.getCapacity();
 				
 				return widest ?
 						getInstanceNoexcept(Math.max(capacity, type.minCapacity), type.maxCapacity, false, type.includeChar && capacity < CHAR_CAPACITY) :
@@ -237,8 +237,8 @@ public final class UncertainIntegralType extends SpecialType {
 			if(other == PrimitiveType.CHAR)
 				return type.includeChar || !widest && type.maxCapacity > CHAR_CAPACITY ? other : null;
 			
-			if(other.isIntegral()) {
-				int capacity = ((IntegralType)other).getCapacity();
+			if(other instanceof IntegralType integralType) {
+				int capacity = integralType.getCapacity();
 				
 				if(widest ? capacity >= type.minCapacity : capacity <= type.maxCapacity) {
 					return other;

@@ -14,6 +14,7 @@ import x590.jdecompiler.operation.condition.OrOperation;
 import x590.jdecompiler.scope.IfScope;
 import x590.jdecompiler.scope.LoopScope;
 import x590.jdecompiler.scope.Scope;
+import x590.util.Logger;
 import x590.util.annotation.Nullable;
 
 public abstract class IfInstruction extends EndPosInstruction {
@@ -34,6 +35,7 @@ public abstract class IfInstruction extends EndPosInstruction {
 			
 			{
 				LoopScope scope = recognizeIfScopeInLoop(context, currentScope, null, endIndex, condition);
+				Logger.debug(scope);
 				if(scope != null)
 					return scope;
 			}
@@ -64,18 +66,27 @@ public abstract class IfInstruction extends EndPosInstruction {
 		if(currentScope instanceof IfScope ifScope && currentScope.endIndex() == context.currentIndex() + 1) {
 			ifScope.remove();
 			
+			// В сложной конфигурации, в ifScope есть ещё один цикл, если его не обнаружить, то он просто будет удалён вместе с ifScope
+			for(Operation operation : ifScope.getOperations()) {
+				if(operation instanceof LoopScope loopScope && loopScope.startIndex() == endIndex) {
+					condition = new OrOperation(loopScope.getCondition(), condition);
+				}
+			}
+			
 			context.updateScopes();
 			currentScope = context.currentScope();
 			
 			return recognizeIfScopeInLoop(context, currentScope, ifScope, endIndex, new AndOperation(ifScope.getCondition(), condition));
 			
 		} else {
-			return prevIfScope == null ? null :
-					new LoopScope(context, currentScope, endIndex, context.currentIndex(), condition, prevIfScope.conditionStartIndex());
+			if(prevIfScope == null)
+				return null;
+			
+			return new LoopScope(context, currentScope, endIndex, context.currentIndex(), condition, prevIfScope.conditionStartIndex());
 		}
 	}
 	
-
+	
 //	TODO
 //	public static boolean recognizeLoopScope(DecompilationContext context, Scope currentScope, int endIndex, Supplier<ConditionOperation> conditionGetter) {
 //		IfScope ifScope;

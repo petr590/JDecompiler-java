@@ -1,5 +1,6 @@
 package x590.jdecompiler;
 
+import x590.jdecompiler.attribute.AttributeNames;
 import x590.jdecompiler.attribute.Attributes;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
@@ -15,7 +16,7 @@ public abstract class JavaClassElement implements StringWritable<ClassInfo>, Imp
 	
 	
 	protected static void writeAnnotations(StringifyOutputStream out, ClassInfo classinfo, Attributes attributes) {
-		out.printIfNotNull(attributes.getAsWritable("RuntimeVisibleAnnotations"), classinfo);
-		out.printIfNotNull(attributes.getAsWritable("RuntimeInvisibleAnnotations"), classinfo);
+		out.writeIfNotNull(attributes.getAsWritable(AttributeNames.RUNTIME_VISIBLE_ANNOTATIONS), classinfo);
+		out.writeIfNotNull(attributes.getAsWritable(AttributeNames.RUNTIME_INVISIBLE_ANNOTATIONS), classinfo);
 	}
 }

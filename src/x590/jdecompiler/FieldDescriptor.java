@@ -1,5 +1,6 @@
 package x590.jdecompiler;
 
+import x590.jdecompiler.attribute.AttributeNames;
 import x590.jdecompiler.attribute.Attributes;
 import x590.jdecompiler.attribute.signature.FieldSignatureAttribute;
 import x590.jdecompiler.constpool.ConstantPool;
@@ -67,7 +68,7 @@ public final class FieldDescriptor extends Descriptor implements Importable {
 	}
 	
 	public void writeType(StringifyOutputStream out, ClassInfo classinfo, Attributes attributes) {
-		FieldSignatureAttribute signature = attributes.get("Signature");
+		FieldSignatureAttribute signature = attributes.get(AttributeNames.SIGNATURE);
 		
 		if(signature != null) {
 			signature.checkType(this);

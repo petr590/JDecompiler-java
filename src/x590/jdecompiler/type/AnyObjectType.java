@@ -2,7 +2,7 @@ package x590.jdecompiler.type;
 
 import x590.jdecompiler.ClassInfo;
 
-public final class AnyObjectType extends SpecialType {
+public final class AnyObjectType extends Type {
 	
 	public static final AnyObjectType INSTANCE = new AnyObjectType();
 	

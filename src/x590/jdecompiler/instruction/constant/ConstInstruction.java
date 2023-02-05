@@ -3,7 +3,7 @@ package x590.jdecompiler.instruction.constant;
 import x590.jdecompiler.constpool.ConstValueConstant;
 import x590.jdecompiler.instruction.Instruction;
 
-public abstract class ConstInstruction<C extends ConstValueConstant> extends Instruction {
+public abstract class ConstInstruction<C extends ConstValueConstant> implements Instruction {
 	
 	protected final C constant;
 	

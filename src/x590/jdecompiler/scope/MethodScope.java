@@ -7,6 +7,7 @@ import java.util.Collections;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.MethodDescriptor;
+import x590.jdecompiler.attribute.AttributeNames;
 import x590.jdecompiler.attribute.CodeAttribute;
 import x590.jdecompiler.attribute.LocalVariableTableAttribute;
 import x590.jdecompiler.modifiers.Modifiers;
@@ -40,7 +41,7 @@ public class MethodScope extends Scope {
 		}
 		
 		
-		LocalVariableTableAttribute localVariableTable = codeAttribute.attributes.get("LocalVariableTable");
+		LocalVariableTableAttribute localVariableTable = codeAttribute.attributes.get(AttributeNames.LOCAL_VARIABLE_TABLE);
 		
 		
 		EmptyVariable emptyVar = Variable.empty();

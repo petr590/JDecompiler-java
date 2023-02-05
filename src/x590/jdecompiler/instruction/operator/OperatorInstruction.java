@@ -3,7 +3,7 @@ package x590.jdecompiler.instruction.operator;
 import x590.jdecompiler.instruction.Instruction;
 import x590.jdecompiler.type.Type;
 
-public abstract class OperatorInstruction extends Instruction {
+public abstract class OperatorInstruction implements Instruction {
 	
 	protected final Type type;
 	

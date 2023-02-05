@@ -4,7 +4,7 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.instruction.Instruction;
 import x590.jdecompiler.operation.Operation;
 
-public abstract class AbstractDupInstruction extends Instruction {
+public abstract class AbstractDupInstruction implements Instruction {
 	
 	@Override
 	public final Operation toOperation(DecompilationContext context) {

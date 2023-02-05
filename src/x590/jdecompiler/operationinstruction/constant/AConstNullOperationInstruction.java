@@ -1,18 +1,19 @@
-package x590.jdecompiler.operation.constant;
+package x590.jdecompiler.operationinstruction.constant;
 
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.CastOperation;
 import x590.jdecompiler.operation.Operation;
+import x590.jdecompiler.operationinstruction.OperationInstruction;
 import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.Types;
 
-public final class AConstNullOperation extends Operation {
+public final class AConstNullOperationInstruction extends OperationInstruction {
 	
-	public static final AConstNullOperation INSTANCE = new AConstNullOperation();
+	public static final AConstNullOperationInstruction INSTANCE = new AConstNullOperationInstruction();
 	
-	private AConstNullOperation() {}
+	private AConstNullOperationInstruction() {}
 	
 	
 	@Override

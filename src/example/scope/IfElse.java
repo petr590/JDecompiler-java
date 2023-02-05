@@ -1,4 +1,6 @@
-package example;
+package example.scope;
+
+import example.ExampleTesting;
 
 public class IfElse {
 	

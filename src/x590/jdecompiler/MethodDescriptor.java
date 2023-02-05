@@ -9,6 +9,7 @@ import java.util.function.IntConsumer;
 import java.util.function.ObjIntConsumer;
 import java.util.stream.Collectors;
 
+import x590.jdecompiler.attribute.AttributeNames;
 import x590.jdecompiler.attribute.Attributes;
 import x590.jdecompiler.attribute.annotation.ParameterAnnotationsAttribute;
 import x590.jdecompiler.attribute.signature.MethodSignatureAttribute;
@@ -197,8 +198,8 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 		IntHolder varIndex = new IntHolder((context.modifiers.isNotStatic() ? 1 : 0) + startIndex);
 		
 		ParameterAnnotationsAttribute
-				visibleParameterAnnotations = attributes.getOrDefault("RuntimeVisibleParameterAnnotations", ParameterAnnotationsAttribute.emptyVisible()),
-				invisibleParameterAnnotations = attributes.getOrDefault("RuntimeInvisibleParameterAnnotations", ParameterAnnotationsAttribute.emptyInvisible());
+				visibleParameterAnnotations = attributes.getOrDefault(AttributeNames.RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS, ParameterAnnotationsAttribute.emptyVisible()),
+				invisibleParameterAnnotations = attributes.getOrDefault(AttributeNames.RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS, ParameterAnnotationsAttribute.emptyInvisible());
 		
 		IntConsumer writeParameterAnnotations = i -> {
 			visibleParameterAnnotations.write(out, classinfo, i);

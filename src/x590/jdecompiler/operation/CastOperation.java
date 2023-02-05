@@ -25,7 +25,7 @@ public class CastOperation extends Operation {
 		
 		Type implicitType = operand.getImplicitType();
 		
-		if(implicitType.isWrapperClassType() && ((WrapperClassType)implicitType).getPrimitiveType().isImplicitSubtypeOf(castedType)) {
+		if(implicitType instanceof WrapperClassType wrapperClassType && wrapperClassType.getPrimitiveType().isImplicitSubtypeOf(castedType)) {
 			operand.allowImplicitCast();
 		} else if(operand instanceof CastOperation castOperation && castedType.isByteOrShortOrChar() && implicitType.isLongOrFloatOrDouble()) {
 			operand = castOperation.getOperand();

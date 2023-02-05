@@ -59,20 +59,18 @@ public abstract class Type implements Stringified<ClassInfo>, StringWritable<Cla
 	 * такие, как {@link AnyType} (любой тип),
 	 * {@link AnyObjectType} (любой ссылочный тип) и др.
 	 */
-	public abstract boolean isBasic();
-	
-	public boolean isSpecial() {
-		return !isBasic();
+	public final boolean isBasic() {
+		return this instanceof BasicType;
 	}
 	
 	/** Гарантирует, что объект - экземпляр класса PrimitiveType */
-	public boolean isPrimitive() {
-		return false;
+	public final boolean isPrimitive() {
+		return this instanceof PrimitiveType;
 	}
 	
 	/** Гарантирует, что объект - экземпляр класса IntegralType */
-	public boolean isIntegral() {
-		return false;
+	public final boolean isIntegral() {
+		return this instanceof IntegralType;
 	}
 	
 	
@@ -81,29 +79,29 @@ public abstract class Type implements Stringified<ClassInfo>, StringWritable<Cla
 		return isBasicReferenceType();
 	}
 	
-	public boolean isUncertainReferenceType() {
-		return false;
+	public final boolean isUncertainReferenceType() {
+		return this instanceof UncertainReferenceType;
 	}
 	
 	
 	/** Гарантирует, что объект - экземпляр класса ReferenceType */
-	public boolean isBasicReferenceType() {
-		return false;
+	public final boolean isBasicReferenceType() {
+		return this instanceof ReferenceType;
 	}
 	
 	/** Гарантирует, что объект - экземпляр класса ClassType */
-	public boolean isBasicClassType() {
-		return false;
+	public final boolean isBasicClassType() {
+		return this instanceof ClassType;
 	}
 	
 	/** Гарантирует, что объект - экземпляр класса ArrayType */
-	public boolean isBasicArrayType() {
-		return false;
+	public final boolean isBasicArrayType() {
+		return this instanceof ArrayType;
 	}
 	
 	/** Гарантирует, что объект - экземпляр класса WrapperClassType */
-	public boolean isWrapperClassType() {
-		return false;
+	public final boolean isWrapperClassType() {
+		return this instanceof WrapperClassType;
 	}
 	
 	/** Для всех generic типов */

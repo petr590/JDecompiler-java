@@ -1,8 +1,11 @@
 package x590.jdecompiler.type;
 
+/**
+ * Представляет Java тип (т.е. тип, который существует в коде)
+ */
 public abstract class BasicType extends Type {
 	
-	String encodedName, name;
+	protected String encodedName, name;
 	
 	public BasicType() {}
 	
@@ -19,10 +22,5 @@ public abstract class BasicType extends Type {
 	@Override
 	public final String getName() {
 		return name;
-	}
-	
-	@Override
-	public final boolean isBasic() {
-		return true;
 	}
 }

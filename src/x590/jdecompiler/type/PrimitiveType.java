@@ -56,11 +56,6 @@ public abstract class PrimitiveType extends BasicType {
 	}
 	
 	@Override
-	public final boolean isPrimitive() {
-		return true;
-	}
-	
-	@Override
 	protected boolean canCastTo(Type other) {
 		return this == other;
 	}

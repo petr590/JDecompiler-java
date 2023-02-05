@@ -6,7 +6,7 @@ import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.FConstOperation;
 import x590.util.annotation.Nullable;
 
-public class FPushInstruction extends Instruction {
+public class FPushInstruction implements Instruction {
 	
 	protected final float value;
 	

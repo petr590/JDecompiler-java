@@ -1,4 +1,4 @@
-package example;
+package example.scope;
 
 public class Synchronized {
 	

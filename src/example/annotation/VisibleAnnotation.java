@@ -10,5 +10,6 @@ import java.lang.annotation.Target;
 @Target({FIELD, METHOD, TYPE, TYPE_PARAMETER, TYPE_USE, LOCAL_VARIABLE, CONSTRUCTOR, ANNOTATION_TYPE, PACKAGE, MODULE, RECORD_COMPONENT})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface VisibleAnnotation {
-	public TestAnnotation[] value() default {};
+	public IntAnnotation[] array() default {};
+	public int[] value() default Integer.MAX_VALUE;
 }

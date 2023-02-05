@@ -1,7 +1,9 @@
-package example;
+package example.generic;
 
 import java.io.Serializable;
 import java.util.List;
+
+import example.ExampleTesting;
 
 public abstract class Generic<T> extends SuperGeneric<T> implements Serializable, List<SuperGeneric<? extends T>> {
 	

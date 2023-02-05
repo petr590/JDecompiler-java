@@ -8,7 +8,7 @@ import x590.jdecompiler.operation.array.NewArrayOperation;
 import x590.jdecompiler.type.ArrayType;
 import x590.util.IntegerUtil;
 
-public class NewArrayInstruction extends Instruction {
+public class NewArrayInstruction implements Instruction {
 	
 	private static ArrayType getArrayTypeByCode(int code) {
 		switch(code) {

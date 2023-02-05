@@ -5,7 +5,7 @@ import x590.jdecompiler.instruction.Instruction;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.returning.DReturnOperation;
 
-public class DReturnInstruction extends Instruction {
+public class DReturnInstruction implements Instruction {
 	
 	@Override
 	public Operation toOperation(DecompilationContext context) {

@@ -9,7 +9,6 @@ import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.condition.AndOperation;
 import x590.jdecompiler.operation.condition.ConditionOperation;
 import x590.jdecompiler.operation.condition.OrOperation;
-import x590.util.Logger;
 
 public class LoopScope extends ConditionalScope {
 	
@@ -54,7 +53,7 @@ public class LoopScope extends ConditionalScope {
 		Scope currentScope = superScope();
 		
 		if(currentScope instanceof IfScope ifScope && ifScope.endIndex() == context.currentIndex() + 1) {
-			Logger.debug("IIIIIIIIIIIIIIFFFFFFFFFFF!!!!!!!!!!!!!");
+//			Logger.debug("IIIIIIIIIIIIIIFFFFFFFFFFF!!!!!!!!!!!!!");
 			
 			ifScope.remove();
 			setCondition(new AndOperation(ifScope.getCondition(), getCondition()));
@@ -67,7 +66,7 @@ public class LoopScope extends ConditionalScope {
 		if(operations.size() == 1 && operations.get(0) instanceof LoopScope loopScope && loopScope.startIndex() == startIndex()) {
 			setCondition(new OrOperation(loopScope.getCondition(), getCondition()));
 			setConditionStartIndex(loopScope.conditionStartIndex());
-
+			
 			loopScope.remove();
 			deleteRemovedOperations();
 			

@@ -1,16 +1,12 @@
-package example;
+package example.invoke;
+
+import example.ExampleTesting;
 
 public class ConcatStringsInvokedynamic {
 	
 	public static void main(String[] args) {
-//		try {
-//			var process = Runtime.getRuntime().exec("javac -d vbin/ -cp bin/ src/example/ConcatStringsInvokedynamic.java");
-//			process.waitFor();
-//		} catch(IOException | InterruptedException ex) {
-//			ex.printStackTrace();
-//		}
-		
 		ExampleTesting.runDecompiler("vbin/example/ConcatStringsInvokedynamic.class");
+//		ExampleTesting.runDecompiler(ConcatStringsInvokedynamic.class);
 	}
 	
 	public static Object staticStrs[] = {};
@@ -23,7 +19,7 @@ public class ConcatStringsInvokedynamic {
 		staticStrs[0]    = staticStrs[0]    + "" + i;
 		nonstaticStrs[0] = nonstaticStrs[0] + "" + j;
 		
-//		staticStrs[0]    += "" + i;
-//		nonstaticStrs[0] += "" + j;
+		staticStrs[0]    += "" + i;
+		nonstaticStrs[0] += "" + j;
 	}
 }

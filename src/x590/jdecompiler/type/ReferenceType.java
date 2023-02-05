@@ -37,11 +37,6 @@ public abstract class ReferenceType extends BasicType {
 	}
 	
 	@Override
-	public final boolean isBasicReferenceType() {
-		return true;
-	}
-	
-	@Override
 	public TypeSize getSize() {
 		return TypeSize.WORD;
 	}

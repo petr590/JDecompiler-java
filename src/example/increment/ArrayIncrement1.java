@@ -1,4 +1,6 @@
-package example;
+package example.increment;
+
+import example.ExampleTesting;
 
 public class ArrayIncrement1 {
 	

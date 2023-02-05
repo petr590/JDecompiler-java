@@ -1,8 +1,14 @@
-package example;
+package example.scope;
+
+import example.ExampleTesting;
 
 public class Switch {
 	
-	public static final void foo(int i) {
+	public static void main(String[] args) {
+		ExampleTesting.runDecompiler(Switch.class);
+	}
+	
+	public static void foo(int i) {
 		switch(i) {
 			case -1 -> System.out.println("iconst_m1");
 			case  0 -> System.out.println("iconst_0");

@@ -5,7 +5,7 @@ import x590.jdecompiler.operation.CastOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.Type;
 
-public class CastInstruction extends Instruction {
+public class CastInstruction implements Instruction {
 	
 	protected final Type requiredType, castedType;
 	protected final boolean implicitCast;

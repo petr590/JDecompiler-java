@@ -1,4 +1,6 @@
-package example;
+package example.scope;
+
+import example.ExampleTesting;
 
 public class Condition {
 	
@@ -8,8 +10,6 @@ public class Condition {
 	
 	public static void foo(boolean a, boolean b, boolean c, boolean d, boolean e, boolean f) {
 		System.out.println("Blablabla");
-		
-		a = b ^ c;
 		
 		if((a || b) && (c || d && e || f))
 			System.out.println("Null");

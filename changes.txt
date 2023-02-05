@@ -1,12 +1,10 @@
-Fixed decompilation of if-else
+Fixed decompilation of cycles with complex conditions. It was very difficult
 
-The API of the StringWritable and Stringified interfaces has been redesigned, now they work via generics,
-and any objects that implement the necessary interfaces can be passed to the methods of the StringifyOutputStream class.
+Fixed methods such as Operation.isScope(). Previously, these methods were redefined in the corresponding subclass, now they are defined in the superclass, so encapsulation is easier and better.
 
-The system of constants has been redesigned. A bunch of code was moved from the ConstOperation class to ConstValueConstant,
-which made it possible to recognize constants of primitive types and String in annotations where there are no operations.
-Fixed constant referencing to itself.
+The Instruction class has been redesigned into an interface, which made it possible to declare objects that are an operation and an instruction at the same time.
 
-Added recognition of constants MAX_VALUE, MIN_VALUE, MIN_NORMAL, POSITIVE_INFINITY, NEGATIVE_INFINITY, NaN, Math.PI, Math.E
-for int, long, float and double types. Fixed the conversion of float and double to a string, now output is Float.NaN or Double.NaN.
-If these constants cannot be used, then 0.0 / 0.0 is output. For plus and minus infinity, it is the same.
+Fixed some bugs with annotations.
+
+Refactoring: attribute names have been moved to the AttributeNames class, and the direct indication of the name has been replaced with a constant.
+This is easier, and there is no possibility of making a mistake when entering the attribute name.

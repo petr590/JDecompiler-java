@@ -2,7 +2,7 @@ package x590.jdecompiler.type;
 
 import x590.jdecompiler.ClassInfo;
 
-public final class ExcludingBooleanType extends SpecialType {
+public final class ExcludingBooleanType extends Type {
 	
 	public static final ExcludingBooleanType INSTANCE = new ExcludingBooleanType();
 	

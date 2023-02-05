@@ -6,7 +6,7 @@ import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.DConstOperation;
 import x590.util.annotation.Nullable;
 
-public class DPushInstruction extends Instruction {
+public class DPushInstruction implements Instruction {
 	
 	protected final double value;
 	

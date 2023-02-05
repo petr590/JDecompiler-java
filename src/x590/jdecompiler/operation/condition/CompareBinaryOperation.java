@@ -5,7 +5,6 @@ import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.cmp.CmpOperation;
-import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 
 public final class CompareBinaryOperation extends CompareOperation {
@@ -31,7 +30,7 @@ public final class CompareBinaryOperation extends CompareOperation {
 		operand1.castReturnTypeToNarrowest(generalType);
 		operand2.castReturnTypeToNarrowest(generalType);
 		
-		if(generalType.isPrimitive() && (generalType == PrimitiveType.LONG || generalType == PrimitiveType.FLOAT || generalType == PrimitiveType.DOUBLE)) {
+		if(generalType.isLongOrFloatOrDouble()) {
 			boolean allowedImplCast1 = operand1.implicitCastAllowed(),
 					allowedImplCast2 = operand2.implicitCastAllowed();
 			     

@@ -2,7 +2,6 @@ package x590.jdecompiler.scope;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.operation.condition.ConditionOperation;
-import x590.util.Logger;
 
 public abstract class ConditionalScope extends Scope {
 	
@@ -13,14 +12,14 @@ public abstract class ConditionalScope extends Scope {
 		super(context, endIndex);
 		this.condition = condition;
 		this.conditionStartIndex = context.currentExpressionStartIndex();
-		Logger.debug("conditionStartIndex = " + conditionStartIndex + " for " + this);
+//		Logger.debug("conditionStartIndex = " + conditionStartIndex + " for " + this);
 	}
 	
 	public ConditionalScope(DecompilationContext context, int startIndex, int endIndex, ConditionOperation condition) {
 		super(context, startIndex, endIndex);
 		this.condition = condition;
 		this.conditionStartIndex = context.currentExpressionStartIndex();
-		Logger.debug("conditionStartIndex = " + conditionStartIndex + " for " + this);
+//		Logger.debug("conditionStartIndex = " + conditionStartIndex + " for " + this);
 	}
 	
 	public ConditionalScope(DecompilationContext context, int startIndex, int endIndex, ConditionOperation condition, int conditionStartIndex) {

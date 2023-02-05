@@ -6,7 +6,7 @@ import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.LConstOperation;
 import x590.util.annotation.Nullable;
 
-public class LPushInstruction extends Instruction {
+public class LPushInstruction implements Instruction {
 	
 	protected final long value;
 	

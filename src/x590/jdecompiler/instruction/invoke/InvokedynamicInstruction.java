@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.function.IntFunction;
 
 import x590.jdecompiler.MethodDescriptor;
+import x590.jdecompiler.attribute.AttributeNames;
 import x590.jdecompiler.attribute.BootstrapMethodsAttribute;
 import x590.jdecompiler.attribute.BootstrapMethodsAttribute.BootstrapMethod;
 import x590.jdecompiler.constpool.FieldrefConstant;
@@ -54,7 +55,7 @@ public final class InvokedynamicInstruction extends InstructionWithIndex {
 	public Operation toOperation(DecompilationContext context) {
 		InvokeDynamicConstant invokeDynamicConstant = context.pool.get(index);
 		BootstrapMethod bootstrapMethod =
-				(context.classinfo.getAttributes().<BootstrapMethodsAttribute>get("BootstrapMethods")).bootstrapMethods.get(invokeDynamicConstant.bootstrapMethodAttrIndex);
+				(context.classinfo.getAttributes().<BootstrapMethodsAttribute>get(AttributeNames.BOOTSTRAP_METHODS)).bootstrapMethods.get(invokeDynamicConstant.bootstrapMethodAttrIndex);
 		
 		MethodHandleConstant methodHandle = bootstrapMethod.methodHandle;
 		ReferenceConstant referenceConstant = methodHandle.getReferenceConstant();

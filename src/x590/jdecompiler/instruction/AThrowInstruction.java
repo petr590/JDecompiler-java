@@ -4,7 +4,7 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.operation.AThrowOperation;
 import x590.jdecompiler.operation.Operation;
 
-public class AThrowInstruction extends Instruction {
+public class AThrowInstruction implements Instruction {
 	
 	@Override
 	public Operation toOperation(DecompilationContext context) {
