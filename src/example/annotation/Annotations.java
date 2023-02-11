@@ -21,7 +21,7 @@ public class Annotations {
 	}
 	
 	@MethodAnnotation
-	public static List<@TypeUseAnnotation String> bar(@ParameterAnnotation final int size) {
+	public static List<@TypeUseAnnotation String> bar(@ParameterAnnotation int size) {
 		return new ArrayList<>(size);
 	}
 }

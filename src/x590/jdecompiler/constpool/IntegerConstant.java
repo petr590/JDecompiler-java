@@ -66,6 +66,11 @@ public final class IntegerConstant extends ConstableValueConstant<Integer> {
 	}
 	
 	@Override
+	protected Type getWidestType() {
+		return PrimitiveType.INT;
+	}
+	
+	@Override
 	public String getConstantName() {
 		return "Integer";
 	}
@@ -150,5 +155,10 @@ public final class IntegerConstant extends ConstableValueConstant<Integer> {
 	
 	public boolean equals(IntegerConstant other) {
 		return this == other || this.value == other.value;
+	}
+	
+	@Override
+	public String toString() {
+		return "IntegerConstant {" + value + "}";
 	}
 }

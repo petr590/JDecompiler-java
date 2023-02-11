@@ -2,13 +2,13 @@ package x590.jdecompiler.scope;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.VariableNotFoundException;
@@ -22,7 +22,6 @@ import x590.jdecompiler.type.Type;
 import x590.jdecompiler.variable.EmptyableVariable;
 import x590.jdecompiler.variable.UnnamedVariable;
 import x590.jdecompiler.variable.Variable;
-import x590.util.IntegerUtil;
 import x590.util.Util;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
@@ -36,11 +35,13 @@ public abstract class Scope extends Operation {
 	private final List<Operation> code = new ArrayList<>();
 	private final List<Scope> scopes = new ArrayList<>();
 	
+	private final @Immutable List<Operation> unmodifiableCode = Collections.unmodifiableList(code);
+	
 	private int startIndex, endIndex; // Невключительно
 	private final @Nullable Scope superScope;
 	
 	private final List<EmptyableVariable> locals;
-	private final Map<Integer, Integer> indexTable;
+	private final Int2IntMap indexTable;
 	
 	
 	public Scope(DecompilationContext context, int endIndex) {
@@ -67,7 +68,7 @@ public abstract class Scope extends Operation {
 		this.endIndex = endIndex;
 		this.superScope = superScope;
 		this.locals = locals;
-		this.indexTable = new HashMap<>(endIndex - startIndex);
+		this.indexTable = new Int2IntOpenHashMap(endIndex - startIndex);
 	}
 	
 	
@@ -202,6 +203,11 @@ public abstract class Scope extends Operation {
 	}
 	
 	
+	public @Immutable List<Operation> getCode() {
+		return unmodifiableCode;
+	}
+	
+	
 	public boolean isEmpty() {
 		return code.isEmpty();
 	}
@@ -230,23 +236,30 @@ public abstract class Scope extends Operation {
 	}
 	
 	
-	private int getIndexFromTable(int index) {
-		Integer foundIndex = indexTable.get(index);
+	private static final int NONE_INDEX = -1;
+	
+	protected int getCodeIndexByIndex(int index) {
+		int foundIndex = indexTable.getOrDefault(index, NONE_INDEX);
 		
-		if(foundIndex != null)
+		if(foundIndex != NONE_INDEX)
 			return foundIndex;
 		
 		int srcIndex = index;
-		int maxIndex = indexTable.keySet().stream().max(Integer::compare).orElse(IntegerUtil.ZERO);
+		int maxIndex = indexTable.keySet().intStream().max().orElse(0);
 		
-		while(foundIndex == null && index < maxIndex) {
-			foundIndex = indexTable.get(++index);
+		while(foundIndex == NONE_INDEX && index < maxIndex) {
+			foundIndex = indexTable.getOrDefault(++index, NONE_INDEX);
 		}
 		
-		if(foundIndex != null)
+		if(foundIndex != NONE_INDEX)
 			return foundIndex;
 		
 		throw new NoSuchElementException(Integer.toString(srcIndex));
+	}
+	
+	protected int getIndexByCodeIndex(int codeIndex) {
+		return indexTable.int2IntEntrySet().stream().filter(entry -> entry.getIntValue() == codeIndex)
+				.findAny().orElseThrow(() -> new NoSuchElementException(Integer.toString(codeIndex))).getIntKey();
 	}
 	
 	
@@ -259,7 +272,7 @@ public abstract class Scope extends Operation {
 		assert fromIndex >= startIndex && fromIndex <= endIndex :
 			"startIndex = " + startIndex + ", endIndex = " + endIndex + ", fromIndex = " + fromIndex;
 		
-		return Collections.unmodifiableList(code.subList(getIndexFromTable(fromIndex), code.size()));
+		return Collections.unmodifiableList(code.subList(getCodeIndexByIndex(fromIndex), code.size()));
 	}
 	
 	
@@ -273,7 +286,7 @@ public abstract class Scope extends Operation {
 		assert fromIndex >= startIndex && fromIndex <= endIndex :
 			"startIndex = " + startIndex + ", endIndex = " + endIndex + ", fromIndex = " + fromIndex;
 		
-		int indexInCode = getIndexFromTable(fromIndex);
+		int indexInCode = getCodeIndexByIndex(fromIndex);
 		
 		// Метод List.subList(int, int) не копирует внутренний массив,
 		// поэтому мы можем удалить все элементы, начиная с indexInCode, просто очистив sublist
@@ -283,7 +296,7 @@ public abstract class Scope extends Operation {
 		
 		scopes.removeAll(sublistCopy);
 		
-		indexTable.entrySet().removeIf(entry -> entry.getKey() >= indexInCode);
+		indexTable.int2IntEntrySet().removeIf(entry -> entry.getIntKey() >= indexInCode);
 		
 		return sublistCopy;
 	}
@@ -328,22 +341,29 @@ public abstract class Scope extends Operation {
 				out.write(';');
 			else
 				out.write(" {}");
-				
-		} else {
-			boolean canOmitCurlyBraces = canOmitCurlyBrackets();
 			
-			if(!canOmitCurlyBraces)
+		} else {
+			
+			boolean canOmitCurlyBrackets = canOmitCurlyBrackets();
+			
+			if(!canOmitCurlyBrackets)
 				out.write(" {");
 			
-			out.increaseIndent();
-			Util.forEachExcludingLast(code,
-					operation -> operation.printBack(operation.printFront(out, context).print(operation, context), context),
-					operation -> operation.writeSeparator(out, context));
-			out.reduceIndent();
+			writeBody(out, context);
 			
-			if(!canOmitCurlyBraces)
+			if(!canOmitCurlyBrackets)
 				out.println().printIndent().print('}');
 		}
+	}
+	
+	protected void writeBody(StringifyOutputStream out, StringifyContext context) {
+		out.increaseIndent();
+		
+		Util.forEachExcludingLast(code,
+				operation -> operation.writeAsStatement(out, context),
+				operation -> operation.writeSeparator(out, context));
+		
+		out.reduceIndent();
 	}
 	
 	/**
@@ -355,18 +375,16 @@ public abstract class Scope extends Operation {
 				(code.isEmpty() || code.size() == 1 && (!(code.get(0) instanceof Scope scope) || (scope.canOmitCurlyBrackets())));
 	}
 	
+	
+	@Override
+	public void writeFront(StringifyOutputStream out, StringifyContext context) {
+		out.println().printIndent();
+	}
+	
 	protected void writeHeader(StringifyOutputStream out, StringifyContext context) {}
 	
-	
 	@Override
-	public StringifyOutputStream printFront(StringifyOutputStream out, StringifyContext context) {
-		return out.println().printIndent();
-	}
-	
-	@Override
-	public StringifyOutputStream printBack(StringifyOutputStream out, StringifyContext context) {
-		return out;
-	}
+	public void writeBack(StringifyOutputStream out, StringifyContext context) {}
 	
 	@Override
 	public void writeSeparator(StringifyOutputStream out, StringifyContext context) {

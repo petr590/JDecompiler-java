@@ -11,7 +11,7 @@ import x590.jdecompiler.scope.LoopScope;
 import x590.jdecompiler.scope.Scope;
 import x590.util.Logger;
 
-public class GotoInstruction extends EndPosInstruction {
+public class GotoInstruction extends InstructionWithEndPos {
 	
 	private int endIndex;
 	

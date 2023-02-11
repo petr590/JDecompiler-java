@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import x590.jdecompiler.exception.InstructionFormatException;
 import x590.jdecompiler.exception.InvalidOpcodeException;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.instruction.*;
-import x590.jdecompiler.instruction.anew.*;
+import x590.jdecompiler.instruction.array.*;
 import x590.jdecompiler.instruction.constant.*;
 import x590.jdecompiler.instruction.field.*;
 import x590.jdecompiler.instruction.invoke.*;
@@ -92,6 +95,10 @@ public class DisassemblerContext extends Context {
 	
 	private int readUnsignedShort() {
 		return readShort() & 0xFFFF;
+	}
+	
+	private void skip(int skip) {
+		pos += skip;
 	}
 	
 	
@@ -278,30 +285,39 @@ public class DisassemblerContext extends Context {
 			/*case 0xA8: return jsr(readShort());
 			case 0xA9: return ret(readUnsignedByte());*/
 			
-//			case 0xAA: {
-//				skip(3 - (pos & 0x3)); // alignment by 4 bytes
-//				offset_t defaultOffset = readInt();
-//				jint low = readInt(), high = readInt();
-//				if(high < low)
-//					throw InstructionFormatError("tableswitch: high < low (low = " + to_string(low) +
-//							", high = " + to_string(high) + ')');
-//
-//				map<jint, offset_t> offsetTable;
-//				for(jint i = low; i <= high; ++i)
-//					offsetTable[i] = readInt();
-//
-//				return new SwitchInstruction(defaultOffset, offsetTable);
-//			}
-//			case 0xAB: {
-//				skip(3 - (pos & 0x3)); // alignment by 4 bytes
-//				offset_t defaultOffset = readInt();
-//				map<jint, offset_t> offsetTable;
-//				for(uint32_t i = readUnsignedInt(); i > 0; --i) {
-//					jint value = readInt();
-//					offsetTable[value] = readInt();
-//				}
-//				return new SwitchInstruction(defaultOffset, offsetTable);
-//			}
+			case 0xAA: {
+				skip(3 - (pos & 0x3)); // alignment by 4 bytes
+				
+				int defaultOffset = readInt(),
+					low = readInt(),
+					high = readInt();
+				
+				if(high < low)
+					throw new InstructionFormatException("tableswitch: high < low (low = " + low + ", high = " + high + ")");
+				
+				Int2IntMap offsetTable = new Int2IntOpenHashMap(high - low);
+				
+				for(int value = low; value <= high; ++value) {
+					offsetTable.put(value, readInt());
+				}
+				
+				return new SwitchInstruction(this, defaultOffset, offsetTable);
+			}
+			
+			case 0xAB: {
+				skip(3 - (pos & 0x3)); // alignment by 4 bytes
+				
+				int defaultOffset = readInt();
+				int cases = readInt();
+				
+				Int2IntMap offsetTable = new Int2IntOpenHashMap(cases);
+				
+				for(; cases != 0; --cases) {
+					offsetTable.put(readInt(), readInt());
+				}
+				
+				return new SwitchInstruction(this, defaultOffset, offsetTable);
+			}
 			
 			case 0xAC: return Instructions.IRETURN;
 			case 0xAD: return Instructions.LRETURN;

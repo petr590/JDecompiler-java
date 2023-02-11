@@ -62,4 +62,13 @@ public class Loop {
 			System.out.println(i++ + " " + j--);
 		}
 	}
+	
+	public static void whileLoopWithBreak(int i, int j, int k) {
+		while(j != 0) {
+			if(i <= -1)
+				break;
+			
+			System.out.println(i++ + " " + j--);
+		}
+	}
 }

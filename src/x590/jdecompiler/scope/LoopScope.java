@@ -96,7 +96,7 @@ public class LoopScope extends ConditionalScope {
 	}
 	
 	@Override
-	public StringifyOutputStream printBack(StringifyOutputStream out, StringifyContext context) {
+	public void writeBack(StringifyOutputStream out, StringifyContext context) {
 		
 		if(!isWhile) {
 			if(canOmitCurlyBrackets())
@@ -105,10 +105,8 @@ public class LoopScope extends ConditionalScope {
 				out.writesp();
 			
 			writeWhilePart(out, context);
-			return out.print(';');
+			out.write(';');
 		}
-		
-		return out;
 	}
 	
 	private void writeWhilePart(StringifyOutputStream out, StringifyContext context) {

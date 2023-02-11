@@ -1,4 +1,4 @@
-package x590.jdecompiler.instruction.anew;
+package x590.jdecompiler.instruction.array;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.exception.DecompilationException;

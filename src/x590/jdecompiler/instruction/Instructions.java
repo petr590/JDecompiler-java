@@ -3,6 +3,7 @@ package x590.jdecompiler.instruction;
 import x590.jdecompiler.instruction.scope.MonitorEnterInstruction;
 import x590.jdecompiler.instruction.scope.MonitorExitInstruction;
 import x590.jdecompiler.type.TypeSize;
+import x590.jdecompiler.instruction.array.ArrayLengthInstruction;
 import x590.jdecompiler.instruction.arrayload.*;
 import x590.jdecompiler.instruction.arraystore.*;
 import x590.jdecompiler.instruction.cmp.*;

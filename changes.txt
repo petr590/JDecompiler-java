@@ -1,10 +1,2 @@
-Fixed decompilation of cycles with complex conditions. It was very difficult
-
-Fixed methods such as Operation.isScope(). Previously, these methods were redefined in the corresponding subclass, now they are defined in the superclass, so encapsulation is easier and better.
-
-The Instruction class has been redesigned into an interface, which made it possible to declare objects that are an operation and an instruction at the same time.
-
-Fixed some bugs with annotations.
-
-Refactoring: attribute names have been moved to the AttributeNames class, and the direct indication of the name has been replaced with a constant.
-This is easier, and there is no possibility of making a mistake when entering the attribute name.
+Added `switch` support.
+A little refactoring.

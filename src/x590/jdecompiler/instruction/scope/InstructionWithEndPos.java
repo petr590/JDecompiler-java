@@ -5,15 +5,15 @@ import x590.jdecompiler.context.DisassemblerContext;
 /**
  * Хранит endPos для scope-а, потом он преобразуется в индекс
  */
-public abstract class EndPosInstruction extends ScopeInstruction {
+public abstract class InstructionWithEndPos extends ScopeInstruction {
 	
 	public final int endPos;
 	
-	public EndPosInstruction(int endPos) {
+	public InstructionWithEndPos(int endPos) {
 		this.endPos = endPos;
 	}
 	
-	public EndPosInstruction(DisassemblerContext context, int offset) {
+	public InstructionWithEndPos(DisassemblerContext context, int offset) {
 		this.endPos = context.currentPos() + offset;
 	}
 }

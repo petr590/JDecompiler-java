@@ -26,8 +26,9 @@ public class ElseScope extends Scope {
 	
 	
 	@Override
-	public StringifyOutputStream printFront(StringifyOutputStream out, StringifyContext context) {
-		return canOmitCurlyBrackets() ? out.println().printIndent() : out;
+	public void writeFront(StringifyOutputStream out, StringifyContext context) {
+		if(canOmitCurlyBrackets())
+			out.println().printIndent();
 	}
 	
 	@Override

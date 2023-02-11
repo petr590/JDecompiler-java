@@ -47,10 +47,14 @@ public abstract class ConstableValueConstant<T> extends ConstValueConstant imple
 	
 	protected abstract @Nullable FunctionalLazyLoadingValue<ClassInfo, JavaField> getConstantLoader(Type type);
 	
+	protected Type getWidestType() {
+		return getType();
+	}
+	
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-		writeTo(out, classinfo, getType());
+		writeTo(out, classinfo, getWidestType());
 	}
 	
 	@Override

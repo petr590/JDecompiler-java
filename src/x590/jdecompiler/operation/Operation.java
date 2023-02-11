@@ -44,17 +44,24 @@ public abstract class Operation implements StringWritable<StringifyContext>, Imp
 		writeTo(out, context);
 	}
 	
+	/** Записывает операцию в поток как отдельное выражение */
+	public void writeAsStatement(StringifyOutputStream out, StringifyContext context) {
+		this.writeFront(out, context);
+		this.writeTo(out, context);
+		this.writeBack(out, context);
+	}
+	
 	/** Вывод перед каждой операцией */
-	public StringifyOutputStream printFront(StringifyOutputStream out, StringifyContext context) {
-		return out.println().printIndent();
+	public void writeFront(StringifyOutputStream out, StringifyContext context) {
+		out.println().printIndent();
 	}
 	
 	/** Вывод после каждой операции */
-	public StringifyOutputStream printBack(StringifyOutputStream out, StringifyContext context) {
-		return out.print(';');
+	public void writeBack(StringifyOutputStream out, StringifyContext context) {
+		out.write(';');
 	}
 	
-	/** Вывод между операцииями (т.е. для всех, кроме последней) */
+	/** Вывод между операцииями (вызывается для всех, кроме последней) */
 	public void writeSeparator(StringifyOutputStream out, StringifyContext context) {}
 	
 	

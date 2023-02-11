@@ -17,7 +17,7 @@ import x590.jdecompiler.scope.Scope;
 import x590.util.Logger;
 import x590.util.annotation.Nullable;
 
-public abstract class IfInstruction extends EndPosInstruction {
+public abstract class IfInstruction extends InstructionWithEndPos {
 	
 	public IfInstruction(DisassemblerContext context, int offset) {
 		super(context, offset);
