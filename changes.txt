@@ -1,2 +1,1 @@
-Added `switch` support.
-A little refactoring.
+Added `package-info` and `module-info` support

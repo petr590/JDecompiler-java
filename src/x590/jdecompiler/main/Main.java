@@ -73,7 +73,10 @@ public final class Main {
 //					"--no-omit-this-class",
 //					"--no-brackets-around-bitwise-operands",
 					
-					"bin/x590/jdecompiler/modifiers/Modifiers.class",
+//					"bin/x590/jdecompiler/modifiers/Modifiers.class",
+					"bin/module-info.class",
+//					"bin/x590/jdecompiler/package-info.class",
+//					"bin/example/EmptyClass.class",
 			});
 		}
 		

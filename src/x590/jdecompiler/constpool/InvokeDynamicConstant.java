@@ -27,7 +27,7 @@ public final class InvokeDynamicConstant extends Constant {
 	
 	@Override
 	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(18);
+		out.writeByte(0x12);
 		out.writeShort(bootstrapMethodAttrIndex);
 		out.writeShort(nameAndTypeIndex);
 	}

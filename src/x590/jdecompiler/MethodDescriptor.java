@@ -23,7 +23,7 @@ import x590.jdecompiler.exception.InvalidMethodDescriptorException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.ExtendedStringReader;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.modifiers.Modifiers;
+import x590.jdecompiler.modifiers.ClassEntryModifiers;
 import x590.jdecompiler.type.ArrayType;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.PrimitiveType;
@@ -160,7 +160,7 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	}
 	
 	
-	public int countLocals(Modifiers modifiers) {
+	public int countLocals(ClassEntryModifiers modifiers) {
 		return arguments.stream().mapToInt(argType -> argType.getSize().slotsOccupied()).sum() + (modifiers.isNotStatic() ? 1 : 0);
 	}
 	

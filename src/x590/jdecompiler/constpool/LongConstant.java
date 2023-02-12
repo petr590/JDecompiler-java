@@ -96,7 +96,7 @@ public final class LongConstant extends SingleConstableValueConstant<Long> {
 	
 	@Override
 	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(5);
+		out.writeByte(0x5);
 		out.writeLong(value);
 	}
 	

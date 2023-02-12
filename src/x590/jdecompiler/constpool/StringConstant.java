@@ -64,7 +64,7 @@ public final class StringConstant extends SingleConstableValueConstant<String> {
 	
 	@Override
 	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(8);
+		out.writeByte(0x8);
 		out.writeShort(index);
 	}
 	

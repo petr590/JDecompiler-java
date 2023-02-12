@@ -3,7 +3,7 @@ package x590.jdecompiler.modifiers;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.util.IWhitespaceStringBuilder;
 
-public final class FieldModifiers extends Modifiers {
+public final class FieldModifiers extends ClassEntryModifiers {
 	
 	public FieldModifiers(int value) {
 		super(value);
@@ -41,13 +41,10 @@ public final class FieldModifiers extends Modifiers {
 	
 	
 	@Override
-	public String toString() {
-		IWhitespaceStringBuilder str = toStringBuilder();
-		
-		if(isVolatile()) str.append("volatile");
-		if(isTransient()) str.append("transient");
-		if(isEnum()) str.append("enum");
-		
-		return str.toString();
+	public IWhitespaceStringBuilder toStringBuilder(boolean forWriting) {
+		return super.toStringBuilder(forWriting)
+				.appendIf(isVolatile(), "volatile")
+				.appendIf(isTransient(), "transient")
+				.appendIf(!forWriting && isEnum(), "enum");
 	}
 }

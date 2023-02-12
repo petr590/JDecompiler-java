@@ -1,4 +1,4 @@
-module x590.jdecompiler {
+module JDecompiler {
 	
 	requires java.base;
 	requires transitive x590.util;

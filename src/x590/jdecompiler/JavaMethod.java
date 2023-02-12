@@ -97,10 +97,10 @@ public class JavaMethod extends JavaClassElement {
 		
 		this.attributes = Attributes.read(in, pool, Location.METHOD);
 		this.codeAttribute = attributes.getOrDefault(AttributeNames.CODE, EmptyCodeAttribute.INSTANCE);
-		this.signature = attributes.get(AttributeNames.SIGNATURE);
+		this.signature = attributes.getNullable(AttributeNames.SIGNATURE);
 		
 		if(signature  != null)
-			signature.checkTypes(descriptor, descriptor.getVisibleStartIndex(classinfo), attributes.get("Exceptions"));
+			signature.checkTypes(descriptor, descriptor.getVisibleStartIndex(classinfo), attributes.getNullable(AttributeNames.EXCEPTIONS));
 		
 		Logger.logf("Disassembling of method %s", descriptor);
 		this.disassemblerContext = DisassemblerContext.disassemble(pool, codeAttribute.code);

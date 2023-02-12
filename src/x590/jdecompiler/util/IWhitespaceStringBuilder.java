@@ -7,10 +7,18 @@ public interface IWhitespaceStringBuilder extends StringWritable<ClassInfo> {
 	
 	public IWhitespaceStringBuilder append(String str);
 	
+	public default IWhitespaceStringBuilder appendIf(boolean condition, String str) {
+		return condition ? this.append(str) : this;
+	}
+	
 	public boolean isEmpty();
 	
 	@Override
 	public String toString();
 	
-	public IWhitespaceStringBuilder printTrailingSpace();
+	public default IWhitespaceStringBuilder printTrailingSpace() {
+		return this.printTrailingSpace(true);
+	}
+	
+	public IWhitespaceStringBuilder printTrailingSpace(boolean print);
 }

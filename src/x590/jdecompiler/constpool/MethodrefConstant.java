@@ -17,7 +17,7 @@ public class MethodrefConstant extends ReferenceConstant {
 	
 	@Override
 	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(10);
+		out.writeByte(0xA);
 		out.writeShort(getClassIndex());
 		out.writeShort(getNameAndTypeIndex());
 	}

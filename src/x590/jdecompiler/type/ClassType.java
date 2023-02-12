@@ -332,7 +332,7 @@ public class ClassType extends ReferenceType {
 				
 				if(classEncodedName.endsWith("/package-info"))
 					this.kind = ClassKind.PACKAGE_INFO;
-				else if(classEncodedName.endsWith("/module-info"))
+				else if(classEncodedName.equals("module-info"))
 					this.kind = ClassKind.MODULE_INFO;
 				else
 					throw new InvalidClassNameException(in, dashIndex);

@@ -6,12 +6,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.JavaSerializable;
 import x590.jdecompiler.StringWritable;
 import x590.jdecompiler.constpool.ConstantPool;
+import x590.jdecompiler.exception.AttributeNotFoundException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.util.Logger;
 import x590.util.annotation.Immutable;
@@ -73,13 +75,30 @@ public final class Attributes implements JavaSerializable, Importable {
 	
 	
 	@SuppressWarnings("unchecked")
-	public <T extends Attribute> @Nullable T get(String name) {
-		return (T)attributeByName.get(name);
+	public <A extends Attribute> @Nullable A getNullable(String name) {
+		return (A)attributeByName.get(name);
+	}
+	
+	public <A extends Attribute> @Nullable A get(String name) {
+		return getOrThrow(name, () -> new AttributeNotFoundException(name));
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T extends Attribute> T getOrDefault(String name, T defaultValue) {
-		return (T)attributeByName.getOrDefault(name, defaultValue);
+	public <A extends Attribute> A getOrDefault(String name, A defaultValue) {
+		return (A)attributeByName.getOrDefault(name, defaultValue);
+	}
+	
+	public <A extends Attribute, T extends Throwable> A getOrThrow(String name, T throwable) throws T {
+		return getOrThrow(name, () -> throwable);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <A extends Attribute, T extends Throwable> A getOrThrow(String name, Supplier<T> exceptionSupplier) throws T {
+		A attribute = (A)attributeByName.get(name);
+		if(attribute != null)
+			return attribute;
+		
+		throw exceptionSupplier.get();
 	}
 	
 	@SuppressWarnings("unchecked")

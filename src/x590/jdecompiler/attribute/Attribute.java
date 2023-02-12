@@ -44,6 +44,7 @@ public abstract class Attribute implements JavaSerializable, Importable {
 			case SYNTHETIC          -> SyntheticAttribute.get(nameIndex, name, length);
 			case EXCEPTIONS         -> new ExceptionsAttribute(nameIndex, name, length, in, pool);
 			case ANNOTATION_DEFAULT -> new AnnotationDefaultAttribute(nameIndex, name, length, in, pool);
+			case MODULE             -> new ModuleAttribute(nameIndex, name, length, in, pool);
 			
 			case SIGNATURE -> switch(location) {
 				case CLASS -> new ClassSignatureAttribute(nameIndex, name, length, in, pool);

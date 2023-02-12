@@ -11,6 +11,7 @@ public final class AttributeNames {
 			EXCEPTIONS         = "Exceptions",
 			SIGNATURE          = "Signature",
 			ANNOTATION_DEFAULT = "AnnotationDefault",
+			MODULE             = "Module",
 			
 			SOURCE_FILE      = "SourceFile",
 			INNER_CLASSES    = "InnerClasses",

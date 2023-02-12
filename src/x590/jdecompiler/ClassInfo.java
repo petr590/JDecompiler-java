@@ -151,14 +151,17 @@ public final class ClassInfo {
 		boolean written = false;
 		
 		for(ClassType clazz : imports.keySet()) {
-			if(!clazz.getPackageName().isEmpty() && !clazz.getPackageName().equals("java.lang") && !clazz.getPackageName().equals(thisType.getPackageName())) {
+			
+			String packageName = clazz.getPackageName();
+			
+			if(!packageName.isEmpty() && !packageName.equals("java.lang") && !packageName.equals(thisType.getPackageName())) {
 				out.printIndent().print("import ").print(clazz.getName()).println(';');
 				written = true;
 			}
 		}
 		
 		if(written)
-			out.println();
+			out.writeln();
 	}
 	
 	public void copyFormattingFrom(ClassInfo other) {

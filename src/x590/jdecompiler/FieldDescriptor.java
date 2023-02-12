@@ -68,7 +68,7 @@ public final class FieldDescriptor extends Descriptor implements Importable {
 	}
 	
 	public void writeType(StringifyOutputStream out, ClassInfo classinfo, Attributes attributes) {
-		FieldSignatureAttribute signature = attributes.get(AttributeNames.SIGNATURE);
+		FieldSignatureAttribute signature = attributes.getNullable(AttributeNames.SIGNATURE);
 		
 		if(signature != null) {
 			signature.checkType(this);

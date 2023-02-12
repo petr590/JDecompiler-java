@@ -133,7 +133,7 @@ public final class IntegerConstant extends ConstableValueConstant<Integer> {
 	
 	@Override
 	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(3);
+		out.writeByte(0x3);
 		out.writeInt(value);
 	}
 	

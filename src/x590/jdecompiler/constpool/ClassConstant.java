@@ -106,7 +106,7 @@ public final class ClassConstant extends ConstValueConstant {
 	
 	@Override
 	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(7);
+		out.writeByte(0x7);
 		out.writeShort(nameIndex);
 	}
 	

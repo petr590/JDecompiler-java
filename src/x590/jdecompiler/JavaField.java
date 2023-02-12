@@ -39,8 +39,8 @@ public class JavaField extends JavaClassElement {
 		this.modifiers = modifiers;
 		this.descriptor = new FieldDescriptor(classinfo.getThisType(), in, pool);
 		this.attributes = Attributes.read(in, pool, Location.FIELD);
-		this.constantValueAttribute = attributes.get("ConstantValue");
-		this.annotationAttributes = new Pair<>(attributes.get("RuntimeVisibleAnnotations"), attributes.get("RuntimeInvisibleAnnotations"));
+		this.constantValueAttribute = attributes.getNullable(AttributeNames.CONSTANT_VALUE);
+		this.annotationAttributes = new Pair<>(attributes.getNullable(AttributeNames.RUNTIME_VISIBLE_ANNOTATIONS), attributes.getNullable(AttributeNames.RUNTIME_INVISIBLE_ANNOTATIONS));
 	}
 	
 	
@@ -150,7 +150,7 @@ public class JavaField extends JavaClassElement {
 	}
 	
 	public FieldSignatureAttribute getSignature() {
-		return attributes.get(AttributeNames.SIGNATURE);
+		return attributes.getNullable(AttributeNames.SIGNATURE);
 	}
 	
 	

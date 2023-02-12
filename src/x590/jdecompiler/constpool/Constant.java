@@ -28,6 +28,8 @@ public abstract class Constant implements JavaSerializable {
 			case 0xF  -> new MethodHandleConstant(in);
 			case 0x10 -> new MethodTypeConstant(in);
 			case 0x12 -> new InvokeDynamicConstant(in);
+			case 0x13 -> new ModuleConstant(in);
+			case 0x14 -> new PackageConstant(in);
 			default ->
 				throw new DisassemblingException("Unknown tag " + tag);
 		};

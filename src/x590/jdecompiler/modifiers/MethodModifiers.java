@@ -3,7 +3,7 @@ package x590.jdecompiler.modifiers;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.util.IWhitespaceStringBuilder;
 
-public final class MethodModifiers extends Modifiers {
+public final class MethodModifiers extends ClassEntryModifiers {
 	
 	public MethodModifiers(int value) {
 		super(value);
@@ -16,6 +16,10 @@ public final class MethodModifiers extends Modifiers {
 	
 	public boolean isAbstract() {
 		return (value & ACC_ABSTRACT) != 0;
+	}
+	
+	public boolean isNative() {
+		return (value & ACC_NATIVE) != 0;
 	}
 	
 	public boolean isSynchronized() {
@@ -34,10 +38,6 @@ public final class MethodModifiers extends Modifiers {
 		return (value & ACC_VARARGS) != 0;
 	}
 	
-	public boolean isNative() {
-		return (value & ACC_NATIVE) != 0;
-	}
-	
 	public boolean isStrictfp() {
 		return (value & ACC_STRICT) != 0;
 	}
@@ -45,6 +45,10 @@ public final class MethodModifiers extends Modifiers {
 	
 	public boolean isNotAbstract() {
 		return (value & ACC_ABSTRACT) == 0;
+	}
+	
+	public boolean isNotNative() {
+		return (value & ACC_NATIVE) == 0;
 	}
 	
 	public boolean isNotSynchronized() {
@@ -63,26 +67,19 @@ public final class MethodModifiers extends Modifiers {
 		return (value & ACC_VARARGS) == 0;
 	}
 	
-	public boolean isNotNative() {
-		return (value & ACC_NATIVE) == 0;
-	}
-	
 	public boolean isNotStrictfp() {
 		return (value & ACC_STRICT) == 0;
 	}
 	
 	
 	@Override
-	public String toString() {
-		IWhitespaceStringBuilder str = toStringBuilder();
-		
-		if(isAbstract()) str.append("abstract");
-		if(isNative()) str.append("native");
-		if(isSynchronized()) str.append("synchronized");
-		if(isBridge()) str.append("bridge");
-		if(isVarargs()) str.append("varargs");
-		if(isStrictfp()) str.append("strictfp");
-		
-		return str.toString();
+	public IWhitespaceStringBuilder toStringBuilder(boolean forWriting) {
+		return super.toStringBuilder(forWriting)
+				.appendIf(isAbstract(), "abstract")
+				.appendIf(isNative(), "native")
+				.appendIf(isSynchronized(), "synchronized")
+				.appendIf(!forWriting && isBridge(), "bridge")
+				.appendIf(!forWriting && isVarargs(), "varargs")
+				.appendIf(isStrictfp(), "strictfp");
 	}
 }

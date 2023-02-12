@@ -85,7 +85,7 @@ public final class Utf8Constant extends Constant implements ICachedConstant<Stri
 	
 	@Override
 	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(1);
+		out.writeByte(0x1);
 		byte[] bytes = value.getBytes();
 		out.writeShort(bytes.length);
 		out.write(bytes);

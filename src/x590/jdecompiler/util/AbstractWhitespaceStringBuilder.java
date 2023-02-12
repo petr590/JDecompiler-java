@@ -14,8 +14,8 @@ public abstract class AbstractWhitespaceStringBuilder implements IWhitespaceStri
 	public abstract String toString();
 	
 	@Override
-	public AbstractWhitespaceStringBuilder printTrailingSpace() {
-		this.printTrailingSpace = true;
+	public AbstractWhitespaceStringBuilder printTrailingSpace(boolean print) {
+		this.printTrailingSpace = print;
 		return this;
 	}
 }

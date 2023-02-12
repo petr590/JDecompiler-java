@@ -28,6 +28,12 @@ public abstract class Modifiers {
 			ACC_ANNOTATION   = 0x2000, // class
 			ACC_ENUM         = 0x4000, // class, field
 			
+			ACC_MODULE       = 0x8000, // module class
+			ACC_OPEN         = 0x0020, // module attribute
+			ACC_MANDATED     = 0x8000, // module entry
+			ACC_TRANSITIVE   = 0x0020, // module requirement
+			ACC_STATIC_PHASE = 0x0040, // module requirement
+			
 			ACC_ACCESS_FLAGS = ACC_VISIBLE | ACC_PUBLIC | ACC_PRIVATE | ACC_PROTECTED,
 			ACC_SYNTHETIC_OR_BRIDGE = ACC_SYNTHETIC | ACC_BRIDGE;
 	
@@ -44,52 +50,8 @@ public abstract class Modifiers {
 	}
 	
 	
-	public boolean isPublic() {
-		return (value & ACC_PUBLIC) != 0;
-	}
-	
-	public boolean isPrivate() {
-		return (value & ACC_PRIVATE) != 0;
-	}
-	
-	public boolean isProtected() {
-		return (value & ACC_PROTECTED) != 0;
-	}
-	
-	
-	public boolean isStatic() {
-		return (value & ACC_STATIC) != 0;
-	}
-	
-	public boolean isFinal() {
-		return (value & ACC_FINAL) != 0;
-	}
-	
-	
 	public boolean isSynthetic() {
 		return (value & ACC_SYNTHETIC) != 0;
-	}
-	
-	
-	public boolean isNotPublic() {
-		return (value & ACC_PUBLIC) == 0;
-	}
-	
-	public boolean isNotPrivate() {
-		return (value & ACC_PRIVATE) == 0;
-	}
-	
-	public boolean isNotProtected() {
-		return (value & ACC_PROTECTED) == 0;
-	}
-	
-	
-	public boolean isNotStatic() {
-		return (value & ACC_STATIC) == 0;
-	}
-	
-	public boolean isNotFinal() {
-		return (value & ACC_FINAL) == 0;
 	}
 	
 	
@@ -128,21 +90,15 @@ public abstract class Modifiers {
 	}
 	
 	
-	IWhitespaceStringBuilder toStringBuilder() {
-		IWhitespaceStringBuilder str = new WhitespaceStringBuilder();
-		
-		if(isPublic()) str.append("public");
-		if(isPrivate()) str.append("private");
-		if(isProtected()) str.append("protected");
-		if(isStatic()) str.append("static");
-		if(isFinal()) str.append("final");
-		if(isSynthetic()) str.append("synthetic");
-		
-		return str;
+	IWhitespaceStringBuilder toStringBuilder(boolean forWriting) {
+		return new WhitespaceStringBuilder().printTrailingSpace(forWriting)
+				.appendIf(!forWriting && isSynthetic(), "synthetic");
 	}
 	
 	@Override
-	public abstract String toString();
+	public String toString() {
+		return this.getClass().getSimpleName() + '{' + toStringBuilder(false).toString() + '}';
+	}
 	
 	@Override
 	public boolean equals(Object other) {

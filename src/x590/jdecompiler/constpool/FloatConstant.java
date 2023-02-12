@@ -115,7 +115,7 @@ public final class FloatConstant extends SingleConstableValueConstant<Float> {
 	
 	@Override
 	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(4);
+		out.writeByte(0x4);
 		out.writeFloat(value);
 	}
 	

@@ -45,7 +45,7 @@ public final class NameAndTypeConstant extends Constant {
 	
 	@Override
 	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(12);
+		out.writeByte(0xC);
 		out.writeShort(nameIndex);
 		out.writeShort(descriptorIndex);
 	}

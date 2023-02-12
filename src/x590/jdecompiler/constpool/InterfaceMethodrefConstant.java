@@ -17,7 +17,7 @@ public final class InterfaceMethodrefConstant extends MethodrefConstant {
 	
 	@Override
 	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(11);
+		out.writeByte(0xB);
 		out.writeShort(getClassIndex());
 		out.writeShort(getNameAndTypeIndex());
 	}

@@ -69,7 +69,7 @@ public final class MethodHandleConstant extends ConstValueConstant {
 	
 	@Override
 	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(15);
+		out.writeByte(0xF);
 		out.writeByte(referenceKind);
 		out.writeShort(referenceIndex);
 	}

@@ -116,7 +116,7 @@ public final class DoubleConstant extends SingleConstableValueConstant<Double> {
 
 	@Override
 	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(6);
+		out.writeByte(0x6);
 		out.writeDouble(value);
 	}
 	

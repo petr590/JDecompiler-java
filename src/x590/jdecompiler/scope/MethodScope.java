@@ -10,7 +10,7 @@ import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.attribute.AttributeNames;
 import x590.jdecompiler.attribute.CodeAttribute;
 import x590.jdecompiler.attribute.LocalVariableTableAttribute;
-import x590.jdecompiler.modifiers.Modifiers;
+import x590.jdecompiler.modifiers.MethodModifiers;
 import x590.jdecompiler.type.ArrayType;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
@@ -30,7 +30,7 @@ public class MethodScope extends Scope {
 		super(0, 0, null, Collections.emptyList());
 	}
 	
-	private MethodScope(ClassInfo classinfo, MethodDescriptor descriptor, Modifiers modifiers, CodeAttribute codeAttribute, int endIndex, int maxLocals) {
+	private MethodScope(ClassInfo classinfo, MethodDescriptor descriptor, MethodModifiers modifiers, CodeAttribute codeAttribute, int endIndex, int maxLocals) {
 		super(0, endIndex, null, new ArrayList<>(maxLocals));
 		
 		int i = 0;
@@ -41,7 +41,7 @@ public class MethodScope extends Scope {
 		}
 		
 		
-		LocalVariableTableAttribute localVariableTable = codeAttribute.attributes.get(AttributeNames.LOCAL_VARIABLE_TABLE);
+		LocalVariableTableAttribute localVariableTable = codeAttribute.attributes.getNullable(AttributeNames.LOCAL_VARIABLE_TABLE);
 		
 		
 		EmptyVariable emptyVar = Variable.empty();
@@ -77,7 +77,7 @@ public class MethodScope extends Scope {
 	}
 	
 	
-	public static MethodScope of(ClassInfo classinfo, MethodDescriptor descriptor, Modifiers modifiers, CodeAttribute codeAttribute, int endIndex, int maxLocals) {
+	public static MethodScope of(ClassInfo classinfo, MethodDescriptor descriptor, MethodModifiers modifiers, CodeAttribute codeAttribute, int endIndex, int maxLocals) {
 		return endIndex == 0 && maxLocals == 0 ? EMPTY_SCOPE.get() : new MethodScope(classinfo, descriptor, modifiers, codeAttribute, endIndex, maxLocals);
 	}
 	

@@ -11,7 +11,9 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import x590.jdecompiler.JavaSerializable;
+import x590.jdecompiler.exception.NoSuchConstantException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
+import x590.util.annotation.Nullable;
 
 public final class ConstantPool implements JavaSerializable {
 	
@@ -53,11 +55,24 @@ public final class ConstantPool implements JavaSerializable {
 	
 	@SuppressWarnings("unchecked")
 	public <C extends Constant> C get(int index) {
+		if(index != 0)
+			return (C)data.get(index);
+		
+		throw new NoSuchConstantException("By index " + index);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <C extends Constant> @Nullable C getNullable(int index) {
 		return (C)data.get(index);
 	}
 	
 	public String getUtf8String(int index) {
 		return this.<Utf8Constant>get(index).getString();
+	}
+	
+	public @Nullable String getUtf8StringNullable(int index) {
+		Utf8Constant utf8Constant = this.<Utf8Constant>getNullable(index);
+		return utf8Constant == null ? null : utf8Constant.getString();
 	}
 	
 	public ClassConstant getClassConstant(int index) {

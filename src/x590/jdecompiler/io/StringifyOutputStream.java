@@ -2,6 +2,7 @@ package x590.jdecompiler.io;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.function.Consumer;
 
 import x590.jdecompiler.StringWritable;
 import x590.jdecompiler.StringWritableWithTwoArgs;
@@ -9,6 +10,7 @@ import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.Operation.Associativity;
+import x590.util.ArrayUtil;
 import x590.util.annotation.Nullable;
 
 /**
@@ -243,6 +245,7 @@ public class StringifyOutputStream extends UncheckedOutputStream {
 	}
 	
 	
+	
 	public StringifyOutputStream printsp() {
 		return print(' ');
 	}
@@ -261,6 +264,64 @@ public class StringifyOutputStream extends UncheckedOutputStream {
 	
 	public <T, U> StringifyOutputStream printsp(StringWritableWithTwoArgs<T, U> writable, T param1, U param2) {
 		return print(writable, param1, param2).print(' ');
+	}
+	
+	
+	public <T> void writeAll(StringWritable<T>[] array, T param) {
+		writeAll(array, param, ' ');
+	}
+	
+	public <T> void writeAll(StringWritable<T>[] array, T param, char delimeter) {
+		writeAll(array, param, writable -> write(delimeter));
+	}
+	
+	public <T> void writeAll(StringWritable<T>[] array, T param, String delimeter) {
+		writeAll(array, param, writable -> write(delimeter));
+	}
+	
+	public <T> void writeAll(StringWritable<T>[] array, T param, Consumer<StringWritable<T>> delimeterWriter) {
+		ArrayUtil.forEachExcludingLast(array, writable -> writable.writeTo(this, param), delimeterWriter);
+	}
+	
+	
+	public <T> StringifyOutputStream printAll(StringWritable<T>[] array, T param) {
+		writeAll(array, param);
+		return this;
+	}
+	
+	public <T> StringifyOutputStream printAll(StringWritable<T>[] array, T param, char delimeter) {
+		writeAll(array, param, delimeter);
+		return this;
+	}
+	
+	public <T> StringifyOutputStream printAll(StringWritable<T>[] array, T param, String delimeter) {
+		writeAll(array, param, delimeter);
+		return this;
+	}
+	
+	public <T> StringifyOutputStream printAll(StringWritable<T>[] array, T param, Consumer<StringWritable<T>> delimeterWriter) {
+		writeAll(array, param, delimeterWriter);
+		return this;
+	}
+	
+	
+	public <T> void writeEach(StringWritable<T>[] array, T param) {
+		writeEach(array, param, writable -> writable.writeTo(this, param));
+	}
+	
+	public <T> void writeEach(StringWritable<T>[] array, T param, Consumer<StringWritable<T>> writer) {
+		ArrayUtil.forEach(array, writer);
+	}
+	
+	
+	public <T> StringifyOutputStream printEach(StringWritable<T>[] array, T param) {
+		writeEach(array, param);
+		return this;
+	}
+	
+	public <T> StringifyOutputStream printEach(StringWritable<T>[] array, T param, Consumer<StringWritable<T>> writer) {
+		writeEach(array, param, writer);
+		return this;
 	}
 	
 	

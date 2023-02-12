@@ -11,12 +11,14 @@ import java.util.stream.Collectors;
 
 import x590.jdecompiler.attribute.AttributeNames;
 import x590.jdecompiler.attribute.Attributes;
+import x590.jdecompiler.attribute.ModuleAttribute;
 import x590.jdecompiler.attribute.Attributes.Location;
 import x590.jdecompiler.attribute.annotation.AnnotationsAttribute;
 import x590.jdecompiler.attribute.signature.ClassSignatureAttribute;
 import x590.jdecompiler.attribute.signature.FieldSignatureAttribute;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.ClassFormatException;
+import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.exception.IllegalClassHeaderException;
 import x590.jdecompiler.exception.IllegalModifiersException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
@@ -103,7 +105,7 @@ public class JavaClass extends JavaClassElement {
 		
 		this.modifiers = ClassModifiers.read(in);
 		this.thisType = ClassType.fromConstant(pool.get(in.readUnsignedShort()));
-		this.superType = ClassType.fromNullableConstant(pool.get(in.readUnsignedShort()), ClassType.OBJECT);
+		this.superType = ClassType.fromNullableConstant(pool.getNullable(in.readUnsignedShort()), ClassType.OBJECT);
 		
 		this.interfaces = in.readImmutableList(() -> pool.getClassConstant(in.readUnsignedShort()).toClassType());
 		
@@ -118,7 +120,7 @@ public class JavaClass extends JavaClassElement {
 		this.attributes = Attributes.read(in, pool, Location.CLASS);
 		classinfo.setAttributes(attributes);
 		
-		this.signature = attributes.get(AttributeNames.SIGNATURE);
+		this.signature = attributes.getNullable(AttributeNames.SIGNATURE);
 		if(signature != null)
 			signature.checkTypes(superType, interfaces);
 		
@@ -246,8 +248,47 @@ public class JavaClass extends JavaClassElement {
 		if(JDecompiler.getInstance().printClassVersion())
 			out.print("/* Java version: ").print(version.toString()).println(" */");
 		
-		if(!thisType.getPackageName().isEmpty())
-			out.print("package ").print(thisType.getPackageName()).println(';').println();
+		
+		if(thisType.isPackageInfo()) {
+			writeAsPackageInfo(out, classinfo);
+			
+		} else if(thisType.isModuleInfo()) {
+			writeAsModuleInfo(out, classinfo);
+			
+		} else {
+			writeAsClass(out, classinfo);
+		}
+	}
+	
+	
+	private void writeAsModuleInfo(StringifyOutputStream out, ClassInfo classinfo) {
+		checkHasNoMembers();
+		
+		ModuleAttribute moduleAttribute = attributes.getOrThrow(AttributeNames.MODULE, () -> new DecompilationException("module-info haven't \"Module\" attribute"));
+		moduleAttribute.writeTo(out, classinfo);
+	}
+	
+	
+	private void writeAsPackageInfo(StringifyOutputStream out, ClassInfo classinfo) {
+		checkHasNoMembers();
+		
+		writeAnnotations(out, classinfo, attributes);
+		writePackage(out);
+		classinfo.writeImports(out);
+	}
+	
+	
+	private void checkHasNoMembers() {
+		if(!fields.isEmpty())
+			throw new DecompilationException(thisType + " cannot have fields");
+		
+		if(!methods.isEmpty())
+			throw new DecompilationException(thisType + " cannot have methods");
+	}
+	
+	
+	private void writeAsClass(StringifyOutputStream out, ClassInfo classinfo) {
+		writePackage(out);
 		
 		classinfo.writeImports(out);
 		
@@ -276,7 +317,13 @@ public class JavaClass extends JavaClassElement {
 		
 		stringableMethods.forEach(method -> out.println().write(method, classinfo));
 		
-		out.reduceIndent().print('}');
+		out.reduceIndent().write('}');
+	}
+	
+	
+	private void writePackage(StringifyOutputStream out) {
+		if(!thisType.getPackageName().isEmpty())
+			out.print("package ").print(thisType.getPackageName()).println(';').println();
 	}
 	
 	private void writeHeader(StringifyOutputStream out, ClassInfo classinfo) {
@@ -300,26 +347,30 @@ public class JavaClass extends JavaClassElement {
 	private IWhitespaceStringBuilder modifiersToString(ClassInfo classinfo) {
 		IWhitespaceStringBuilder str = new WhitespaceStringBuilder().printTrailingSpace();
 		
+		var modifiers = this.modifiers;
+		
 //		boolean isInnerProtected = false;
 //		
-//		if(thisType.kind.isNested()) {
+//		if(thisType.isNested()) {
+//			
 //			InnerClassesAttribute innerClasses = attributes.get("InnerClasses");
 //			if(innerClasses != null) {
+//				
 //				InnerClass innerClass = innerClasses.find(thisType);
 //				if(innerClass != null) {
-//					int innerClassModifiers = innerClass.modifiers;
+//					ClassModifiers innerClassModifiers = innerClass.modifiers;
 //					
-//					if((innerClassModifiers & ACC_PRIVATE) != 0) str.append("private");
-//					if((innerClassModifiers & ACC_PROTECTED) != 0) {
+//					if(innerClassModifiers.isPrivate()) str.append("private");
+//					if(innerClassModifiers.isProtected()) {
 //						str.append("protected");
 //						isInnerProtected = true;
 //					}
 //					
-//					if((innerClassModifiers & ACC_STATIC) != 0) str.append("static");
+//					if(innerClassModifiers.isStatic()) str.append("static");
 //					
-//					if((innerClassModifiers & ~(ACC_ACCESS_FLAGS | ACC_STATIC | ACC_SUPER)) != (modifiers & ~(ACC_ACCESS_FLAGS | ACC_SUPER)))
+//					if((innerClassModifiers.and(~(ACC_ACCESS_FLAGS | ACC_STATIC | ACC_SUPER)) != (modifiers.and(~(ACC_ACCESS_FLAGS | ACC_SUPER))
 //						warning("modifiers of class " + thisType.getName() + " are not matching to the modifiers in InnerClasses attribute:"
-//								+ Util.hex4WithPrefix(innerClassModifiers) + " " + Util.hex4WithPrefix(modifiers));
+//								+ innerClassModifiers.toHexWithPrefix() + " " + modifiers.toHexWithPrefix());
 //				}
 //			}
 //		}
