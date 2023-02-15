@@ -71,8 +71,7 @@ public final class UncertainReferenceType extends Type {
 		if(this.equals(other))
 			return this;
 		
-		if(other.isBasicReferenceType()) {
-			ReferenceType referenceType = (ReferenceType)other;
+		if(other instanceof ReferenceType referenceType) {
 			
 			if(referenceType.isSubclassOf(widestType) && (narrowestType == null || narrowestType.isSubclassOf(referenceType))) {
 				return widest ? new UncertainReferenceType(widestType, referenceType) : new UncertainReferenceType(referenceType, narrowestType);
@@ -88,11 +87,10 @@ public final class UncertainReferenceType extends Type {
 	
 	
 	private Type reversedCastImpl0(Type other, boolean widest) {
-		if(this == other)
+		if(this.equals(other))
 			return this;
 		
-		if(other.isBasicReferenceType()) {
-			ReferenceType referenceType = (ReferenceType)other;
+		if(other instanceof ReferenceType referenceType) {
 			
 			if(widest ? widestType.isSubclassOf(referenceType) || narrowestType != null && referenceType.isSubclassOf(narrowestType) :
 				referenceType.isSubclassOf(widestType)) {

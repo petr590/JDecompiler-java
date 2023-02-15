@@ -10,20 +10,39 @@ import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.load.ALoadOperation;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.PrimitiveType;
+import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
 
 public final class InvokespecialOperation extends InvokeNonstaticOperation {
 	
-	private final boolean isSuper, isEnum;
-	private final Type returnType;
-	
-	private boolean initIsSuper(DecompilationContext context) {
-		return context.modifiers.isNotStatic() &&
-				descriptor.getDeclaringClass().equals(context.classinfo.getSuperType()) &&
-				object instanceof ALoadOperation aload && aload.getIndex() == 0;
+	/** Какой метод мы вызываем через super */
+	private static enum SuperState {
+		SUPERCLASS,     // метод суперкласса
+		SUPERINTERFACE, // метод суперинтерфейса
+		NONE;           // не через super
 	}
 	
-	private Type initReturnType(DecompilationContext context) {
+	private final SuperState superState;
+	private final boolean isEnum;
+	private final Type returnType;
+	
+	private SuperState getSuperState(DecompilationContext context) {
+		if(context.modifiers.isNotStatic() &&
+			object instanceof ALoadOperation aload && aload.getIndex() == 0) {
+			
+			ReferenceType clazz = descriptor.getDeclaringClass();
+			
+			if(clazz.equals(context.classinfo.getSuperType()))
+				return SuperState.SUPERCLASS;
+			
+			if(context.classinfo.getInterfaces().stream().anyMatch(interfaceType -> clazz.equals(interfaceType)))
+				return SuperState.SUPERINTERFACE;
+		}
+		
+		return SuperState.NONE;
+	}
+	
+	private Type getReturnType(DecompilationContext context) {
 		if(descriptor.isConstructor() && object instanceof NewOperation newOperation) {
 			if(context.stackEmpty() || context.pop() != newOperation)
 				throw new DecompilationException("Cannot invoke constructor of new object, invalid stack state");
@@ -36,23 +55,23 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 	
 	public InvokespecialOperation(DecompilationContext context, int index) {
 		super(context, index);
-		this.isSuper = initIsSuper(context);
+		this.superState = getSuperState(context);
 		this.isEnum = context.classinfo.getModifiers().isEnum();
-		this.returnType = initReturnType(context);
+		this.returnType = getReturnType(context);
 	}
 	
 	public InvokespecialOperation(DecompilationContext context, MethodDescriptor descriptor) {
 		super(context, descriptor);
-		this.isSuper = initIsSuper(context);
+		this.superState = getSuperState(context);
 		this.isEnum = context.classinfo.getModifiers().isEnum();
-		this.returnType = initReturnType(context);
+		this.returnType = getReturnType(context);
 	}
 	
 	public InvokespecialOperation(DecompilationContext context, MethodDescriptor descriptor, Operation object) {
 		super(context, descriptor, object);
-		this.isSuper = initIsSuper(context);
+		this.superState = getSuperState(context);
 		this.isEnum = context.classinfo.getModifiers().isEnum();
-		this.returnType = initReturnType(context);
+		this.returnType = getReturnType(context);
 	}
 	
 	@Override
@@ -82,12 +101,21 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 	
 	@Override
 	protected boolean writeObject(StringifyOutputStream out, StringifyContext context) {
-		if(isSuper) {
-			out.write("super");
-			return true;
-		} else {
-			return super.writeObject(out, context);
-		}
+		
+		return switch(superState) {
+			
+			case SUPERCLASS -> {
+				out.write("super");
+				yield true;
+			}
+			
+			case SUPERINTERFACE -> {
+				out.print(descriptor.getDeclaringClass(), context.classinfo).write(".super");
+				yield true;
+			}
+			
+			case NONE -> super.writeObject(out, context);
+		};
 	}
 	
 	@Override
@@ -102,7 +130,7 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 	
 	@Override
 	public boolean canOmit() {
-		return descriptor.isConstructor() && isSuper &&
+		return descriptor.isConstructor() && superState == SuperState.SUPERCLASS &&
 				(arguments.isEmpty() || isEnum && descriptor.argumentsEquals(ClassType.STRING, PrimitiveType.INT));
 	}
 	

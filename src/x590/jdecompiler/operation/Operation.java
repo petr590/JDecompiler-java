@@ -6,6 +6,7 @@ import x590.jdecompiler.StringWritable;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.constant.ConstOperation;
+import x590.jdecompiler.operationinstruction.constant.AConstNullOperationInstruction;
 import x590.jdecompiler.scope.Scope;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.ReferenceType;
@@ -162,7 +163,7 @@ public abstract class Operation implements StringWritable<StringifyContext>, Imp
 	/** Делает преобразование для константы {@literal null},
 	 * так как мы не можем обратиться к полю или методу напрямую через {@literal null}.
 	 * @param clazz - тип, к которому преобразуется {@literal null}
-	 * @see AConstNullOperation */
+	 * @see AConstNullOperationInstruction */
 	public Operation castIfNull(ReferenceType clazz) {
 		return this;
 	}

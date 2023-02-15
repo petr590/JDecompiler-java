@@ -274,7 +274,7 @@ public class JavaClass extends JavaClassElement {
 		
 		writeAnnotations(out, classinfo, attributes);
 		writePackage(out);
-		classinfo.writeImports(out);
+		classinfo.writeImports(out, false);
 	}
 	
 	

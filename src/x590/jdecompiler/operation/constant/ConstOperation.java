@@ -41,8 +41,7 @@ public abstract class ConstOperation<C extends ConstValueConstant> extends Retur
 	}
 	
 	@Override
-	@SuppressWarnings("rawtypes")
 	public boolean equals(Operation other) {
-		return this == other || other instanceof ConstOperation operation && constant.equals(operation.constant);
+		return this == other || other instanceof ConstOperation<?> operation && constant.equals(operation.constant);
 	}
 }

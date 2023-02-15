@@ -92,9 +92,11 @@ public final class Attributes implements JavaSerializable, Importable {
 		return getOrThrow(name, () -> throwable);
 	}
 	
-	@SuppressWarnings("unchecked")
 	public <A extends Attribute, T extends Throwable> A getOrThrow(String name, Supplier<T> exceptionSupplier) throws T {
+		
+		@SuppressWarnings("unchecked")
 		A attribute = (A)attributeByName.get(name);
+		
 		if(attribute != null)
 			return attribute;
 		

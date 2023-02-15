@@ -1,1 +1,1 @@
-Added `package-info` and `module-info` support
+Added the ability to omit the import of a class that is used only 1 time in the code

@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import x590.jdecompiler.attribute.Attributes;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.context.StringifyContext;
@@ -18,11 +20,10 @@ import x590.jdecompiler.modifiers.ClassModifiers;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
-import x590.util.IntegerUtil;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
-/** Представляет собой объект, через который хранит основную информацию о классе, а так же все импорты.
+/** Представляет собой объект, который хранит основную информацию о классе, а так же все импорты.
  * Изначально появился из-за того, что в C++ нельзя использовать класс до его объявления, как в Java.
  * Планируется добавление интерфейса для создания экземпляра ClassInfo из java.lang.Class
  * без дополнительных танцов с бубном. */
@@ -42,7 +43,7 @@ public final class ClassInfo {
 	private Attributes attributes;
 	private StringifyOutputStream out;
 	
-	private Map<ClassType, Integer> imports = new HashMap<>();
+	private Object2IntMap<ClassType> imports = new Object2IntOpenHashMap<>();
 	private boolean importsUniqued;
 	
 	
@@ -86,7 +87,7 @@ public final class ClassInfo {
 		return superType;
 	}
 	
-	public List<ClassType> getInterfaces() {
+	public @Immutable List<ClassType> getInterfaces() {
 		return interfaces;
 	}
 	
@@ -111,7 +112,7 @@ public final class ClassInfo {
 	
 	public void addImport(ClassType clazz) {
 		ClassType rawClass = clazz.getRawType();
-		imports.put(rawClass, imports.getOrDefault(rawClass, IntegerUtil.ZERO) + 1);
+		imports.put(rawClass, imports.getInt(rawClass) + 1);
 		
 		clazz.addImportsForSignature(this);
 	}
@@ -125,18 +126,34 @@ public final class ClassInfo {
 			addImport(type);
 	}
 	
-	public void uniqImports() {
-		assert !importsUniqued;
+	void uniqImports() {
+		if(importsUniqued)
+			throw new IllegalStateException("Imports already uniqued");
 		
-		var groupedImports = imports.entrySet().stream().collect(Collectors.groupingBy(entry -> entry.getKey().getSimpleName()));
+		var groupedImports = imports.object2IntEntrySet().stream().collect(Collectors.groupingBy(entry -> entry.getKey().getSimpleName()));
+		
 		groupedImports.forEach((name, list) -> {
-			list.sort((entry1, entry2) -> entry2.getValue() - entry1.getValue());
+			
+			if(JDecompiler.getInstance().canOmitSingleImport()) {
+				list.removeIf(entry -> {
+					
+					if(entry.getIntValue() == 1) {
+						imports.removeInt(entry.getKey());
+						return true;
+					}
+					
+					return false;
+				});
+			}
+			
+			
+			list.sort((entry1, entry2) -> entry2.getIntValue() - entry1.getIntValue());
 			
 			var iter = list.iterator();
-			iter.next();
 			
-			while(iter.hasNext()) {
-				imports.remove(iter.next().getKey());
+			if(iter.hasNext()) {
+				iter.next();
+				iter.forEachRemaining(entry -> imports.removeInt(entry.getKey()));
 			}
 		});
 		
@@ -148,6 +165,10 @@ public final class ClassInfo {
 	}
 	
 	public void writeImports(StringifyOutputStream out) {
+		writeImports(out, true);
+	}
+	
+	public void writeImports(StringifyOutputStream out, boolean writeTrailingLineBreak) {
 		boolean written = false;
 		
 		for(ClassType clazz : imports.keySet()) {
@@ -156,7 +177,7 @@ public final class ClassInfo {
 			
 			if(!packageName.isEmpty() && !packageName.equals("java.lang") && !packageName.equals(thisType.getPackageName())) {
 				out.printIndent().print("import ").print(clazz.getName()).println(';');
-				written = true;
+				written = writeTrailingLineBreak;
 			}
 		}
 		

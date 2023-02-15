@@ -148,17 +148,17 @@ public final class ConstantPool implements JavaSerializable {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
-	private <T, C extends ICachedConstant<T>> C findOrCreateConstant(T value, Function<T, ICachedConstant<T>> creator) {
+	private <T, C extends ICachedConstant<T>> C findOrCreateConstant(T value, Function<T, C> creator) {
 		
-		ICachedConstant<T> constant = (ICachedConstant<T>)constants.get(value);
+		@SuppressWarnings("unchecked")		
+		C constant = (C)constants.get(value);
 		
 		if(constant != null)
-			return (C)constant;
+			return constant;
 		
 		constant = creator.apply(value);
 		constants.put(value, constant);
-		return (C)constant;
+		return constant;
 	}
 	
 	public IntegerConstant findOrCreateConstant(int value) {
