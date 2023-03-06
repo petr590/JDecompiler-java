@@ -12,8 +12,8 @@ import x590.jdecompiler.io.ExtendedStringReader;
  */
 public final class ArrayType extends ReferenceType {
 	
-	private static final ReferenceType ARRAY_SUPER_TYPE = ClassType.OBJECT;
-	private static final List<ReferenceType> ARRAY_INTERFACES = List.of(ClassType.CLONEABLE, ClassType.SERIALIZABLE);
+	private static final ClassType ARRAY_SUPER_TYPE = ClassType.OBJECT;
+	private static final List<ClassType> ARRAY_INTERFACES = List.of(ClassType.CLONEABLE, ClassType.SERIALIZABLE);
 	
 	public static final ArrayType
 			ANY_ARRAY        = new ArrayType(AnyType.INSTANCE),
@@ -32,7 +32,33 @@ public final class ArrayType extends ReferenceType {
 			FLOAT_ARRAY   = new ArrayType(PrimitiveType.FLOAT),
 			DOUBLE_ARRAY  = new ArrayType(PrimitiveType.DOUBLE);
 	
+
 	
+	public static ArrayType fromClass(Class<?> clazz) {
+		Class<?> componentClass = clazz.getComponentType();
+		
+		if(componentClass.isPrimitive()) {
+			if(componentClass == byte.class) return BYTE_ARRAY;
+			if(componentClass == short.class) return SHORT_ARRAY;
+			if(componentClass == char.class) return CHAR_ARRAY;
+			if(componentClass == int.class) return INT_ARRAY;
+			if(componentClass == long.class) return LONG_ARRAY;
+			if(componentClass == float.class) return FLOAT_ARRAY;
+			if(componentClass == double.class) return DOUBLE_ARRAY;
+			if(componentClass == boolean.class) return BOOLEAN_ARRAY;
+			if(componentClass == void.class) throw new IllegalArgumentException("Illegal type: array of voids");
+			throw new IllegalArgumentException("Cannot recognize Class of primitive type \"" + clazz + "\"");
+		}
+		
+		int nestingLevel = 1;
+		
+		while(componentClass.isArray()) {
+			componentClass = componentClass.getComponentType();
+			nestingLevel++;
+		}
+		
+		return new ArrayType(Type.fromClass(componentClass), nestingLevel);
+	}
 	
 	public static ArrayType fromDescriptor(String arrayEncodedName) {
 		return new ArrayType(arrayEncodedName);

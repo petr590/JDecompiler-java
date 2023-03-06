@@ -161,23 +161,25 @@ public class StringUtil {
 	private static String numberConstantToString(int value) {
 		UsagePolicy hexNumbersUsagePolicy = JDECOMPILER.hexNumbersUsagePolicy();
 		
-		if(hexNumbersUsagePolicy == UsagePolicy.ALWAYS)
+		if( hexNumbersUsagePolicy == UsagePolicy.ALWAYS ||
+			hexNumbersUsagePolicy == UsagePolicy.AUTO && (value >= 16 || value <= -16) &&
+				(MathUtil.isPowerOfTwo(value) || MathUtil.isPowerOfTwo(value + 1))
+		) {
 			return IntegerUtil.hexWithPrefix(value);
-			
-		if(hexNumbersUsagePolicy == UsagePolicy.AUTO && (value >= 16 || value <= -16) && (MathUtil.isPowerOfTwo(value) || MathUtil.isPowerOfTwo(value + 1)))
-			return IntegerUtil.hexWithPrefix(value);
-				
+		}
+		
 		return Integer.toString(value);
 	}
 	
 	private static String numberConstantToString(long value) {
 		UsagePolicy hexNumbersUsagePolicy = JDECOMPILER.hexNumbersUsagePolicy();
 		
-		if(hexNumbersUsagePolicy == UsagePolicy.ALWAYS)
+		if( hexNumbersUsagePolicy == UsagePolicy.ALWAYS ||
+			hexNumbersUsagePolicy == UsagePolicy.AUTO && (value >= 16 || value <= -16) &&
+				(MathUtil.isPowerOfTwo(value) || MathUtil.isPowerOfTwo(value + 1))
+		) {
 			return LongUtil.hexWithPrefix(value);
-			
-		if(hexNumbersUsagePolicy == UsagePolicy.AUTO && (value >= 16 || value <= -16) && (MathUtil.isPowerOfTwo(value) || MathUtil.isPowerOfTwo(value + 1)))
-			return LongUtil.hexWithPrefix(value);
+		}
 				
 		return Long.toString(value);
 	}

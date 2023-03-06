@@ -25,7 +25,7 @@ public class ExceptionsAttribute extends Attribute {
 		int exceptionsLength = in.readUnsignedShort();
 		
 		if(exceptionsLength == 0)
-			throw new DisassemblingException("The \"Exceptions\" attribute cannot be empty");
+			throw new DisassemblingException("The \"" + AttributeNames.EXCEPTIONS + "\" attribute cannot be empty");
 		
 		this.exceptionTypes = in.readImmutableList(exceptionsLength, () -> pool.<ClassConstant>get(in.readUnsignedShort()).toClassType());
 	}

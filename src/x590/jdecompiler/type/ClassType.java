@@ -13,7 +13,6 @@ import x590.jdecompiler.exception.InvalidTypeNameException;
 import x590.jdecompiler.io.ExtendedStringReader;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.util.StringUtil;
-import x590.util.Logger;
 import x590.util.annotation.Nullable;
 
 /**
@@ -86,6 +85,7 @@ public class ClassType extends ReferenceType {
 			ANNOTATION    = new ClassType("java/lang/annotation/Annotation", java.lang.annotation.Annotation.class),
 			CLONEABLE     = new ClassType("java/lang/Cloneable", Cloneable.class),
 			SERIALIZABLE  = new ClassType("java/io/Serializable", java.io.Serializable.class),
+			OVERRIDE      = new ClassType("java/lang/Override", Override.class),
 			
 			BYTE      = new WrapperClassType("java/lang/Byte", Byte.class, PrimitiveType.BYTE),
 			SHORT     = new WrapperClassType("java/lang/Short", Short.class, PrimitiveType.SHORT),
@@ -194,8 +194,6 @@ public class ClassType extends ReferenceType {
 	
 	private final ClassKind kind;
 	
-	private boolean triedLoadClass;
-	
 	
 	private void cacheIfNotCached() {
 		if(!CLASS_TYPES.containsKey(classEncodedName))
@@ -205,8 +203,9 @@ public class ClassType extends ReferenceType {
 	
 	ClassType(String encodedName, Class<?> clazz) {
 		this(encodedName);
-		initSuperType(clazz);
 		triedLoadClass = true;
+		classInstance = clazz;
+		initSuperType(clazz);
 	}
 	
 	ClassType(String encodedName) {
@@ -444,30 +443,28 @@ public class ClassType extends ReferenceType {
 	
 	@Override
 	protected void tryLoadSuperType() {
-		if(!triedLoadClass) {
-			
-			triedLoadClass = true;
-			
-			try {
-				initSuperType(Class.forName(name));
-			} catch(ClassNotFoundException ex) {
-				Logger.warningFormatted("Class \"%s\" not found among java classes", name);
-			}
+		Class<?> thisClass = getClassInstance();
+		
+		if(thisClass != null) {
+			initSuperType(thisClass);
 		}
 	}
 	
 	
 	private void initSuperType(Class<?> thisClass) {
-		Class<?> superClass = thisClass.getSuperclass();
 		
-		if(superClass != null) {
-			superType = fromTypeDescriptor(superClass.descriptorString());
-		} else if(thisClass.isInterface()) {
+		if(thisClass.isInterface()) {
 			superType = OBJECT;
+			
+		} else {
+			Class<?> superClass = thisClass.getSuperclass();
+			
+			if(superClass != null) {
+				superType = fromClass(superClass);
+			}
 		}
 		
-		interfaces = Arrays.stream(thisClass.getInterfaces())
-				.<ReferenceType>map(interfaceClass -> ClassType.fromTypeDescriptor(interfaceClass.descriptorString())).toList();
+		interfaces = Arrays.stream(thisClass.getInterfaces()).map(interfaceClass -> fromClass(interfaceClass)).toList();
 	}
 	
 	

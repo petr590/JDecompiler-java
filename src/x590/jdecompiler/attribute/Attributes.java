@@ -11,7 +11,6 @@ import java.util.function.Supplier;
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.JavaSerializable;
-import x590.jdecompiler.StringWritable;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.AttributeNotFoundException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
@@ -79,7 +78,7 @@ public final class Attributes implements JavaSerializable, Importable {
 		return (A)attributeByName.get(name);
 	}
 	
-	public <A extends Attribute> @Nullable A get(String name) {
+	public <A extends Attribute> A get(String name) {
 		return getOrThrow(name, () -> new AttributeNotFoundException(name));
 	}
 	
@@ -101,11 +100,6 @@ public final class Attributes implements JavaSerializable, Importable {
 			return attribute;
 		
 		throw exceptionSupplier.get();
-	}
-	
-	@SuppressWarnings("unchecked")
-	public @Nullable StringWritable<ClassInfo> getAsWritable(String name) {
-		return (StringWritable<ClassInfo>)attributeByName.get(name);
 	}
 	
 	public boolean has(String name) {

@@ -201,7 +201,7 @@ public final class UncertainIntegralType extends Type {
 				int capacity = integralType.getCapacity();
 				
 				return widest ?
-						getInstanceNoexcept(Math.max(capacity, type.minCapacity), type.maxCapacity, false, type.includeChar && capacity < CHAR_CAPACITY) :
+						getInstanceNoexcept(Math.max(capacity, type.minCapacity), type.maxCapacity, 0) :
 						getInstanceNoexcept(type.minCapacity, Math.min(capacity, type.maxCapacity), false, type.includeChar && capacity > CHAR_CAPACITY);
 			}
 			

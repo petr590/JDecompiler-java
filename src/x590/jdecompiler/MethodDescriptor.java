@@ -1,5 +1,6 @@
 package x590.jdecompiler;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -38,8 +39,7 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	
 	public static final int IMPLICIT_ENUM_ARGUMENTS = 2;
 	
-	final @Immutable
-	private List<Type> arguments;
+	private final @Immutable List<Type> arguments;
 	private final Type returnType;
 	
 	private enum MethodKind {
@@ -48,7 +48,7 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	
 	private final MethodKind kind;
 	
-	private MethodKind typeForName(String name) {
+	private MethodKind kindForName(String name) {
 		MethodKind kind = switch(name) {
 			case "<init>"   -> MethodKind.CONSTRUCTOR;
 			case "<clinit>" -> MethodKind.STATIC_INITIALIZER;
@@ -89,12 +89,12 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 		return kind == MethodKind.STATIC_INITIALIZER;
 	}
 	
-	public boolean isConstructorOf(ReferenceType clazz) {
-		return this.isConstructor() && getDeclaringClass().equals(clazz);
+	public boolean isConstructorOf(ReferenceType declaringClass) {
+		return this.isConstructor() && getDeclaringClass().equals(declaringClass);
 	}
 	
-	public boolean isStaticInitializerOf(ReferenceType clazz) {
-		return this.isStaticInitializer() && getDeclaringClass().equals(clazz);
+	public boolean isStaticInitializerOf(ReferenceType declaringClass) {
+		return this.isStaticInitializer() && getDeclaringClass().equals(declaringClass);
 	}
 	
 	
@@ -110,41 +110,46 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 		this(ClassType.fromDescriptor(className), name, descriptor);
 	}
 	
-	public MethodDescriptor(ClassConstant clazz, NameAndTypeConstant nameAndType) {
-		this(clazz.toClassType(), nameAndType);
+	public MethodDescriptor(ClassConstant declaringClass, NameAndTypeConstant nameAndType) {
+		this(declaringClass.toClassType(), nameAndType);
 	}
 	
-	public MethodDescriptor(ReferenceType clazz, NameAndTypeConstant nameAndType) {
-		this(clazz, nameAndType.getNameConstant().getString(), nameAndType.getDescriptor().getString());
+	public MethodDescriptor(ReferenceType declaringClass, NameAndTypeConstant nameAndType) {
+		this(declaringClass, nameAndType.getNameConstant().getString(), nameAndType.getDescriptor().getString());
 	}
 	
-	public MethodDescriptor(ReferenceType clazz, String name, String descriptor) {
-		this(clazz, name, new ExtendedStringReader(descriptor));
+	public MethodDescriptor(ReferenceType declaringClass, String name, String descriptor) {
+		this(declaringClass, name, new ExtendedStringReader(descriptor));
 	}
 	
-	public MethodDescriptor(ReferenceType clazz, String name, ExtendedStringReader descriptor) {
-		this(clazz, name, Type.parseMethodArguments(descriptor), Type.parseReturnType(descriptor));
+	public MethodDescriptor(ReferenceType declaringClass, String name, ExtendedStringReader descriptor) {
+		this(declaringClass, name, Type.parseMethodArguments(descriptor), Type.parseReturnType(descriptor));
 	}
 	
 	
-	public MethodDescriptor(ReferenceType clazz, String name, Type returnType, Type... arguments) {
-		this(clazz, name, List.of(arguments), returnType);
+	public MethodDescriptor(ReferenceType declaringClass, String name, Type returnType, Type... arguments) {
+		this(declaringClass, name, List.of(arguments), returnType);
 	}
 	
-	public MethodDescriptor(ReferenceType clazz, String name, Type returnType) {
-		this(clazz, name, Collections.emptyList(), returnType);
+	public MethodDescriptor(ReferenceType declaringClass, String name, Type returnType) {
+		this(declaringClass, name, Collections.emptyList(), returnType);
 	}
 	
-	public MethodDescriptor(ReferenceType clazz, String name, @Immutable List<Type> arguments, Type returnType) {
-		super(clazz, name);
+	public MethodDescriptor(ReferenceType declaringClass, String name, @Immutable List<Type> arguments, Type returnType) {
+		super(declaringClass, name);
 		this.arguments = arguments;
 		this.returnType = returnType;
-		this.kind = typeForName(name);
+		this.kind = kindForName(name);
 	}
 	
 	
-	public MethodDescriptor(ReferenceType clazz, ExtendedDataInputStream in, ConstantPool pool) {
-		this(clazz, pool.getUtf8String(in.readUnsignedShort()), pool.getUtf8String(in.readUnsignedShort()));
+	public MethodDescriptor(ReferenceType declaringClass, ExtendedDataInputStream in, ConstantPool pool) {
+		this(declaringClass, pool.getUtf8String(in.readUnsignedShort()), pool.getUtf8String(in.readUnsignedShort()));
+	}
+	
+	
+	public static MethodDescriptor fromReflectMethod(ReferenceType thisType, Method method) {
+		return new MethodDescriptor(thisType, method.getName(), Arrays.stream(method.getParameterTypes()).map(Type::fromClass).toList(), Type.fromClass(method.getReturnType()));
 	}
 	
 	
@@ -289,30 +294,34 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	}
 	
 	
-	public boolean equals(ClassType clazz, String name, Type returnType) {
-		return this.equalsRaw(clazz, name, returnType) && argumentsEquals();
+	public boolean equals(ClassType declaringClass, String name, Type returnType) {
+		return this.equalsRaw(declaringClass, name, returnType) && argumentsEquals();
 	}
 	
-	public boolean equals(ClassType clazz, String name, Type returnType, Type arg1) {
-		return this.equalsRaw(clazz, name, returnType) && argumentsEquals(arg1);
+	public boolean equals(ClassType declaringClass, String name, Type returnType, Type arg1) {
+		return this.equalsRaw(declaringClass, name, returnType) && argumentsEquals(arg1);
 	}
 	
-	public boolean equals(ClassType clazz, String name, Type returnType, Type arg1, Type arg2) {
-		return this.equalsRaw(clazz, name, returnType) && argumentsEquals(arg1, arg2);
+	public boolean equals(ClassType declaringClass, String name, Type returnType, Type arg1, Type arg2) {
+		return this.equalsRaw(declaringClass, name, returnType) && argumentsEquals(arg1, arg2);
 	}
 	
-	public boolean equals(ClassType clazz, String name, Type returnType, Type arg1, Type arg2, Type arg3) {
-		return this.equalsRaw(clazz, name, returnType) && argumentsEquals(arg1, arg2, arg3);
+	public boolean equals(ClassType declaringClass, String name, Type returnType, Type arg1, Type arg2, Type arg3) {
+		return this.equalsRaw(declaringClass, name, returnType) && argumentsEquals(arg1, arg2, arg3);
 	}
 	
-	public boolean equals(ClassType clazz, String name, Type returnType, Type... args) {
-		return this.equalsRaw(clazz, name, returnType) && argumentsEquals(args);
+	public boolean equals(ClassType declaringClass, String name, Type returnType, Type... args) {
+		return this.equalsRaw(declaringClass, name, returnType) && argumentsEquals(args);
 	}
 	
-	private boolean equalsRaw(ClassType clazz, String name, Type returnType) {
-		return this.getDeclaringClass().equals(clazz) && this.getName().equals(name) && this.returnType.equals(returnType);
+	private boolean equalsRaw(ClassType declaringClass, String name, Type returnType) {
+		return this.getDeclaringClass().equals(declaringClass) && this.getName().equals(name) && this.returnType.equals(returnType);
 	}
+
 	
+	public boolean argumentsEmpty() {
+		return arguments.isEmpty();
+	}
 	
 	public boolean argumentsEquals() {
 		return arguments.isEmpty();

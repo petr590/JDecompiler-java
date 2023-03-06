@@ -8,8 +8,8 @@ import x590.util.Logger;
 
 public class StringifyContext extends DecompilationAndStringifyContext {
 	
-	public StringifyContext(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, MethodScope methodScope, MethodModifiers modifiers) {
-		super(otherContext, classinfo, descriptor, methodScope, modifiers);
+	public StringifyContext(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, MethodModifiers modifiers, MethodScope methodScope) {
+		super(otherContext, classinfo, descriptor, modifiers, methodScope);
 	}
 	
 	@Override

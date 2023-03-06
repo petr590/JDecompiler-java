@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.IClassInfo;
 import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
@@ -77,7 +78,7 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 		
 		if(!argTypes.isEmpty() && argTypes.get(argTypes.size() - 1).isBasicArrayType()) {
 			
-			ClassInfo otherClassinfo = ClassInfo.findClassInfo(descriptor.getDeclaringClass());
+			IClassInfo otherClassinfo = ClassInfo.findClassInfo(descriptor.getDeclaringClass());
 			
 			Operation lastOperation = arguments.getLast();
 			

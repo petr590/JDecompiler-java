@@ -24,14 +24,12 @@ public final class StringConstOperation extends ConstOperation<StringConstant> {
 			int lnPos = getValue().indexOf('\n');
 			
 			if(lnPos != -1 && lnPos != getValue().length() - 1) {
-				var classinfo = context.classinfo;
-				
-				classinfo.increaseIndent(2);
+				out.increaseIndent(2);
 				
 				String[] lines = getValue().split("\n");
 				
 				for(int i = 0, length = lines.length;;) {
-					out.println().print(classinfo.getIndent()).print(StringUtil.toLiteral(lines[i] + "\n"));
+					out.println().printIndent().print(StringUtil.toLiteral(lines[i] + "\n"));
 					
 					if(++i < length)
 						out.write(" +");
@@ -39,7 +37,7 @@ public final class StringConstOperation extends ConstOperation<StringConstant> {
 						break;
 				}
 				
-				classinfo.reduceIndent(2);
+				out.reduceIndent(2);
 				
 				return;
 			}

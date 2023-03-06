@@ -3,8 +3,9 @@ package x590.jdecompiler.io;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.util.ArrayList;
-import java.util.List;
+
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntStack;
 
 /**
  * Выбрасывает {@link UncheckedIOException} вместо {@link IOException}.
@@ -15,8 +16,9 @@ public class ExtendedStringReader extends InputStream {
 	
 	private String source;
 	private int pos = 0;
-	private List<Integer> marks = new ArrayList<>();
+	private IntStack marks = new IntArrayList();
 	private final int length;
+	
 	public static final int EOF_CHAR = -1;
 	
 	
@@ -40,11 +42,11 @@ public class ExtendedStringReader extends InputStream {
 	}
 	
 	public int getMarkPos() {
-		return marks.isEmpty() ? -1 : marks.get(marks.size() - 1);
+		return marks.isEmpty() ? -1 : marks.topInt();
 	}
 	
 	public int getMarkOrCurrentPos() {
-		return marks.isEmpty() ? pos : marks.get(marks.size() - 1);
+		return marks.isEmpty() ? pos : marks.topInt();
 	}
 	
 	public int distanceToMark() {
@@ -76,7 +78,7 @@ public class ExtendedStringReader extends InputStream {
 	
 	@Override
 	public int read() {
-		return pos >= length ? ExtendedStringReader.EOF_CHAR : source.charAt(pos++);
+		return pos >= length ? EOF_CHAR : source.charAt(pos++);
 	}
 	
 	public String readAll() {
@@ -119,7 +121,7 @@ public class ExtendedStringReader extends InputStream {
 		
 		while(true) {
 			int c = read();
-			if(c == ch || c == ExtendedStringReader.EOF_CHAR) break;
+			if(c == ch || c == EOF_CHAR) break;
 			str.append((char)c);
 		}
 		
@@ -132,7 +134,7 @@ public class ExtendedStringReader extends InputStream {
 		
 		while(true) {
 			int c = read();
-			if(c == ch1 || c == ch2 || c == ExtendedStringReader.EOF_CHAR) break;
+			if(c == ch1 || c == ch2 || c == EOF_CHAR) break;
 			str.append((char)c);
 		}
 		
@@ -167,7 +169,7 @@ public class ExtendedStringReader extends InputStream {
 	
 	
 	public int get() {
-		return pos >= length ? ExtendedStringReader.EOF_CHAR : source.charAt(pos);
+		return pos >= length ? EOF_CHAR : source.charAt(pos);
 	}
 	
 	
@@ -178,12 +180,12 @@ public class ExtendedStringReader extends InputStream {
 	}
 	
 	public void mark() {
-		marks.add(Math.min(pos, length));
+		marks.push(Math.min(pos, length));
 	}
 	
 	public void unmark() {
 		try {
-			marks.remove(marks.size() - 1);
+			marks.popInt();
 		} catch(IndexOutOfBoundsException ex) {
 			throw new UncheckedIOException(new IOException("Not marked"));
 		}
@@ -199,11 +201,12 @@ public class ExtendedStringReader extends InputStream {
 		if(marks.isEmpty())
 			throw new UncheckedIOException(new IOException("Not marked"));
 		
-		pos = marks.remove(marks.size() - 1);
+		pos = marks.popInt();
 	}
 	
 	@Override
 	public void close() {
 		source = null;
+		marks = null;
 	}
 }

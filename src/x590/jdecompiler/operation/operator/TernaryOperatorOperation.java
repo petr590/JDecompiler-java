@@ -17,10 +17,14 @@ public final class TernaryOperatorOperation extends ReturnableOperation {
 	private final Operation operand1, operand2;
 	
 	public TernaryOperatorOperation(ConditionOperation condition, DecompilationContext context) {
+		this(condition, context, context.pop(), context.pop());
+	}
+	
+	public TernaryOperatorOperation(ConditionOperation condition, DecompilationContext context, Operation operand2, Operation operand1) {
 		super(PrimitiveType.VOID);
 		this.condition = condition;
-		this.operand2 = context.pop();
-		this.operand1 = context.pop();
+		this.operand2 = operand2;
+		this.operand1 = operand1;
 		
 		returnType = operand1.getReturnTypeAsGeneralNarrowest(operand2);
 	}

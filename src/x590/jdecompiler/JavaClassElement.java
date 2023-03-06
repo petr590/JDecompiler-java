@@ -16,7 +16,13 @@ public abstract class JavaClassElement implements StringWritable<ClassInfo>, Imp
 	
 	
 	protected static void writeAnnotations(StringifyOutputStream out, ClassInfo classinfo, Attributes attributes) {
-		out.writeIfNotNull(attributes.getAsWritable(AttributeNames.RUNTIME_VISIBLE_ANNOTATIONS), classinfo);
-		out.writeIfNotNull(attributes.getAsWritable(AttributeNames.RUNTIME_INVISIBLE_ANNOTATIONS), classinfo);
+		out.writeIfNotNull(attributes.getNullable(AttributeNames.RUNTIME_VISIBLE_ANNOTATIONS), classinfo);
+		out.writeIfNotNull(attributes.getNullable(AttributeNames.RUNTIME_INVISIBLE_ANNOTATIONS), classinfo);
+	}
+	
+	
+	// TODO: realization in subclasses
+	public void writeDisassembled(StringifyOutputStream out, ClassInfo classinfo) {
+		throw new RuntimeException("Not releazed yet (");
 	}
 }

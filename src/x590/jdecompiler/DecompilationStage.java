@@ -1,5 +1,7 @@
 package x590.jdecompiler;
 
+import x590.util.ObjectHolder;
+
 /**
  * Стадия декомпиляции. Используется для контроля правильного использования {@link JavaClass}
  */
@@ -31,19 +33,27 @@ enum DecompilationStage {
 		this.repeatedReason = repeatedReason;
 	}
 	
-	String getExceptionMessage() {
-		return exceptionMessage;
+	public void check(DecompilationStage requiredStage, DecompilationStage nextStage) {
+		if(this != requiredStage) {
+			throw new IllegalStateException(nextStage.exceptionMessage + ": " +
+					(this.ordinal() < nextStage.ordinal() ? next.earlyReason : nextStage.repeatedReason));
+		}
 	}
 	
-	String getEarlyReason() {
-		return earlyReason;
-	}
 	
-	String getRepeatedReason() {
-		return repeatedReason;
-	}
-	
-	DecompilationStage next() {
-		return next;
+	static class DecompilationStageHolder extends ObjectHolder<DecompilationStage> {
+		
+		public DecompilationStageHolder(DecompilationStage stage) {
+			super(stage);
+		}
+		
+		public void checkStage(DecompilationStage requiredStage, DecompilationStage nextStage) {
+			get().check(requiredStage, nextStage);
+		}
+		
+		public void nextStage(DecompilationStage requiredStage, DecompilationStage nextStage) {
+			get().check(requiredStage, nextStage);
+			set(nextStage);
+		}
 	}
 }

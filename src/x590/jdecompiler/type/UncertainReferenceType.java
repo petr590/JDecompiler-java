@@ -23,9 +23,13 @@ public final class UncertainReferenceType extends Type {
 		this(widestType, null);
 	}
 	
+	private ReferenceType getNotNullType() {
+		return narrowestType == null ? widestType : narrowestType;
+	}
+	
 	@Override
 	public String toString(ClassInfo classinfo) {
-		return narrowestType.toString(classinfo);
+		return getNotNullType().toString(classinfo);
 	}
 	
 	@Override
@@ -41,12 +45,12 @@ public final class UncertainReferenceType extends Type {
 	
 	@Override
 	public String getName() {
-		return narrowestType.getName();
+		return getNotNullType().getName();
 	}
 	
 	@Override
 	public String getNameForVariable() {
-		return narrowestType.getNameForVariable();
+		return getNotNullType().getNameForVariable();
 	}
 	
 	
@@ -105,7 +109,7 @@ public final class UncertainReferenceType extends Type {
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		narrowestType.addImports(classinfo);
+		getNotNullType().addImports(classinfo);
 	}
 	
 	@Override

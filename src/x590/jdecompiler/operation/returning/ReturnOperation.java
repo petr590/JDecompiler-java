@@ -8,6 +8,8 @@ import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.VoidOperation;
+import x590.jdecompiler.operation.operator.TernaryOperatorOperation;
+import x590.jdecompiler.scope.IfScope;
 import x590.jdecompiler.type.Type;
 
 public abstract class ReturnOperation extends VoidOperation {
@@ -27,7 +29,17 @@ public abstract class ReturnOperation extends VoidOperation {
 			throw new DecompilationException("The method return type (" + methodReturnType + ")" +
 					" does not match type of the `" + getInstructionName() + "` instruction");
 		
-		this.operand = context.popAsNarrowest(methodReturnType);
+		Operation operand = context.popAsNarrowest(methodReturnType);
+		
+		if(context.currentScope().getLastOperation(context) instanceof IfScope ifScope &&
+				ifScope.getOperations().size() == 1 && ifScope.getOperations().get(0) instanceof ReturnOperation returnOperation) {
+			
+			operand = new TernaryOperatorOperation(ifScope.getCondition(), context, operand, returnOperation.operand);
+			ifScope.remove();
+		}
+		
+		this.operand = operand;
+		operand.allowImplicitCast();
 	}
 	
 	

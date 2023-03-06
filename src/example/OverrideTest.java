@@ -1,14 +1,29 @@
 package example;
 
-public class OverrideTest extends Superclass {
+public abstract class OverrideTest extends Superclass {
 	
-	@Override
-	public void foo() {
-		super.foo();
+	public static void main(String[] args) {
+		ExampleTesting.runDecompiler(OverrideTest.class, "-x=never");
 	}
 	
 	@Override
-	public void bar() {
-		super.bar();
+	public abstract void foo();
+	
+	@Override
+	public abstract void bar();
+	
+	@Override
+	public String toString() {
+		return "OverrideTest";
+	}
+	
+	@Override
+	public int hashCode() {
+		return 0x10;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		return obj instanceof OverrideTest;
 	}
 }

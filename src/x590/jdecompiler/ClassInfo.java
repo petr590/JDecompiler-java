@@ -24,12 +24,12 @@ import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
 /** Представляет собой объект, который хранит основную информацию о классе, а так же все импорты.
- * Изначально появился из-за того, что в C++ нельзя использовать класс до его объявления, как в Java.
+ * Изначально появился из-за того, что в C++ нельзя использовать класс до его объявления, в отличие от Java.
  * Планируется добавление интерфейса для создания экземпляра ClassInfo из java.lang.Class
  * без дополнительных танцов с бубном. */
-public final class ClassInfo {
+public final class ClassInfo implements IClassInfo {
 	
-	private static final Map<ReferenceType, ClassInfo> INSTANCES = new HashMap<>();
+	private static final Map<ReferenceType, IClassInfo> INSTANCES = new HashMap<>();
 	
 	private final JavaClass clazz;
 	
@@ -41,7 +41,6 @@ public final class ClassInfo {
 	private final @Immutable List<ClassType> interfaces;
 	
 	private Attributes attributes;
-	private StringifyOutputStream out;
 	
 	private Object2IntMap<ClassType> imports = new Object2IntOpenHashMap<>();
 	private boolean importsUniqued;
@@ -62,8 +61,17 @@ public final class ClassInfo {
 		INSTANCES.put(thisType, this);
 	}
 	
-	public static @Nullable ClassInfo findClassInfo(ReferenceType clazz) {
-		return INSTANCES.get(clazz);
+	public static @Nullable IClassInfo findClassInfo(@Nullable ReferenceType thisType) {
+		if(thisType == null) {
+			return null;
+		}
+		
+		if(INSTANCES.containsKey(thisType))
+			return INSTANCES.get(thisType);
+		
+		PlainClassInfo classinfo = PlainClassInfo.fromClassType(thisType);
+		INSTANCES.put(thisType, classinfo);
+		return classinfo;
 	}
 	
 	
@@ -75,18 +83,22 @@ public final class ClassInfo {
 		return pool;
 	}
 	
+	@Override
 	public ClassModifiers getModifiers() {
 		return modifiers;
 	}
 	
+	@Override
 	public ClassType getThisType() {
 		return thisType;
 	}
 	
+	@Override
 	public ClassType getSuperType() {
 		return superType;
 	}
 	
+	@Override
 	public @Immutable List<ClassType> getInterfaces() {
 		return interfaces;
 	}
@@ -105,10 +117,6 @@ public final class ClassInfo {
 		this.attributes = attributes;
 	}
 	
-	void setOutStream(StringifyOutputStream out) {
-		this.out = out;
-	}
-	
 	
 	public void addImport(ClassType clazz) {
 		ClassType rawClass = clazz.getRawType();
@@ -124,6 +132,10 @@ public final class ClassInfo {
 	public void addImportIfNotNull(@Nullable Type type) {
 		if(type != null)
 			addImport(type);
+	}
+	
+	void bindImportsTo(ClassInfo other) {
+		imports = other.imports;
 	}
 	
 	void uniqImports() {
@@ -185,60 +197,47 @@ public final class ClassInfo {
 			out.writeln();
 	}
 	
-	public void copyFormattingFrom(ClassInfo other) {
-		imports = other.imports;
-	}
 	
-	public void resetFormatting() {
-		imports.clear();
-	}
-	
-	
-	public List<JavaField> getFields() {
+	public @Immutable List<JavaField> getFields() {
 		return clazz.getFields();
+	}
+	
+	public @Immutable List<JavaField> getConstants() {
+		return clazz.getConstants();
+	}
+	
+	public @Immutable List<JavaMethod> getMethods() {
+		return clazz.getMethods();
 	}
 	
 	public JavaField getField(FieldDescriptor descriptor) {
 		return findField(descriptor).orElseThrow(() -> new NoSuchFieldException(descriptor));
 	}
 	
-	public Optional<JavaField> findField(FieldDescriptor descriptor) {
-		return clazz.getFields().stream().filter(field -> field.getDescriptor().equals(descriptor)).findAny();
-	}
-	
-	public boolean hasField(FieldDescriptor descriptor) {
-		return clazz.getFields().stream().anyMatch(field -> field.getDescriptor().equals(descriptor));
-	}
-	
-	
-	public List<JavaField> getConstants() {
-		return clazz.getConstants();
-	}
-	
-	
-	public List<JavaMethod> getMethods() {
-		return clazz.getMethods();
-	}
-	
 	public JavaMethod getMethod(MethodDescriptor descriptor) {
 		return findMethod(descriptor).orElseThrow(() -> new NoSuchMethodException(descriptor));
+	}
+	
+	public JavaMethod getMethod(Predicate<JavaMethod> predicate) {
+		return findMethod(predicate).orElseThrow(() -> new NoSuchMethodException());
+	}
+	
+	
+	public Optional<JavaField> findField(FieldDescriptor descriptor) {
+		return clazz.getFields().stream().filter(field -> field.getDescriptor().equals(descriptor)).findAny();
 	}
 	
 	public Optional<JavaMethod> findMethod(MethodDescriptor descriptor) {
 		return findMethod(method -> method.getDescriptor().equals(descriptor));
 	}
 	
-	public boolean hasMethod(MethodDescriptor descriptor) {
-		return hasMethod(method -> method.getDescriptor().equals(descriptor));
-	}
-	
-	
-	public JavaMethod getMethod(Predicate<JavaMethod> predicate) {
-		return findMethod(predicate).orElseThrow(() -> new NoSuchMethodException());
-	}
-	
 	public Optional<JavaMethod> findMethod(Predicate<JavaMethod> predicate) {
 		return clazz.getMethods().stream().filter(predicate).findAny();
+	}
+	
+	
+	public boolean hasField(Predicate<JavaField> predicate) {
+		return clazz.getFields().stream().anyMatch(predicate);
 	}
 	
 	public boolean hasMethod(Predicate<JavaMethod> predicate) {
@@ -246,29 +245,14 @@ public final class ClassInfo {
 	}
 	
 	
+	@Override
+	public boolean hasFieldByDescriptor(Predicate<FieldDescriptor> predicate) {
+		return hasField(field -> predicate.test(field.getDescriptor()));
+	}
+	
+	@Override
 	public boolean hasMethodByDescriptor(Predicate<MethodDescriptor> predicate) {
 		return hasMethod(method -> predicate.test(method.getDescriptor()));
-	}
-	
-	
-	public void increaseIndent() {
-		out.increaseIndent();
-	}
-	
-	public void increaseIndent(int n) {
-		out.increaseIndent(n);
-	}
-	
-	public void reduceIndent() {
-		out.reduceIndent();
-	}
-	
-	public void reduceIndent(int n) {
-		out.reduceIndent(n);
-	}
-	
-	public String getIndent() {
-		return out.getIndent();
 	}
 
 	

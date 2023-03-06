@@ -1,11 +1,10 @@
 package x590.jdecompiler.instruction.scope;
 
-import java.util.List;
 import java.util.function.Supplier;
 
 import x590.jdecompiler.context.DecompilationContext;
+import x590.jdecompiler.context.DecompilationContext.PreDecompilationContext;
 import x590.jdecompiler.context.DisassemblerContext;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.condition.AndOperation;
 import x590.jdecompiler.operation.condition.CompareOperation;
 import x590.jdecompiler.operation.condition.CompareType;
@@ -14,77 +13,114 @@ import x590.jdecompiler.operation.condition.OrOperation;
 import x590.jdecompiler.scope.IfScope;
 import x590.jdecompiler.scope.LoopScope;
 import x590.jdecompiler.scope.Scope;
-import x590.util.Logger;
-import x590.util.annotation.Nullable;
 
 public abstract class IfInstruction extends InstructionWithEndPos {
 	
+	private Role role;
+	
+	public enum Role {
+		IF, LOOP
+	}
+	
+	
 	public IfInstruction(DisassemblerContext context, int offset) {
 		super(context, offset);
+		this.role = endPos >= context.currentPos() ? Role.IF : Role.LOOP;
 	}
+	
+	public Role getRole() {
+		return role;
+	}
+	
+	
+	@Override
+	public void preDecompilation(PreDecompilationContext context) {
+		
+	}
+	
 	
 	@Override
 	public Scope toScope(DecompilationContext context) {
+
 		int endIndex = context.posToIndex(endPos);
 		Scope currentScope = context.currentScope();
-		
 		ConditionOperation condition = getCondition(context);
 		
-		// Здесь endIndex по факту является startIndex для LoopScope, так как указывает назад
-		if(endIndex < context.currentIndex()) {
-			
-			{
-				LoopScope scope = recognizeIfScopeInLoop(context, currentScope, null, endIndex, condition);
-				Logger.debug(scope);
-				if(scope != null)
-					return scope;
-			}
-			
-			if(currentScope.startIndex() <= endIndex) {
-				List<Operation> operations = currentScope.getOperationsFromIndex(endIndex);
+		return switch(role) {
+			case IF -> {
+				if(recognizeIfScope(context, currentScope, context.currentExpressionStartIndex(), endIndex, () -> condition.invert())) {
+					yield null;
+				}
 				
-				if(operations.size() == 1 && operations.get(0) instanceof LoopScope loopScope && loopScope.startIndex() == endIndex) {
-					loopScope.setConditionAndUpdate(new OrOperation(loopScope.getCondition(), condition), context);
-					return null;
-				}
+				yield new IfScope(context, endIndex, condition);
 			}
 			
-			return new LoopScope(context, currentScope, endIndex, context.currentIndex(), condition);
-		}
+			case LOOP -> new LoopScope(context, currentScope, endIndex, context.currentIndex(), condition);
+		};
 		
 		
-		if(recognizeIfScope(context, currentScope, context.currentExpressionStartIndex(), endIndex, () -> condition.invert())) {
-			return null;
-		}
+		// Old code
 		
-		return new IfScope(context, endIndex, condition);
+//		int endIndex = context.posToIndex(endPos);
+//		Scope currentScope = context.currentScope();
+//		
+//		ConditionOperation condition = getCondition(context);
+//		
+//		// Здесь endIndex по факту является startIndex для LoopScope, так как указывает назад
+//		if(endIndex < context.currentIndex()) {
+//			
+//			{
+//				LoopScope scope = recognizeIfScopeInLoop(context, currentScope, null, endIndex, condition);
+//				Logger.debug(scope);
+//				if(scope != null)
+//					return scope;
+//			}
+//			
+//			if(currentScope.startIndex() <= endIndex) {
+//				List<Operation> operations = currentScope.getOperationsFromIndex(endIndex);
+//				
+//				if(operations.size() == 1 && operations.get(0) instanceof LoopScope loopScope && loopScope.startIndex() == endIndex) {
+//					loopScope.setConditionAndUpdate(new OrOperation(loopScope.getCondition(), condition), context);
+//					return null;
+//				}
+//			}
+//			
+//			return new LoopScope(context, currentScope, endIndex, context.currentIndex(), condition);
+//		}
+//		
+//		
+//		if(recognizeIfScope(context, currentScope, context.currentExpressionStartIndex(), endIndex, () -> condition.invert())) {
+//			return null;
+//		}
+//		
+//		return new IfScope(context, endIndex, condition);
 	}
 	
 	
-	public static @Nullable LoopScope recognizeIfScopeInLoop(DecompilationContext context, Scope currentScope, @Nullable IfScope prevIfScope, int endIndex, ConditionOperation condition) {
-		
-		if(currentScope instanceof IfScope ifScope && currentScope.endIndex() == context.currentIndex() + 1) {
-			ifScope.remove();
-			
-			// В сложной конфигурации, в ifScope есть ещё один цикл, если его не обнаружить, то он просто будет удалён вместе с ifScope
-			for(Operation operation : ifScope.getOperations()) {
-				if(operation instanceof LoopScope loopScope && loopScope.startIndex() == endIndex) {
-					condition = new OrOperation(loopScope.getCondition(), condition);
-				}
-			}
-			
-			context.updateScopes();
-			currentScope = context.currentScope();
-			
-			return recognizeIfScopeInLoop(context, currentScope, ifScope, endIndex, new AndOperation(ifScope.getCondition(), condition));
-			
-		} else {
-			if(prevIfScope == null)
-				return null;
-			
-			return new LoopScope(context, currentScope, endIndex, context.currentIndex(), condition, prevIfScope.conditionStartIndex());
-		}
-	}
+//	public static @Nullable LoopScope recognizeIfScopeInLoop(DecompilationContext context, Scope currentScope, @Nullable IfScope prevIfScope, int endIndex, ConditionOperation condition) {
+//		
+//		if(currentScope instanceof IfScope ifScope && currentScope.endIndex() == context.currentIndex() + 1) {
+//			ifScope.remove();
+//			
+//			// В сложной конфигурации, в ifScope есть ещё один цикл, если его не обнаружить, то он просто будет удалён вместе с ifScope
+//			for(Operation operation : ifScope.getOperations()) {
+//				if(operation instanceof LoopScope loopScope && loopScope.startIndex() == endIndex) {
+//					condition = new OrOperation(loopScope.getCondition(), condition);
+//				}
+//			}
+//			
+//			context.updateScopes();
+//			currentScope = context.currentScope();
+//			
+//			return recognizeIfScopeInLoop(context, currentScope, ifScope, endIndex, new AndOperation(ifScope.getCondition(), condition));
+//			
+//		} else {
+//			if(prevIfScope == null)
+//				return null;
+//			
+//			return new LoopScope(context, currentScope, endIndex, context.currentIndex(), condition, prevIfScope.conditionStartIndex());
+//		}
+//	}
 	
 	
 //	TODO

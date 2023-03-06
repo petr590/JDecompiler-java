@@ -4,6 +4,7 @@ module JDecompiler {
 	requires transitive x590.util;
 	requires x590.argparser;
 	requires transitive it.unimi.dsi.fastutil;
+	requires junit;
 	
 	exports x590.jdecompiler;
 	exports x590.jdecompiler.variable;

@@ -275,6 +275,29 @@ public abstract class Type implements Stringified<ClassInfo>, StringWritable<Cla
 	}
 	
 	
+	public static Type fromClass(Class<?> clazz) {
+		
+		if(clazz.isPrimitive()) {
+			if(clazz == byte.class) return PrimitiveType.BYTE;
+			if(clazz == short.class) return PrimitiveType.SHORT;
+			if(clazz == char.class) return PrimitiveType.CHAR;
+			if(clazz == int.class) return PrimitiveType.INT;
+			if(clazz == long.class) return PrimitiveType.LONG;
+			if(clazz == float.class) return PrimitiveType.FLOAT;
+			if(clazz == double.class) return PrimitiveType.DOUBLE;
+			if(clazz == boolean.class) return PrimitiveType.BOOLEAN;
+			if(clazz == void.class) return PrimitiveType.VOID;
+			throw new IllegalArgumentException("Cannot recognize Class of primitive type \"" + clazz + "\"");
+		}
+		
+		if(clazz.isArray()) {
+			return ArrayType.fromClass(clazz);
+		}
+		
+		return ClassType.fromClass(clazz);
+	}
+	
+	
 	/** @see #parseType(ExtendedStringReader) */
 	public static BasicType parseType(String str) {
 		return parseType(new ExtendedStringReader(str));

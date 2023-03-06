@@ -13,6 +13,10 @@ public final class ClassModifiers extends ClassEntryModifiers {
 		return new ClassModifiers(in.readUnsignedShort());
 	}
 	
+	public static ClassModifiers of(int modifiers) {
+		return new ClassModifiers(modifiers);
+	}
+	
 	
 	public boolean isAbstract() {
 		return (value & ACC_ABSTRACT) != 0;

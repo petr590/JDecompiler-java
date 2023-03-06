@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.DecompilationException;
@@ -94,6 +95,15 @@ public class NewArrayOperation extends Operation {
 	public boolean canInitAsList() {
 		return !initializers.isEmpty() || ((lengths.length == 1 || (lengths.length > 1 && lengths[1] == null)) && length == 0);
 	}
+	
+	
+	@Override
+	public void addImports(ClassInfo classinfo) {
+		arrayType.addImports(classinfo);
+		ArrayUtil.forEach(lengths, length -> length.addImports(classinfo));
+		initializers.forEach(initializer -> initializer.addImports(classinfo));
+	}
+	
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {

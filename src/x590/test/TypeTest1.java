@@ -34,7 +34,7 @@ public class TypeTest1 {
 		
 		for(Type t1 : types)
 			for(Type t2 : types)
-				System.out.println(String.format("%-30s", t1.toString()) + " -> " + String.format("%-30s", t2.toString()) + " = " + t1.castToNarrowestNoexcept(t2));
+				System.out.println(String.format("%-30s", t1.toString()) + " -> " + String.format("%-30s", t2.toString()) + " = " + t1.castToWidestNoexcept(t2));
 		
 	}
 }

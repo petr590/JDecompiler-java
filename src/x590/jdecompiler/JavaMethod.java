@@ -59,16 +59,17 @@ public class JavaMethod extends JavaClassElement {
 		var descriptor = this.descriptor;
 		var thisClassType = classinfo.getThisType();
 		
-		if(descriptor.isConstructorOf(thisClassType) && descriptor.argumentsEquals() && modifiers.and(ACC_ACCESS_FLAGS) == classinfo.getModifiers().and(ACC_ACCESS_FLAGS) &&
-				methodScope.isEmpty() && hasNoOtherConstructors.getAsBoolean()) { // constructor by default
+		if(descriptor.isConstructorOf(thisClassType) &&
+				// constructor by default
+				(descriptor.argumentsEmpty() && modifiers.and(ACC_ACCESS_FLAGS) == classinfo.getModifiers().and(ACC_ACCESS_FLAGS)
+						&& methodScope.isEmpty() && hasNoOtherConstructors.getAsBoolean() ||
+				// anonymous class constructor
+				thisClassType.isAnonymous())
+		) {
 			return true;
 		}
 		
 		if(descriptor.isStaticInitializer() && methodScope.isEmpty()) { // empty static {}
-			return true;
-		}
-		
-		if(thisClassType.isAnonymous() && descriptor.isConstructorOf(thisClassType)) { // anonymous class constructor
 			return true;
 		}
 		
@@ -99,7 +100,7 @@ public class JavaMethod extends JavaClassElement {
 		this.codeAttribute = attributes.getOrDefault(AttributeNames.CODE, EmptyCodeAttribute.INSTANCE);
 		this.signature = attributes.getNullable(AttributeNames.SIGNATURE);
 		
-		if(signature  != null)
+		if(signature != null)
 			signature.checkTypes(descriptor, descriptor.getVisibleStartIndex(classinfo), attributes.getNullable(AttributeNames.EXCEPTIONS));
 		
 		Logger.logf("Disassembling of method %s", descriptor);
@@ -108,7 +109,7 @@ public class JavaMethod extends JavaClassElement {
 		this.methodScope = MethodScope.of(classinfo, descriptor, modifiers, codeAttribute,
 				disassemblerContext.getInstructions().size(), codeAttribute.isEmpty() ? descriptor.countLocals(modifiers) : codeAttribute.maxLocals);
 		
-		this.stringifyContext = new StringifyContext(disassemblerContext, classinfo, descriptor, methodScope, modifiers);
+		this.stringifyContext = new StringifyContext(disassemblerContext, classinfo, descriptor, modifiers, methodScope);
 	}
 	
 	
@@ -148,6 +149,32 @@ public class JavaMethod extends JavaClassElement {
 		decompilationContext = DecompilationContext.decompile(disassemblerContext, classinfo, descriptor, modifiers, methodScope, disassemblerContext.getInstructions(), codeAttribute.maxLocals);
 		methodScope.reduceTypes();
 		methodScope.defineVariables();
+		
+		if(JDecompiler.getInstance().useOverrideAnnotation()) {
+			resolveOverrideAnnotation(classinfo);
+		}
+	}
+	
+	
+	private boolean hasOverrideAttribute;
+	
+	private void resolveOverrideAnnotation(ClassInfo classinfo) {
+		
+		for(IClassInfo currentClassinfo = classinfo;;) {
+			
+			IClassInfo superClassinfo = ClassInfo.findClassInfo(currentClassinfo.getSuperType());
+			
+			if(superClassinfo == null) {
+				break;
+			}
+			
+			if(superClassinfo.hasMethodByDescriptor(methodDescriptor -> methodDescriptor.equalsIgnoreClass(descriptor))) {
+				hasOverrideAttribute = true;
+				break;
+			}
+			
+			currentClassinfo = superClassinfo;
+		}
 	}
 	
 	
@@ -156,6 +183,8 @@ public class JavaMethod extends JavaClassElement {
 		attributes.addImports(classinfo);
 		descriptor.addImports(classinfo);
 		decompilationContext.addImports(classinfo);
+		if(hasOverrideAttribute)
+			classinfo.addImport(ClassType.OVERRIDE);
 	}
 	
 	
@@ -174,13 +203,15 @@ public class JavaMethod extends JavaClassElement {
 		methodScope.assignVariablesNames();
 		
 		writeAnnotations(out, classinfo, attributes);
+		if(hasOverrideAttribute)
+			out.printIndent().print('@').print(ClassType.OVERRIDE, classinfo).println();
 		
 		out.printIndent().print(modifiersToString(classinfo), classinfo);
 		descriptor.write(out, stringifyContext, attributes, signature);
 		
 		attributes.getOrDefault(AttributeNames.EXCEPTIONS, ExceptionsAttribute.empty()).write(out, classinfo, signature);
 		
-		out.writeIfNotNull(attributes.getAsWritable(AttributeNames.ANNOTATION_DEFAULT), classinfo);
+		out.writeIfNotNull(attributes.getNullable(AttributeNames.ANNOTATION_DEFAULT), classinfo);
 		
 		if(codeAttribute.isEmpty()) {
 			out.write(';');

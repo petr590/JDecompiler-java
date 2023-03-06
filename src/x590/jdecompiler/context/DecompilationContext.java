@@ -1,5 +1,6 @@
 package x590.jdecompiler.context;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -10,11 +11,14 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.instruction.Instruction;
+import x590.jdecompiler.instruction.scope.IfInstruction;
 import x590.jdecompiler.modifiers.MethodModifiers;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.returning.VReturnOperation;
@@ -25,8 +29,57 @@ import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.TypeSize;
 import x590.util.Logger;
 import x590.util.annotation.Immutable;
+import x590.util.annotation.Nullable;
 
 public class DecompilationContext extends DecompilationAndStringifyContext implements Importable {
+	
+	public static class PreDecompilationContext extends DecompilationAndStringifyContext {
+		
+		private static final List<IfInstruction> defaultIfInstructionsList = new ArrayList<>();
+		public final Int2ObjectMap<List<IfInstruction>> ifInstructions = new Int2ObjectOpenHashMap<>();
+		
+		static {
+			defaultIfInstructionsList.add(null);
+		}
+		
+		public PreDecompilationContext(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, MethodModifiers modifiers, MethodScope methodScope, List<Instruction> instructions) {
+			
+			super(otherContext, classinfo, descriptor, modifiers, methodScope);
+			
+			for(Instruction instruction : instructions) {
+				
+				instruction.preDecompilation(this);
+				
+				if(instruction instanceof IfInstruction ifInstruction) {
+					int ifEndIndex = posToIndex(ifInstruction.endPos);
+					
+					List<IfInstruction> ifInstructionsList = ifInstructions.get(ifEndIndex);
+					
+					if(ifInstructionsList == null) {
+						ifInstructions.put(ifEndIndex, ifInstructionsList = new ArrayList<>());
+					}
+					
+					ifInstructionsList.add(ifInstruction);
+				}
+				
+				index++;
+			}
+		}
+		
+		public @Nullable IfInstruction getIfInstructionsPointedTo(int index) {
+			return ifInstructions.getOrDefault(index, defaultIfInstructionsList).get(0);
+		}
+		
+		public boolean hasIfInstructionsPointedTo(int index) {
+			return ifInstructions.containsKey(index);
+		}
+
+		@Override
+		public void warning(String message) {
+			Logger.warning("Pre-decompilation warning: " + message);
+		}
+	}
+	
 	
 	private final OperationStack stack = new OperationStack();
 	private final @Immutable Set<Operation> operations;
@@ -48,7 +101,10 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	}
 	
 	private DecompilationContext(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, MethodModifiers modifiers, MethodScope methodScope, List<Instruction> instructions, int maxLocals) {
-		super(otherContext, classinfo, descriptor, methodScope, modifiers);
+		super(otherContext, classinfo, descriptor, modifiers, methodScope);
+		
+		new PreDecompilationContext(otherContext, classinfo, descriptor, modifiers, methodScope, instructions);
+		
 		
 		this.currentScope = methodScope;
 		
@@ -321,6 +377,10 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	
 	@Override
 	public void warning(String message) {
+		logWarning(message);
+	}
+	
+	public static void logWarning(String message) {
 		Logger.warning("Decompilation warning: " + message);
 	}
 }

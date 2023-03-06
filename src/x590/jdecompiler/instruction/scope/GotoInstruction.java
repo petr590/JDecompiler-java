@@ -1,73 +1,126 @@
 package x590.jdecompiler.instruction.scope;
 
-import java.util.Optional;
-
 import x590.jdecompiler.context.DecompilationContext;
+import x590.jdecompiler.context.DecompilationContext.PreDecompilationContext;
 import x590.jdecompiler.context.DisassemblerContext;
 import x590.jdecompiler.scope.ElseScope;
 import x590.jdecompiler.scope.EmptyInfiniteLoopScope;
 import x590.jdecompiler.scope.IfScope;
-import x590.jdecompiler.scope.LoopScope;
 import x590.jdecompiler.scope.Scope;
-import x590.util.Logger;
 
 public class GotoInstruction extends InstructionWithEndPos {
 	
 	private int endIndex;
 	
-	/** Применена ли инструкция goto где-либо */
-	private boolean applied;
+	private Role role;
+	
+	public enum Role {
+		UNKNOWN, ELSE, CATCH_JUMPOVER,
+		EMPTY_INFINITE_LOOP, INFINITE_LOOP
+	}
 	
 	public GotoInstruction(DisassemblerContext context, int offset) {
 		super(context, offset);
+		this.role =
+				offset == 0 ? Role.EMPTY_INFINITE_LOOP :
+				offset < 0 ? Role.INFINITE_LOOP :
+				Role.UNKNOWN;
 	}
 	
-	private Scope apply() {
-		applied = true;
-		return null;
+	
+	public Role getRole() {
+		return role;
 	}
 	
-	private Scope apply(Scope scope) {
-		applied = true;
-		return scope;
+	
+	@Override
+	public void preDecompilation(PreDecompilationContext context) {
+		if(role == Role.UNKNOWN) {
+			
+			if(endPos > context.currentPos() && context.hasIfInstructionsPointedTo(context.currentIndex() + 1)) {
+				role = Role.ELSE;
+			}
+		}
 	}
 	
 	@Override
 	public Scope toScope(DecompilationContext context) {
-		int endIndex = this.endIndex = context.posToIndex(endPos);
-		int currentIndex = context.currentIndex();
-		Scope currentScope = context.currentScope();
 		
-		if(endIndex > currentIndex) {
+		this.endIndex = context.posToIndex(endPos);
+		
+		return switch(role) {
 			
-			if(currentScope instanceof IfScope currentIf) {
-				if(recognizeElse(context, endIndex, currentIndex, currentIf)) {
-					return apply();
+			case UNKNOWN, ELSE -> {
+				
+				if(recognizeElse(context, context.currentScope())) {
+					yield null;
 				}
 				
-			} else if(currentScope instanceof ElseScope elseScope &&
-					elseScope.superScope() instanceof IfScope currentIf) {
-				
-				if(recognizeElse(context, endIndex, currentIndex, currentIf)) {
-					elseScope.setEndIndex(currentIf.endIndex() - 1);
-					
-					return apply();
+				if(role == Role.ELSE) {
+					context.warning("Cannot recognize else scope");
+				} else {
+					context.warning("The `goto " + endIndex + "` instruction is not recognized");
 				}
+				
+				yield null;
 			}
 			
-		} else if(endIndex < currentIndex) {
-			Logger.debug("Loop");
-			
-		} else {
-			return apply(new EmptyInfiniteLoopScope(context));
-		}
+			case CATCH_JUMPOVER -> throw new UnsupportedOperationException("Unimplemented case: " + role);
+			case EMPTY_INFINITE_LOOP -> new EmptyInfiniteLoopScope(context);
+			default -> throw new IllegalArgumentException("Unexpected value: " + role);
+		};
 		
-		context.addBreak(endIndex - 1);
+		// Old code
 		
-		return null;
+//		int endIndex = this.endIndex = context.posToIndex(endPos);
+//		int currentIndex = context.currentIndex();
+//		Scope currentScope = context.currentScope();
+//		
+//		if(endIndex > currentIndex) {
+//			
+//			if(currentScope instanceof IfScope currentIf) {
+//				if(recognizeElse(context, endIndex, currentIndex, currentIf)) {
+//					return apply();
+//				}
+//				
+//			} else if(currentScope instanceof ElseScope elseScope &&
+//					elseScope.superScope() instanceof IfScope currentIf) {
+//				
+//				if(recognizeElse(context, endIndex, currentIndex, currentIf)) {
+//					elseScope.setEndIndex(currentIf.endIndex() - 1);
+//					
+//					return apply();
+//				}
+//			}
+//			
+//		} else if(endIndex < currentIndex) {
+//			Logger.debug("Loop");
+//			
+//		} else {
+//			return apply(new EmptyInfiniteLoopScope(context));
+//		}
+//		
+//		context.addBreak(endIndex - 1);
+//		
+//		return null;
 	}
 	
-	private boolean recognizeElse(DecompilationContext context, int endIndex, int currentIndex, IfScope currentIf) {
+	private boolean recognizeElse(DecompilationContext context, Scope currentScope) {
+		
+		if(currentScope instanceof IfScope currentIf) {
+			return recognizeElse(context, currentIf);
+			
+		} else if(currentScope instanceof ElseScope elseScope && endIndex == elseScope.endIndex()) {
+			elseScope.setEndIndex(context.currentIndex() + 1);
+			return recognizeElse(context, elseScope.superScope());
+		}
+		
+		return false;
+	}
+	
+	private boolean recognizeElse(DecompilationContext context, IfScope currentIf) {
+		
+		int currentIndex = context.currentIndex();
 		
 		if(currentIndex + 1 == currentIf.endIndex()) { // Создаём else
 			currentIf.addElse(context, endIndex);
@@ -92,7 +145,7 @@ public class GotoInstruction extends InstructionWithEndPos {
 		
 		if(endIndex == currentIf.endIndex() && currentIf.superScope() instanceof IfScope superIf) {
 			currentIf.setEndIndex(currentIndex + 1);
-			return recognizeElse(context, endIndex, currentIndex, superIf);
+			return recognizeElse(context, superIf);
 		}
 		
 		return false;
@@ -100,22 +153,22 @@ public class GotoInstruction extends InstructionWithEndPos {
 	
 	@Override
 	public void postDecompilation(DecompilationContext context) {
-		if(!applied) {
-			int currentIndexP1 = context.currentIndex() + 1;
-			int endIndexM1 = endIndex - 1;
-			
-			Optional<LoopScope> foundScope = context.getOperations().stream()
-					.filter(
-						operation -> !operation.isRemoved() && operation instanceof LoopScope scope &&
-								scope.startIndex() == currentIndexP1 && scope.conditionStartIndex() == endIndexM1
-							
-					).map(operation -> (LoopScope)operation).findAny();
-			
-			
-			if(foundScope.isPresent()) {
-				apply();
-				foundScope.get().makeWhileLoop();
-			}
-		}
+//		if(!applied) {
+//			int currentIndexP1 = context.currentIndex() + 1;
+//			int endIndexM1 = endIndex - 1;
+//			
+//			Optional<LoopScope> foundScope = context.getOperations().stream()
+//					.filter(
+//						operation -> !operation.isRemoved() && operation instanceof LoopScope scope &&
+//								scope.startIndex() == currentIndexP1 && scope.conditionStartIndex() == endIndexM1
+//							
+//					).map(operation -> (LoopScope)operation).findAny();
+//			
+//			
+//			if(foundScope.isPresent()) {
+//				apply();
+//				foundScope.get().makeWhileLoop();
+//			}
+//		}
 	}
 }

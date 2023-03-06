@@ -41,7 +41,25 @@ public class IfScope extends ConditionalScope {
 	
 	
 	protected boolean canSelfOmitCurlyBrackets() {
-		return super.canOmitCurlyBrackets();
+		return super.canOmitCurlyBrackets() && (
+					/*
+					 Для кода такого вида мы не можем опустить фигурные скобки,
+					 иначе будет синтаксически другое выражение:
+					
+						 if(condition1) {
+						 	if(condition2)
+						 		code1;
+						 	
+						 } else {
+						 	code2;
+						 }
+					
+					 Для избегания этой ситуации я написал код ниже:
+					*/
+					elseScope == null ||
+					getCode().size() != 1 ||
+					!(getCode().get(0) instanceof IfScope)
+				);
 	}
 	
 	@Override

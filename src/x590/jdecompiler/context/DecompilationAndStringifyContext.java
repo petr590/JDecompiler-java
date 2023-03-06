@@ -9,10 +9,10 @@ public abstract class DecompilationAndStringifyContext extends Context {
 	
 	public final ClassInfo classinfo;
 	public final MethodDescriptor descriptor;
-	public final MethodScope methodScope;
 	public final MethodModifiers modifiers;
+	public final MethodScope methodScope;
 	
-	public DecompilationAndStringifyContext(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, MethodScope methodScope, MethodModifiers modifiers) {
+	public DecompilationAndStringifyContext(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, MethodModifiers modifiers, MethodScope methodScope) {
 		super(otherContext);
 		this.classinfo = classinfo;
 		this.descriptor = descriptor;

@@ -1,4 +1,6 @@
-package example;
+package example.scope;
+
+import example.ExampleTesting;
 
 public class TernaryOperator {
 	
@@ -27,5 +29,22 @@ public class TernaryOperator {
 	
 	public static boolean baz2(int x) {
 		return x == 10 && x == 20;
+	}
+	
+	
+	public boolean intTest(int i) {
+		return i > 0x10;
+	}
+	
+	public boolean longTest(long l) {
+		return l > 0x10;
+	}
+	
+	public boolean floatTest(float f) {
+		return f > 0x10;
+	}
+	
+	public boolean doubleTest(double d) {
+		return d > 0x10;
 	}
 }

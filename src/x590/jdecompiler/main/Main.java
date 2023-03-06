@@ -86,7 +86,7 @@ public final class Main {
 		for(String file : JDecompiler.getInstance().getFiles()) {
 			
 			DataInputStream in = new DataInputStream(new BufferedInputStream(Files.newInputStream(Paths.get(file))));
-			int available = in.available();
+			int wasAvailable = in.available();
 			
 			try {
 				Timer timer = Timer.startNewTimer();
@@ -96,7 +96,7 @@ public final class Main {
 				timer.logElapsed("Class reading");
 				
 			} catch(DisassemblingException ex) {
-				Logger.warningFormatted("At pos 0x" + Integer.toHexString(available - in.available()));
+				Logger.warningFormatted("At pos 0x" + Integer.toHexString(wasAvailable - in.available()));
 				ex.printStackTrace();
 				
 			} catch(Exception ex) {
@@ -107,25 +107,26 @@ public final class Main {
 			}
 		}
 		
-
+		
 		
 		var out = new StringifyOutputStream(System.out);
+		var performance = JDecompiler.getInstance().getPerformance();
 		
 		for(JavaClass clazz : classes) {
 			
-			out.resetIndent();
-			out.write("\n\n----------------------------------------------------------------------------------------------------\n\n");
-			
-			try {
-				clazz.decompile();
-				clazz.resolveImports();
-				clazz.writeTo(out);
+			if(clazz.canStringify()) {
+				out.resetIndent().write("\n\n----------------------------------------------------------------------------------------------------\n\n");
 				
-			} catch(Exception ex) {
-				// Если исключение возникло при выводе файла в консоль,
-				// надо, чтобы стектрейс начинался с новой строки.
-				System.out.println();
-				ex.printStackTrace();
+				try {
+					performance.perform(clazz);
+					performance.write(clazz, out);
+					
+				} catch(Exception ex) {
+					// Если исключение возникло при выводе файла в консоль,
+					// надо, чтобы стектрейс начинался с новой строки.
+					System.out.println();
+					ex.printStackTrace();
+				}
 			}
 		}
 		

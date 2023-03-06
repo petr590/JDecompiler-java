@@ -53,6 +53,8 @@ public abstract class Attribute implements JavaSerializable, Importable {
 				default -> new UnknownAttribute(nameIndex, name, length, in);
 			};
 			
+			case INNER_CLASSES -> new InnerClassesAttribute(nameIndex, name, length, in, pool);
+			
 			case CODE                 -> new CodeAttribute(nameIndex, name, length, in, pool);
 			case BOOTSTRAP_METHODS    -> new BootstrapMethodsAttribute(nameIndex, name, length, in, pool);
 			case LOCAL_VARIABLE_TABLE -> new LocalVariableTableAttribute(nameIndex, name, length, in, pool);

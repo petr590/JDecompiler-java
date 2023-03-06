@@ -4,11 +4,11 @@ import x590.jdecompiler.type.ReferenceType;
 
 public abstract class Descriptor {
 	
-	private final ReferenceType clazz;
+	private final ReferenceType declaringClass;
 	private final String name;
 	
 	public Descriptor(ReferenceType clazz, String name) {
-		this.clazz = clazz;
+		this.declaringClass = clazz;
 		this.name = name;
 	}
 	
@@ -16,7 +16,7 @@ public abstract class Descriptor {
 	public abstract String toString();
 	
 	public ReferenceType getDeclaringClass() {
-		return clazz;
+		return declaringClass;
 	}
 	
 	public String getName() {

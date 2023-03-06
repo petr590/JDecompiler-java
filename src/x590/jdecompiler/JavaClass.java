@@ -4,19 +4,25 @@ import static x590.jdecompiler.modifiers.Modifiers.*;
 
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import x590.jdecompiler.DecompilationStage.DecompilationStageHolder;
 import x590.jdecompiler.attribute.AttributeNames;
 import x590.jdecompiler.attribute.Attributes;
+import x590.jdecompiler.attribute.InnerClassesAttribute;
+import x590.jdecompiler.attribute.InnerClassesAttribute.InnerClassEntry;
 import x590.jdecompiler.attribute.ModuleAttribute;
 import x590.jdecompiler.attribute.Attributes.Location;
 import x590.jdecompiler.attribute.annotation.AnnotationsAttribute;
 import x590.jdecompiler.attribute.signature.ClassSignatureAttribute;
 import x590.jdecompiler.attribute.signature.FieldSignatureAttribute;
 import x590.jdecompiler.constpool.ConstantPool;
+import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.exception.ClassFormatException;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.exception.IllegalClassHeaderException;
@@ -60,6 +66,8 @@ public class JavaClass extends JavaClassElement {
 	private final @Nullable @Immutable List<JavaEnumField> enumConstants;
 	private final @Immutable List<JavaMethod> methods;
 	
+	private @Immutable List<JavaClass> innerClasses;
+	
 	private final Attributes attributes;
 	private final @Nullable ClassSignatureAttribute signature;
 	
@@ -95,6 +103,9 @@ public class JavaClass extends JavaClassElement {
 	}
 	
 	
+	private static final Map<ClassType, JavaClass> classes = new HashMap<>();
+	
+	
 	JavaClass(ExtendedDataInputStream in) {
 		if(in.readInt() != 0xCAFEBABE)
 			throw new ClassFormatException("Illegal class header");
@@ -126,6 +137,8 @@ public class JavaClass extends JavaClassElement {
 		
 		this.visibleSuperType = getVisibleSuperType();
 		this.visibleInterfaces = getVisibleInterfaces();
+		
+		classes.put(thisType, this);
 	}
 	
 	public static JavaClass read(InputStream in) {
@@ -134,6 +147,10 @@ public class JavaClass extends JavaClassElement {
 	
 	public static JavaClass read(ExtendedDataInputStream in) {
 		return new JavaClass(in);
+	}
+	
+	public static @Nullable JavaClass find(ClassType type) {
+		return classes.get(type);
 	}
 	
 	
@@ -179,7 +196,7 @@ public class JavaClass extends JavaClassElement {
 		return enumConstants;
 	}
 	
-	public @Nullable @Immutable List<JavaMethod> getMethods() {
+	public @Immutable List<JavaMethod> getMethods() {
 		return methods;
 	}
 	
@@ -188,62 +205,90 @@ public class JavaClass extends JavaClassElement {
 	}
 	
 	
-	private DecompilationStage stage = DecompilationStage.DISASSEMBLED;
-	
-	private void checkStage(DecompilationStage requiredStage, DecompilationStage nextStage) {
-		if(stage != requiredStage) {
-			throw new IllegalStateException(nextStage.getExceptionMessage() + ": " +
-					(stage.ordinal() < nextStage.ordinal() ? stage.next().getEarlyReason() : nextStage.getRepeatedReason()));
-		}
-	}
-	
-	private void nextStage(DecompilationStage requiredStage, DecompilationStage nextStage) {
-		checkStage(requiredStage, nextStage);
-		stage = nextStage;
-	}
+	private final DecompilationStageHolder stageHolder = new DecompilationStageHolder(DecompilationStage.DISASSEMBLED);
 	
 	
 	public void decompile() {
-		nextStage(DecompilationStage.DISASSEMBLED, DecompilationStage.DECOMPILED);
+		stageHolder.nextStage(DecompilationStage.DISASSEMBLED, DecompilationStage.DECOMPILED);
 		
 		methods.forEach(method -> method.decompile(classinfo, pool));
 		if(enumConstants != null)
 			enumConstants.forEach(enumConstant -> enumConstant.checkHasEnumInitializer(classinfo));
+		
+		
+		InnerClassesAttribute innerClassesAttribute = attributes.getNullable(AttributeNames.INNER_CLASSES);
+		
+		if(innerClassesAttribute != null) {
+			innerClasses = innerClassesAttribute.getEntries().values().stream()
+					.filter(entry -> entry.getOuterType().equals(thisType))
+					.map(entry -> classes.get(entry.getInnerType()))
+					.filter(innerClass -> innerClass != null).toList();
+			
+			innerClasses.forEach(innerClass -> innerClass.decompile());
+			
+		} else {
+			innerClasses = Collections.emptyList();
+		}
 	}
 	
 	public void resolveImports() {
 		addImports(classinfo);
+		classinfo.uniqImports();
 	}
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		nextStage(DecompilationStage.DECOMPILED, DecompilationStage.IMPORTS_RESOLVED);
+		stageHolder.nextStage(DecompilationStage.DECOMPILED, DecompilationStage.IMPORTS_RESOLVED);
 		
 		classinfo.addImportIfNotNull(visibleSuperType);
 		visibleInterfaces.forEach(interfaceType -> classinfo.addImport(interfaceType));
 		attributes.addImports(classinfo);
 		fields.forEach(field -> field.addImports(classinfo));
 		methods.forEach(method -> method.addImports(classinfo));
-		
-		classinfo.uniqImports();
+		innerClasses.forEach(innerClass -> {
+			innerClass.classinfo.bindImportsTo(classinfo);
+			innerClass.resolveImports();
+		});
+	}
+	
+	
+	@Override
+	public String toString() {
+		return modifiers + " " + thisType + " extends " + superType.getName() +
+				" implements " + interfaces.stream().map(Type::getName).collect(Collectors.joining(", "));
+	}
+	
+	
+	public boolean canStringifyAsInnerClass() {
+		return super.canStringify(classinfo);
 	}
 	
 	
 	@Override
 	public boolean canStringify(ClassInfo classinfo) {
-		return super.canStringify(classinfo);
+		if(!super.canStringify(classinfo)) {
+			return false;
+		}
+		
+		InnerClassesAttribute innerClassesAttribute = attributes.getOrDefault(AttributeNames.INNER_CLASSES, InnerClassesAttribute.empty());
+		InnerClassEntry innerClass = innerClassesAttribute.find(thisType);
+		
+		return innerClass == null || !classes.containsKey(innerClass.getOuterType());
+	}
+	
+	public boolean canStringify() {
+		return canStringify(classinfo);
 	}
 	
 	
 	public void writeTo(StringifyOutputStream out) {
-		classinfo.setOutStream(out);
-		this.writeTo(out, classinfo);
+		writeTo(out, classinfo);
 	}
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 		
-		checkStage(DecompilationStage.IMPORTS_RESOLVED, DecompilationStage.WRITTEN);
+		stageHolder.checkStage(DecompilationStage.IMPORTS_RESOLVED, DecompilationStage.WRITTEN);
 		
 		if(JDecompiler.getInstance().printClassVersion())
 			out.print("/* Java version: ").print(version.toString()).println(" */");
@@ -289,8 +334,16 @@ public class JavaClass extends JavaClassElement {
 	
 	private void writeAsClass(StringifyOutputStream out, ClassInfo classinfo) {
 		writePackage(out);
-		
 		classinfo.writeImports(out);
+		writeAsInnerClass(out, classinfo);
+	}
+	
+	
+	private void writeAsInnerClass(StringifyOutputStream out) {
+		writeAsInnerClass(out, classinfo);
+	}
+	
+	private void writeAsInnerClass(StringifyOutputStream out, ClassInfo classinfo) {
 		
 		writeAnnotations(out, classinfo, attributes);
 		
@@ -317,7 +370,15 @@ public class JavaClass extends JavaClassElement {
 		
 		stringableMethods.forEach(method -> out.println().write(method, classinfo));
 		
-		out.reduceIndent().write('}');
+		innerClasses.stream()
+				.filter(innerClass -> innerClass.canStringifyAsInnerClass())
+				.forEach(innerClass -> {
+					out.writeln();
+					innerClass.writeAsInnerClass(out);
+					out.writeln();
+				});
+		
+		out.reduceIndent().printIndent().print('}');
 	}
 	
 	
@@ -349,43 +410,38 @@ public class JavaClass extends JavaClassElement {
 		
 		var modifiers = this.modifiers;
 		
-//		boolean isInnerProtected = false;
-//		
-//		if(thisType.isNested()) {
-//			
-//			InnerClassesAttribute innerClasses = attributes.get("InnerClasses");
-//			if(innerClasses != null) {
-//				
-//				InnerClass innerClass = innerClasses.find(thisType);
-//				if(innerClass != null) {
-//					ClassModifiers innerClassModifiers = innerClass.modifiers;
-//					
-//					if(innerClassModifiers.isPrivate()) str.append("private");
-//					if(innerClassModifiers.isProtected()) {
-//						str.append("protected");
-//						isInnerProtected = true;
-//					}
-//					
-//					if(innerClassModifiers.isStatic()) str.append("static");
-//					
-//					if((innerClassModifiers.and(~(ACC_ACCESS_FLAGS | ACC_STATIC | ACC_SUPER)) != (modifiers.and(~(ACC_ACCESS_FLAGS | ACC_SUPER))
-//						warning("modifiers of class " + thisType.getName() + " are not matching to the modifiers in InnerClasses attribute:"
-//								+ innerClassModifiers.toHexWithPrefix() + " " + modifiers.toHexWithPrefix());
-//				}
-//			}
-//		}
+		if(thisType.isNested()) {
+			
+			InnerClassesAttribute innerClasses = attributes.getNullable(AttributeNames.INNER_CLASSES);
+			if(innerClasses != null) {
+				
+				InnerClassEntry innerClass = innerClasses.find(thisType);
+				if(innerClass != null) {
+					ClassModifiers innerClassModifiers = innerClass.getModifiers();
+					
+					if(innerClassModifiers.and(~(ACC_ACCESS_FLAGS | ACC_STATIC | ACC_SUPER)) != (modifiers.and(~(ACC_ACCESS_FLAGS | ACC_STATIC | ACC_SUPER)))) {
+						DecompilationContext.logWarning("modifiers of class " + thisType.getName() + " are not matching to the modifiers in \"" + AttributeNames.INNER_CLASSES + "\" attribute:"
+								+ innerClassModifiers.toHexWithPrefix() + " " + modifiers.toHexWithPrefix());
+					}
+					
+					modifiers = innerClassModifiers;
+				}
+			}
+		}
 		
 		switch(modifiers.and(ACC_ACCESS_FLAGS)) {
-			case ACC_VISIBLE -> {}
-			case ACC_PUBLIC -> {
-//				if(!isInnerProtected)
-					str.append("public");
-			}
-				
+			case ACC_VISIBLE   -> {}
+			case ACC_PRIVATE   -> str.append("private");
+			case ACC_PROTECTED -> str.append("protected");
+			case ACC_PUBLIC    -> str.append("public");
+			
 			default ->
 				throw new IllegalModifiersException("in class " + thisType.getName() + ": " + modifiers.toHexWithPrefix());
 		}
 		
+		if(modifiers.isStatic()) {
+			str.append("static");
+		}
 		
 		if(modifiers.isStrictfp())
 			str.append("strictfp");
@@ -472,9 +528,10 @@ public class JavaClass extends JavaClassElement {
 			out.writeln(';');
 	}
 	
-	@Override
-	public String toString() {
-		return modifiers + " " + thisType + " extends " + superType.getName() +
-				" implements " + interfaces.stream().map(Type::getName).collect(Collectors.joining(", "));
-	}
+	
+//	TODO
+//	@Override
+//	public void writeDisassembled(StringifyOutputStream out, ClassInfo classinfo) {
+//		out.write(modifiersToString(classinfo), classinfo);
+//	}
 }
