@@ -20,7 +20,7 @@ public final class VariableDefineOperation extends VoidOperation {
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-		out.printsp(variable.getType(), context.classinfo).print(variable.getName());
+		out.printsp(variable.getType(), context.getClassinfo()).print(variable.getName());
 	}
 	
 	@Override

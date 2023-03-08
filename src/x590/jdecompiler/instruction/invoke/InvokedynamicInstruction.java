@@ -55,7 +55,7 @@ public final class InvokedynamicInstruction extends InstructionWithIndex {
 	public Operation toOperation(DecompilationContext context) {
 		InvokeDynamicConstant invokeDynamicConstant = context.pool.get(index);
 		BootstrapMethod bootstrapMethod =
-				(context.classinfo.getAttributes().<BootstrapMethodsAttribute>get(AttributeNames.BOOTSTRAP_METHODS)).bootstrapMethods.get(invokeDynamicConstant.bootstrapMethodAttrIndex);
+				(context.getClassinfo().getAttributes().<BootstrapMethodsAttribute>get(AttributeNames.BOOTSTRAP_METHODS)).bootstrapMethods.get(invokeDynamicConstant.bootstrapMethodAttrIndex);
 		
 		MethodHandleConstant methodHandle = bootstrapMethod.methodHandle;
 		ReferenceConstant referenceConstant = methodHandle.getReferenceConstant();

@@ -87,9 +87,9 @@ public final class Attributes implements JavaSerializable, Importable {
 		return (A)attributeByName.getOrDefault(name, defaultValue);
 	}
 	
-	public <A extends Attribute, T extends Throwable> A getOrThrow(String name, T throwable) throws T {
-		return getOrThrow(name, () -> throwable);
-	}
+//	public <A extends Attribute, T extends Throwable> A getOrThrow(String name, T throwable) throws T {
+//		return getOrThrow(name, () -> throwable);
+//	}
 	
 	public <A extends Attribute, T extends Throwable> A getOrThrow(String name, Supplier<T> exceptionSupplier) throws T {
 		

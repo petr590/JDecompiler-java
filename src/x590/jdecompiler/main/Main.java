@@ -1,12 +1,19 @@
 package x590.jdecompiler.main;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import x590.jdecompiler.JavaClass;
 import x590.jdecompiler.exception.DisassemblingException;
@@ -21,12 +28,52 @@ public final class Main {
 	
 	private Main() {}
 	
+	public static Set<Class<?>> findAllClassesInPackage(String packageName) {
+		return findClassesAsStreamInPackage(packageName).collect(Collectors.toSet());
+	}
+	
+	public static Set<String> findAllClassNamesInPackage(String packageName) {
+		return findClassNamesAsStreamInPackage(packageName).collect(Collectors.toSet());
+	}
+	
+	public static Stream<Class<?>> findClassesAsStreamInPackage(String packageName) {
+		return findClassNamesAsStreamInPackage(packageName).map(Main::findClass);
+	}
+	
+	public static Stream<String> findClassNamesAsStreamInPackage(String packageName) {
+		InputStream stream = ClassLoader.getSystemClassLoader().getResourceAsStream(packageName.replace('.', '/'));
+		
+		BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+		
+		Map<Boolean, List<String>> partitioned = reader.lines()
+				.collect(Collectors.partitioningBy(line -> line.endsWith(".class")));
+		
+		return partitioned.get(Boolean.FALSE).stream()
+				.map(subPackageName -> findClassNamesAsStreamInPackage(packageName + '.' + subPackageName))
+				.reduce(partitioned.get(Boolean.TRUE).stream().map(className -> packageName + '.' + className.substring(0, className.lastIndexOf('.'))),
+						Stream::concat);
+	}
+	
+	private static Class<?> findClass(String name) {
+		try {
+			return Class.forName(name);
+		} catch(ClassNotFoundException ex) {
+			System.err.println("Failed to load class \"" + name + "\"");
+		}
+		
+		return null;
+	}
+	
+	
 	public static void main(String[] args) throws IOException {
 		
 		if(args.length > 0) {
 			JDecompiler.init(args);
 		} else {
-			JDecompiler.init(new String[] {
+			JDecompiler.init(findClassNamesAsStreamInPackage("example")
+					.map(className -> "bin/" + className.replace('.', '/') + ".class").toArray(String[]::new));
+			
+//			JDecompiler.init(new String[] {
 //					"bin/example/Example2.class",
 					
 //					"bin/example/annotation/TestAnnotation.class",
@@ -75,9 +122,10 @@ public final class Main {
 					
 //					"bin/x590/jdecompiler/modifiers/Modifiers.class",
 //					"bin/module-info.class",
-					"bin/example/package-info.class", "--omit-single-import",
+//					"bin/example/package-info.class", "--omit-single-import",
+//					"bin/module-info.class"
 //					"bin/example/EmptyClass.class",
-			});
+//			});
 		}
 		
 		
@@ -91,9 +139,11 @@ public final class Main {
 			try {
 				Timer timer = Timer.startNewTimer();
 				
-				classes.add(JavaClass.read(in));
+				JavaClass javaClass = JavaClass.read(in);
 				
 				timer.logElapsed("Class reading");
+				
+				classes.add(javaClass);
 				
 			} catch(DisassemblingException ex) {
 				Logger.warningFormatted("At pos 0x" + Integer.toHexString(wasAvailable - in.available()));

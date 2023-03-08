@@ -71,7 +71,7 @@ public class SwitchScope extends Scope {
 		
 		var indexTable = this.indexTable;
 		var indexes = this.indexes;
-		boolean canUseNewSwitch = context.classinfo.getVersion().majorVersion >= Version.JAVA_12 &&
+		boolean canUseNewSwitch = context.getClassinfo().getVersion().majorVersion >= Version.JAVA_12 &&
 				!indexTable.containsKey(defaultIndex);
 		
 		var defaultCaseWrote = new BooleanHolder();
@@ -106,7 +106,7 @@ public class SwitchScope extends Scope {
 									out.write("case ");
 									
 									Util.forEachExcludingLast(constants,
-											constant -> constant.writeTo(out, context.classinfo, type),
+											constant -> constant.writeTo(out, context.getClassinfo(), type),
 											constant -> out.write(", ")
 									);
 									
@@ -116,7 +116,7 @@ public class SwitchScope extends Scope {
 									Util.forEachExcludingLast(constants,
 											constant -> {
 												out.write("case ");
-												constant.writeTo(out, context.classinfo, type);
+												constant.writeTo(out, context.getClassinfo(), type);
 												out.write(':');
 											},
 											

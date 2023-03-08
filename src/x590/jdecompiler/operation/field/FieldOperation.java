@@ -17,7 +17,7 @@ public abstract class FieldOperation extends OperationWithDescriptor<FieldDescri
 	
 	public FieldOperation(DecompilationContext context, FieldrefConstant fieldref) {
 		super(new FieldDescriptor(fieldref));
-		this.canOmit = descriptor.getDeclaringClass().equals(context.classinfo.getThisType()) && context.classinfo.getField(descriptor).getModifiers().isSynthetic();
+		this.canOmit = descriptor.getDeclaringClass().equals(context.getClassinfo().getThisType()) && context.getClassinfo().getField(descriptor).getModifiers().isSynthetic();
 	}
 	
 	protected Operation popObject(DecompilationContext context) {
@@ -26,12 +26,12 @@ public abstract class FieldOperation extends OperationWithDescriptor<FieldDescri
 	
 	@Override
 	protected boolean canOmitClass(StringifyContext context) {
-		return super.canOmitClass(context) && !context.methodScope.hasVariableWithName(descriptor.getName());
+		return super.canOmitClass(context) && !context.getMethodScope().hasVariableWithName(descriptor.getName());
 	}
 	
 	@Override
 	protected boolean canOmitObject(StringifyContext context, Operation object) {
-		return super.canOmitObject(context, object) && !context.methodScope.hasVariableWithName(descriptor.getName());
+		return super.canOmitObject(context, object) && !context.getMethodScope().hasVariableWithName(descriptor.getName());
 	}
 	
 	@Override

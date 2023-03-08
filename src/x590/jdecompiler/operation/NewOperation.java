@@ -31,7 +31,7 @@ public final class NewOperation extends Operation {
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-		out.print("new ").print(type, context.classinfo);
+		out.print("new ").print(type, context.getClassinfo());
 	}
 	
 	@Override

@@ -266,12 +266,11 @@ public class JavaClass extends JavaClassElement {
 	
 	@Override
 	public boolean canStringify(ClassInfo classinfo) {
-		if(!super.canStringify(classinfo)) {
+		if(!super.canStringify(classinfo) && !thisType.isPackageInfo()) {
 			return false;
 		}
 		
-		InnerClassesAttribute innerClassesAttribute = attributes.getOrDefault(AttributeNames.INNER_CLASSES, InnerClassesAttribute.empty());
-		InnerClassEntry innerClass = innerClassesAttribute.find(thisType);
+		InnerClassEntry innerClass = attributes.getOrDefault(AttributeNames.INNER_CLASSES, InnerClassesAttribute.empty()).find(thisType);
 		
 		return innerClass == null || !classes.containsKey(innerClass.getOuterType());
 	}

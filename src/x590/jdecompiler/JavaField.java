@@ -12,6 +12,7 @@ import x590.jdecompiler.attribute.annotation.AnnotationsAttribute;
 import x590.jdecompiler.attribute.signature.FieldSignatureAttribute;
 import x590.jdecompiler.constpool.ConstValueConstant;
 import x590.jdecompiler.constpool.ConstantPool;
+import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.exception.IllegalModifiersException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
@@ -31,8 +32,9 @@ public class JavaField extends JavaClassElement {
 	private final Attributes attributes;
 	
 	private final ConstantValueAttribute constantValueAttribute;
-	
 	private Operation initializer;
+	private JavaMethod method;
+	
 	private final Pair<AnnotationsAttribute, AnnotationsAttribute> annotationAttributes;
 	
 	JavaField(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool, FieldModifiers modifiers) {
@@ -66,7 +68,7 @@ public class JavaField extends JavaClassElement {
 	}
 	
 	
-	public boolean setStaticInitializer(Operation initializer) {
+	public boolean setStaticInitializer(Operation initializer, DecompilationContext context) {
 		
 		if(modifiers.isNotStatic()) {
 			throw new DecompilationException("Cannot set static initializer to the non-static field \"" + descriptor.getName() + "\"");
@@ -74,6 +76,7 @@ public class JavaField extends JavaClassElement {
 		
 		if(this.initializer == null && constantValueAttribute == null) {
 			this.initializer = initializer;
+			this.method = context.getMethod();
 			return true;
 		}
 		
@@ -103,24 +106,23 @@ public class JavaField extends JavaClassElement {
 	}
 	
 	
-	public boolean setInstanceInitializer(Operation initializer) {
+	public boolean setInstanceInitializer(Operation initializer, DecompilationContext context) {
 		
 		if(modifiers.isStatic()) {
 			throw new DecompilationException("Cannot set instance initializer to static field \"" + descriptor.getName() + "\"");
 		}
 		
-		if(this.initializer == null && constantValueAttribute == null) {
+		if(constantValueAttribute != null) {
+			return false;
+		}
+		
+		if(this.initializer == null) {
 			this.initializer = initializer;
+			this.method = context.getMethod();
 			return true;
 		}
 		
-		if(this.initializer.equals(initializer)) {
-			return true;
-			
-		} else {
-			this.initializer = null;
-			return false;
-		}
+		return this.initializer.equals(initializer);
 	}
 	
 	
@@ -177,9 +179,9 @@ public class JavaField extends JavaClassElement {
 			out.write(" = ");
 			
 			if(descriptor.getType().isBasicArrayType() && JDecompiler.getInstance().shortArrayInitAllowed())
-				initializer.writeAsArrayInitializer(out, classinfo.getStaticInitializerStringifyContext());
+				initializer.writeAsArrayInitializer(out, method.getStringifyContext());
 			else
-				initializer.writeTo(out, classinfo.getStaticInitializerStringifyContext());
+				initializer.writeTo(out, method.getStringifyContext());
 			
 		} else if(constantValueAttribute != null) {
 			out.write(" = ");

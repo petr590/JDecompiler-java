@@ -86,7 +86,7 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 	@Override
 	public void writeName(StringifyOutputStream out, StringifyContext context) {
 		if(varDefined)
-			out.writesp(variable.getType(), context.classinfo);
+			out.writesp(variable.getType(), context.getClassinfo());
 			
 		out.write(variable.getName());
 	}

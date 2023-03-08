@@ -19,10 +19,10 @@ public final class PutStaticFieldOperation extends PutFieldOperation {
 	}
 	
 	private void init(DecompilationContext context) {
-		if(!canOmit && context.descriptor.isStaticInitializer() &&
-				context.currentScope() == context.methodScope && !getValue().requiresLocalContext()) {
+		if(!canOmit && context.getDescriptor().isStaticInitializer() &&
+				context.currentScope() == context.getMethodScope() && !getValue().requiresLocalContext()) {
 			
-			if(context.classinfo.getField(descriptor).setStaticInitializer(getValue()))
+			if(context.getClassinfo().getField(descriptor).setStaticInitializer(getValue(), context))
 				this.remove();
 		}
 		
@@ -32,7 +32,7 @@ public final class PutStaticFieldOperation extends PutFieldOperation {
 	@Override
 	public void writeName(StringifyOutputStream out, StringifyContext context) {
 		if(!canOmitClass(context)) {
-			out.print(descriptor.getDeclaringClass(), context.classinfo).print('.');
+			out.print(descriptor.getDeclaringClass(), context.getClassinfo()).print('.');
 		}
 		
 		super.writeName(out, context);

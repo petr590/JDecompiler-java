@@ -1,7 +1,7 @@
 package x590.jdecompiler.operation.array;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import x590.jdecompiler.ClassInfo;
@@ -16,13 +16,13 @@ import x590.jdecompiler.operationinstruction.constant.AConstNullOperationInstruc
 import x590.jdecompiler.type.ArrayType;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
-import x590.util.ArrayUtil;
 import x590.util.Util;
+import x590.util.annotation.Immutable;
 
 public class NewArrayOperation extends Operation {
 	
 	private final ArrayType arrayType;
-	private final Operation[] lengths;
+	private final @Immutable List<Operation> arrayLengths;
 	private final int length;
 	private final List<Operation> initializers = new ArrayList<>();
 	private boolean varargsInlined;
@@ -41,17 +41,21 @@ public class NewArrayOperation extends Operation {
 	
 	public NewArrayOperation(DecompilationContext context, ArrayType arrayType, int dimensions) {
 		
-		this.arrayType = arrayType;
-		this.lengths = new Operation[arrayType.getNestingLevel()];
-		
 		if(dimensions > arrayType.getNestingLevel())
 			throw new DecompilationException("Instruction newarray (or another derivative of it)" +
 					"has too many dimensions (" + dimensions + ") for its array type " + arrayType.toString());
 		
-		for(int i = dimensions; i > 0; )
-			lengths[--i] = context.popAsNarrowest(PrimitiveType.INT);
+		this.arrayType = arrayType;
 		
-		this.length = lengths[0] instanceof IConstOperation iconst ? iconst.getValue() : -1;
+		List<Operation> arrayLengths = new ArrayList<>(dimensions);
+		
+		for(int i = dimensions; i > 0; i--)
+			arrayLengths.add(context.popAsNarrowest(PrimitiveType.INT));
+		
+		Collections.reverse(arrayLengths);
+		
+		this.arrayLengths = Collections.unmodifiableList(arrayLengths);
+		this.length = arrayLengths.get(0) instanceof IConstOperation iconst ? iconst.getValue() : -1;
 	}
 	
 	
@@ -93,14 +97,14 @@ public class NewArrayOperation extends Operation {
 	
 	
 	public boolean canInitAsList() {
-		return !initializers.isEmpty() || ((lengths.length == 1 || (lengths.length > 1 && lengths[1] == null)) && length == 0);
+		return !initializers.isEmpty() || arrayLengths.size() == 1 && length == 0;
 	}
 	
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
 		arrayType.addImports(classinfo);
-		ArrayUtil.forEach(lengths, length -> length.addImports(classinfo));
+		arrayLengths.forEach(arrayLength -> arrayLength.addImports(classinfo));
 		initializers.forEach(initializer -> initializer.addImports(classinfo));
 	}
 	
@@ -113,7 +117,7 @@ public class NewArrayOperation extends Operation {
 		}
 		
 		if(canInitAsList()) {
-			out.print("new ").print(arrayType, context.classinfo).printsp();
+			out.print("new ").print(arrayType, context.getClassinfo()).printsp();
 		}
 		
 		writeAsArrayInitializer(out, context);
@@ -132,29 +136,23 @@ public class NewArrayOperation extends Operation {
 			out.write(useSpaces ? " }" : "}");
 			
 		} else {
-			out.print("new ").print(arrayType.getMemberType(), context.classinfo);
-			
-			ArrayUtil.forEach(lengths, length -> {
-					out.write('[');
-					
-					if(length != null)
-						out.print(length, context);
-					
-					out.write(']');
-			});
+			out.print("new ").print(arrayType.getMemberType(), context.getClassinfo());
+			arrayLengths.forEach(arrayLength -> out.print('[').print(arrayLength, context).print(']'));
+			for(int i = arrayLengths.size(), nestLevel = arrayType.getNestingLevel(); i < nestLevel; i++)
+				out.write("[]");
 		}
 	}
 	
 	@Override
 	public boolean requiresLocalContext() {
 		return initializers.stream().anyMatch(Operation::requiresLocalContext) ||
-				Arrays.stream(lengths).anyMatch(length -> length != null && length.requiresLocalContext());
+				arrayLengths.stream().anyMatch(Operation::requiresLocalContext);
 	}
 	
 	@Override
 	public boolean equals(Operation other) {
 		return this == other || other instanceof NewArrayOperation operation &&
-				arrayType.equals(operation.arrayType) && Arrays.equals(lengths, operation.lengths) &&
+				arrayType.equals(operation.arrayType) && arrayLengths.equals(operation.arrayLengths) &&
 				initializers.equals(operation.initializers) && varargsInlined == operation.varargsInlined;
 	}
 }

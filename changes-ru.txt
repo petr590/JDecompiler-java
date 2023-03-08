@@ -1,18 +1,5 @@
-Добавлена стадия пре-декомпиляции и PreDecompilationContext. На этой стадии идёт предварительное распознавание конструкций условий, циклов и т.д.
-Не весь старый код пока переписан под эту стадию.
+Изменено API DecompilationAndStringifyContext. Исправлена ошибка с декомпиляцией инициализации нестатических полей.
 
-Добавлено кэширование всех экземпляров JavaClass для того, чтобы их можно было получить из других объектов JavaClass.
-Добавлена декомпиляция вложенных классов.
+Исправлен NullPointerException в классе NewArrayOperation. Массив заменён на список, что упростило итерацию.
 
-Удалены устаревшие неиспользуемые методы из классов ClassInfo и ReferenceType.
-
-Добавлен интерфейс IClassInfo, который имеет 2 реализации - ClassInfo и PlainClassInfo
-Экземпляры PlainClassInfo можно создавать из экземпляров java.lang.Class
-Добавлено создание экземпляра Type из java.lang.Class (метод Type.fromClass(Class<?>))
-Всё это делалось для того, чтобы добавить аннотацию Override для методов.
-
-Рефакторинг класса DecompilationStage, добавлен класс DecompilationStage.DecompilationStageHolder.
-
-Рефакторинг других классов, полей, методов и т.д.
-
-Исправлен потенциальный баг с NullPointerException в UncertainReferenceType
+Планируется добавление поддержки атрибута PermittedSubclasses.

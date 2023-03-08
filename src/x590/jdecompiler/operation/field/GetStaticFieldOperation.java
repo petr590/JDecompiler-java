@@ -34,11 +34,11 @@ public final class GetStaticFieldOperation extends GetFieldOperation {
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		
 		if(isPrimitiveClass) {
-			out.print(((WrapperClassType)descriptor.getDeclaringClass()).getPrimitiveType(), context.classinfo).print(".class");
+			out.print(((WrapperClassType)descriptor.getDeclaringClass()).getPrimitiveType(), context.getClassinfo()).print(".class");
 			
 		} else {
 			if(!canOmitClass(context)) {
-				out.print(descriptor.getDeclaringClass(), context.classinfo).print('.');
+				out.print(descriptor.getDeclaringClass(), context.getClassinfo()).print('.');
 			}
 			
 			super.writeTo(out, context);

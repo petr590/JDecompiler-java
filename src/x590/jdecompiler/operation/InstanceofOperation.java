@@ -24,7 +24,7 @@ public final class InstanceofOperation extends BooleanOperation {
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-		out.printPrioritied(this, object, context, Associativity.LEFT).print(" instanceof ").print(clazz, context.classinfo);
+		out.printPrioritied(this, object, context, Associativity.LEFT).print(" instanceof ").print(clazz, context.getClassinfo());
 	}
 	
 	@Override

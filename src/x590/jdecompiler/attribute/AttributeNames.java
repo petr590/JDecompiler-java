@@ -5,13 +5,14 @@ public final class AttributeNames {
 	private AttributeNames() {}
 	
 	public static final String
-			CONSTANT_VALUE     = "ConstantValue",
-			DEPRECATED         = "Deprecated",
-			SYNTHETIC          = "Synthetic",
-			EXCEPTIONS         = "Exceptions",
-			SIGNATURE          = "Signature",
-			ANNOTATION_DEFAULT = "AnnotationDefault",
-			MODULE             = "Module",
+			CONSTANT_VALUE       = "ConstantValue",
+			DEPRECATED           = "Deprecated",
+			SYNTHETIC            = "Synthetic",
+			EXCEPTIONS           = "Exceptions",
+			SIGNATURE            = "Signature",
+			ANNOTATION_DEFAULT   = "AnnotationDefault",
+			MODULE               = "Module",
+			PERMITTED_SUBCLASSES = "PermittedSubclasses",
 			
 			SOURCE_FILE      = "SourceFile",
 			INNER_CLASSES    = "InnerClasses",

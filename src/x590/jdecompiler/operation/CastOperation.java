@@ -64,7 +64,7 @@ public class CastOperation extends Operation {
 		if(implicitCast && implicitCastAllowed)
 			out.write(operand, context);
 		else
-			out.print('(').print(castedType, context.classinfo).print(')')
+			out.print('(').print(castedType, context.getClassinfo()).print(')')
 					.printPrioritied(this, operand, context, Associativity.RIGHT);
 	}
 	

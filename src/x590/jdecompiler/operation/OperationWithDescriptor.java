@@ -14,11 +14,11 @@ public abstract class OperationWithDescriptor<D extends Descriptor> extends Oper
 	}
 	
 	protected boolean canOmitClass(StringifyContext context) {
-		return context.classinfo.canOmitClass(descriptor);
+		return context.getClassinfo().canOmitClass(descriptor);
 	}
 	
 	protected boolean canOmitObject(StringifyContext context, Operation object) {
-		return JDecompiler.getInstance().canOmitThisAndClass() && context.modifiers.isNotStatic() &&
+		return JDecompiler.getInstance().canOmitThisAndClass() && context.getModifiers().isNotStatic() &&
 				object instanceof ALoadOperation aload && aload.getIndex() == 0;
 	}
 	

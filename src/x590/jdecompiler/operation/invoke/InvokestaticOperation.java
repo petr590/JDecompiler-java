@@ -65,7 +65,7 @@ public final class InvokestaticOperation extends InvokeOperation {
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		if(!canOmitClass(context))
-			out.print(descriptor.getDeclaringClass(), context.classinfo).print('.');
+			out.print(descriptor.getDeclaringClass(), context.getClassinfo()).print('.');
 		
 		out.write(descriptor.getName());
 		writeArguments(out, context);

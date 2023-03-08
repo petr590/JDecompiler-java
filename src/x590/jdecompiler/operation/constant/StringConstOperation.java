@@ -14,7 +14,7 @@ public final class StringConstOperation extends ConstOperation<StringConstant> {
 	}
 	
 	public StringConstOperation(DecompilationContext context, String value) {
-		this(context.classinfo.getConstPool().findOrCreateConstant(value));
+		this(context.getClassinfo().getConstPool().findOrCreateConstant(value));
 	}
 	
 	@Override

@@ -24,10 +24,10 @@ public final class PutInstanceFieldOperation extends PutFieldOperation {
 	
 	// TODO
 	private void init(DecompilationContext context) {
-		if(!canOmit && context.descriptor.isConstructor() &&
-				context.currentScope() == context.methodScope && !getValue().requiresLocalContext()) {
+		if(!canOmit && context.getDescriptor().isConstructor() &&
+				context.currentScope() == context.getMethodScope() && !getValue().requiresLocalContext()) {
 			
-			if(context.classinfo.getField(descriptor).setInstanceInitializer(getValue()))
+			if(context.getClassinfo().getField(descriptor).setInstanceInitializer(getValue(), context))
 				this.remove();
 		}
 		

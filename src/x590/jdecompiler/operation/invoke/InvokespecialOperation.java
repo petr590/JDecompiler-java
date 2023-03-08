@@ -27,15 +27,15 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 	private final Type returnType;
 	
 	private SuperState getSuperState(DecompilationContext context) {
-		if(context.modifiers.isNotStatic() &&
+		if(context.getModifiers().isNotStatic() &&
 			object instanceof ALoadOperation aload && aload.getIndex() == 0) {
 			
 			ReferenceType clazz = descriptor.getDeclaringClass();
 			
-			if(clazz.equals(context.classinfo.getSuperType()))
+			if(clazz.equals(context.getClassinfo().getSuperType()))
 				return SuperState.SUPERCLASS;
 			
-			if(context.classinfo.getInterfaces().stream().anyMatch(interfaceType -> clazz.equals(interfaceType)))
+			if(context.getClassinfo().getInterfaces().stream().anyMatch(interfaceType -> clazz.equals(interfaceType)))
 				return SuperState.SUPERINTERFACE;
 		}
 		
@@ -56,21 +56,21 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 	public InvokespecialOperation(DecompilationContext context, int index) {
 		super(context, index);
 		this.superState = getSuperState(context);
-		this.isEnum = context.classinfo.getModifiers().isEnum();
+		this.isEnum = context.getClassinfo().getModifiers().isEnum();
 		this.returnType = getReturnType(context);
 	}
 	
 	public InvokespecialOperation(DecompilationContext context, MethodDescriptor descriptor) {
 		super(context, descriptor);
 		this.superState = getSuperState(context);
-		this.isEnum = context.classinfo.getModifiers().isEnum();
+		this.isEnum = context.getClassinfo().getModifiers().isEnum();
 		this.returnType = getReturnType(context);
 	}
 	
 	public InvokespecialOperation(DecompilationContext context, MethodDescriptor descriptor, Operation object) {
 		super(context, descriptor, object);
 		this.superState = getSuperState(context);
-		this.isEnum = context.classinfo.getModifiers().isEnum();
+		this.isEnum = context.getClassinfo().getModifiers().isEnum();
 		this.returnType = getReturnType(context);
 	}
 	
@@ -110,7 +110,7 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 			}
 			
 			case SUPERINTERFACE -> {
-				out.print(descriptor.getDeclaringClass(), context.classinfo).write(".super");
+				out.print(descriptor.getDeclaringClass(), context.getClassinfo()).write(".super");
 				yield true;
 			}
 			

@@ -109,7 +109,7 @@ public class JavaMethod extends JavaClassElement {
 		this.methodScope = MethodScope.of(classinfo, descriptor, modifiers, codeAttribute,
 				disassemblerContext.getInstructions().size(), codeAttribute.isEmpty() ? descriptor.countLocals(modifiers) : codeAttribute.maxLocals);
 		
-		this.stringifyContext = new StringifyContext(disassemblerContext, classinfo, descriptor, modifiers, methodScope);
+		this.stringifyContext = new StringifyContext(disassemblerContext, classinfo, this);
 	}
 	
 	
@@ -144,9 +144,14 @@ public class JavaMethod extends JavaClassElement {
 	}
 	
 	
+	public MethodScope getMethodScope() {
+		return methodScope;
+	}
+	
+	
 	void decompile(ClassInfo classinfo, ConstantPool pool) {
 		Logger.logf("Decompiling of method %s", descriptor);
-		decompilationContext = DecompilationContext.decompile(disassemblerContext, classinfo, descriptor, modifiers, methodScope, disassemblerContext.getInstructions(), codeAttribute.maxLocals);
+		decompilationContext = DecompilationContext.decompile(disassemblerContext, classinfo, this, disassemblerContext.getInstructions(), codeAttribute.maxLocals);
 		methodScope.reduceTypes();
 		methodScope.defineVariables();
 		

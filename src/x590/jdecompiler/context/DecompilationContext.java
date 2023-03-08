@@ -15,14 +15,12 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
-import x590.jdecompiler.MethodDescriptor;
+import x590.jdecompiler.JavaMethod;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.instruction.Instruction;
 import x590.jdecompiler.instruction.scope.IfInstruction;
-import x590.jdecompiler.modifiers.MethodModifiers;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.returning.VReturnOperation;
-import x590.jdecompiler.scope.MethodScope;
 import x590.jdecompiler.scope.Scope;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
@@ -42,9 +40,9 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 			defaultIfInstructionsList.add(null);
 		}
 		
-		public PreDecompilationContext(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, MethodModifiers modifiers, MethodScope methodScope, List<Instruction> instructions) {
+		public PreDecompilationContext(Context otherContext, ClassInfo classinfo, JavaMethod method, List<Instruction> instructions) {
 			
-			super(otherContext, classinfo, descriptor, modifiers, methodScope);
+			super(otherContext, classinfo, method);
 			
 			for(Instruction instruction : instructions) {
 				
@@ -96,17 +94,17 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	private final Set<Integer> breaks = new HashSet<>();
 	
 	
-	public static DecompilationContext decompile(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, MethodModifiers modifiers, MethodScope methodScope, List<Instruction> instructions, int maxLocals) {
-		return new DecompilationContext(otherContext, classinfo, descriptor, modifiers, methodScope, instructions, maxLocals);
+	public static DecompilationContext decompile(Context otherContext, ClassInfo classinfo, JavaMethod method, List<Instruction> instructions, int maxLocals) {
+		return new DecompilationContext(otherContext, classinfo, method, instructions, maxLocals);
 	}
 	
-	private DecompilationContext(Context otherContext, ClassInfo classinfo, MethodDescriptor descriptor, MethodModifiers modifiers, MethodScope methodScope, List<Instruction> instructions, int maxLocals) {
-		super(otherContext, classinfo, descriptor, modifiers, methodScope);
+	private DecompilationContext(Context otherContext, ClassInfo classinfo, JavaMethod method, List<Instruction> instructions, int maxLocals) {
+		super(otherContext, classinfo, method);
 		
-		new PreDecompilationContext(otherContext, classinfo, descriptor, modifiers, methodScope, instructions);
+		new PreDecompilationContext(otherContext, classinfo, method, instructions);
 		
 		
-		this.currentScope = methodScope;
+		this.currentScope = getMethodScope();
 		
 		Set<Operation> operations = new HashSet<>(instructions.size());
 		this.operations = Collections.unmodifiableSet(operations);
@@ -235,7 +233,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	private void checkScopesBounds(int lastIndex) {
 		for(Scope scope = currentScope; scope != null; scope = scope.superScope()) {
 			if(scope.endIndex() > lastIndex) {
-				Logger.warningFormatted("Scope %s is out of bounds of the %s", scope, methodScope);
+				Logger.warningFormatted("Scope %s is out of bounds of the %s", scope, getMethodScope());
 			}
 		}
 	}

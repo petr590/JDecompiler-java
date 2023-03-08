@@ -23,7 +23,7 @@ public abstract class ReturnOperation extends VoidOperation {
 	
 	public ReturnOperation(Predicate<Type> predicate, DecompilationContext context) {
 		
-		Type methodReturnType = context.descriptor.getReturnType();
+		Type methodReturnType = context.getDescriptor().getReturnType();
 		
 		if(!predicate.test(methodReturnType))
 			throw new DecompilationException("The method return type (" + methodReturnType + ")" +

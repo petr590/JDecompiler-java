@@ -19,8 +19,8 @@ public final class VReturnOperation extends VoidOperation {
 	}
 	
 	public static VReturnOperation getInstance(DecompilationContext context) {
-		if(context.descriptor.getReturnType() != PrimitiveType.VOID)
-			throw new DecompilationException("The method return type (" + context.descriptor.getReturnType() + ")" +
+		if(context.getDescriptor().getReturnType() != PrimitiveType.VOID)
+			throw new DecompilationException("The method return type (" + context.getDescriptor().getReturnType() + ")" +
 					" does not match type of the `return` instruction");
 		
 		return INSTANCE;

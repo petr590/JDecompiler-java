@@ -1,18 +1,5 @@
-Added the pre-decompilation stage and PreDecompilationContext. At this stage, there is a preliminary recognition of constructions of conditions, cycles, etc.
-Not all the old code has been rewritten for this stage yet.
+Changed DecompilationAndStringifyContext API. Fixed bug with decompilation of initialization of non-static fields.
 
-Added caching of all Java Class instances so that they can be retrieved from other JavaClass objects.
-Decompilation of nested classes has been added.
+Fixed NullPointerException in NewArrayOperation class. The array has been replaced with a list, which simplifies iteration.
 
-Deprecated unused methods have been removed from the ClassInfo and ReferenceType classes.
-
-Added the IClassinfo interface, which has 2 implementations - ClassInfo and PlainClassInfo
-PlainClassInfo instances can be created from instances java.lang.Class
-Added creation of Type instance from java.lang.Class (the method Type.fromClass(Class<?>))
-All this was done in order to add an Override annotation for methods.
-
-DecompilationStage class refactoring, added class DecompilationStage.DecompilationStageHolder.
-
-Refactoring of other classes, fields, methods, etc.
-
-Fixed a potential bug with NullPointerException in UncertainReferenceType
+It is planned to add support for the PermittedSubclasses attribute.

@@ -16,6 +16,6 @@ public class LPushInstruction implements Instruction {
 
 	@Override
 	public @Nullable Operation toOperation(DecompilationContext context) {
-		return new LConstOperation(context.classinfo.getConstPool().findOrCreateConstant(value));
+		return new LConstOperation(context.getClassinfo().getConstPool().findOrCreateConstant(value));
 	}
 }

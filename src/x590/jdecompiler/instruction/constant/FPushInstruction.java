@@ -16,6 +16,6 @@ public class FPushInstruction implements Instruction {
 
 	@Override
 	public @Nullable Operation toOperation(DecompilationContext context) {
-		return new FConstOperation(context.classinfo.getConstPool().findOrCreateConstant(value));
+		return new FConstOperation(context.getClassinfo().getConstPool().findOrCreateConstant(value));
 	}
 }

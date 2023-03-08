@@ -16,6 +16,6 @@ public class DPushInstruction implements Instruction {
 
 	@Override
 	public @Nullable Operation toOperation(DecompilationContext context) {
-		return new DConstOperation(context.classinfo.getConstPool().findOrCreateConstant(value));
+		return new DConstOperation(context.getClassinfo().getConstPool().findOrCreateConstant(value));
 	}
 }

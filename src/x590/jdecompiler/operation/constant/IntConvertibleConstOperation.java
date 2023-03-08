@@ -21,7 +21,7 @@ public abstract class IntConvertibleConstOperation<C extends ConstableValueConst
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-		constant.writeTo(out, context.classinfo, returnType, implicit);
+		constant.writeTo(out, context.getClassinfo(), returnType, implicit);
 	}
 	
 	@Override

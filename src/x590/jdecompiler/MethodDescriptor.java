@@ -173,12 +173,12 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	public void write(StringifyOutputStream out, StringifyContext context, Attributes attributes, @Nullable MethodSignatureAttribute signature) {
 		
 		if(signature != null && signature.parameters != null) {
-			out.writesp(signature.parameters, context.classinfo);
+			out.writesp(signature.parameters, context.getClassinfo());
 		}
 		
 		switch(kind) {
 			case CONSTRUCTOR -> {
-				out.print(getDeclaringClass(), context.classinfo);
+				out.print(getDeclaringClass(), context.getClassinfo());
 				this.writeArguments(out, context, attributes, signature);
 			}
 				
@@ -187,7 +187,7 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 			}
 				
 			case PLAIN -> {
-				out.print(signature != null ? signature.returnType : returnType, context.classinfo).printsp().print(getName());
+				out.print(signature != null ? signature.returnType : returnType, context.getClassinfo()).printsp().print(getName());
 				this.writeArguments(out, context, attributes, signature);
 			}
 		}
@@ -196,11 +196,11 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	
 	private void writeArguments(StringifyOutputStream out, StringifyContext context, Attributes attributes, @Nullable MethodSignatureAttribute signature) {
 		
-		var classinfo = context.classinfo;
+		var classinfo = context.getClassinfo();
 		
-		int startIndex = getVisibleStartIndex(context.classinfo);
+		int startIndex = getVisibleStartIndex(context.getClassinfo());
 		
-		IntHolder varIndex = new IntHolder((context.modifiers.isNotStatic() ? 1 : 0) + startIndex);
+		IntHolder varIndex = new IntHolder((context.getModifiers().isNotStatic() ? 1 : 0) + startIndex);
 		
 		ParameterAnnotationsAttribute
 				visibleParameterAnnotations = attributes.getOrDefault(AttributeNames.RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS, ParameterAnnotationsAttribute.emptyVisible()),
@@ -212,11 +212,11 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 		};
 		
 		
-		Function<Type, String> getVariableName = type -> context.methodScope.getDefinedVariable(varIndex.postInc(type.getSize().slotsOccupied())).getName();
+		Function<Type, String> getVariableName = type -> context.getMethodScope().getDefinedVariable(varIndex.postInc(type.getSize().slotsOccupied())).getName();
 		
 		ObjIntConsumer<Type> write;
 		
-		if(context.modifiers.isVarargs()) {
+		if(context.getModifiers().isVarargs()) {
 			int varargsIndex = arguments.size() - 1;
 			
 			if(arguments.isEmpty() || !arguments.get(varargsIndex).isBasicArrayType())

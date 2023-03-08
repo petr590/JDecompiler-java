@@ -32,7 +32,7 @@ public abstract class ConstOperation<C extends ConstValueConstant> extends Retur
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-		constant.writeTo(out, context.classinfo, returnType);
+		constant.writeTo(out, context.getClassinfo(), returnType);
 	}
 	
 	@Override
