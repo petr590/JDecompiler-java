@@ -18,6 +18,9 @@ import x590.util.Logger;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
+/**
+ * Представляет набор атрибутов. Хранит только уникальные атрибуты
+ */
 @Immutable
 public final class Attributes implements JavaSerializable, Importable {
 	
@@ -36,6 +39,9 @@ public final class Attributes implements JavaSerializable, Importable {
 		this.attributeByName = attributeByName;
 	}
 	
+	/**
+	 * Читает атрибуты из потока
+	 */
 	public static Attributes read(ExtendedDataInputStream in, ConstantPool pool, Location location) {
 		int length = in.readUnsignedShort();
 		Map<String, Attribute> attributeByName = new HashMap<>(length);
@@ -68,7 +74,7 @@ public final class Attributes implements JavaSerializable, Importable {
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		attributes.forEach(attribute -> attribute.addImports(classinfo));
+		classinfo.addImportsFor(attributes);
 	}
 	
 	
@@ -87,9 +93,9 @@ public final class Attributes implements JavaSerializable, Importable {
 		return (A)attributeByName.getOrDefault(name, defaultValue);
 	}
 	
-//	public <A extends Attribute, T extends Throwable> A getOrThrow(String name, T throwable) throws T {
-//		return getOrThrow(name, () -> throwable);
-//	}
+	public <A extends Attribute, T extends Throwable> A getOrThrow(String name, T throwable) throws T {
+		return getOrThrow(name, () -> throwable);
+	}
 	
 	public <A extends Attribute, T extends Throwable> A getOrThrow(String name, Supplier<T> exceptionSupplier) throws T {
 		

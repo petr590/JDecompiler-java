@@ -17,7 +17,6 @@ import java.util.stream.Stream;
 
 import x590.jdecompiler.JavaClass;
 import x590.jdecompiler.exception.DisassemblingException;
-import x590.jdecompiler.io.StringifyOutputStream;
 import x590.util.Logger;
 import x590.util.Timer;
 
@@ -70,10 +69,10 @@ public final class Main {
 		if(args.length > 0) {
 			JDecompiler.init(args);
 		} else {
-			JDecompiler.init(findClassNamesAsStreamInPackage("example")
-					.map(className -> "bin/" + className.replace('.', '/') + ".class").toArray(String[]::new));
+//			JDecompiler.init(findClassNamesAsStreamInPackage("example")
+//					.map(className -> "bin/" + className.replace('.', '/') + ".class").toArray(String[]::new));
 			
-//			JDecompiler.init(new String[] {
+			JDecompiler.init(new String[] {
 //					"bin/example/Example2.class",
 					
 //					"bin/example/annotation/TestAnnotation.class",
@@ -125,7 +124,11 @@ public final class Main {
 //					"bin/example/package-info.class", "--omit-single-import",
 //					"bin/module-info.class"
 //					"bin/example/EmptyClass.class",
-//			});
+					
+//					"vbin/example/preview/java17/Parent.class", "-d",
+					"bin/x590/jdecompiler/io/ExtendedOutputStream.class",
+//					"bin/x590/jdecompiler/example/Lambda.class",
+			});
 		}
 		
 		
@@ -159,17 +162,16 @@ public final class Main {
 		
 		
 		
-		var out = new StringifyOutputStream(System.out);
-		var performance = JDecompiler.getInstance().getPerformance();
+		Performing performing = JDecompiler.getInstance().getPerforming(System.out);
 		
 		for(JavaClass clazz : classes) {
 			
 			if(clazz.canStringify()) {
-				out.resetIndent().write("\n\n----------------------------------------------------------------------------------------------------\n\n");
+				performing.getOutputStream().resetIndent().print("\n\n----------------------------------------------------------------------------------------------------\n\n");
 				
 				try {
-					performance.perform(clazz);
-					performance.write(clazz, out);
+					performing.perform(clazz);
+					performing.write(clazz);
 					
 				} catch(Exception ex) {
 					// Если исключение возникло при выводе файла в консоль,
@@ -177,10 +179,15 @@ public final class Main {
 					System.out.println();
 					ex.printStackTrace();
 				}
+				
+			} else {
+				if(clazz.getModifiers().isSynthetic()) {
+					System.out.println("Ignored synthetic class " + clazz);
+				}
 			}
 		}
 		
-		out.writeln();
-		out.flush();
+		performing.getOutputStream().println().flush();
+		performing.closeOutputStream();
 	}
 }

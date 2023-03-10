@@ -44,6 +44,16 @@ public final class NameAndTypeConstant extends Constant {
 	}
 	
 	@Override
+	public String getConstantName() {
+		return "NameAndType";
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("NameAndTypeConstant { name = %s, descriptor = %s }", name, descriptor);
+	}
+	
+	@Override
 	public void serialize(DataOutputStream out) throws IOException {
 		out.writeByte(0xC);
 		out.writeShort(nameIndex);

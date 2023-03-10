@@ -1,17 +1,15 @@
 package x590.jdecompiler.main;
 
+import java.io.PrintStream;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 import x590.argparser.ArgsNamespace;
 import x590.argparser.Flag;
 import x590.argparser.StandartArgParser;
 import x590.argparser.option.EnumOption;
 import x590.argparser.option.StringOption;
-import x590.jdecompiler.JavaClass;
-import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.main.AbstractPerforming.PerformingType;
 import x590.util.ObjectHolder;
 import x590.util.annotation.Immutable;
 
@@ -30,34 +28,7 @@ public class JDecompiler {
 	private final @Immutable List<String> files;
 	
 	
-	public enum Performance {
-		DECOMPILE(clazz -> {
-				clazz.decompile();
-				clazz.resolveImports();
-			},
-			JavaClass::writeTo),
-		
-		DISASSEMBLE(clazz -> {},
-				(clazz, out) -> clazz.writeDisassembled(out, clazz.getClassInfo()));
-		
-		private final Consumer<JavaClass> action;
-		private final BiConsumer<JavaClass, StringifyOutputStream> writer;
-		
-		private Performance(Consumer<JavaClass> action, BiConsumer<JavaClass, StringifyOutputStream> writer) {
-			this.action = action;
-			this.writer = writer;
-		}
-		
-		public void perform(JavaClass clazz) {
-			action.accept(clazz);
-		}
-		
-		public void write(JavaClass clazz, StringifyOutputStream out) {
-			writer.accept(clazz, out);
-		}
-	}
-	
-	private final Performance performance;
+	private final PerformingType performingType;
 	
 	
 	public enum UsagePolicy {
@@ -120,12 +91,12 @@ public class JDecompiler {
 	
 	private JDecompiler(String[] args) {
 		
-		ObjectHolder<Performance> performanceHolder = new ObjectHolder<>(Performance.DECOMPILE);
+		ObjectHolder<PerformingType> performingTypeHolder = new ObjectHolder<>(PerformingType.DECOMPILE);
 		
 		ArgsNamespace arguments = new StandartArgParser("JDecompiler", Version.VERSION).localize()
 				
 				.add(new StringOption("files").help("Files to be processed").oneOrMoreTimes())
-				.add(new Flag("-d", "--disassemble").help("Disassemble java class").action(() -> performanceHolder.set(Performance.DISASSEMBLE)))
+				.add(new Flag("-d", "--disassemble").help("Disassemble java class").action(() -> performingTypeHolder.set(PerformingType.DISASSEMBLE)))
 				
 				.add(new EnumOption<>(UsagePolicy.class, "-c", "--constants")
 						.implicitValue(UsagePolicy.ALWAYS).defaultValue(UsagePolicy.ALWAYS)
@@ -163,7 +134,7 @@ public class JDecompiler {
 				.parse(args);
 		
 		
-		this.performance = performanceHolder.get();
+		this.performingType = performingTypeHolder.get();
 		
 		this.constantsUsagePolicy = arguments.get("--constants");
 		
@@ -219,8 +190,13 @@ public class JDecompiler {
 	}
 	
 	
-	public Performance getPerformance() {
-		return performance;
+	public PerformingType getPerformingType() {
+		return performingType;
+	}
+	
+	
+	public Performing getPerforming(PrintStream out) {
+		return performingType.getPerforming(out);
 	}
 	
 	

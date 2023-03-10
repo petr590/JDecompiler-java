@@ -1,10 +1,10 @@
 package x590.jdecompiler.attribute.annotation;
 
-import java.util.Arrays;
+import java.util.List;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
-import x590.jdecompiler.StringWritable;
+import x590.jdecompiler.StringifyWritable;
 import x590.jdecompiler.constpool.ConstValueConstant;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DisassemblingException;
@@ -14,10 +14,10 @@ import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.util.StringUtil;
-import x590.util.ArrayUtil;
 import x590.util.IntegerUtil;
+import x590.util.annotation.Immutable;
 
-public abstract class ElementValue implements StringWritable<ClassInfo>, Importable {
+public abstract class ElementValue implements StringifyWritable<ClassInfo>, Importable {
 	
 	public static class ConstElementValue extends ElementValue {
 		
@@ -150,7 +150,7 @@ public abstract class ElementValue implements StringWritable<ClassInfo>, Importa
 		
 		@Override
 		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-			out.write(annotation, classinfo);
+			out.print(annotation, classinfo);
 		}
 		
 		
@@ -173,36 +173,30 @@ public abstract class ElementValue implements StringWritable<ClassInfo>, Importa
 	
 	public static class ArrayElementValue extends ElementValue {
 		
-		private final ElementValue[] values;
+		private final @Immutable List<ElementValue> values;
 		
 		private ArrayElementValue(ExtendedDataInputStream in, ConstantPool pool) {
-			this.values = in.readArray(ElementValue[]::new, () -> ElementValue.read(in, pool));
+			this.values = in.readImmutableList(() -> ElementValue.read(in, pool));
 		}
 		
 		@Override
 		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 			
-			if(values.length == 0) {
+			if(values.isEmpty()) {
 				out.write("{}");
 				
-			} else if(values.length == 1) {
-				out.write(values[0], classinfo);
+			} else if(values.size() == 1) {
+				out.print(values.get(0), classinfo);
 				
 			} else {
-				out.write("{ ");
-				
-				ArrayUtil.forEachExcludingLast(values,
-						element -> out.write(element, classinfo),
-						element -> out.write(", "));
-				
-				out.write(" }");
+				out.print("{ ").printAll(values, classinfo, ", ").print(" }");
 			}
 		}
 		
 		
 		@Override
 		public void addImports(ClassInfo classinfo) {
-			ArrayUtil.forEach(values, value -> value.addImports(classinfo));
+			classinfo.addImportsFor(values);
 		}
 		
 		
@@ -212,7 +206,7 @@ public abstract class ElementValue implements StringWritable<ClassInfo>, Importa
 		}
 		
 		public boolean equals(ArrayElementValue other) {
-			return this == other || Arrays.equals(this.values, other.values);
+			return this == other || values.equals(other.values);
 		}
 	}
 	

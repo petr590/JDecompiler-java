@@ -43,7 +43,7 @@ public final class StringConstOperation extends ConstOperation<StringConstant> {
 			}
 		}
 		
-		out.write(StringUtil.toLiteral(getValue()));
+		out.print(StringUtil.toLiteral(getValue()));
 	}
 	
 	public String getValue() {

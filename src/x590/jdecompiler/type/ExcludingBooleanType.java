@@ -1,6 +1,7 @@
 package x590.jdecompiler.type;
 
 import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.io.ExtendedOutputStream;
 
 public final class ExcludingBooleanType extends Type {
 	
@@ -9,8 +10,8 @@ public final class ExcludingBooleanType extends Type {
 	private ExcludingBooleanType() {}
 	
 	@Override
-	public String toString(ClassInfo classinfo) {
-		return "ExcludingBooleanType";
+	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
+		out.write("ExcludingBooleanType");
 	}
 	
 	@Override

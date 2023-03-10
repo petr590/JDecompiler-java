@@ -7,9 +7,9 @@ import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.modifiers.FieldModifiers;
 import x590.jdecompiler.operation.invoke.InvokeOperation;
-import x590.util.Util;
 
 import static x590.jdecompiler.modifiers.Modifiers.*;
+import static x590.jdecompiler.MethodDescriptor.IMPLICIT_ENUM_ARGUMENTS;
 
 public class JavaEnumField extends JavaField {
 	
@@ -37,7 +37,7 @@ public class JavaEnumField extends JavaField {
 	}
 	
 	public boolean hasArgumentsInEnumInitializer() {
-		return getEnumInitializer().argumentsCount() > 2;
+		return getEnumInitializer().argumentsCount() > IMPLICIT_ENUM_ARGUMENTS;
 	}
 	
 	
@@ -54,10 +54,15 @@ public class JavaEnumField extends JavaField {
 		
 		out.write(getDescriptor().getName());
 		
-		if(initializer.argumentsCount() > 2) {
-			out.write('(');
-			Util.forEachExcludingLast(initializer.getArguments(), argument -> argument.writeTo(out, context), argument -> out.write(", "), 2);
-			out.write(')');
+		if(initializer.argumentsCount() > IMPLICIT_ENUM_ARGUMENTS) {
+			out.print('(').printAll(initializer.getArguments(), IMPLICIT_ENUM_ARGUMENTS, context, ", ").print(')');
 		}
+	}
+	
+	public void writeIndent(StringifyOutputStream out, ClassInfo classinfo) {
+		if(hasArgumentsInEnumInitializer())
+			out.println(',').printIndent();
+		else
+			out.print(", ");
 	}
 }

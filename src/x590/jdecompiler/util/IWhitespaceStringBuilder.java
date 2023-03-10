@@ -1,9 +1,9 @@
 package x590.jdecompiler.util;
 
 import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.StringWritable;
+import x590.jdecompiler.DisassemblingStringifyWritable;
 
-public interface IWhitespaceStringBuilder extends StringWritable<ClassInfo> {
+public interface IWhitespaceStringBuilder extends DisassemblingStringifyWritable<ClassInfo> {
 	
 	public IWhitespaceStringBuilder append(String str);
 	

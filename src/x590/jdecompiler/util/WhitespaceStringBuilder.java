@@ -5,8 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.io.StringifyOutputStream;
-import x590.util.Util;
+import x590.jdecompiler.io.ExtendedOutputStream;
 
 public class WhitespaceStringBuilder extends AbstractWhitespaceStringBuilder {
 	
@@ -56,11 +55,11 @@ public class WhitespaceStringBuilder extends AbstractWhitespaceStringBuilder {
 	}
 	
 	@Override
-	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
+	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
 		if(printTrailingSpace)
-			values.forEach(value -> out.print(value).printsp());
+			out.printEach(values);
 		else
-			Util.forEachExcludingLast(values, value -> out.print(value), value -> out.printsp());
+			out.printAll(values);
 	}
 	
 	
@@ -96,6 +95,6 @@ public class WhitespaceStringBuilder extends AbstractWhitespaceStringBuilder {
 		}
 		
 		@Override
-		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {}
+		public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {}
 	}
 }

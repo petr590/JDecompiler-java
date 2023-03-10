@@ -4,13 +4,18 @@ import static x590.jdecompiler.modifiers.Modifiers.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.attribute.AttributeNames;
 import x590.jdecompiler.attribute.CodeAttribute;
 import x590.jdecompiler.attribute.LocalVariableTableAttribute;
+import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.modifiers.MethodModifiers;
+import x590.jdecompiler.operation.Operation;
+import x590.jdecompiler.operation.returning.ReturnOperation;
 import x590.jdecompiler.type.ArrayType;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
@@ -103,5 +108,22 @@ public class MethodScope extends Scope {
 	@Override
 	protected boolean canOmitCurlyBrackets() {
 		return false;
+	}
+	
+	
+	public void writeAsLabmda(StringifyOutputStream out, StringifyContext context) {
+		List<Operation> operations = getOperations();
+		
+		if(operations.isEmpty()) {
+			out.write(" {}");
+			
+		} else if(operations.size() == 1 && !operations.get(0).isScope()) {
+			Operation first = operations.get(0);
+			
+			out.printsp().print(first instanceof ReturnOperation returnOperation ? returnOperation.getOperand() : first, context);
+			
+		} else {
+			this.writeTo(out, context);
+		}
 	}
 }

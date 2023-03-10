@@ -8,13 +8,11 @@ import java.util.function.Function;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
-import x590.jdecompiler.StringWritable;
-import x590.jdecompiler.Stringified;
+import x590.jdecompiler.SameDisassemblingStringifyWritable;
 import x590.jdecompiler.exception.IncopatibleTypesException;
 import x590.jdecompiler.exception.InvalidMethodDescriptorException;
 import x590.jdecompiler.exception.InvalidTypeNameException;
 import x590.jdecompiler.io.ExtendedStringReader;
-import x590.jdecompiler.io.StringifyOutputStream;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nonnull;
 import x590.util.annotation.Nullable;
@@ -23,12 +21,7 @@ import x590.util.annotation.Nullable;
  * Класс, описывающий тип в Java: int, double, String и т.д.
  */
 @Immutable
-public abstract class Type implements Stringified<ClassInfo>, StringWritable<ClassInfo>, Importable {
-	
-	@Override
-	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-		out.write(this.toString(classinfo));
-	}
+public abstract class Type implements SameDisassemblingStringifyWritable<ClassInfo>, Importable {
 	
 	@Override
 	public abstract String toString();
@@ -41,12 +34,6 @@ public abstract class Type implements Stringified<ClassInfo>, StringWritable<Cla
 	/** Имя типа:<br>
 	 * "java.lang.Object", "int" */
 	public abstract String getName();
-	
-	/** Имя импортированного типа (если импортирование возможно):<br>
-	 * "Object", "int" */
-	public String getName(ClassInfo classinfo) {
-		return getName();
-	}
 	
 	/** Имя для переменной. Например, все переменные типа int называются "n".
 	 * Если таких переменных больше одной, то к названиям добавляется номер. */

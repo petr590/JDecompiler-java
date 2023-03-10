@@ -19,4 +19,16 @@ public class DecompilationException extends RuntimeException {
 	public DecompilationException(String message, Throwable cause) {
 		super(message, cause);
 	}
+	
+	private static String exceptionToString(Throwable throwable) {
+		String className = throwable.getClass().getSimpleName();
+		String message = throwable.getLocalizedMessage();
+		return message == null ? className : className + ": " + message;
+	}
+	
+	public String getFullMessage() {
+		String message = exceptionToString(this);
+		Throwable cause = getCause();
+		return cause == null ? message : message + "; Caused by: " + exceptionToString(cause);
+	}
 }

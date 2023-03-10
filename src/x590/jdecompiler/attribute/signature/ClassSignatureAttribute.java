@@ -37,7 +37,7 @@ public final class ClassSignatureAttribute extends SignatureAttribute {
 			parameters.addImports(classinfo);
 		
 		superType.addImports(classinfo);
-		interfaces.forEach(interfaceType -> interfaceType.addImports(classinfo));
+		classinfo.addImportsFor(interfaces);
 	}
 	
 	public void checkTypes(ClassType superType, List<ClassType> interfaces) {

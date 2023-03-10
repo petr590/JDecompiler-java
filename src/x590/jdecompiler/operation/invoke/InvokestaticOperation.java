@@ -67,8 +67,7 @@ public final class InvokestaticOperation extends InvokeOperation {
 		if(!canOmitClass(context))
 			out.print(descriptor.getDeclaringClass(), context.getClassinfo()).print('.');
 		
-		out.write(descriptor.getName());
-		writeArguments(out, context);
+		out.print(descriptor.getName()).printUsingFunction(this, context, InvokeOperation::writeArguments);
 	}
 	
 	@Override

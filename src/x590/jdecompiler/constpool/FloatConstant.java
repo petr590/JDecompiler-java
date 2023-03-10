@@ -106,11 +106,16 @@ public final class FloatConstant extends SingleConstableValueConstant<Float> {
 			!writeConstantIfEquals(out, classinfo, ownerConstant, Float.POSITIVE_INFINITY, POSITIVE_INFINITY_DESCRIPTOR, false) &&
 			!writeConstantIfEquals(out, classinfo, ownerConstant, Float.NEGATIVE_INFINITY, NEGATIVE_INFINITY_DESCRIPTOR, false) &&
 			!writeConstantIfEquals(out, classinfo, ownerConstant, Float.isNaN(value), NaN_DESCRIPTOR) &&
-			!writeConstantIfEquals(out, classinfo, ownerConstant, value == FLOAT_PI, value == -FLOAT_PI, FPMath.PI_DESCRIPTOR, () -> out.write("(float)")) &&
-			!writeConstantIfEquals(out, classinfo, ownerConstant, value == FLOAT_E, value == -FLOAT_E, FPMath.E_DESCRIPTOR, () -> out.write("(float)"))
+			!writeConstantIfEquals(out, classinfo, ownerConstant, value == FLOAT_PI, value == -FLOAT_PI, FPMath.PI_DESCRIPTOR, "(float)") &&
+			!writeConstantIfEquals(out, classinfo, ownerConstant, value == FLOAT_E, value == -FLOAT_E, FPMath.E_DESCRIPTOR, "(float)")
 		) {
 			out.write(implicit && canImlicitCastToInt() ? StringUtil.toLiteral((int)value) : StringUtil.toLiteral(value));
 		}
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("FloatConstant { %f }", value);
 	}
 	
 	@Override

@@ -16,7 +16,6 @@ import x590.jdecompiler.operationinstruction.constant.AConstNullOperationInstruc
 import x590.jdecompiler.type.ArrayType;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
-import x590.util.Util;
 import x590.util.annotation.Immutable;
 
 public class NewArrayOperation extends Operation {
@@ -104,20 +103,20 @@ public class NewArrayOperation extends Operation {
 	@Override
 	public void addImports(ClassInfo classinfo) {
 		arrayType.addImports(classinfo);
-		arrayLengths.forEach(arrayLength -> arrayLength.addImports(classinfo));
-		initializers.forEach(initializer -> initializer.addImports(classinfo));
+		classinfo.addImportsFor(arrayLengths);
+		classinfo.addImportsFor(initializers);
 	}
 	
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		if(varargsInlined) {
-			Util.forEachExcludingLast(initializers, element -> element.writeTo(out, context), element -> out.write(", "));
+			out.printAll(initializers, context, ", ");
 			return;
 		}
 		
 		if(canInitAsList()) {
-			out.print("new ").print(arrayType, context.getClassinfo()).printsp();
+			out.printsp("new").printsp(arrayType, context.getClassinfo());
 		}
 		
 		writeAsArrayInitializer(out, context);
@@ -131,13 +130,15 @@ public class NewArrayOperation extends Operation {
 		
 		if(canInitAsList()) {
 			boolean useSpaces = arrayType.getNestingLevel() == 1 && !initializers.isEmpty();
-			out.write(useSpaces ? "{ " : "{");
-			Util.forEachExcludingLast(initializers, element -> element.writeAsArrayInitializer(out, context), element -> out.write(", "));
-			out.write(useSpaces ? " }" : "}");
+			
+			out .print(useSpaces ? "{ " : "{")
+				.printAllUsingFunction(initializers, element -> element.writeAsArrayInitializer(out, context), ", ")
+				.print(useSpaces ? " }" : "}");
 			
 		} else {
-			out.print("new ").print(arrayType.getMemberType(), context.getClassinfo());
-			arrayLengths.forEach(arrayLength -> out.print('[').print(arrayLength, context).print(']'));
+			out.printsp("new").print(arrayType.getMemberType(), context.getClassinfo())
+				.printEachUsingFunction(arrayLengths, arrayLength -> out.print('[').print(arrayLength, context).print(']'));
+			
 			for(int i = arrayLengths.size(), nestLevel = arrayType.getNestingLevel(); i < nestLevel; i++)
 				out.write("[]");
 		}

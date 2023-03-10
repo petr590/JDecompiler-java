@@ -1,6 +1,7 @@
 package x590.jdecompiler.type;
 
 import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.io.ExtendedStringReader;
 import x590.jdecompiler.util.StringUtil;
 
@@ -18,12 +19,12 @@ public final class SignatureParameterType extends ReferenceType {
 	}
 	
 	@Override
-	public String toString() {
-		return name;
+	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
+		out.write(name);
 	}
 	
 	@Override
-	public String toString(ClassInfo classinfo) {
+	public String toString() {
 		return name;
 	}
 	

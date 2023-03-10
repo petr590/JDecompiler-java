@@ -2,7 +2,7 @@ package x590.jdecompiler.operation;
 
 import x590.jdecompiler.FieldDescriptor;
 import x590.jdecompiler.Importable;
-import x590.jdecompiler.StringWritable;
+import x590.jdecompiler.StringifyWritable;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.constant.ConstOperation;
@@ -20,7 +20,7 @@ import x590.util.annotation.RemoveIfNotUsed;
  * Все обычные классы операций, которые не являются Scope-ами,
  * объявлены в пакете {@link x590.jdecompiler.operation} и его подпакетах.
  */
-public abstract class Operation implements StringWritable<StringifyContext>, Importable {
+public abstract class Operation implements StringifyWritable<StringifyContext>, Importable {
 	
 	/**
 	 * Ассоциативность (направленность) операций. Например, сложение

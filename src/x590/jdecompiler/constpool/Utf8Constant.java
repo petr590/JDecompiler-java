@@ -84,6 +84,16 @@ public final class Utf8Constant extends Constant implements ICachedConstant<Stri
 	}
 	
 	@Override
+	public String getConstantName() {
+		return "Utf8";
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("Utf8Constant \"%s\"", value);
+	}
+	
+	@Override
 	public void serialize(DataOutputStream out) throws IOException {
 		out.writeByte(0x1);
 		byte[] bytes = value.getBytes();

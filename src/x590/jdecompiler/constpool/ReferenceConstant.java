@@ -45,6 +45,12 @@ public abstract class ReferenceConstant extends Constant {
 	
 	
 	@Override
+	public String toString() {
+		return String.format("%sConstant { class = %s, nameAndType = %s }", getConstantName(), clazz, nameAndType);
+	}
+	
+	
+	@Override
 	public boolean equals(Object other) {
 		return this == other || other instanceof ReferenceConstant constant && this.equals(constant);
 	}

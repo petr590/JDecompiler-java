@@ -110,7 +110,7 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 			}
 			
 			case SUPERINTERFACE -> {
-				out.print(descriptor.getDeclaringClass(), context.getClassinfo()).write(".super");
+				out.print(descriptor.getDeclaringClass(), context.getClassinfo()).print(".super");
 				yield true;
 			}
 			

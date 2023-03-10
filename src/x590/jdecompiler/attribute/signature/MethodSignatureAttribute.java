@@ -64,7 +64,7 @@ public final class MethodSignatureAttribute extends SignatureAttribute {
 			parameters.addImports(classinfo);
 		
 		returnType.addImports(classinfo);
-		arguments.forEach(argument -> argument.addImports(classinfo));
+		classinfo.addImportsFor(arguments);
 	}
 	
 	public void checkTypes(MethodDescriptor descriptor, int skip, @Nullable ExceptionsAttribute excepionsAttr) {

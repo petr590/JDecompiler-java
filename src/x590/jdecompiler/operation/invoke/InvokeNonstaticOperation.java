@@ -33,14 +33,13 @@ public abstract class InvokeNonstaticOperation extends InvokeOperation {
 			out.write('.');
 		}
 		
-		out.write(descriptor.getName());
-		writeArguments(out, context);
+		out.print(descriptor.getName()).printUsingFunction(this, context, InvokeOperation::writeArguments);
 	}
 	
 	/** Возвращает {@literal true}, если объект записан */
 	protected boolean writeObject(StringifyOutputStream out, StringifyContext context) {
 		if(!canOmitObject(context, object)) {
-			out.writePrioritied(this, object, context, Associativity.LEFT);
+			out.printPrioritied(this, object, context, Associativity.LEFT);
 			return true;
 		}
 		

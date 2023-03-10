@@ -4,11 +4,11 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.StringWritable;
+import x590.jdecompiler.StringifyWritable;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 
-public final class ModuleConstant extends ConstantWithUtf8String implements StringWritable<ClassInfo> {
+public final class ModuleConstant extends ConstantWithUtf8String implements StringifyWritable<ClassInfo> {
 	
 	public ModuleConstant(ExtendedDataInputStream in) {
 		super(in);
@@ -17,6 +17,11 @@ public final class ModuleConstant extends ConstantWithUtf8String implements Stri
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 		out.write(value);
+	}
+	
+	@Override
+	public String getConstantName() {
+		return "Module";
 	}
 	
 	@Override

@@ -52,6 +52,11 @@ public final class ClassConstant extends ConstValueConstant {
 	}
 	
 	@Override
+	public String toString() {
+		return String.format("ClassConstant { %s }", name);
+	}
+	
+	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 		out.print(this.toReferenceType(), classinfo).print(".class");
 	}

@@ -2,7 +2,7 @@ package x590.jdecompiler;
 
 import x590.jdecompiler.type.ReferenceType;
 
-public abstract class Descriptor {
+public abstract class Descriptor implements DisassemblingWritable<ClassInfo> {
 	
 	private final ReferenceType declaringClass;
 	private final String name;

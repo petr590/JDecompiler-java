@@ -16,6 +16,11 @@ public class MethodrefConstant extends ReferenceConstant {
 	}
 	
 	@Override
+	public String getConstantName() {
+		return "Methodref";
+	}
+	
+	@Override
 	public void serialize(DataOutputStream out) throws IOException {
 		out.writeByte(0xA);
 		out.writeShort(getClassIndex());

@@ -60,7 +60,7 @@ public abstract class ArrayStoreOperation extends ReturnableOperation implements
 	
 	@Override
 	public void writeValue(StringifyOutputStream out, StringifyContext context) {
-		out.write(value, context);
+		out.print(value, context);
 	}
 	
 	@Override

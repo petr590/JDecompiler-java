@@ -2,12 +2,12 @@ package x590.jdecompiler.attribute.annotation;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
-import x590.jdecompiler.StringWritable;
+import x590.jdecompiler.StringifyWritable;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 
-public final class Element implements StringWritable<ClassInfo>, Importable {
+public final class Element implements StringifyWritable<ClassInfo>, Importable {
 	
 	private final String name;
 	private final ElementValue value;

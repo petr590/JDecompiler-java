@@ -1,5 +1,6 @@
 package x590.jdecompiler;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -134,6 +135,10 @@ public final class ClassInfo implements IClassInfo {
 			addImport(type);
 	}
 	
+	public void addImportsFor(Collection<? extends Importable> importables) {
+		importables.forEach(importable -> importable.addImports(this));
+	}
+	
 	void bindImportsTo(ClassInfo other) {
 		imports = other.imports;
 	}
@@ -194,7 +199,7 @@ public final class ClassInfo implements IClassInfo {
 		}
 		
 		if(written)
-			out.writeln();
+			out.println();
 	}
 	
 	

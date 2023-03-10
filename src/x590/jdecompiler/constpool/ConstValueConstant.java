@@ -2,8 +2,8 @@ package x590.jdecompiler.constpool;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
-import x590.jdecompiler.StringWritable;
-import x590.jdecompiler.StringWritableWithTwoArgs;
+import x590.jdecompiler.StringifyWritable;
+import x590.jdecompiler.BiStringifyWritable;
 import x590.jdecompiler.exception.TypeSizeMismatchException;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
@@ -14,7 +14,7 @@ import x590.jdecompiler.type.TypeSize;
 /**
  * Константа, описывающяя какое-то константное значение - примитив или объект
  */
-public abstract class ConstValueConstant extends Constant implements StringWritable<ClassInfo>, StringWritableWithTwoArgs<ClassInfo, Type>, Importable {
+public abstract class ConstValueConstant extends Constant implements StringifyWritable<ClassInfo>, BiStringifyWritable<ClassInfo, Type>, Importable {
 	
 	public abstract Type getType();
 	
@@ -34,9 +34,6 @@ public abstract class ConstValueConstant extends Constant implements StringWrita
 	public double doubleValue() {
 		return floatValue();
 	}
-	
-	
-	public abstract String getConstantName();
 	
 	
 	public abstract Operation toOperation();

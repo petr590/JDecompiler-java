@@ -7,6 +7,7 @@ import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntComparators;
 import it.unimi.dsi.fastutil.ints.IntList;
 import x590.jdecompiler.Version;
 import x590.jdecompiler.constpool.ConstantPool;
@@ -53,14 +54,14 @@ public class SwitchScope extends Scope {
 		this.value = context.popAsNarrowest(PrimitiveType.INT);
 		
 		this.indexes = new IntArrayList(indexTable.keySet());
-		indexes.sort((x, y) -> y - x);
+		indexes.sort(IntComparators.OPPOSITE_COMPARATOR);
 		
 		setEndIndex(indexes.isEmpty() ? defaultIndex : Math.max(defaultIndex, indexes.getInt(0)));
 	}
 	
 	@Override
 	protected void writeHeader(StringifyOutputStream out, StringifyContext context) {
-		out.print("switch(").print(value, context).write(')');
+		out.print("switch(").print(value, context).print(')');
 	}
 	
 	
@@ -71,7 +72,9 @@ public class SwitchScope extends Scope {
 		
 		var indexTable = this.indexTable;
 		var indexes = this.indexes;
-		boolean canUseNewSwitch = context.getClassinfo().getVersion().majorVersion >= Version.JAVA_12 &&
+		var classinfo = context.getClassinfo();
+		
+		boolean canUseNewSwitch = classinfo.getVersion().majorVersion >= Version.JAVA_12 &&
 				!indexTable.containsKey(defaultIndex);
 		
 		var defaultCaseWrote = new BooleanHolder();
@@ -103,29 +106,15 @@ public class SwitchScope extends Scope {
 								out.reduceIndent().println().printIndent();
 								
 								if(canUseNewSwitch) {
-									out.write("case ");
-									
-									Util.forEachExcludingLast(constants,
-											constant -> constant.writeTo(out, context.getClassinfo(), type),
-											constant -> out.write(", ")
-									);
-									
-									out.write(" -> ");
+									out.print("case ").printAllUsingFunction(constants, constant -> constant.writeTo(out, classinfo, type), ", ").print(" -> ");
 									
 								} else {
-									Util.forEachExcludingLast(constants,
-											constant -> {
-												out.write("case ");
-												constant.writeTo(out, context.getClassinfo(), type);
-												out.write(':');
-											},
-											
-											constant -> out.writesp()
-									);
+									out.printAllUsingFunction(constants, constant -> out.print("case ").print(constant, classinfo, type).print(':'));
 									
 									if(defaultCaseWrote.isFalse() && index >= defaultIndex) {
 										if(!constants.isEmpty())
-											out.writesp();
+											out.printsp();
+										
 										out.write("default:");
 										
 										defaultCaseWrote.set(true);

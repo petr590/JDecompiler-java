@@ -1,6 +1,7 @@
 package x590.jdecompiler.type;
 
 import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.util.WhitespaceStringBuilder;
 
 import static x590.jdecompiler.type.PrimitiveType.CHAR_CAPACITY;
@@ -118,8 +119,8 @@ public final class UncertainIntegralType extends Type {
 	
 	
 	@Override
-	public String toString(ClassInfo classinfo) {
-		return highPrimitiveType.toString(classinfo);
+	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
+		out.printObject(highPrimitiveType, classinfo);
 	}
 	
 	@Override

@@ -1,6 +1,7 @@
 package x590.jdecompiler.type;
 
 import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.io.ExtendedOutputStream;
 
 import static x590.jdecompiler.type.UncertainIntegralType.INCLUDE_BOOLEAN;
 import static x590.jdecompiler.type.UncertainIntegralType.INCLUDE_CHAR;
@@ -41,8 +42,8 @@ public abstract class PrimitiveType extends BasicType {
 	}
 	
 	@Override
-	public String toString(ClassInfo classinfo) {
-		return name;
+	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
+		out.write(name);
 	}
 	
 	@Override

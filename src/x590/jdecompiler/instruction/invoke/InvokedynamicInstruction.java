@@ -2,16 +2,13 @@ package x590.jdecompiler.instruction.invoke;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.IntFunction;
 
 import x590.jdecompiler.MethodDescriptor;
-import x590.jdecompiler.attribute.AttributeNames;
-import x590.jdecompiler.attribute.BootstrapMethodsAttribute;
 import x590.jdecompiler.attribute.BootstrapMethodsAttribute.BootstrapMethod;
-import x590.jdecompiler.constpool.FieldrefConstant;
 import x590.jdecompiler.constpool.InvokeDynamicConstant;
 import x590.jdecompiler.constpool.MethodHandleConstant;
 import x590.jdecompiler.constpool.MethodHandleConstant.ReferenceKind;
+import x590.jdecompiler.constpool.MethodTypeConstant;
 import x590.jdecompiler.constpool.ReferenceConstant;
 import x590.jdecompiler.constpool.StringConstant;
 import x590.jdecompiler.context.DecompilationContext;
@@ -25,6 +22,7 @@ import x590.jdecompiler.operation.field.GetStaticFieldOperation;
 import x590.jdecompiler.operation.field.PutInstanceFieldOperation;
 import x590.jdecompiler.operation.field.PutStaticFieldOperation;
 import x590.jdecompiler.operation.invoke.ConcatStringsOperation;
+import x590.jdecompiler.operation.invoke.LambdaOperation;
 import x590.jdecompiler.type.ArrayType;
 import x590.jdecompiler.type.ClassType;
 import x590.util.IntegerUtil;
@@ -43,10 +41,12 @@ public final class InvokedynamicInstruction extends InstructionWithIndex {
 	private static final ClassType
 			CALL_SITE = ClassType.fromDescriptor("java/lang/invoke/CallSite"),
 			LOOKUP = ClassType.fromDescriptor("java/lang/invoke/MethodHandles$Lookup"),
-			STRING_CONCAT_FACTORY = ClassType.fromDescriptor("java/lang/invoke/StringConcatFactory");
+			STRING_CONCAT_FACTORY = ClassType.fromDescriptor("java/lang/invoke/StringConcatFactory"),
+			LAMBDA_METAFACTORY = ClassType.fromDescriptor("java/lang/invoke/LambdaMetafactory");
 	
-	private static final MethodDescriptor makeConcatWithConstantsDescriptor
-			= new MethodDescriptor(STRING_CONCAT_FACTORY, "makeConcatWithConstants", CALL_SITE, LOOKUP, ClassType.STRING, ClassType.METHOD_TYPE, ClassType.STRING, ArrayType.OBJECT_ARRAY);
+	private static final MethodDescriptor
+			MAKE_CONCAT_WITH_CONSTANTS_DESCRIPTOR = new MethodDescriptor(STRING_CONCAT_FACTORY, "makeConcatWithConstants", CALL_SITE, LOOKUP, ClassType.STRING, ClassType.METHOD_TYPE, ClassType.STRING, ArrayType.OBJECT_ARRAY),
+			LAMBDA_METAFACTORY_DESCRIPTOR = new MethodDescriptor(LAMBDA_METAFACTORY, "metafactory", CALL_SITE, LOOKUP, ClassType.STRING, ClassType.METHOD_TYPE, ClassType.METHOD_TYPE, ClassType.METHOD_HANDLE, ClassType.METHOD_TYPE);
 	
 //	private static final MethodDescriptor publicLookupDescriptor = new MethodDescriptor(LOOKUP, "publicLookup", LOOKUP);
 	
@@ -54,19 +54,19 @@ public final class InvokedynamicInstruction extends InstructionWithIndex {
 	@Override
 	public Operation toOperation(DecompilationContext context) {
 		InvokeDynamicConstant invokeDynamicConstant = context.pool.get(index);
-		BootstrapMethod bootstrapMethod =
-				(context.getClassinfo().getAttributes().<BootstrapMethodsAttribute>get(AttributeNames.BOOTSTRAP_METHODS)).bootstrapMethods.get(invokeDynamicConstant.bootstrapMethodAttrIndex);
+		BootstrapMethod bootstrapMethod = invokeDynamicConstant.getBootstrapMethod(context.getClassinfo().getAttributes());
 		
-		MethodHandleConstant methodHandle = bootstrapMethod.methodHandle;
-		ReferenceConstant referenceConstant = methodHandle.getReferenceConstant();
+		MethodHandleConstant methodHandle = bootstrapMethod.getMethodHandle();
 		
-		switch(methodHandle.referenceKind) {
-			case ReferenceKind.GETFIELD: return new GetInstanceFieldOperation(context, (FieldrefConstant)referenceConstant);
-			case ReferenceKind.GETSTATIC: return new GetStaticFieldOperation( context, (FieldrefConstant)referenceConstant);
-			case ReferenceKind.PUTFIELD: return new PutInstanceFieldOperation(context, (FieldrefConstant)referenceConstant);
-			case ReferenceKind.PUTSTATIC: return new PutStaticFieldOperation( context, (FieldrefConstant)referenceConstant);
+		switch(methodHandle.getReferenceKind()) {
+			case GETFIELD: return new GetInstanceFieldOperation(context, methodHandle.getFieldrefConstant());
+			case GETSTATIC: return new GetStaticFieldOperation( context, methodHandle.getFieldrefConstant());
+			case PUTFIELD: return new PutInstanceFieldOperation(context, methodHandle.getFieldrefConstant());
+			case PUTSTATIC: return new PutStaticFieldOperation( context, methodHandle.getFieldrefConstant());
 			
-			default:
+			default: {
+				ReferenceConstant referenceConstant = methodHandle.getReferenceConstant();
+				
 				MethodDescriptor descriptor =
 						new MethodDescriptor(referenceConstant.getClassConstant(), invokeDynamicConstant.getNameAndType());
 				
@@ -79,43 +79,44 @@ public final class InvokedynamicInstruction extends InstructionWithIndex {
 				
 				MethodDescriptor invokedynamicDescriptor = new MethodDescriptor(referenceConstant);
 				
-				if(methodHandle.referenceKind == ReferenceKind.INVOKESTATIC && descriptor.getName().equals("makeConcatWithConstants") &&
-						invokedynamicDescriptor.equals(makeConcatWithConstantsDescriptor)) {
+				if(methodHandle.getReferenceKind() == ReferenceKind.INVOKESTATIC) {
 					
-					// String concat
-					if(bootstrapMethod.arguments.size() < 1)
-						throw new DecompilationException("Method java.lang.invoke.StringConcatFactory.makeConcatWithConstants" +
-								" must have one or more static arguments");
-					
-					
-					IntFunction<String> getWrongTypeMessage = i ->
-							"Method java.lang.invoke.StringConcatFactory.makeConcatWithConstants" +
-								": wrong type of static argument #" + i +
-								": expected String, got " + bootstrapMethod.arguments.get(i).getConstantName();
-					
-					
-					if(!(bootstrapMethod.arguments.get(0) instanceof StringConstant))
-						throw new DecompilationException(getWrongTypeMessage.apply(0));
-					
-					StringConstOperation pattern = new StringConstOperation((StringConstant)bootstrapMethod.arguments.get(0));
-					
-					
-					int argumentsCount = bootstrapMethod.arguments.size();
-					List<Operation> staticArguments = new ArrayList<>(argumentsCount - 1);
-					
-					for(int i = 1; i < argumentsCount; i++) {
-						if(!(bootstrapMethod.arguments.get(i) instanceof StringConstant))
-							throw new DecompilationException(getWrongTypeMessage.apply(i));
+					if(descriptor.getName().equals("makeConcatWithConstants") && invokedynamicDescriptor.equals(MAKE_CONCAT_WITH_CONSTANTS_DESCRIPTOR)) {
 						
-						staticArguments.add(new StringConstOperation((StringConstant)bootstrapMethod.arguments.get(i)));
+						// String concat
+						if(bootstrapMethod.getArgumentsCount() < 1)
+							throw new DecompilationException("Method java.lang.invoke.StringConcatFactory.makeConcatWithConstants" +
+									" must have one or more static arguments");
+						
+						StringConstOperation pattern = new StringConstOperation(bootstrapMethod.getArgument(StringConstant.class, 0));
+						
+						
+						int argumentsCount = bootstrapMethod.getArgumentsCount();
+						List<Operation> staticArguments = new ArrayList<>(argumentsCount - 1);
+						
+						for(int i = 1; i < argumentsCount; i++) {
+							staticArguments.add(new StringConstOperation(bootstrapMethod.getArgument(StringConstant.class, i)));
+						}
+						
+						
+						// push non-static arguments on stack
+						for(var iter = arguments.listIterator(arguments.size()); iter.hasPrevious();)
+							context.push(iter.previous());
+						
+						return new ConcatStringsOperation(context, descriptor, pattern, staticArguments);
 					}
 					
 					
-					// push non-static arguments on stack
-					for(var iter = arguments.listIterator(arguments.size()); iter.hasPrevious();)
-						context.push(iter.previous());
-					
-					return new ConcatStringsOperation(context, descriptor, pattern, staticArguments);
+					if(invokedynamicDescriptor.equals(LAMBDA_METAFACTORY_DESCRIPTOR)) {
+						
+						if(bootstrapMethod.getArgumentsCount() != 3)
+							throw new DecompilationException("Method java.lang.invoke.LambdaMetafactory.metafactory" +
+									" must have three static arguments");
+						
+						return new LambdaOperation(context, arguments,
+								bootstrapMethod.getArgument(MethodHandleConstant.class, 1).getMethodrefConstant(),
+								bootstrapMethod.getArgument(MethodTypeConstant.class, 2));
+					}
 				}
 				
 				
@@ -148,6 +149,7 @@ public final class InvokedynamicInstruction extends InstructionWithIndex {
 //					case ReferenceKind.INVOKEINTERFACE: return new InvokeinterfaceOperation(context, descriptor);
 //					default: throw new DecompilationException("Illegal referenceKind " + methodHandle.referenceKind);
 //				}
+			}
 		}
 	}
 }

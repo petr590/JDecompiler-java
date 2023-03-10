@@ -81,28 +81,28 @@ public abstract class ConstableValueConstant<T> extends ConstValueConstant imple
 	}
 	
 	protected boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo,
-			@Nullable FieldDescriptor ownerConstant, boolean equals, FieldDescriptor requiredConstant, Runnable additionalWriter) {
+			@Nullable FieldDescriptor ownerConstant, boolean equals, FieldDescriptor requiredConstant, String additionalText) {
 		
-		return writeConstantIfEquals(out, classinfo, ownerConstant, equals, false, requiredConstant, additionalWriter);
+		return writeConstantIfEquals(out, classinfo, ownerConstant, equals, false, requiredConstant, additionalText);
 	}
 	
 	protected boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo,
 			@Nullable FieldDescriptor ownerConstant, boolean equals, FieldDescriptor requiredConstant) {
 		
-		return writeConstantIfEquals(out, classinfo, ownerConstant, equals, false, requiredConstant, () -> {});
+		return writeConstantIfEquals(out, classinfo, ownerConstant, equals, false, requiredConstant, "");
 	}
 	
 	protected boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo,
 			@Nullable FieldDescriptor ownerConstant, boolean equals, boolean equalsNegative, FieldDescriptor requiredConstant) {
 		
-		return writeConstantIfEquals(out, classinfo, ownerConstant, equals, equalsNegative, requiredConstant, () -> {});
+		return writeConstantIfEquals(out, classinfo, ownerConstant, equals, equalsNegative, requiredConstant, "");
 	}
 	
 	protected boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo,
-			@Nullable FieldDescriptor ownerConstant, boolean equals, boolean equalsNegative, FieldDescriptor requiredConstant, Runnable additionalWriter) {
+			@Nullable FieldDescriptor ownerConstant, boolean equals, boolean equalsNegative, FieldDescriptor requiredConstant, String additionalText) {
 		
 		if((equals || equalsNegative) && (ownerConstant == null || !ownerConstant.equals(requiredConstant))) {
-			additionalWriter.run();
+			out.write(additionalText);
 			
 			if(equalsNegative && !equals)
 				out.write('-');

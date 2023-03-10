@@ -6,7 +6,7 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.modifiers.Modifiers;
 
-public abstract class JavaClassElement implements StringWritable<ClassInfo>, Importable {
+public abstract class JavaClassElement implements DisassemblingStringifyWritable<ClassInfo>, Importable {
 	
 	public boolean canStringify(ClassInfo classinfo) {
 		return getModifiers().isNotSynthetic() || JDecompiler.getInstance().showSynthetic();
@@ -16,13 +16,7 @@ public abstract class JavaClassElement implements StringWritable<ClassInfo>, Imp
 	
 	
 	protected static void writeAnnotations(StringifyOutputStream out, ClassInfo classinfo, Attributes attributes) {
-		out.writeIfNotNull(attributes.getNullable(AttributeNames.RUNTIME_VISIBLE_ANNOTATIONS), classinfo);
-		out.writeIfNotNull(attributes.getNullable(AttributeNames.RUNTIME_INVISIBLE_ANNOTATIONS), classinfo);
-	}
-	
-	
-	// TODO: realization in subclasses
-	public void writeDisassembled(StringifyOutputStream out, ClassInfo classinfo) {
-		throw new RuntimeException("Not releazed yet (");
+		out .printIfNotNull(attributes.getNullable(AttributeNames.RUNTIME_VISIBLE_ANNOTATIONS), classinfo)
+			.printIfNotNull(attributes.getNullable(AttributeNames.RUNTIME_INVISIBLE_ANNOTATIONS), classinfo);
 	}
 }

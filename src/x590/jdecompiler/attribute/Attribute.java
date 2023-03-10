@@ -18,6 +18,10 @@ import x590.jdecompiler.io.ExtendedDataInputStream;
 
 import static x590.jdecompiler.attribute.AttributeNames.*;
 
+/**
+ * Представляет атрибут в class файле.
+ * Атрибуты может быть в классе, поле, методе, другом атрибуте
+ */
 public abstract class Attribute implements JavaSerializable, Importable {
 	
 	private final int nameIndex;
@@ -39,12 +43,13 @@ public abstract class Attribute implements JavaSerializable, Importable {
 		
 		
 		Attribute attribute = switch(name) {
-			case CONSTANT_VALUE     -> new ConstantValueAttribute(nameIndex, name, length, in, pool);
-			case DEPRECATED         -> DeprecatedAttribute.get(nameIndex, name, length);
-			case SYNTHETIC          -> SyntheticAttribute.get(nameIndex, name, length);
-			case EXCEPTIONS         -> new ExceptionsAttribute(nameIndex, name, length, in, pool);
-			case ANNOTATION_DEFAULT -> new AnnotationDefaultAttribute(nameIndex, name, length, in, pool);
-			case MODULE             -> new ModuleAttribute(nameIndex, name, length, in, pool);
+			case CONSTANT_VALUE       -> new ConstantValueAttribute(nameIndex, name, length, in, pool);
+			case DEPRECATED           -> DeprecatedAttribute.get(nameIndex, name, length);
+			case SYNTHETIC            -> SyntheticAttribute.get(nameIndex, name, length);
+			case EXCEPTIONS           -> new ExceptionsAttribute(nameIndex, name, length, in, pool);
+			case ANNOTATION_DEFAULT   -> new AnnotationDefaultAttribute(nameIndex, name, length, in, pool);
+			case MODULE               -> new ModuleAttribute(nameIndex, name, length, in, pool);
+			case PERMITTED_SUBCLASSES -> new PermittedSubclassesAttribute(nameIndex, name, length, in, pool);
 			
 			case SIGNATURE -> switch(location) {
 				case CLASS -> new ClassSignatureAttribute(nameIndex, name, length, in, pool);

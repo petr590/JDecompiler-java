@@ -43,6 +43,10 @@ public abstract class ReturnOperation extends VoidOperation {
 	}
 	
 	
+	public Operation getOperand() {
+		return operand;
+	}
+	
 	protected abstract String getInstructionName();
 	
 	

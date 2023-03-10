@@ -1,5 +1,12 @@
-Changed DecompilationAndStringifyContext API. Fixed bug with decompilation of initialization of non-static fields.
+Refactoring the write-to-stream API:
+- Removed almost all `write` methods to reduce code duplication
+- The ExtendedOutputStream class was added, some of the methods from StringifyOutputStream were moved there
+- The DisassemblingOutputStream class was added, similar to StringifyOutputStream, but works with the DisassemblingWritable interface
+- StringWritable is now StringifyWritable
+- Added methods printAll, printAllUsingFunction, printEach, printEachUsingFunction
 
-Fixed NullPointerException in NewArrayOperation class. The array has been replaced with a list, which simplifies iteration.
+Disassembly has not yet been fully implemented
 
-It is planned to add support for the PermittedSubclasses attribute.
+In many attributes arrays have been replaced with immutable lists
+
+Added lambda support (finally!)

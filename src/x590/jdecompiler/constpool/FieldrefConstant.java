@@ -16,6 +16,11 @@ public final class FieldrefConstant extends ReferenceConstant {
 	}
 	
 	@Override
+	public String getConstantName() {
+		return "Fieldref";
+	}
+	
+	@Override
 	public void serialize(DataOutputStream out) throws IOException {
 		out.writeByte(9);
 		out.writeShort(getClassIndex());

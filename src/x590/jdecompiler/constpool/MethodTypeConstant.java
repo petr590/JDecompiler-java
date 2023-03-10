@@ -55,6 +55,11 @@ public final class MethodTypeConstant extends ConstValueConstant {
 	}
 	
 	@Override
+	public String toString() {
+		return String.format("MethodTypeConstant { %s }", descriptor);
+	}
+	
+	@Override
 	public void serialize(DataOutputStream out) throws IOException {
 		out.writeByte(0x10);
 		out.writeByte(descriptorIndex);

@@ -95,6 +95,11 @@ public final class LongConstant extends SingleConstableValueConstant<Long> {
 	}
 	
 	@Override
+	public String toString() {
+		return String.format("LongConstant { %d }", value);
+	}
+	
+	@Override
 	public void serialize(DataOutputStream out) throws IOException {
 		out.writeByte(0x5);
 		out.writeLong(value);

@@ -4,6 +4,7 @@ import java.util.List;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.exception.InvalidArrayNameException;
+import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.io.ExtendedStringReader;
 
 /**
@@ -160,8 +161,8 @@ public final class ArrayType extends ReferenceType {
 	
 	
 	@Override
-	public String toString(ClassInfo classinfo) {
-		return memberType.getName(classinfo) + braces;
+	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
+		out.printObject(memberType, classinfo).print(braces);
 	}
 	
 	@Override

@@ -102,7 +102,7 @@ public class LoopScope extends ConditionalScope {
 			if(canOmitCurlyBrackets())
 				out.println().printIndent();
 			else
-				out.writesp();
+				out.printsp();
 			
 			writeWhilePart(out, context);
 			out.write(';');

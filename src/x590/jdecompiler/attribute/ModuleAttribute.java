@@ -1,10 +1,10 @@
 package x590.jdecompiler.attribute;
 
-import java.util.Arrays;
+import java.util.List;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
-import x590.jdecompiler.StringWritable;
+import x590.jdecompiler.StringifyWritable;
 import x590.jdecompiler.constpool.ClassConstant;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.constpool.ModuleConstant;
@@ -14,15 +14,15 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.modifiers.ModuleEntryModifiers;
 import x590.jdecompiler.modifiers.ModuleModifiers;
 import x590.jdecompiler.modifiers.ModuleRequirementModifiers;
-import x590.util.ArrayUtil;
+import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
-public class ModuleAttribute extends Attribute implements StringWritable<ClassInfo> {
+public class ModuleAttribute extends Attribute implements StringifyWritable<ClassInfo> {
 	
 	private final ModuleConstant module;
 	private final ModuleModifiers modifiers;
 	private final @Nullable String version;
-	private final IModuleEntry[][] allEntries;
+	private final @Immutable List<@Immutable List<IModuleEntry>> allEntries;
 	
 	protected ModuleAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
 		super(nameIndex, name, length);
@@ -31,23 +31,19 @@ public class ModuleAttribute extends Attribute implements StringWritable<ClassIn
 		this.modifiers = ModuleModifiers.read(in);
 		this.version = pool.getUtf8StringNullable(in.readUnsignedShort());
 		
-		this.allEntries = new IModuleEntry[][] {
-				in.readArray(RequirementEntry[]::new, () -> new RequirementEntry(in, pool)),
-				in.readArray(ExportsEntry[]::new,     () -> new ExportsEntry(in, pool)),
-				in.readArray(OpensEntry[]::new,       () -> new OpensEntry(in, pool)),
-				in.readArray(ServiceEntry[]::new,     () -> new ServiceEntry(in, pool)),
-				in.readArray(ProvidingEntry[]::new,   () -> new ProvidingEntry(in, pool))
-		};
+		this.allEntries = List.of(
+				in.readImmutableList(() -> new RequirementEntry(in, pool)),
+				in.readImmutableList(() -> new ExportsEntry(in, pool)),
+				in.readImmutableList(() -> new OpensEntry(in, pool)),
+				in.readImmutableList(() -> new ServiceEntry(in, pool)),
+				in.readImmutableList(() -> new ProvidingEntry(in, pool))
+		);
 	}
 	
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		for(IModuleEntry[] entries : allEntries) {
-			for(IModuleEntry entry : entries) {
-				entry.addImports(classinfo);
-			}
-		}
+		allEntries.forEach(entries -> classinfo.addImportsFor(entries));
 	}
 	
 	
@@ -55,15 +51,15 @@ public class ModuleAttribute extends Attribute implements StringWritable<ClassIn
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 		out.print(modifiers, classinfo).printsp("module").printsp(module, classinfo);
 		
-		if(Arrays.stream(allEntries).allMatch(entries -> entries.length == 0)) {
+		if(allEntries.stream().allMatch(List::isEmpty)) {
 			out.write("{}");
 			
 		} else {
 			out.print('{').increaseIndent();
 			
-			for(IModuleEntry[] entries : allEntries) {
-				if(entries.length != 0)
-					out.println().printEach(entries, classinfo, entry -> out.println().printIndent().print(entry, classinfo));
+			for(List<? extends IModuleEntry> entries : allEntries) {
+				if(!entries.isEmpty())
+					out.println().printEachUsingFunction(entries, entry -> out.println().printIndent().print(entry, classinfo));
 			}
 			
 			out.reduceIndent().println().printIndent().print('}');
@@ -71,7 +67,7 @@ public class ModuleAttribute extends Attribute implements StringWritable<ClassIn
 	}
 	
 	
-	private interface IModuleEntry extends StringWritable<ClassInfo>, Importable {}
+	private interface IModuleEntry extends StringifyWritable<ClassInfo>, Importable {}
 	
 	
 	private static class RequirementEntry implements IModuleEntry {
@@ -97,12 +93,12 @@ public class ModuleAttribute extends Attribute implements StringWritable<ClassIn
 		
 		private final PackageConstant packageConstant;
 		private final ModuleEntryModifiers modifiers;
-		private final ModuleConstant[] modules;
+		private final @Immutable List<ModuleConstant> modules;
 		
 		private ExportsOrOpensEntry(ExtendedDataInputStream in, ConstantPool pool) {
 			this.packageConstant = pool.get(in.readUnsignedShort());
 			this.modifiers = ModuleEntryModifiers.read(in);
-			this.modules = in.readArray(ModuleConstant[]::new, () -> pool.get(in.readUnsignedShort()));
+			this.modules = in.readImmutableList(() -> pool.get(in.readUnsignedShort()));
 		}
 		
 		
@@ -112,8 +108,8 @@ public class ModuleAttribute extends Attribute implements StringWritable<ClassIn
 		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 			out.printsp(getDeclaration()).print(modifiers, classinfo).print(packageConstant, classinfo);
 			
-			if(modules.length != 0) {
-				out.printsp(" to").writeAll(modules, classinfo);
+			if(!modules.isEmpty()) {
+				out.printsp(" to").printAll(modules, classinfo);
 			}
 			
 			out.write(';');
@@ -166,17 +162,17 @@ public class ModuleAttribute extends Attribute implements StringWritable<ClassIn
 	
 	private static class ProvidingEntry extends ServiceEntry {
 		
-		private final ClassConstant[] providesWith;
+		private final @Immutable List<ClassConstant> providesWith;
 		
 		private ProvidingEntry(ExtendedDataInputStream in, ConstantPool pool) {
 			super(in, pool);
-			this.providesWith = in.readArray(ClassConstant[]::new, () -> pool.get(in.readUnsignedShort()));
+			this.providesWith = in.readImmutableList(() -> pool.get(in.readUnsignedShort()));
 		}
 		
 		@Override
 		public void addImports(ClassInfo classinfo) {
 			super.addImports(classinfo);
-			ArrayUtil.forEach(providesWith, serviceImplementation -> serviceImplementation.addImports(classinfo));
+			classinfo.addImportsFor(providesWith);
 		}
 		
 		@Override

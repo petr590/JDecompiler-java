@@ -42,6 +42,11 @@ public abstract class Constant implements JavaSerializable {
 		return false;
 	}
 	
+	public abstract String getConstantName();
+	
 	@Override
 	public abstract boolean equals(Object other);
+	
+	@Override
+	public abstract String toString();
 }

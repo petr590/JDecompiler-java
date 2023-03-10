@@ -63,6 +63,11 @@ public final class StringConstant extends SingleConstableValueConstant<String> {
 	}
 	
 	@Override
+	public String toString() {
+		return String.format("StringConstant \"%s\"", value.getString());
+	}
+	
+	@Override
 	public void serialize(DataOutputStream out) throws IOException {
 		out.writeByte(0x8);
 		out.writeShort(index);

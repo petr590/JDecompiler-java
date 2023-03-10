@@ -183,7 +183,7 @@ public interface IncrementableOperation {
 			writeValue(out, context);
 			
 		} else {
-			out.write(" = ");
+			out.print(" = ");
 			writeValue(out, context);
 		}
 	}

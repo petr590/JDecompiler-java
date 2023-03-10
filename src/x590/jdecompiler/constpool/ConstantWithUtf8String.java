@@ -19,4 +19,9 @@ abstract class ConstantWithUtf8String extends Constant {
 	public String getString() {
 		return value;
 	}
+	
+	@Override
+	public String toString() {
+		return String.format("%sConstant { %s }", getConstantName(), value);
+	}
 }

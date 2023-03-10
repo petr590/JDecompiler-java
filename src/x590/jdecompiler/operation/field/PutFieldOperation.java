@@ -65,7 +65,7 @@ public abstract class PutFieldOperation extends FieldOperation implements Increm
 	
 	@Override
 	public void writeValue(StringifyOutputStream out, StringifyContext context) {
-		out.write(value, context);
+		out.print(value, context);
 	}
 	
 	@Override

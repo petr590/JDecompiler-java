@@ -8,18 +8,16 @@ import java.util.stream.Collectors;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
-import x590.jdecompiler.StringWritable;
-import x590.jdecompiler.Stringified;
+import x590.jdecompiler.SameDisassemblingStringifyWritable;
 import x590.jdecompiler.exception.InvalidSignatureException;
 import x590.jdecompiler.exception.InvalidTypeNameException;
+import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.io.ExtendedStringReader;
-import x590.jdecompiler.io.StringifyOutputStream;
-import x590.util.Util;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nonnull;
 import x590.util.annotation.Nullable;
 
-public final class GenericParameters<T extends ReferenceType> implements Stringified<ClassInfo>, StringWritable<ClassInfo>, Importable {
+public final class GenericParameters<T extends ReferenceType> implements SameDisassemblingStringifyWritable<ClassInfo>, Importable {
 	
 	private final @Immutable List<T> types;
 	
@@ -63,19 +61,12 @@ public final class GenericParameters<T extends ReferenceType> implements Stringi
 	}
 	
 	@Override
-	public String toString(ClassInfo classinfo) {
-		return "<" + types.stream().map(type -> type.toString(classinfo)).collect(Collectors.joining(", ")) + ">";
+	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
+		out.print('<').printAllObjects(types, classinfo, ", ").print('>');
 	}
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		types.forEach(type -> type.addImports(classinfo));
-	}
-	
-	@Override
-	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-		out.write('<');
-		Util.forEachExcludingLast(types, type -> out.write(type, classinfo), type -> out.write(", "));
-		out.write('>');
+		classinfo.addImportsFor(types);
 	}
 }

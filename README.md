@@ -1,15 +1,16 @@
 # JDecompiler-java
-This is a Java decompiler that I've been doing for about a year (intermittently).
+This is a Java decompiler that I've been doing for over a year (intermittently).
 Writing it in C++ turned out to be a mistake, so I moved it to Java.
 Maybe I'll finish it someday, but I need to add a more functionality.
 
 ## Not implemented:
-- for
 - try/catch/finally
-- switch
 - break/continue
-- Lambdas
 - Jar support
+
+## Partially implemented:
+- for
+- switch
 
 ## Implemented:
 - A system of primitive types (the type of a variable is determined by its use)
@@ -21,6 +22,7 @@ Maybe I'll finish it someday, but I need to add a more functionality.
 - Operators && and ||
 - Individual variables
 - Generics
+- Lambdas
 
 ## Implemented features:
 - Selection of variable names
@@ -28,7 +30,10 @@ Maybe I'll finish it someday, but I need to add a more functionality.
 - Declaration of fields separated by commas
 - Variable names from LocalVariableTable
 - Recognition of constants in the current class, as well as standard constants (Math.PI, Double.NaN, etc.)
+- Annotation @Override
 
 ## Used libraries:
 - ArgParser - https://github.com/petr590/ArgParser
 - x590.util - https://github.com/petr590/x590.util
+- fastutil
+- junit (for testing)

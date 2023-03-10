@@ -15,6 +15,7 @@ import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.exception.IllegalModifiersException;
+import x590.jdecompiler.io.DisassemblingOutputStream;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
@@ -159,7 +160,7 @@ public class JavaField extends JavaClassElement {
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 		writeWithoutSemicolon(out, classinfo);
-		out.writeln(';');
+		out.println(';');
 	}
 	
 	public void writeWithoutSemicolon(StringifyOutputStream out, ClassInfo classinfo) {
@@ -217,5 +218,11 @@ public class JavaField extends JavaClassElement {
 	@Override
 	public String toString() {
 		return modifiers + " " + descriptor;
+	}
+	
+	@Override
+	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
+		out .print(modifiersToString(), classinfo)
+			.print(descriptor, classinfo);
 	}
 }

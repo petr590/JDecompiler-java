@@ -10,6 +10,7 @@ import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.constpool.ClassConstant;
 import x590.jdecompiler.exception.InvalidClassNameException;
 import x590.jdecompiler.exception.InvalidTypeNameException;
+import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.io.ExtendedStringReader;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.util.StringUtil;
@@ -360,14 +361,16 @@ public class ClassType extends ReferenceType {
 	}
 	
 	@Override
-	public String toString(ClassInfo classinfo) {
-		return getName(classinfo);
-	}
-	
-	@Override
-	public String getName(ClassInfo classinfo) {
-		return kind.isAnonymous() ? fullSimpleName : (classinfo.imported(this) ? simpleName : name) +
-				(signature == null ? "" : signature.toString(classinfo));
+	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
+		if(kind.isAnonymous()) {
+			out.write(fullSimpleName);
+		} else {
+			out.write(classinfo.imported(this) ? simpleName : name);
+			
+			if(signature != null) {
+				out.printlnObject(signature, classinfo);
+			}
+		}
 	}
 	
 	@Override

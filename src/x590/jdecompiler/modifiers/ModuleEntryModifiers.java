@@ -1,12 +1,12 @@
 package x590.jdecompiler.modifiers;
 
 import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.StringWritable;
+import x590.jdecompiler.StringifyWritable;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.util.IWhitespaceStringBuilder;
 
-public class ModuleEntryModifiers extends Modifiers implements StringWritable<ClassInfo> {
+public class ModuleEntryModifiers extends Modifiers implements StringifyWritable<ClassInfo> {
 	
 	public ModuleEntryModifiers(int value) {
 		super(value);
@@ -34,6 +34,6 @@ public class ModuleEntryModifiers extends Modifiers implements StringWritable<Cl
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-		out.write(toStringBuilder(true), classinfo);
+		out.print(toStringBuilder(true), classinfo);
 	}
 }

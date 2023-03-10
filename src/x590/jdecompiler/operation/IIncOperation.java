@@ -57,10 +57,10 @@ public final class IIncOperation extends OperationWithVariable {
 		out.write(variable.getName());
 		
 		if(!isPreInc) {
-			if(value < 0)
-				out.write(value == -1 ? "--" : " -= " + value);
-			else
-				out.write(value == 1 ? "++" : " += " + value);
+			out.write(value < 0 ?
+					value == -1 ? "--" : " -= " + value :
+					value == 1 ? "++" : " += " + value
+			);
 		}
 	}
 	

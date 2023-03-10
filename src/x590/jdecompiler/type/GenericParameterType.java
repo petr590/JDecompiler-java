@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.exception.InvalidSignatureException;
+import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.io.ExtendedStringReader;
 import x590.util.annotation.Immutable;
 
@@ -67,14 +68,17 @@ public final class GenericParameterType extends ReferenceType {
 	}
 	
 	@Override
-	public String toString(ClassInfo classinfo) {
-		return types.size() == 1 && types.get(0).equals(ClassType.OBJECT) ? name : name + " extends " +
-				types.stream().map(type -> type.toString(classinfo)).collect(Collectors.joining(" & "));
+	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
+		out.write(name);
+		
+		if(types.size() != 1 || !types.get(0).equals(ClassType.OBJECT)) {
+			out.print(" extends ").printAllObjects(types, classinfo, " & ");
+		}
 	}
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		types.forEach(type -> type.addImports(classinfo));
+		classinfo.addImportsFor(types);
 	}
 	
 	@Override

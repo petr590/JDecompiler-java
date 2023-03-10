@@ -18,7 +18,6 @@ import x590.jdecompiler.operation.array.NewArrayOperation;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
-import x590.util.Util;
 
 public abstract class InvokeOperation extends OperationWithDescriptor<MethodDescriptor> {
 	
@@ -118,9 +117,7 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 	
 	
 	protected void writeArguments(StringifyOutputStream out, StringifyContext context) {
-		out.write('(');
-		Util.forEachExcludingLast(arguments, arg -> out.write(arg, context), arg -> out.write(", "), skipArguments());
-		out.write(')');
+		out.print('(').printAll(arguments, skipArguments(), context, ", ").print(')');
 	}
 	
 	protected int skipArguments() {

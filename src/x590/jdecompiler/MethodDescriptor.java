@@ -21,6 +21,7 @@ import x590.jdecompiler.constpool.ReferenceConstant;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.IllegalMethodHeaderException;
 import x590.jdecompiler.exception.InvalidMethodDescriptorException;
+import x590.jdecompiler.io.DisassemblingOutputStream;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.ExtendedStringReader;
 import x590.jdecompiler.io.StringifyOutputStream;
@@ -161,44 +162,51 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	@Override
 	public void addImports(ClassInfo classinfo) {
 		classinfo.addImport(returnType);
-		arguments.forEach(arg -> classinfo.addImport(arg));
+		classinfo.addImportsFor(arguments);
 	}
 	
 	
 	public int countLocals(ClassEntryModifiers modifiers) {
-		return arguments.stream().mapToInt(argType -> argType.getSize().slotsOccupied()).sum() + (modifiers.isNotStatic() ? 1 : 0);
+		return arguments.stream().mapToInt(argType -> argType.getSize().slotsOccupied()).sum()
+				+ (modifiers.isNotStatic() ? 1 : 0);
 	}
 	
 	
 	public void write(StringifyOutputStream out, StringifyContext context, Attributes attributes, @Nullable MethodSignatureAttribute signature) {
 		
 		if(signature != null && signature.parameters != null) {
-			out.writesp(signature.parameters, context.getClassinfo());
+			out.printsp(signature.parameters, context.getClassinfo());
 		}
 		
 		switch(kind) {
 			case CONSTRUCTOR -> {
 				out.print(getDeclaringClass(), context.getClassinfo());
-				this.writeArguments(out, context, attributes, signature);
+				writeArguments(out, context, attributes, signature);
 			}
-				
+			
 			case STATIC_INITIALIZER -> {
-				out.print("static");
+				out.write("static");
 			}
-				
+			
 			case PLAIN -> {
 				out.print(signature != null ? signature.returnType : returnType, context.getClassinfo()).printsp().print(getName());
-				this.writeArguments(out, context, attributes, signature);
+				writeArguments(out, context, attributes, signature);
 			}
 		}
 	}
 	
+	public void writeAsLambda(StringifyOutputStream out, StringifyContext context, Attributes attributes, @Nullable MethodSignatureAttribute signature, int captured) {
+		writeArguments(out, context, attributes, signature, captured, true);
+	}
+	
 	
 	private void writeArguments(StringifyOutputStream out, StringifyContext context, Attributes attributes, @Nullable MethodSignatureAttribute signature) {
+		writeArguments(out, context, attributes, signature, getVisibleStartIndex(context.getClassinfo()), false);
+	}
+	
+	private void writeArguments(StringifyOutputStream out, StringifyContext context, Attributes attributes, @Nullable MethodSignatureAttribute signature, int startIndex, boolean asLambda) {
 		
 		var classinfo = context.getClassinfo();
-		
-		int startIndex = getVisibleStartIndex(context.getClassinfo());
 		
 		IntHolder varIndex = new IntHolder((context.getModifiers().isNotStatic() ? 1 : 0) + startIndex);
 		
@@ -206,10 +214,14 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 				visibleParameterAnnotations = attributes.getOrDefault(AttributeNames.RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS, ParameterAnnotationsAttribute.emptyVisible()),
 				invisibleParameterAnnotations = attributes.getOrDefault(AttributeNames.RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS, ParameterAnnotationsAttribute.emptyInvisible());
 		
-		IntConsumer writeParameterAnnotations = i -> {
-			visibleParameterAnnotations.write(out, classinfo, i);
-			invisibleParameterAnnotations.write(out, classinfo, i);
-		};
+		boolean canOmitTypes = asLambda && visibleParameterAnnotations.isEmpty() && invisibleParameterAnnotations.isEmpty();
+		
+		IntConsumer writeParameterAnnotations = canOmitTypes ?
+				i -> {} :
+				i -> {
+					visibleParameterAnnotations.write(out, classinfo, i);
+					invisibleParameterAnnotations.write(out, classinfo, i);
+				};
 		
 		
 		Function<Type, String> getVariableName = type -> context.getMethodScope().getDefinedVariable(varIndex.postInc(type.getSize().slotsOccupied())).getName();
@@ -222,16 +234,23 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 			if(arguments.isEmpty() || !arguments.get(varargsIndex).isBasicArrayType())
 				throw new IllegalMethodHeaderException("Varargs method must have array as last argument");
 			
-			write = (type, i) ->
-					(i != varargsIndex ? out.printsp(type, classinfo) : out.print(((ArrayType)type).getElementType(), classinfo).print("... "))
-					.print(getVariableName.apply(type));
+			write = canOmitTypes ?
+					(type, i) -> out.write(getVariableName.apply(type)) :
+					(type, i) ->
+						(i != varargsIndex ? out.printsp(type, classinfo) : out.print(((ArrayType)type).getElementType(), classinfo).printsp("..."))
+							.write(getVariableName.apply(type));
 			
 		} else {
-			write = (type, i) ->
-					out.printsp(type, classinfo).print(getVariableName.apply(type));
+			write = canOmitTypes ?
+					(type, i) -> out.write(getVariableName.apply(type)) :
+					(type, i) -> out.printsp(type, classinfo).write(getVariableName.apply(type));
 		}
 		
-		out.write('(');
+		
+		boolean canOmitBrackets = asLambda && canOmitTypes && arguments.size() - startIndex == 1;
+		
+		if(!canOmitBrackets)
+			out.write('(');
 		
 		Util.forEachExcludingLast(signature != null ? signature.arguments : arguments,
 				(type, i) -> {
@@ -241,7 +260,8 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 				type -> out.write(", "),
 				signature == null ? startIndex : 0, startIndex);
 		
-		out.write(')');
+		if(!canOmitBrackets)
+			out.write(')');
 	}
 	
 	@Override
@@ -351,5 +371,11 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 		
 		Iterator<Type> iter = Arrays.stream(types).iterator();
 		return arguments.stream().allMatch(arg -> arg.equals(iter.next()));
+	}
+	
+	
+	@Override
+	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
+		
 	}
 }

@@ -2,7 +2,7 @@ package x590.jdecompiler;
 
 import x590.jdecompiler.io.StringifyOutputStream;
 
-public interface Stringified<T> extends StringWritable<T> {
+public interface Stringified<T> extends StringifyWritable<T> {
 	
 	public String toString(T param);
 	

@@ -1,6 +1,7 @@
 package x590.jdecompiler.type;
 
 import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.util.annotation.Nullable;
 
 /**
@@ -28,8 +29,8 @@ public final class UncertainReferenceType extends Type {
 	}
 	
 	@Override
-	public String toString(ClassInfo classinfo) {
-		return getNotNullType().toString(classinfo);
+	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
+		out.printlnObject(getNotNullType(), classinfo);
 	}
 	
 	@Override

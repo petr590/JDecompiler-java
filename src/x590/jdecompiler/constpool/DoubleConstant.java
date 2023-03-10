@@ -113,6 +113,11 @@ public final class DoubleConstant extends SingleConstableValueConstant<Double> {
 			out.write(implicit && canImlicitCastToInt() ? StringUtil.toLiteral((int)value) : StringUtil.toLiteral(value));
 		}
 	}
+	
+	@Override
+	public String toString() {
+		return String.format("DoubleConstant { %f }", value);
+	}
 
 	@Override
 	public void serialize(DataOutputStream out) throws IOException {

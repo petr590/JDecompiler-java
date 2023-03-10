@@ -4,6 +4,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.exception.DisassemblingException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
@@ -13,28 +14,51 @@ import x590.jdecompiler.type.Type;
 
 public final class MethodHandleConstant extends ConstValueConstant {
 	
-	public class ReferenceKind {
+	public enum ReferenceKind {
+		GETFIELD(1),
+		GETSTATIC(2),
+		PUTFIELD(3),
+		PUTSTATIC(4),
+		INVOKEVIRTUAL(5),
+		INVOKESTATIC(6),
+		INVOKESPECIAL(7),
+		NEWINVOKESPECIAL(8),
+		INVOKEINTERFACE(9);
 		
-		private ReferenceKind() {}
+		private static final ReferenceKind[] VALUES = values();
 		
-		public static final int
-				GETFIELD = 1,
-				GETSTATIC = 2,
-				PUTFIELD = 3,
-				PUTSTATIC = 4,
-				INVOKEVIRTUAL = 5,
-				INVOKESTATIC = 6,
-				INVOKESPECIAL = 7,
-				NEWINVOKESPECIAL = 8,
-				INVOKEINTERFACE = 9;
+		private final int index;
+		private final String name;
+		
+		private ReferenceKind(int index) {
+			this.index = index;
+			this.name = name().toLowerCase();
+		}
+		
+		public int getIndex() {
+			return index;
+		}
+		
+		public static ReferenceKind byIndex(int index) {
+			if(index > 0 && index <= VALUES.length) {
+				return VALUES[index - 1];
+			}
+			
+			throw new DisassemblingException("Invalid referenceKind: " + index);
+		}
+		
+		@Override
+		public String toString() {
+			return name;
+		}
 	}
 	
-	public final int referenceKind;
-	public final int referenceIndex;
+	private final ReferenceKind referenceKind;
+	private final int referenceIndex;
 	private ReferenceConstant reference;
 	
 	protected MethodHandleConstant(ExtendedDataInputStream in) {
-		referenceKind = in.readByte();
+		referenceKind = ReferenceKind.byIndex(in.readByte());
 		referenceIndex = in.readUnsignedShort();
 	}
 	
@@ -43,8 +67,26 @@ public final class MethodHandleConstant extends ConstValueConstant {
 		reference = pool.get(referenceIndex);
 	}
 	
+	public ReferenceKind getReferenceKind() {
+		return referenceKind;
+	}
+	
 	public ReferenceConstant getReferenceConstant() {
 		return reference;
+	}
+	
+	public FieldrefConstant getFieldrefConstant() {
+		if(reference instanceof FieldrefConstant fieldref)
+			return fieldref;
+		
+		throw new DisassemblingException("Expected Fieldref, got " + reference.getConstantName());
+	}
+	
+	public MethodrefConstant getMethodrefConstant() {
+		if(reference instanceof MethodrefConstant methodref)
+			return methodref;
+		
+		throw new DisassemblingException("Expected Methodref, got " + reference.getConstantName());
 	}
 	
 	@Override
@@ -63,14 +105,19 @@ public final class MethodHandleConstant extends ConstValueConstant {
 	}
 	
 	@Override
+	public String toString() {
+		return String.format("MethodHandleConstant { referenceKind = %s, reference = %s }", referenceKind, reference);
+	}
+	
+	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-		out.write("#MethodHandle#");
+		out.print("#MethodHandle#");
 	}
 	
 	@Override
 	public void serialize(DataOutputStream out) throws IOException {
 		out.writeByte(0xF);
-		out.writeByte(referenceKind);
+		out.writeByte(referenceKind.getIndex());
 		out.writeShort(referenceIndex);
 	}
 	

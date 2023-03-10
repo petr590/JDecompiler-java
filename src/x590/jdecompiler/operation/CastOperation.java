@@ -62,7 +62,7 @@ public class CastOperation extends Operation {
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		if(implicitCast && implicitCastAllowed)
-			out.write(operand, context);
+			out.print(operand, context);
 		else
 			out.print('(').print(castedType, context.getClassinfo()).print(')')
 					.printPrioritied(this, operand, context, Associativity.RIGHT);

@@ -1,5 +1,12 @@
-Изменено API DecompilationAndStringifyContext. Исправлена ошибка с декомпиляцией инициализации нестатических полей.
+Рефакторинг API записи в поток:
+- Убраны почти все методы write для уменьшения дублирования кода
+- Создан класс ExtendedOutputStream, туда перенесена часть методов из StringifyOutputStream
+- Создан класс DisassemblingOutputStream, аналогичен StringifyOutputStream, но работает с интерфейсом DisassemblingWritable
+- StringWritable теперь StringifyWritable
+- Добавлены методы printAll, printAllUsingFunction, printEach, printEachUsingFunction
 
-Исправлен NullPointerException в классе NewArrayOperation. Массив заменён на список, что упростило итерацию.
+Дизассемблирование ещё реализовано далеко не полностью
 
-Планируется добавление поддержки атрибута PermittedSubclasses.
+Во многих атрибутах массивы заменены на неизменяемые списки
+
+Добавлена поддержка лямбд (наконец-то!)

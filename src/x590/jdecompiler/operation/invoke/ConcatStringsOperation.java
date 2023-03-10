@@ -13,7 +13,6 @@ import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.operation.constant.StringConstOperation;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
-import x590.util.Util;
 
 public final class ConcatStringsOperation extends InvokeOperation {
 
@@ -87,9 +86,7 @@ public final class ConcatStringsOperation extends InvokeOperation {
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		writeEmptyStringIfNecessary(out);
 		
-		Util.forEachExcludingLast(operands,
-				operation -> out.writePrioritied(this, operation, context, Associativity.RIGHT),
-				operation -> out.write(" + "));
+		out.printAllUsingFunction(operands, operation -> out.printPrioritied(this, operation, context, Associativity.RIGHT), " + ");
 	}
 	
 	@Override

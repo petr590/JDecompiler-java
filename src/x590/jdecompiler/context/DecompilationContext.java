@@ -370,7 +370,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		operations.forEach(operation -> operation.addImports(classinfo));
+		classinfo.addImportsFor(operations);
 	}
 	
 	@Override

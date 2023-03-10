@@ -10,7 +10,7 @@ import x590.jdecompiler.type.ReferenceType;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
-public class PlainClassInfo implements IClassInfo {
+public final class PlainClassInfo implements IClassInfo {
 	
 	private final ClassModifiers modifiers;
 	private final ReferenceType thisType;

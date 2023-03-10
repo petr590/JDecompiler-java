@@ -1,6 +1,7 @@
 package x590.jdecompiler.type;
 
 import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.io.ExtendedOutputStream;
 
 public final class AnyGenericType extends GenericType {
 	
@@ -9,8 +10,8 @@ public final class AnyGenericType extends GenericType {
 	private AnyGenericType() {}
 	
 	@Override
-	public String toString(ClassInfo classinfo) {
-		return "?";
+	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
+		out.write("?");
 	}
 	
 	@Override

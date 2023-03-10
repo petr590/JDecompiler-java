@@ -22,7 +22,6 @@ import x590.jdecompiler.type.Type;
 import x590.jdecompiler.variable.EmptyableVariable;
 import x590.jdecompiler.variable.UnnamedVariable;
 import x590.jdecompiler.variable.Variable;
-import x590.util.Util;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
@@ -357,13 +356,11 @@ public abstract class Scope extends Operation {
 	}
 	
 	protected void writeBody(StringifyOutputStream out, StringifyContext context) {
-		out.increaseIndent();
-		
-		Util.forEachExcludingLast(code,
+		out .increaseIndent()
+			.printAllUsingFunction(code,
 				operation -> operation.writeAsStatement(out, context),
-				operation -> operation.writeSeparator(out, context));
-		
-		out.reduceIndent();
+				operation -> operation.writeSeparator(out, context))
+			.reduceIndent();
 	}
 	
 	/**
@@ -388,7 +385,7 @@ public abstract class Scope extends Operation {
 	
 	@Override
 	public void writeSeparator(StringifyOutputStream out, StringifyContext context) {
-		out.writeln();
+		out.println();
 	}
 	
 	

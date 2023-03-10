@@ -11,7 +11,6 @@ import x590.jdecompiler.exception.DisassemblingException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.ReferenceType;
-import x590.util.Util;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
@@ -62,13 +61,10 @@ public class ExceptionsAttribute extends Attribute {
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		exceptionTypes.forEach(exceptionType -> classinfo.addImport(exceptionType));
+		classinfo.addImportsFor(exceptionTypes);
 	}
 	
 	public void write(StringifyOutputStream out, ClassInfo classinfo, @Nullable MethodSignatureAttribute signature) {
-		out.write(" throws ");
-		Util.forEachExcludingLast(signature != null ? signature.throwsTypes : exceptionTypes,
-				exceptionType -> out.write(exceptionType, classinfo),
-				exceptionType -> out.write(", "));
+		out.print(" throws ").printAll(signature != null ? signature.throwsTypes : exceptionTypes, classinfo, ", ");
 	}
 }
