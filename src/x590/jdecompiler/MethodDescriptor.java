@@ -10,7 +10,7 @@ import java.util.function.IntConsumer;
 import java.util.function.ObjIntConsumer;
 import java.util.stream.Collectors;
 
-import x590.jdecompiler.attribute.AttributeNames;
+import x590.jdecompiler.attribute.AttributeType;
 import x590.jdecompiler.attribute.Attributes;
 import x590.jdecompiler.attribute.annotation.ParameterAnnotationsAttribute;
 import x590.jdecompiler.attribute.signature.MethodSignatureAttribute;
@@ -23,7 +23,7 @@ import x590.jdecompiler.exception.IllegalMethodHeaderException;
 import x590.jdecompiler.exception.InvalidMethodDescriptorException;
 import x590.jdecompiler.io.DisassemblingOutputStream;
 import x590.jdecompiler.io.ExtendedDataInputStream;
-import x590.jdecompiler.io.ExtendedStringReader;
+import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.modifiers.ClassEntryModifiers;
 import x590.jdecompiler.type.ArrayType;
@@ -32,7 +32,7 @@ import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
 import x590.util.IntHolder;
-import x590.util.Util;
+import x590.util.LoopUtil;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
@@ -61,7 +61,7 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 			if(returnType != PrimitiveType.VOID)
 				throw new InvalidMethodDescriptorException("Method " + this.toString() + " must return void");
 			
-			if(!getDeclaringClass().isBasicClassType())
+			if(!getDeclaringClass().isClassType())
 				throw new InvalidMethodDescriptorException("Class " + getDeclaringClass() + " cannot have " + this.toString() + " method");
 		}
 		
@@ -120,10 +120,10 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	}
 	
 	public MethodDescriptor(ReferenceType declaringClass, String name, String descriptor) {
-		this(declaringClass, name, new ExtendedStringReader(descriptor));
+		this(declaringClass, name, new ExtendedStringInputStream(descriptor));
 	}
 	
-	public MethodDescriptor(ReferenceType declaringClass, String name, ExtendedStringReader descriptor) {
+	public MethodDescriptor(ReferenceType declaringClass, String name, ExtendedStringInputStream descriptor) {
 		this(declaringClass, name, Type.parseMethodArguments(descriptor), Type.parseReturnType(descriptor));
 	}
 	
@@ -211,8 +211,8 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 		IntHolder varIndex = new IntHolder((context.getModifiers().isNotStatic() ? 1 : 0) + startIndex);
 		
 		ParameterAnnotationsAttribute
-				visibleParameterAnnotations = attributes.getOrDefault(AttributeNames.RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS, ParameterAnnotationsAttribute.emptyVisible()),
-				invisibleParameterAnnotations = attributes.getOrDefault(AttributeNames.RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS, ParameterAnnotationsAttribute.emptyInvisible());
+				visibleParameterAnnotations = attributes.getOrDefault(AttributeType.RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS, ParameterAnnotationsAttribute.emptyVisible()),
+				invisibleParameterAnnotations = attributes.getOrDefault(AttributeType.RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS, ParameterAnnotationsAttribute.emptyInvisible());
 		
 		boolean canOmitTypes = asLambda && visibleParameterAnnotations.isEmpty() && invisibleParameterAnnotations.isEmpty();
 		
@@ -231,7 +231,7 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 		if(context.getModifiers().isVarargs()) {
 			int varargsIndex = arguments.size() - 1;
 			
-			if(arguments.isEmpty() || !arguments.get(varargsIndex).isBasicArrayType())
+			if(arguments.isEmpty() || !arguments.get(varargsIndex).isArrayType())
 				throw new IllegalMethodHeaderException("Varargs method must have array as last argument");
 			
 			write = canOmitTypes ?
@@ -252,7 +252,7 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 		if(!canOmitBrackets)
 			out.write('(');
 		
-		Util.forEachExcludingLast(signature != null ? signature.arguments : arguments,
+		LoopUtil.forEachExcludingLast(signature != null ? signature.arguments : arguments,
 				(type, i) -> {
 					writeParameterAnnotations.accept(i);
 					write.accept(type, i);

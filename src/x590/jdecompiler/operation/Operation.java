@@ -63,7 +63,10 @@ public abstract class Operation implements StringifyWritable<StringifyContext>, 
 	}
 	
 	/** Вывод между операцииями (вызывается для всех, кроме последней) */
-	public void writeSeparator(StringifyOutputStream out, StringifyContext context) {}
+	public void writeSeparator(StringifyOutputStream out, StringifyContext context, Operation nextOperation) {
+		if(nextOperation.isScope())
+			out.println();
+	}
 	
 	
 	public boolean canOmit() {
@@ -186,6 +189,17 @@ public abstract class Operation implements StringifyWritable<StringifyContext>, 
 	
 	/** Проверяет, что операция является константой 1 (любого типа) */
 	public boolean isOne() {
+		return false;
+	}
+	
+	/** Проверяет, что операция объявляет переменную.
+	 * Нужно для корректной декомпиляции такого кода:
+		if(condition) {
+			int x = 0;
+		}
+	 * Java не позволяет писать объявление переменной в if-е без фигурных скобок
+	 */
+	public boolean isVariableDefining() {
 		return false;
 	}
 	

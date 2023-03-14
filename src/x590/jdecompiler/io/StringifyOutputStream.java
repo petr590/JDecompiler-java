@@ -11,7 +11,7 @@ import x590.jdecompiler.BiStringifyWritable;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.Operation.Associativity;
-import x590.util.Util;
+import x590.util.LoopUtil;
 import x590.util.annotation.Nullable;
 import x590.util.function.TriConsumer;
 
@@ -95,7 +95,7 @@ public class StringifyOutputStream extends ExtendedOutputStream<StringifyOutputS
 	}
 	
 	public <T, W extends StringifyWritable<T>> StringifyOutputStream printAll(Collection<? extends W> writables, int startIndex, T param, Consumer<? super W> delimeterWriter) {
-		Util.forEachExcludingLast(writables, writable -> writable.writeTo(this, param), delimeterWriter, startIndex);
+		LoopUtil.forEachExcludingLast(writables, writable -> writable.writeTo(this, param), delimeterWriter, startIndex);
 		return this;
 	}
 	
@@ -113,7 +113,7 @@ public class StringifyOutputStream extends ExtendedOutputStream<StringifyOutputS
 	}
 	
 	public <T, W extends StringifyWritable<T>> StringifyOutputStream printAllUsingFunction(Collection<? extends W> writables, Consumer<? super W> writer, Consumer<? super W> delimeterWriter) {
-		Util.forEachExcludingLast(writables, writer, delimeterWriter);
+		LoopUtil.forEachExcludingLast(writables, writer, delimeterWriter);
 		return this;
 	}
 	
@@ -131,7 +131,7 @@ public class StringifyOutputStream extends ExtendedOutputStream<StringifyOutputS
 	}
 	
 	public <T, W extends StringifyWritable<T>> StringifyOutputStream printAllUsingFunction(Collection<? extends W> writables, int startIndex, T param, Consumer<? super W> delimeterWriter) {
-		Util.forEachExcludingLast(writables, writable -> writable.writeTo(this, param), delimeterWriter, startIndex);
+		LoopUtil.forEachExcludingLast(writables, writable -> writable.writeTo(this, param), delimeterWriter, startIndex);
 		return this;
 	}
 	
@@ -140,7 +140,7 @@ public class StringifyOutputStream extends ExtendedOutputStream<StringifyOutputS
 		return printEachUsingFunction(writables, writable -> writable.writeTo(this, param));
 	}
 	
-	public <T> StringifyOutputStream printEachUsingFunction(Collection<? extends StringifyWritable<T>> writables, Consumer<StringifyWritable<T>> writer) {
+	public <T, W extends StringifyWritable<T>> StringifyOutputStream printEachUsingFunction(Collection<? extends W> writables, Consumer<? super W> writer) {
 		writables.forEach(writer);
 		return this;
 	}

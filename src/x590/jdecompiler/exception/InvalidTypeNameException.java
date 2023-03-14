@@ -1,6 +1,6 @@
 package x590.jdecompiler.exception;
 
-import x590.jdecompiler.io.ExtendedStringReader;
+import x590.jdecompiler.io.ExtendedStringInputStream;
 
 public class InvalidTypeNameException extends NameDisassemblingException {
 	
@@ -14,11 +14,11 @@ public class InvalidTypeNameException extends NameDisassemblingException {
 		super(encodedName, pos);
 	}
 	
-	public InvalidTypeNameException(ExtendedStringReader in) {
+	public InvalidTypeNameException(ExtendedStringInputStream in) {
 		super(in);
 	}
 	
-	public InvalidTypeNameException(ExtendedStringReader in, int pos) {
+	public InvalidTypeNameException(ExtendedStringInputStream in, int pos) {
 		super(in, pos);
 	}
 }

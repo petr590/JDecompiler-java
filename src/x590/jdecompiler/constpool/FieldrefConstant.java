@@ -1,9 +1,7 @@
 package x590.jdecompiler.constpool;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 import x590.jdecompiler.io.ExtendedDataInputStream;
+import x590.jdecompiler.io.ExtendedDataOutputStream;
 
 public final class FieldrefConstant extends ReferenceConstant {
 	
@@ -21,8 +19,8 @@ public final class FieldrefConstant extends ReferenceConstant {
 	}
 	
 	@Override
-	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(9);
+	public void serialize(ExtendedDataOutputStream out) {
+		out.writeByte(TAG_FIELDREF);
 		out.writeShort(getClassIndex());
 		out.writeShort(getNameAndTypeIndex());
 	}

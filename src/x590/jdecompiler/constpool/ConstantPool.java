@@ -1,7 +1,5 @@
 package x590.jdecompiler.constpool;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +11,7 @@ import java.util.function.Supplier;
 import x590.jdecompiler.JavaSerializable;
 import x590.jdecompiler.exception.NoSuchConstantException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
+import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.util.annotation.Nullable;
 
 public final class ConstantPool implements JavaSerializable {
@@ -138,9 +137,10 @@ public final class ConstantPool implements JavaSerializable {
 	}
 	
 	@Override
-	public void serialize(DataOutputStream out) throws IOException {
+	public void serialize(ExtendedDataOutputStream out) {
 		int size = data.size();
 		out.writeShort(size);
+		
 		for(int i = 1; i < size; i++) {
 			Constant conatant = data.get(i);
 			if(conatant != null)

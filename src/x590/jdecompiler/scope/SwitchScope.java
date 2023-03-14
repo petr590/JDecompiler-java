@@ -18,7 +18,7 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.util.BooleanHolder;
-import x590.util.Util;
+import x590.util.LoopUtil;
 
 public class SwitchScope extends Scope {
 	
@@ -83,8 +83,7 @@ public class SwitchScope extends Scope {
 		
 		out.increaseIndent(2);
 		
-		Util.forEachExcludingLast(getCode(),
-				
+		LoopUtil.forEachPair(getOperations(),
 				(operation, index) -> {
 					index = getIndexByCodeIndex(index);
 					
@@ -130,7 +129,7 @@ public class SwitchScope extends Scope {
 					operation.writeAsStatement(out, context);
 				},
 				
-				operation -> operation.writeSeparator(out, context)
+				(operation1, operation2) -> operation1.writeSeparator(out, context, operation2)
 			);
 		
 		out.reduceIndent(2);

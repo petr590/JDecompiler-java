@@ -24,8 +24,8 @@ public class ModuleAttribute extends Attribute implements StringifyWritable<Clas
 	private final @Nullable String version;
 	private final @Immutable List<@Immutable List<IModuleEntry>> allEntries;
 	
-	protected ModuleAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
-		super(nameIndex, name, length);
+	protected ModuleAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
+		super(name, length);
 		
 		this.module = pool.get(in.readUnsignedShort());
 		this.modifiers = ModuleModifiers.read(in);

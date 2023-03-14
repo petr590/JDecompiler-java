@@ -1,12 +1,18 @@
-Refactoring the write-to-stream API:
-- Removed almost all `write` methods to reduce code duplication
-- The ExtendedOutputStream class was added, some of the methods from StringifyOutputStream were moved there
-- The DisassemblingOutputStream class was added, similar to StringifyOutputStream, but works with the DisassemblingWritable interface
-- StringWritable is now StringifyWritable
-- Added methods printAll, printAllUsingFunction, printEach, printEachUsingFunction
+Added tag constants to the Constant class to improve code readability.
 
-Disassembly has not yet been fully implemented
+ExtendedStringReader has been renamed ExtendedStringInputStream, since it inherits from InputStream, not from Reader.
 
-In many attributes arrays have been replaced with immutable lists
+Added Performing class, which can now load a JavaClass, perform some operations on it, and write it to its own stream.
+In AbstractPerforming.PerformingType the ASSEMBLY constant has been added, which creates AssemblingPerforming
 
-Added lambda support (finally!)
+It is planned to implement an assembler/disassembler, but it is not a fact that it will be soon.
+
+Serious refactoring of the attribute system: now to get an attribute from the Attributes class, you need to use AttributeType instead of String.
+Each AttributeType is typed by the type of attribute it creates, stores the attribute name and the function to create it.
+If necessary, you can create your own AttributeType instances and add new attributes from the outside.
+
+Added SourceFile attribute
+
+Added full try/catch support. Along the way, a bug has been fixed related to the fact that the entries in the Exception table are not in the order of the declaration in the code, but from the nested in the external.
+Improved block output. Now each block outputs an indent - an empty line before and after itself. Only one empty line is output between two blocks.
+Fixed the output of else if blocks.

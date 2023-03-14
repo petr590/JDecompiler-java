@@ -9,27 +9,45 @@ import x590.jdecompiler.io.ExtendedDataInputStream;
  */
 public abstract class Constant implements JavaSerializable {
 	
+	public static final int
+			TAG_UTF8                = 0x1,
+			TAG_INTEGER             = 0x3,
+			TAG_FLOAT               = 0x4,
+			TAG_LONG                = 0x5,
+			TAG_DOUBLE              = 0x6,
+			TAG_CLASS               = 0x7,
+			TAG_STRING              = 0x8,
+			TAG_FIELDREF            = 0x9,
+			TAG_METHODREF           = 0xA,
+			TAG_INTERFACE_METHODREF = 0xB,
+			TAG_NAME_AND_TYPE       = 0xC,
+			TAG_METHOD_HANDLE       = 0xF,
+			TAG_METHOD_TYPE         = 0x10,
+			TAG_INVOKE_DYNAMIC      = 0x12,
+			TAG_MODULE              = 0x13,
+			TAG_PACKAGE             = 0x14;
+	
 	protected Constant() {}
 	
 	protected static Constant readConstant(ExtendedDataInputStream in) {
 		int tag = in.readUnsignedByte();
 		return switch(tag) {
-			case 0x1  -> new Utf8Constant(in);
-			case 0x3  -> new IntegerConstant(in);
-			case 0x4  -> new FloatConstant(in);
-			case 0x5  -> new LongConstant(in);
-			case 0x6  -> new DoubleConstant(in);
-			case 0x7  -> new ClassConstant(in);
-			case 0x8  -> new StringConstant(in);
-			case 0x9  -> new FieldrefConstant(in);
-			case 0xA  -> new MethodrefConstant(in);
-			case 0xB  -> new InterfaceMethodrefConstant(in);
-			case 0xC  -> new NameAndTypeConstant(in);
-			case 0xF  -> new MethodHandleConstant(in);
-			case 0x10 -> new MethodTypeConstant(in);
-			case 0x12 -> new InvokeDynamicConstant(in);
-			case 0x13 -> new ModuleConstant(in);
-			case 0x14 -> new PackageConstant(in);
+			case TAG_UTF8                -> new Utf8Constant(in);
+			case TAG_INTEGER             -> new IntegerConstant(in);
+			case TAG_FLOAT               -> new FloatConstant(in);
+			case TAG_LONG                -> new LongConstant(in);
+			case TAG_DOUBLE              -> new DoubleConstant(in);
+			case TAG_CLASS               -> new ClassConstant(in);
+			case TAG_STRING              -> new StringConstant(in);
+			case TAG_FIELDREF            -> new FieldrefConstant(in);
+			case TAG_METHODREF           -> new MethodrefConstant(in);
+			case TAG_INTERFACE_METHODREF -> new InterfaceMethodrefConstant(in);
+			case TAG_NAME_AND_TYPE       -> new NameAndTypeConstant(in);
+			case TAG_METHOD_HANDLE       -> new MethodHandleConstant(in);
+			case TAG_METHOD_TYPE         -> new MethodTypeConstant(in);
+			case TAG_INVOKE_DYNAMIC      -> new InvokeDynamicConstant(in);
+			case TAG_MODULE              -> new ModuleConstant(in);
+			case TAG_PACKAGE             -> new PackageConstant(in);
 			default ->
 				throw new DisassemblingException("Unknown tag " + tag);
 		};

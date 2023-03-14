@@ -1,9 +1,7 @@
 package x590.jdecompiler.constpool;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 import x590.jdecompiler.io.ExtendedDataInputStream;
+import x590.jdecompiler.io.ExtendedDataOutputStream;
 
 public final class NameAndTypeConstant extends Constant {
 	
@@ -54,8 +52,8 @@ public final class NameAndTypeConstant extends Constant {
 	}
 	
 	@Override
-	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(0xC);
+	public void serialize(ExtendedDataOutputStream out) {
+		out.writeByte(TAG_NAME_AND_TYPE);
 		out.writeShort(nameIndex);
 		out.writeShort(descriptorIndex);
 	}

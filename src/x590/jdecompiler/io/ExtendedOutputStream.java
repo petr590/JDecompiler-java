@@ -3,14 +3,16 @@ package x590.jdecompiler.io;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import x590.jdecompiler.Writable;
 import x590.jdecompiler.main.JDecompiler;
-import x590.util.Util;
+import x590.util.LoopUtil;
 import x590.util.annotation.Nullable;
 import x590.util.function.TriConsumer;
+import x590.util.io.UncheckedOutputStream;
 
 /**
  * Класс, представляющий реализацию {@link OutputStream}.
@@ -32,7 +34,7 @@ public abstract class ExtendedOutputStream<Self extends ExtendedOutputStream<Sel
 	
 	
 	public ExtendedOutputStream(OutputStream out) {
-		this.out = out;
+		this.out = Objects.requireNonNull(out);
 	}
 	
 	
@@ -101,7 +103,7 @@ public abstract class ExtendedOutputStream<Self extends ExtendedOutputStream<Sel
 		try {
 			out.write(b);
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -114,7 +116,7 @@ public abstract class ExtendedOutputStream<Self extends ExtendedOutputStream<Sel
 			out.write(ch);
 			
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -122,7 +124,7 @@ public abstract class ExtendedOutputStream<Self extends ExtendedOutputStream<Sel
 		try {
 			out.write(str.getBytes());
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -169,12 +171,12 @@ public abstract class ExtendedOutputStream<Self extends ExtendedOutputStream<Sel
 	}
 	
 	public Self printAll(Collection<? extends String> values, char delimeter) {
-		Util.forEachExcludingLast(values, value -> write(value), value -> write(delimeter));
+		LoopUtil.forEachExcludingLast(values, value -> write(value), value -> write(delimeter));
 		return self();
 	}
 	
 	public Self printAll(Collection<? extends String> values, String delimeter) {
-		Util.forEachExcludingLast(values, value -> write(value), value -> write(delimeter));
+		LoopUtil.forEachExcludingLast(values, value -> write(value), value -> write(delimeter));
 		return self();
 	}
 	
@@ -267,7 +269,7 @@ public abstract class ExtendedOutputStream<Self extends ExtendedOutputStream<Sel
 	}
 	
 	public <T, W extends Writable<T>> Self printAllObjects(Collection<? extends W> writables, int startIndex, T param, Consumer<? super W> delimeterWriter) {
-		Util.forEachExcludingLast(writables, writable -> write(writable, param), delimeterWriter, startIndex);
+		LoopUtil.forEachExcludingLast(writables, writable -> write(writable, param), delimeterWriter, startIndex);
 		return self();
 	}
 	
@@ -285,7 +287,7 @@ public abstract class ExtendedOutputStream<Self extends ExtendedOutputStream<Sel
 	}
 	
 	public <T, W extends Writable<T>> Self printAllObjectsUsingFunction(Collection<? extends W> writables, Consumer<? super W> writer, Consumer<? super W> delimeterWriter) {
-		Util.forEachExcludingLast(writables, writer, delimeterWriter);
+		LoopUtil.forEachExcludingLast(writables, writer, delimeterWriter);
 		return self();
 	}
 	
@@ -303,7 +305,7 @@ public abstract class ExtendedOutputStream<Self extends ExtendedOutputStream<Sel
 	}
 	
 	public <T, W extends Writable<T>> Self printAllObjectsUsingFunction(Collection<? extends W> writables, int startIndex, T param, Consumer<? super W> delimeterWriter) {
-		Util.forEachExcludingLast(writables, writable -> write(writable, param), delimeterWriter, startIndex);
+		LoopUtil.forEachExcludingLast(writables, writable -> write(writable, param), delimeterWriter, startIndex);
 		return self();
 	}
 	
@@ -323,7 +325,7 @@ public abstract class ExtendedOutputStream<Self extends ExtendedOutputStream<Sel
 		try {
 			out.flush();
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -332,7 +334,7 @@ public abstract class ExtendedOutputStream<Self extends ExtendedOutputStream<Sel
 		try {
 			out.close();
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 }

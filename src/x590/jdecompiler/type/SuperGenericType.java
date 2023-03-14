@@ -2,12 +2,12 @@ package x590.jdecompiler.type;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.io.ExtendedOutputStream;
-import x590.jdecompiler.io.ExtendedStringReader;
+import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 
 public final class SuperGenericType extends BoundedGenericType {
 	
-	public SuperGenericType(ExtendedStringReader in) {
+	public SuperGenericType(ExtendedStringInputStream in) {
 		super(in);
 	}
 	

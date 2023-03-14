@@ -4,7 +4,7 @@ import static x590.jdecompiler.modifiers.Modifiers.*;
 
 import java.util.List;
 
-import x590.jdecompiler.attribute.AttributeNames;
+import x590.jdecompiler.attribute.AttributeType;
 import x590.jdecompiler.attribute.Attributes;
 import x590.jdecompiler.attribute.Attributes.Location;
 import x590.jdecompiler.attribute.ConstantValueAttribute;
@@ -17,6 +17,7 @@ import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.exception.IllegalModifiersException;
 import x590.jdecompiler.io.DisassemblingOutputStream;
 import x590.jdecompiler.io.ExtendedDataInputStream;
+import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.modifiers.FieldModifiers;
@@ -27,7 +28,7 @@ import x590.util.Pair;
 import x590.util.annotation.Nullable;
 
 public class JavaField extends JavaClassElement {
-
+	
 	private final FieldModifiers modifiers;
 	private final FieldDescriptor descriptor;
 	private final Attributes attributes;
@@ -42,8 +43,8 @@ public class JavaField extends JavaClassElement {
 		this.modifiers = modifiers;
 		this.descriptor = new FieldDescriptor(classinfo.getThisType(), in, pool);
 		this.attributes = Attributes.read(in, pool, Location.FIELD);
-		this.constantValueAttribute = attributes.getNullable(AttributeNames.CONSTANT_VALUE);
-		this.annotationAttributes = new Pair<>(attributes.getNullable(AttributeNames.RUNTIME_VISIBLE_ANNOTATIONS), attributes.getNullable(AttributeNames.RUNTIME_INVISIBLE_ANNOTATIONS));
+		this.constantValueAttribute = attributes.getNullable(AttributeType.CONSTANT_VALUE);
+		this.annotationAttributes = new Pair<>(attributes.getNullable(AttributeType.RUNTIME_VISIBLE_ANNOTATIONS), attributes.getNullable(AttributeType.RUNTIME_INVISIBLE_ANNOTATIONS));
 	}
 	
 	
@@ -145,7 +146,7 @@ public class JavaField extends JavaClassElement {
 	
 	
 	public boolean hasAnnotation() {
-		return attributes.has(AttributeNames.RUNTIME_VISIBLE_ANNOTATIONS) || attributes.has(AttributeNames.RUNTIME_INVISIBLE_ANNOTATIONS);
+		return attributes.has(AttributeType.RUNTIME_VISIBLE_ANNOTATIONS) || attributes.has(AttributeType.RUNTIME_INVISIBLE_ANNOTATIONS);
 	}
 	
 	public Pair<AnnotationsAttribute, AnnotationsAttribute> getAnnotationAttributes() {
@@ -153,7 +154,7 @@ public class JavaField extends JavaClassElement {
 	}
 	
 	public FieldSignatureAttribute getSignature() {
-		return attributes.getNullable(AttributeNames.SIGNATURE);
+		return attributes.getNullable(AttributeType.FIELD_SIGNATURE);
 	}
 	
 	
@@ -179,7 +180,7 @@ public class JavaField extends JavaClassElement {
 		if(initializer != null) {
 			out.write(" = ");
 			
-			if(descriptor.getType().isBasicArrayType() && JDecompiler.getInstance().shortArrayInitAllowed())
+			if(descriptor.getType().isArrayType() && JDecompiler.getInstance().shortArrayInitAllowed())
 				initializer.writeAsArrayInitializer(out, method.getStringifyContext());
 			else
 				initializer.writeTo(out, method.getStringifyContext());
@@ -224,5 +225,11 @@ public class JavaField extends JavaClassElement {
 	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
 		out .print(modifiersToString(), classinfo)
 			.print(descriptor, classinfo);
+	}
+	
+	
+	@Override
+	public void serialize(ExtendedDataOutputStream out) {
+		// TODO
 	}
 }

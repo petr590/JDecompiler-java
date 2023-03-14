@@ -1,7 +1,5 @@
 package x590.jdecompiler.attribute;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +12,7 @@ import x590.jdecompiler.JavaSerializable;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.AttributeNotFoundException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
+import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.util.Logger;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
@@ -65,10 +64,8 @@ public final class Attributes implements JavaSerializable, Importable {
 	
 	
 	@Override
-	public void serialize(DataOutputStream out) throws IOException {
-		out.writeShort(attributes.size());
-		for(Attribute attribute : attributes)
-			attribute.serialize(out);
+	public void serialize(ExtendedDataOutputStream out) {
+		out.writeAll(attributes);
 	}
 	
 	
@@ -79,28 +76,28 @@ public final class Attributes implements JavaSerializable, Importable {
 	
 	
 	
-	@SuppressWarnings("unchecked")
-	public <A extends Attribute> @Nullable A getNullable(String name) {
-		return (A)attributeByName.get(name);
-	}
-	
-	public <A extends Attribute> A get(String name) {
-		return getOrThrow(name, () -> new AttributeNotFoundException(name));
+	public <A extends Attribute> A get(AttributeType<A> type) {
+		return getOrThrow(type, () -> new AttributeNotFoundException(type.getName()));
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <A extends Attribute> A getOrDefault(String name, A defaultValue) {
-		return (A)attributeByName.getOrDefault(name, defaultValue);
+	public <A extends Attribute> @Nullable A getNullable(AttributeType<A> type) {
+		return (A)attributeByName.get(type.getName());
 	}
 	
-	public <A extends Attribute, T extends Throwable> A getOrThrow(String name, T throwable) throws T {
-		return getOrThrow(name, () -> throwable);
+	@SuppressWarnings("unchecked")
+	public <A extends Attribute> A getOrDefault(AttributeType<A> type, A defaultValue) {
+		return (A)attributeByName.getOrDefault(type.getName(), defaultValue);
 	}
 	
-	public <A extends Attribute, T extends Throwable> A getOrThrow(String name, Supplier<T> exceptionSupplier) throws T {
+	public <A extends Attribute, T extends Throwable> A getOrThrow(AttributeType<A> type, T throwable) throws T {
+		return getOrThrow(type, () -> throwable);
+	}
+	
+	public <A extends Attribute, T extends Throwable> A getOrThrow(AttributeType<A> type, Supplier<T> exceptionSupplier) throws T {
 		
 		@SuppressWarnings("unchecked")
-		A attribute = (A)attributeByName.get(name);
+		A attribute = (A)attributeByName.get(type.getName());
 		
 		if(attribute != null)
 			return attribute;
@@ -108,7 +105,7 @@ public final class Attributes implements JavaSerializable, Importable {
 		throw exceptionSupplier.get();
 	}
 	
-	public boolean has(String name) {
-		return attributeByName.containsKey(name);
+	public boolean has(AttributeType<?> type) {
+		return attributeByName.containsKey(type.getName());
 	}
 }

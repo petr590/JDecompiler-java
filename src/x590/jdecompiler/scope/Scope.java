@@ -11,6 +11,7 @@ import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.exception.VariableNotFoundException;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
@@ -22,6 +23,7 @@ import x590.jdecompiler.type.Type;
 import x590.jdecompiler.variable.EmptyableVariable;
 import x590.jdecompiler.variable.UnnamedVariable;
 import x590.jdecompiler.variable.Variable;
+import x590.util.LoopUtil;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
@@ -92,7 +94,7 @@ public abstract class Scope extends Operation {
 	}
 	
 	
-	protected void addLocalVariable(EmptyableVariable var) {
+	protected void addVariable(EmptyableVariable var) {
 		locals.add(var);
 	}
 	
@@ -124,6 +126,17 @@ public abstract class Scope extends Operation {
 		
 		return var.notEmpty();
 	}
+	
+	
+	public Variable defineNewVariable(int index, Type type) {
+		if(!locals.get(index).isEmpty())
+			throw new DecompilationException("Variable #" + index + " " + locals.get(index) + " already defined for scope " + this);
+		
+		Variable var = new UnnamedVariable(this, type);
+		locals.set(index, var);
+		return var;
+	}
+	
 	
 	/** Ищет переменную в текущем scope и во всех вложенных */
 	protected EmptyableVariable findVariable(int index) {
@@ -202,8 +215,16 @@ public abstract class Scope extends Operation {
 	}
 	
 	
-	public @Immutable List<Operation> getCode() {
+	public @Immutable List<Operation> getOperations() {
 		return unmodifiableCode;
+	}
+	
+	public int getOperationsCount() {
+		return code.size();
+	}
+	
+	public Operation getOperationAt(int index) {
+		return code.get(index);
 	}
 	
 	
@@ -301,11 +322,6 @@ public abstract class Scope extends Operation {
 	}
 	
 	
-	public @Immutable List<Operation> getOperations() {
-		return Collections.unmodifiableList(code);
-	}
-	
-	
 	@Override
 	public void remove() {
 		super.remove();
@@ -356,11 +372,13 @@ public abstract class Scope extends Operation {
 	}
 	
 	protected void writeBody(StringifyOutputStream out, StringifyContext context) {
-		out .increaseIndent()
-			.printAllUsingFunction(code,
+		out.increaseIndent();
+		
+		LoopUtil.forEachPair(code,
 				operation -> operation.writeAsStatement(out, context),
-				operation -> operation.writeSeparator(out, context))
-			.reduceIndent();
+				(operation1, operation2) -> operation1.writeSeparator(out, context, operation2));
+		
+		out.reduceIndent();
 	}
 	
 	/**
@@ -369,14 +387,13 @@ public abstract class Scope extends Operation {
 	 */
 	protected boolean canOmitCurlyBrackets() {
 		return JDecompiler.getInstance().canOmitCurlyBrackets() &&
-				(code.isEmpty() || code.size() == 1 && (!(code.get(0) instanceof Scope scope) || (scope.canOmitCurlyBrackets())));
+				(code.isEmpty() || code.size() == 1 && (
+						code.get(0) instanceof Scope scope ?
+								scope.canOmitCurlyBrackets() :
+								!code.get(0).isVariableDefining()
+				));
 	}
 	
-	
-	@Override
-	public void writeFront(StringifyOutputStream out, StringifyContext context) {
-		out.println().printIndent();
-	}
 	
 	protected void writeHeader(StringifyOutputStream out, StringifyContext context) {}
 	
@@ -384,7 +401,7 @@ public abstract class Scope extends Operation {
 	public void writeBack(StringifyOutputStream out, StringifyContext context) {}
 	
 	@Override
-	public void writeSeparator(StringifyOutputStream out, StringifyContext context) {
+	public void writeSeparator(StringifyOutputStream out, StringifyContext context, Operation nextOperation) {
 		out.println();
 	}
 	

@@ -3,6 +3,7 @@ package x590.jdecompiler;
 import static x590.jdecompiler.modifiers.Modifiers.*;
 
 import java.io.InputStream;
+import java.io.Reader;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 
 import x590.jdecompiler.DecompilationStage.DecompilationStageHolder;
 import x590.jdecompiler.attribute.AttributeNames;
+import x590.jdecompiler.attribute.AttributeType;
 import x590.jdecompiler.attribute.Attributes;
 import x590.jdecompiler.attribute.InnerClassesAttribute;
 import x590.jdecompiler.attribute.InnerClassesAttribute.InnerClassEntry;
@@ -29,6 +31,7 @@ import x590.jdecompiler.exception.IllegalClassHeaderException;
 import x590.jdecompiler.exception.IllegalModifiersException;
 import x590.jdecompiler.io.DisassemblingOutputStream;
 import x590.jdecompiler.io.ExtendedDataInputStream;
+import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.modifiers.ClassModifiers;
@@ -131,7 +134,7 @@ public class JavaClass extends JavaClassElement {
 		this.attributes = Attributes.read(in, pool, Location.CLASS);
 		classinfo.setAttributes(attributes);
 		
-		this.signature = attributes.getNullable(AttributeNames.SIGNATURE);
+		this.signature = attributes.getNullable(AttributeType.CLASS_SIGNATURE);
 		if(signature != null)
 			signature.checkTypes(superType, interfaces);
 		
@@ -147,6 +150,12 @@ public class JavaClass extends JavaClassElement {
 	
 	public static JavaClass read(ExtendedDataInputStream in) {
 		return new JavaClass(in);
+	}
+	
+	// TODO
+	public static @Nullable JavaClass parse(Reader in) {
+		
+		return null;
 	}
 	
 	public static @Nullable JavaClass find(ClassType type) {
@@ -204,6 +213,14 @@ public class JavaClass extends JavaClassElement {
 		return attributes;
 	}
 	
+	public String getSourceFileName() {
+		return attributes.get(AttributeType.SOURCE_FILE).getSourceFileName();
+	}
+	
+	public String getSourceFilePath() {
+		return getSourceFileName();
+	}
+	
 	
 	private final DecompilationStageHolder stageHolder = new DecompilationStageHolder(DecompilationStage.DISASSEMBLED);
 	
@@ -217,7 +234,7 @@ public class JavaClass extends JavaClassElement {
 			enumConstants.forEach(enumConstant -> enumConstant.checkHasEnumInitializer(classinfo));
 		
 		
-		InnerClassesAttribute innerClassesAttribute = attributes.getNullable(AttributeNames.INNER_CLASSES);
+		InnerClassesAttribute innerClassesAttribute = attributes.getNullable(AttributeType.INNER_CLASSES);
 		
 		if(innerClassesAttribute != null) {
 			innerClasses = innerClassesAttribute.getEntries().values().stream()
@@ -271,7 +288,7 @@ public class JavaClass extends JavaClassElement {
 			return false;
 		}
 		
-		InnerClassEntry innerClass = attributes.getOrDefault(AttributeNames.INNER_CLASSES, InnerClassesAttribute.empty()).find(thisType);
+		InnerClassEntry innerClass = attributes.getOrDefault(AttributeType.INNER_CLASSES, InnerClassesAttribute.empty()).find(thisType);
 		
 		return innerClass == null || !classes.containsKey(innerClass.getOuterType());
 	}
@@ -309,7 +326,7 @@ public class JavaClass extends JavaClassElement {
 	private void writeAsModuleInfo(StringifyOutputStream out, ClassInfo classinfo) {
 		checkHasNoMembers();
 		
-		ModuleAttribute moduleAttribute = attributes.getOrThrow(AttributeNames.MODULE, () -> new DecompilationException("module-info haven't \"Module\" attribute"));
+		ModuleAttribute moduleAttribute = attributes.getOrThrow(AttributeType.MODULE, () -> new DecompilationException("module-info haven't \"Module\" attribute"));
 		moduleAttribute.writeTo(out, classinfo);
 	}
 	
@@ -386,7 +403,7 @@ public class JavaClass extends JavaClassElement {
 	private void writeHeader(StringifyOutputStream out, ClassInfo classinfo) {
 		
 		out .printIndent().print(modifiersToString(classinfo), classinfo).print(thisType, classinfo)
-			.printIfNotNull(attributes.getNullable(AttributeNames.PERMITTED_SUBCLASSES), classinfo);
+			.printIfNotNull(attributes.getNullable(AttributeType.PERMITTED_SUBCLASSES), classinfo);
 		
 		if(signature != null)
 			out.printIfNotNull(signature.parameters, classinfo);
@@ -408,7 +425,7 @@ public class JavaClass extends JavaClassElement {
 		
 		if(thisType.isNested()) {
 			
-			InnerClassesAttribute innerClasses = attributes.getNullable(AttributeNames.INNER_CLASSES);
+			InnerClassesAttribute innerClasses = attributes.getNullable(AttributeType.INNER_CLASSES);
 			if(innerClasses != null) {
 				
 				InnerClassEntry innerClass = innerClasses.find(thisType);
@@ -444,7 +461,7 @@ public class JavaClass extends JavaClassElement {
 			str.append("strictfp");
 		}
 		
-		if(attributes.has(AttributeNames.PERMITTED_SUBCLASSES)) {
+		if(attributes.has(AttributeType.PERMITTED_SUBCLASSES)) {
 			if(modifiers.isFinal())
 				throw new IllegalModifiersException(thisType, modifiers, "sealed class cannot be final");
 			
@@ -544,5 +561,11 @@ public class JavaClass extends JavaClassElement {
 			.printAll(fields, classinfo)
 			.printAll(methods, classinfo)
 			.print('}');
+	}
+	
+	
+	@Override
+	public void serialize(ExtendedDataOutputStream out) {
+		
 	}
 }

@@ -26,6 +26,7 @@ module jdecompiler {
 	exports x590.jdecompiler.scope;
 	exports x590.jdecompiler.exception;
 	exports x590.jdecompiler.main;
+	exports x590.jdecompiler.main.performing;
 	exports x590.jdecompiler.modifiers;
 	exports x590.jdecompiler.type;
 	exports x590.jdecompiler.instruction;

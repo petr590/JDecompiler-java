@@ -12,7 +12,7 @@ import x590.jdecompiler.SameDisassemblingStringifyWritable;
 import x590.jdecompiler.exception.InvalidSignatureException;
 import x590.jdecompiler.exception.InvalidTypeNameException;
 import x590.jdecompiler.io.ExtendedOutputStream;
-import x590.jdecompiler.io.ExtendedStringReader;
+import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nonnull;
 import x590.util.annotation.Nullable;
@@ -21,7 +21,7 @@ public final class GenericParameters<T extends ReferenceType> implements SameDis
 	
 	private final @Immutable List<T> types;
 	
-	public GenericParameters(ExtendedStringReader in, Function<ExtendedStringReader, ? extends T> supplier) {
+	public GenericParameters(ExtendedStringInputStream in, Function<ExtendedStringInputStream, ? extends T> supplier) {
 		in.mark();
 		
 		if(in.read() != '<')
@@ -39,14 +39,14 @@ public final class GenericParameters<T extends ReferenceType> implements SameDis
 		in.unmark();
 	}
 	
-	public static <T extends ReferenceType> @Nonnull GenericParameters<T> readNonnull(ExtendedStringReader in, Function<ExtendedStringReader, ? extends T> supplier) {
+	public static <T extends ReferenceType> @Nonnull GenericParameters<T> readNonnull(ExtendedStringInputStream in, Function<ExtendedStringInputStream, ? extends T> supplier) {
 		if(in.get() == '<')
 			return new GenericParameters<>(in, supplier);
 		
 		throw new InvalidSignatureException(in);
 	}
 	
-	public static <T extends ReferenceType> @Nullable GenericParameters<T> readNullable(ExtendedStringReader in, Function<ExtendedStringReader, ? extends T> supplier) {
+	public static <T extends ReferenceType> @Nullable GenericParameters<T> readNullable(ExtendedStringInputStream in, Function<ExtendedStringInputStream, ? extends T> supplier) {
 		return in.get() == '<' ? new GenericParameters<>(in, supplier) : null;
 	}
 	

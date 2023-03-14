@@ -18,8 +18,8 @@ public class ExceptionsAttribute extends Attribute {
 	
 	private final @Immutable List<ReferenceType> exceptionTypes;
 	
-	ExceptionsAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
-		super(nameIndex, name, length);
+	ExceptionsAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
+		super(name, length);
 		
 		int exceptionsLength = in.readUnsignedShort();
 		
@@ -29,8 +29,8 @@ public class ExceptionsAttribute extends Attribute {
 		this.exceptionTypes = in.readImmutableList(exceptionsLength, () -> pool.<ClassConstant>get(in.readUnsignedShort()).toClassType());
 	}
 	
-	private ExceptionsAttribute(int nameIndex, String name, int length, List<ReferenceType> exceptionTypes) {
-		super(nameIndex, name, length);
+	private ExceptionsAttribute(String name, int length, List<ReferenceType> exceptionTypes) {
+		super(name, length);
 		this.exceptionTypes = exceptionTypes;
 	}
 	
@@ -48,7 +48,7 @@ public class ExceptionsAttribute extends Attribute {
 		private static final ExceptionsAttribute INSTANCE = new EmptyExceptionsAttribute();
 		
 		private EmptyExceptionsAttribute() {
-			super(0, "Exceptions", 0, Collections.emptyList());
+			super("Exceptions", 0, Collections.emptyList());
 		}
 		
 		@Override

@@ -1,6 +1,6 @@
 package x590.jdecompiler.example;
 
-public class SuperclassOmitting extends Superclass {
+public class SuperclassOmitting extends Superclass implements Superinterface {
 	
 	public static void main(String[] args) {
 		ExampleTesting.runDecompiler(SuperclassOmitting.class);
@@ -8,11 +8,11 @@ public class SuperclassOmitting extends Superclass {
 	
 	@Override
 	public void foo() {
-		super.foo();
+		Superinterface.super.foo();
 	}
 	
 	@Override
 	public void bar() {
-		super.bar();
+		Superinterface.super.bar();
 	}
 }

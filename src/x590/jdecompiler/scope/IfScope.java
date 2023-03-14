@@ -4,12 +4,13 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.instruction.scope.IfInstruction;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.condition.ConditionOperation;
 import x590.util.annotation.Nullable;
 
 public class IfScope extends ConditionalScope {
 	
-	private @Nullable ElseScope elseScope;
+	private @Nullable ElseScope elseScope, prevElseScope;
 	
 	public IfScope(DecompilationContext context, int endIndex, ConditionOperation condition) {
 		super(context, endIndex, condition.invert());
@@ -40,31 +41,45 @@ public class IfScope extends ConditionalScope {
 	}
 	
 	
-	protected boolean canSelfOmitCurlyBrackets() {
+	void setPrevElse(ElseScope prevElseScope) {
+		this.prevElseScope = prevElseScope;
+	}
+	
+	
+	boolean canSelfOmitCurlyBrackets() {
 		return super.canOmitCurlyBrackets() && (
 					/*
 					 Для кода такого вида мы не можем опустить фигурные скобки,
 					 иначе будет синтаксически другое выражение:
 					
-						 if(condition1) {
-						 	if(condition2)
-						 		code1;
-						 	
-						 } else {
-						 	code2;
-						 }
+						if(condition1) {
+							if(condition2)
+								code1;
+							
+						} else {
+							code2;
+						}
 					
 					 Для избегания этой ситуации я написал код ниже:
 					*/
-					elseScope == null ||
-					getCode().size() != 1 ||
-					!(getCode().get(0) instanceof IfScope)
+					(elseScope == null || getOperationsCount() != 1 || !(getOperationAt(0) instanceof IfScope))
 				);
+	}
+	
+	boolean canSelfOmitCurlyBracketsForward() {
+		return canSelfOmitCurlyBrackets() &&
+				(elseScope == null || elseScope.canSelfOmitCurlyBracketsForward());
+	}
+	
+	boolean canSelfOmitCurlyBracketsBackward() {
+		return canSelfOmitCurlyBrackets() &&
+				(prevElseScope == null || prevElseScope.canSelfOmitCurlyBracketsBackward());
 	}
 	
 	@Override
 	protected boolean canOmitCurlyBrackets() {
-		return canSelfOmitCurlyBrackets() && (elseScope == null || elseScope.canSelfOmitCurlyBrackets());
+		return canSelfOmitCurlyBracketsForward() &&
+				(prevElseScope == null || prevElseScope.canSelfOmitCurlyBracketsBackward());
 	}
 	
 	@Override
@@ -73,8 +88,8 @@ public class IfScope extends ConditionalScope {
 	}
 	
 	@Override
-	public void writeSeparator(StringifyOutputStream out, StringifyContext context) {
+	public void writeSeparator(StringifyOutputStream out, StringifyContext context, Operation nextOperation) {
 		if(elseScope == null)
-			super.writeSeparator(out, context);
+			super.writeSeparator(out, context, nextOperation);
 	}
 }

@@ -32,7 +32,7 @@ public abstract class ReturnOperation extends VoidOperation {
 		Operation operand = context.popAsNarrowest(methodReturnType);
 		
 		if(context.currentScope().getLastOperation(context) instanceof IfScope ifScope &&
-				ifScope.getOperations().size() == 1 && ifScope.getOperations().get(0) instanceof ReturnOperation returnOperation) {
+				ifScope.getOperationsCount() == 1 && ifScope.getOperationAt(0) instanceof ReturnOperation returnOperation) {
 			
 			operand = new TernaryOperatorOperation(ifScope.getCondition(), context, operand, returnOperation.operand);
 			ifScope.remove();

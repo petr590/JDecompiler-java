@@ -1,13 +1,10 @@
 package x590.jdecompiler.main;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,9 +13,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import x590.jdecompiler.JavaClass;
-import x590.jdecompiler.exception.DisassemblingException;
-import x590.util.Logger;
-import x590.util.Timer;
+import x590.jdecompiler.example.ExampleTesting;
+import x590.jdecompiler.example.scope.TryCatch;
+import x590.jdecompiler.main.performing.Performing;
 
 /**
  * Точка входа программы
@@ -64,7 +61,7 @@ public final class Main {
 	}
 	
 	
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 		
 		if(args.length > 0) {
 			JDecompiler.init(args);
@@ -72,103 +69,34 @@ public final class Main {
 //			JDecompiler.init(findClassNamesAsStreamInPackage("example")
 //					.map(className -> "bin/" + className.replace('.', '/') + ".class").toArray(String[]::new));
 			
-			JDecompiler.init(new String[] {
-//					"bin/example/Example2.class",
-					
-//					"bin/example/annotation/TestAnnotation.class",
-//					"bin/example/annotation/InvisibleAnnotation.class",
-					
-//					"bin/example/If.class",
-//					"bin/example/Else.class",
-//					"bin/example/Synchronized.class",
-//					"bin/example/Annotations.class",
-//					"bin/example/Cast.class",
-//					"bin/example/Charset.class",
-					
-//					"bin/example/Increment1.class",
-//					"bin/example/Increment2.class",
-//					"bin/example/StaticFieldsIncrement.class",
-//					"bin/example/NonStaticFieldsIncrement.class",
-					
-//					"bin/example/LoopIncrement.class",
-//					"bin/example/StaticFieldsLoopIncrement.class",
-//					"bin/example/NonStaticFieldsLoopIncrement.class",
-					
-//					"bin/example/Methods.class",
-//					"bin/example/MultiDeclaration.class",
-//					"bin/example/OverrideTest.class",
-//					"bin/example/Interface.class",
-//					"bin/example/Enum.class",
-//					"bin/example/Arrays.class",
-//					"bin/example/Constants.class",
-//					"bin/example/Autoboxing.class",
-//					"bin/example/Autounboxing.class",
-//					"bin/example/TernaryOperator.class",
-//					"bin/example/Throws.class",
-
-//					"vbin/example/Enum.class",
-//					"vbin/example/ConcatStringsInvokedynamic.class",
-//					"/home/winch/0x590/java/jdk-8-rt/java/lang/Object.class",
-					
-//					"bin/x590/jdecompiler/Importable.class",
-//					"bin/x590/jdecompiler/Version.class",
-					
-//					"/home/winch/eclipse-workspace/Util/bin/x590/util/Pair.class"
-					
-//					"--no-omit-curly-brackets",
-//					"--no-omit-this-class",
-//					"--no-brackets-around-bitwise-operands",
-					
-//					"bin/x590/jdecompiler/modifiers/Modifiers.class",
-//					"bin/module-info.class",
-//					"bin/example/package-info.class", "--omit-single-import",
-//					"bin/module-info.class"
-//					"bin/example/EmptyClass.class",
-					
-//					"vbin/example/preview/java17/Parent.class", "-d",
-					"bin/x590/jdecompiler/io/ExtendedOutputStream.class",
-//					"bin/x590/jdecompiler/example/Lambda.class",
-			});
+			ExampleTesting.runDecompiler(TryCatch.class, "-oc" /* Вывод в консоль, а не в файл */);
+//			ExampleTesting.runDecompiler(ElseIf.class, "-oc");
+			
+//			ExampleTesting.runDecompiler("-a", "Test.asm");
+			
+			return;
 		}
 		
 		
 		List<JavaClass> classes = new ArrayList<>(JDecompiler.getInstance().getFiles().size());
 		
+		Performing<?> performing = JDecompiler.getInstance().getPerforming();
+		
 		for(String file : JDecompiler.getInstance().getFiles()) {
-			
-			DataInputStream in = new DataInputStream(new BufferedInputStream(Files.newInputStream(Paths.get(file))));
-			int wasAvailable = in.available();
-			
-			try {
-				Timer timer = Timer.startNewTimer();
-				
-				JavaClass javaClass = JavaClass.read(in);
-				
-				timer.logElapsed("Class reading");
-				
-				classes.add(javaClass);
-				
-			} catch(DisassemblingException ex) {
-				Logger.warningFormatted("At pos 0x" + Integer.toHexString(wasAvailable - in.available()));
-				ex.printStackTrace();
-				
-			} catch(Exception ex) {
-				ex.printStackTrace();
-				
-			} finally {
-				in.close();
-			}
+			JavaClass clazz = performing.readSafe(file);
+			if(clazz != null)
+				classes.add(clazz);
 		}
 		
-		
-		
-		Performing performing = JDecompiler.getInstance().getPerforming(System.out);
+		try {
+			performing.setup();
+		} catch(IOException | UncheckedIOException ex) {
+			ex.printStackTrace();
+		}
 		
 		for(JavaClass clazz : classes) {
 			
 			if(clazz.canStringify()) {
-				performing.getOutputStream().resetIndent().print("\n\n----------------------------------------------------------------------------------------------------\n\n");
-				
 				try {
 					performing.perform(clazz);
 					performing.write(clazz);
@@ -187,7 +115,10 @@ public final class Main {
 			}
 		}
 		
-		performing.getOutputStream().println().flush();
-		performing.closeOutputStream();
+		try {
+			performing.close();
+		} catch(IOException | UncheckedIOException ex) {
+			ex.printStackTrace();
+		}
 	}
 }

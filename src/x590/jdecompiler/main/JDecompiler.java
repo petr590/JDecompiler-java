@@ -1,6 +1,5 @@
 package x590.jdecompiler.main;
 
-import java.io.PrintStream;
 import java.util.Collections;
 import java.util.List;
 
@@ -9,7 +8,8 @@ import x590.argparser.Flag;
 import x590.argparser.StandartArgParser;
 import x590.argparser.option.EnumOption;
 import x590.argparser.option.StringOption;
-import x590.jdecompiler.main.AbstractPerforming.PerformingType;
+import x590.jdecompiler.main.performing.Performing;
+import x590.jdecompiler.main.performing.AbstractPerforming.PerformingType;
 import x590.util.ObjectHolder;
 import x590.util.annotation.Immutable;
 
@@ -29,6 +29,8 @@ public class JDecompiler {
 	
 	
 	private final PerformingType performingType;
+	
+	private final boolean writeToConsole;
 	
 	
 	public enum UsagePolicy {
@@ -96,7 +98,9 @@ public class JDecompiler {
 		ArgsNamespace arguments = new StandartArgParser("JDecompiler", Version.VERSION).localize()
 				
 				.add(new StringOption("files").help("Files to be processed").oneOrMoreTimes())
-				.add(new Flag("-d", "--disassemble").help("Disassemble java class").action(() -> performingTypeHolder.set(PerformingType.DISASSEMBLE)))
+				.add(new Flag("-ds", "--disassemble").help("Disassemble java class").action(() -> performingTypeHolder.set(PerformingType.DISASSEMBLE)))
+				.add(new Flag("-as", "--assemble").help("Assemble java class").action(() -> performingTypeHolder.set(PerformingType.ASSEMBLE)))
+				.add(new Flag("-oc", "--console").help("Write to console"))
 				
 				.add(new EnumOption<>(UsagePolicy.class, "-c", "--constants")
 						.implicitValue(UsagePolicy.ALWAYS).defaultValue(UsagePolicy.ALWAYS)
@@ -135,6 +139,8 @@ public class JDecompiler {
 		
 		
 		this.performingType = performingTypeHolder.get();
+		
+		this.writeToConsole = arguments.getBoolean("--console");
 		
 		this.constantsUsagePolicy = arguments.get("--constants");
 		
@@ -195,8 +201,13 @@ public class JDecompiler {
 	}
 	
 	
-	public Performing getPerforming(PrintStream out) {
-		return performingType.getPerforming(out);
+	public Performing<?> getPerforming() {
+		return performingType.getPerforming(!writeToConsole);
+	}
+	
+	
+	public boolean writeToConsole() {
+		return writeToConsole;
 	}
 	
 	

@@ -3,25 +3,33 @@ package x590.jdecompiler.context;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EmptyStackException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.JavaMethod;
+import x590.jdecompiler.attribute.CodeAttribute.ExceptionTable;
+import x590.jdecompiler.attribute.CodeAttribute.ExceptionTable.CatchEntry;
+import x590.jdecompiler.attribute.CodeAttribute.ExceptionTable.TryEntry;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.instruction.Instruction;
 import x590.jdecompiler.instruction.scope.IfInstruction;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.returning.VReturnOperation;
+import x590.jdecompiler.scope.CatchScope;
 import x590.jdecompiler.scope.Scope;
+import x590.jdecompiler.scope.TryScope;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.TypeSize;
@@ -33,12 +41,9 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	
 	public static class PreDecompilationContext extends DecompilationAndStringifyContext {
 		
-		private static final List<IfInstruction> defaultIfInstructionsList = new ArrayList<>();
-		public final Int2ObjectMap<List<IfInstruction>> ifInstructions = new Int2ObjectOpenHashMap<>();
+		private static final @Immutable List<IfInstruction> DEFAULT_IF_INSTRUCTIONS_LIST = Collections.singletonList(null);
 		
-		static {
-			defaultIfInstructionsList.add(null);
-		}
+		private final Int2ObjectMap<List<IfInstruction>> ifInstructions = new Int2ObjectOpenHashMap<>();
 		
 		public PreDecompilationContext(Context otherContext, ClassInfo classinfo, JavaMethod method, List<Instruction> instructions) {
 			
@@ -49,15 +54,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 				instruction.preDecompilation(this);
 				
 				if(instruction instanceof IfInstruction ifInstruction) {
-					int ifEndIndex = posToIndex(ifInstruction.endPos);
-					
-					List<IfInstruction> ifInstructionsList = ifInstructions.get(ifEndIndex);
-					
-					if(ifInstructionsList == null) {
-						ifInstructions.put(ifEndIndex, ifInstructionsList = new ArrayList<>());
-					}
-					
-					ifInstructionsList.add(ifInstruction);
+					ifInstructions.computeIfAbsent(posToIndex(ifInstruction.endPos), key -> new ArrayList<>()).add(ifInstruction);
 				}
 				
 				index++;
@@ -65,7 +62,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 		}
 		
 		public @Nullable IfInstruction getIfInstructionsPointedTo(int index) {
-			return ifInstructions.getOrDefault(index, defaultIfInstructionsList).get(0);
+			return ifInstructions.getOrDefault(index, DEFAULT_IF_INSTRUCTIONS_LIST).get(0);
 		}
 		
 		public boolean hasIfInstructionsPointedTo(int index) {
@@ -93,6 +90,8 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	 * Нужно для корректной декомпиляции циклов и, возможно, других конструкций */
 	private final Set<Integer> breaks = new HashSet<>();
 	
+	private Consumer<Operation> nextOperationHandler;
+	
 	
 	public static DecompilationContext decompile(Context otherContext, ClassInfo classinfo, JavaMethod method, List<Instruction> instructions, int maxLocals) {
 		return new DecompilationContext(otherContext, classinfo, method, instructions, maxLocals);
@@ -109,6 +108,13 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 		Set<Operation> operations = new HashSet<>(instructions.size());
 		this.operations = Collections.unmodifiableSet(operations);
 		this.mutableOperations = operations;
+		
+		ExceptionTable exceptionTable = method.getCodeAttribute().getExceptionTable();
+		
+		List<TryEntry> tryEntries = new ArrayList<>(exceptionTable.getEntries());
+		
+		List<CatchEntry> catchEntries = tryEntries.stream()
+				.flatMap(tryEntry -> tryEntry.getCatchEntries().stream()).collect(Collectors.toList());
 		
 		final Operation vreturnOperation = VReturnOperation.getInstance();
 		
@@ -127,16 +133,35 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 			
 			expressionIndexTable[index] = expressionIndex;
 			
+			
+			final int currentPos = currentPos();
+			
+			tryEntries.removeIf(
+					entry -> entry.getStartPos() == currentPos &&
+							addScope(new TryScope(this, index - 1, posToIndex(entry.getEndPos())))
+			);
+			
+			catchEntries.removeIf(
+					entry -> entry.getStartPos() == currentPos &&
+							addScope(new CatchScope(this, index - 1, entry.getEndIndex(this), entry.getExceptionTypes(), entry.hasNext()))
+			);
+			
+			
 			Operation operation;
 			
 			try {
 				operation = instruction.toOperation(this);
-			} catch(Exception ex) {
+			} catch(DecompilationException | EmptyStackException ex) {
 				throw new DecompilationException("At index " + index, ex);
 			}
 			
 			if(operation != null) {
 				operations.add(operation);
+				
+				if(nextOperationHandler != null) {
+					nextOperationHandler.accept(operation);
+					nextOperationHandler = null;
+				}
 				
 				if(operation.getReturnType() == PrimitiveType.VOID) {
 					expressionIndex = index;
@@ -206,28 +231,44 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	private void startScopes(int index) {
 		
 		for(Iterator<Scope> iter = scopesQueue.iterator(); iter.hasNext(); ) {
-			Scope scope = iter.next();
-			
-			if(scope.isRemoved()) {
+			if(startScope(iter.next()))
 				iter.remove();
-				
-			} else if(index > scope.startIndex()) {
-				
-				assert scope.superScope() == currentScope : scope + " must have parent scope " + currentScope + ", got " + scope.superScope();
-				
-				Logger.logf("%d: %s started", index, scope);
-				
-				iter.remove();
-				
-				if(index >= scope.endIndex()) {
-					scope.finalizeScope(this);
-					Logger.logf("%d: %s finalized", index, scope);
-					
-				} else {
-					currentScope = scope;
-				}
-			}
 		}
+	}
+	
+	private boolean addScope(Scope scope) {
+		if(startScope(scope)) {
+			scope.superScope().addOperation(scope, this);
+			mutableOperations.add(scope);
+			return true;
+		}
+		
+		return false;
+	}
+	
+	private boolean startScope(Scope scope) {
+		
+		if(scope.isRemoved()) {
+			return true;
+			
+		} else if(index > scope.startIndex()) {
+			
+			assert scope.superScope() == currentScope : scope + " must have parent scope " + currentScope + ", got " + scope.superScope();
+			
+			Logger.logf("%d: %s started", index, scope);
+			
+			if(index >= scope.endIndex()) {
+				scope.finalizeScope(this);
+				Logger.logf("%d: %s finalized", index, scope);
+				
+			} else {
+				currentScope = scope;
+			}
+			
+			return true;
+		}
+
+		return false;
 	}
 	
 	private void checkScopesBounds(int lastIndex) {
@@ -299,6 +340,10 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	
 	public void onNextPush(Predicate<Operation> nextPushHandler) {
 		stack.onNextPush(nextPushHandler);
+	}
+	
+	public void onNextOperationDecompiling(Consumer<Operation> nextOperationHandler) {
+		this.nextOperationHandler = nextOperationHandler;
 	}
 	
 	

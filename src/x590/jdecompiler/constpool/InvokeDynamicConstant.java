@@ -1,13 +1,10 @@
 package x590.jdecompiler.constpool;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-
-import x590.jdecompiler.attribute.AttributeNames;
+import x590.jdecompiler.attribute.AttributeType;
 import x590.jdecompiler.attribute.Attributes;
-import x590.jdecompiler.attribute.BootstrapMethodsAttribute;
 import x590.jdecompiler.attribute.BootstrapMethodsAttribute.BootstrapMethod;
 import x590.jdecompiler.io.ExtendedDataInputStream;
+import x590.jdecompiler.io.ExtendedDataOutputStream;
 
 public final class InvokeDynamicConstant extends Constant {
 	
@@ -26,7 +23,7 @@ public final class InvokeDynamicConstant extends Constant {
 	}
 	
 	public BootstrapMethod getBootstrapMethod(Attributes attributes) {
-		return attributes.<BootstrapMethodsAttribute>get(AttributeNames.BOOTSTRAP_METHODS).getBootstrapMethod(bootstrapMethodIndex);
+		return attributes.get(AttributeType.BOOTSTRAP_METHODS).getBootstrapMethod(bootstrapMethodIndex);
 	}
 	
 	public NameAndTypeConstant getNameAndType() {
@@ -44,8 +41,8 @@ public final class InvokeDynamicConstant extends Constant {
 	}
 	
 	@Override
-	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(0x12);
+	public void serialize(ExtendedDataOutputStream out) {
+		out.writeByte(TAG_INVOKE_DYNAMIC);
 		out.writeShort(bootstrapMethodIndex);
 		out.writeShort(nameAndTypeIndex);
 	}

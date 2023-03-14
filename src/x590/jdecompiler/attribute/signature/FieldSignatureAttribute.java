@@ -5,7 +5,7 @@ import x590.jdecompiler.FieldDescriptor;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
-import x590.jdecompiler.io.ExtendedStringReader;
+import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
 
@@ -13,10 +13,10 @@ public final class FieldSignatureAttribute extends SignatureAttribute {
 	
 	public final ReferenceType type;
 	
-	public FieldSignatureAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
-		super(nameIndex, name, length);
+	public FieldSignatureAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
+		super(name, length);
 		
-		ExtendedStringReader signatureIn = new ExtendedStringReader(pool.getUtf8String(in.readUnsignedShort()));
+		ExtendedStringInputStream signatureIn = new ExtendedStringInputStream(pool.getUtf8String(in.readUnsignedShort()));
 		this.type = Type.parseSignatureParameter(signatureIn);
 	}
 	

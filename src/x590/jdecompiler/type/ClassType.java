@@ -11,10 +11,12 @@ import x590.jdecompiler.constpool.ClassConstant;
 import x590.jdecompiler.exception.InvalidClassNameException;
 import x590.jdecompiler.exception.InvalidTypeNameException;
 import x590.jdecompiler.io.ExtendedOutputStream;
-import x590.jdecompiler.io.ExtendedStringReader;
+import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.util.StringUtil;
 import x590.util.annotation.Nullable;
+
+import static x590.jdecompiler.io.ExtendedStringInputStream.EOF_CHAR;
 
 /**
  * Описывает тип java класса, самого обычного класса
@@ -137,19 +139,19 @@ public class ClassType extends ReferenceType {
 	
 	
 	/** Принимает строку без префикса 'L' */
-	public static ClassType read(ExtendedStringReader in) {
+	public static ClassType read(ExtendedStringInputStream in) {
 		return fromDescriptor(readDescriptor(in));
 	}
 	
 	/** Принимает строку с префиксом 'L' */
-	public static ClassType readAsType(ExtendedStringReader in) {
+	public static ClassType readAsType(ExtendedStringInputStream in) {
 		if(in.get() == 'L')
 			return read(in.next());
 		
 		throw new InvalidClassNameException(in);
 	}
 	
-	private static String readDescriptor(ExtendedStringReader in) {
+	private static String readDescriptor(ExtendedStringInputStream in) {
 		
 		StringBuilder str = in.readUntil(';', '<', new StringBuilder());
 		
@@ -162,7 +164,7 @@ public class ClassType extends ReferenceType {
 		return str.toString();
 	}
 	
-	private static void readSignature(ExtendedStringReader in, StringBuilder str) {
+	private static void readSignature(ExtendedStringInputStream in, StringBuilder str) {
 		
 		str.append('<');
 		
@@ -210,10 +212,10 @@ public class ClassType extends ReferenceType {
 	}
 	
 	ClassType(String encodedName) {
-		this(new ExtendedStringReader(encodedName));
+		this(new ExtendedStringInputStream(encodedName));
 	}
 	
-	ClassType(ExtendedStringReader in) {
+	ClassType(ExtendedStringInputStream in) {
 		
 		in.mark();
 		
@@ -268,7 +270,7 @@ public class ClassType extends ReferenceType {
 					
 					
 					switch(in.read()) {
-						case ';', ExtendedStringReader.EOF_CHAR -> {
+						case ';', EOF_CHAR -> {
 							break Loop;
 						}
 							
@@ -278,7 +280,7 @@ public class ClassType extends ReferenceType {
 					}
 				}
 				
-				case ';', ExtendedStringReader.EOF_CHAR -> {
+				case ';', EOF_CHAR -> {
 					break Loop;
 				}
 				
@@ -496,7 +498,7 @@ public class ClassType extends ReferenceType {
 	
 	@Override
 	protected boolean canCastTo(Type other) {
-		return other.isBasicClassType();
+		return other.isClassType();
 	}
 	
 	@Override

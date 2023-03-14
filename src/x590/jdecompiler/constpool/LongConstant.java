@@ -1,12 +1,10 @@
 package x590.jdecompiler.constpool;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.FieldDescriptor;
 import x590.jdecompiler.JavaField;
 import x590.jdecompiler.io.ExtendedDataInputStream;
+import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.LConstOperation;
@@ -100,8 +98,8 @@ public final class LongConstant extends SingleConstableValueConstant<Long> {
 	}
 	
 	@Override
-	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(0x5);
+	public void serialize(ExtendedDataOutputStream out) {
+		out.writeByte(TAG_LONG);
 		out.writeLong(value);
 	}
 	

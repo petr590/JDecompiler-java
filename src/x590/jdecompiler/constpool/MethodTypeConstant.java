@@ -1,10 +1,8 @@
 package x590.jdecompiler.constpool;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.io.ExtendedDataInputStream;
+import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.MethodTypeConstOperation;
@@ -60,8 +58,8 @@ public final class MethodTypeConstant extends ConstValueConstant {
 	}
 	
 	@Override
-	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(0x10);
+	public void serialize(ExtendedDataOutputStream out) {
+		out.writeByte(TAG_METHOD_TYPE);
 		out.writeByte(descriptorIndex);
 	}
 	

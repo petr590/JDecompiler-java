@@ -12,8 +12,8 @@ public final class AnnotationDefaultAttribute extends Attribute implements Strin
 	
 	private final ElementValue value;
 	
-	public AnnotationDefaultAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
-		super(nameIndex, name, length);
+	public AnnotationDefaultAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
+		super(name, length);
 		this.value = ElementValue.read(in, pool);
 	}
 	

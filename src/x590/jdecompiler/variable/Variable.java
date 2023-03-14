@@ -18,7 +18,7 @@ public abstract class Variable extends EmptyableVariable {
 	// Если тип переменной фиксирован, он не должен меняться в принципе
 	private final boolean typeFixed;
 	
-	private String name;
+	private @Nullable String name;
 	private final List<Operation> assignedOperations = new ArrayList<>();
 	
 	/** Наиболее вероятный тип переменной. Если мы, например, инкрементируем переменную, как short, то
@@ -128,7 +128,11 @@ public abstract class Variable extends EmptyableVariable {
 		return defined;
 	}
 	
-	public EmptyableVariable define() {
+	public void define() {
+		defined = true;
+	}
+	
+	public Variable defined() {
 		defined = true;
 		return this;
 	}

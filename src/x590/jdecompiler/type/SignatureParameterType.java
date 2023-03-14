@@ -2,16 +2,16 @@ package x590.jdecompiler.type;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.io.ExtendedOutputStream;
-import x590.jdecompiler.io.ExtendedStringReader;
+import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.jdecompiler.util.StringUtil;
 
 /** Описывает дженерик. Хранит только его имя */
 public final class SignatureParameterType extends ReferenceType {
 	
-	public SignatureParameterType(ExtendedStringReader in) {
+	public SignatureParameterType(ExtendedStringInputStream in) {
 		StringBuilder nameBuilder = new StringBuilder();
 		
-		for(int ch = in.read(); ch != ';' && ch != ExtendedStringReader.EOF_CHAR; ch = in.read())
+		for(int ch = in.read(); ch != ';' && ch != ExtendedStringInputStream.EOF_CHAR; ch = in.read())
 			nameBuilder.append((char)ch);
 		
 		this.name = nameBuilder.toString();

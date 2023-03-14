@@ -1,8 +1,12 @@
 package x590.jdecompiler.instruction.scope;
 
+import java.util.Optional;
+
+import x590.jdecompiler.attribute.CodeAttribute.ExceptionTable.TryEntry;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.DecompilationContext.PreDecompilationContext;
 import x590.jdecompiler.context.DisassemblerContext;
+import x590.jdecompiler.scope.CatchScope;
 import x590.jdecompiler.scope.ElseScope;
 import x590.jdecompiler.scope.EmptyInfiniteLoopScope;
 import x590.jdecompiler.scope.IfScope;
@@ -39,6 +43,17 @@ public class GotoInstruction extends InstructionWithEndPos {
 			
 			if(endPos > context.currentPos() && context.hasIfInstructionsPointedTo(context.currentIndex() + 1)) {
 				role = Role.ELSE;
+				
+			} else {
+				final int currentPos = context.currentPos();
+				
+				Optional<TryEntry> foundTryEntry =
+						context.getExceptionTable().getEntries().stream().filter(tryEntry -> tryEntry.getEndPos() == currentPos).findAny();
+				
+				if(foundTryEntry.isPresent()) {
+					role = Role.CATCH_JUMPOVER;
+					foundTryEntry.get().setLastPos(endPos);
+				}
 			}
 		}
 	}
@@ -51,8 +66,14 @@ public class GotoInstruction extends InstructionWithEndPos {
 		return switch(role) {
 			
 			case UNKNOWN, ELSE -> {
-				
 				if(recognizeElse(context, context.currentScope())) {
+					yield null;
+				}
+				
+				if(role == Role.UNKNOWN && context.currentScope() instanceof CatchScope catchScope &&
+						context.currentIndex() + 1 == catchScope.endIndex()) {
+					
+					role = Role.CATCH_JUMPOVER;
 					yield null;
 				}
 				
@@ -65,7 +86,7 @@ public class GotoInstruction extends InstructionWithEndPos {
 				yield null;
 			}
 			
-			case CATCH_JUMPOVER -> throw new UnsupportedOperationException("Unimplemented case: " + role);
+			case CATCH_JUMPOVER -> null;
 			case EMPTY_INFINITE_LOOP -> new EmptyInfiniteLoopScope(context);
 			default -> throw new IllegalArgumentException("Unexpected value: " + role);
 		};

@@ -8,7 +8,7 @@ public class SyntheticAttribute extends EmptyAttribute {
 		super(AttributeNames.SYNTHETIC);
 	}
 	
-	public static SyntheticAttribute get(int nameIndex, String name, int length) {
+	public static SyntheticAttribute get(String name, int length) {
 		checkLength(name, length);
 		return INSTANCE;
 	}

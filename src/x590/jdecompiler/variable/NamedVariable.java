@@ -32,4 +32,10 @@ public class NamedVariable extends Variable {
 	
 	@Override
 	public void addName(String name) {}
+	
+	
+	@Override
+	public String toString() {
+		return String.format("NamedVariable { type = %s, name = %s, enclosingScope = %s }", type, name, getEnclosingScope());
+	}
 }

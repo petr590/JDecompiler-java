@@ -5,11 +5,15 @@ import x590.jdecompiler.variable.Variable;
 
 public abstract class OperationWithVariable extends ReturnableOperation {
 	
-	protected final Variable variable;
+	protected Variable variable;
 	
 	public OperationWithVariable(Variable variable) {
-		super(PrimitiveType.VOID);
+		this();
 		this.variable = variable;
+	}
+	
+	public OperationWithVariable() {
+		super(PrimitiveType.VOID);
 	}
 	
 	public Variable getVariable() {

@@ -131,4 +131,10 @@ public class UnnamedVariable extends Variable {
 	public void addName(String name) {
 		names.add(name);
 	}
+	
+	
+	@Override
+	public String toString() {
+		return String.format("UnnamedVariable { type = %s, names = %s, enclosingScope = %s }", type, names, getEnclosingScope());
+	}
 }

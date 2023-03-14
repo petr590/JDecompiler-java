@@ -1,23 +1,21 @@
 package x590.jdecompiler.attribute;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 import x590.jdecompiler.io.ExtendedDataInputStream;
+import x590.jdecompiler.io.ExtendedDataOutputStream;
 
 public final class UnknownAttribute extends Attribute {
 	
 	private final byte[] data;
 	
-	protected UnknownAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in) {
-		super(nameIndex, name, length);
+	protected UnknownAttribute(String name, int length, ExtendedDataInputStream in) {
+		super(name, length);
 		this.data = new byte[length];
 		in.readFully(data);
 	}
 	
 	@Override
-	public void serialize(DataOutputStream out) throws IOException {
-		super.serialize(out);
+	public void serialize(ExtendedDataOutputStream out) {
+		serializeHeader(out);
 		out.write(data);
 	}
 }

@@ -1,18 +1,18 @@
 package x590.jdecompiler.io;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UncheckedIOException;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntStack;
+import x590.util.io.UncheckedInputStream;
 
 /**
  * Выбрасывает {@link UncheckedIOException} вместо {@link IOException}.
  * Также содержит некоторые методы для удобства,
  * такие как {@link #readAll()}
  */
-public class ExtendedStringReader extends InputStream {
+public class ExtendedStringInputStream extends UncheckedInputStream {
 	
 	private String source;
 	private int pos = 0;
@@ -22,7 +22,7 @@ public class ExtendedStringReader extends InputStream {
 	public static final int EOF_CHAR = -1;
 	
 	
-	public ExtendedStringReader(String str) {
+	public ExtendedStringInputStream(String str) {
 		this.source = str;
 		this.length = str.length();
 	}
@@ -60,17 +60,17 @@ public class ExtendedStringReader extends InputStream {
 	
 	public void decPos() {
 		if(pos == 0)
-			throw new UncheckedIOException(new IOException("Position is 0"));
+			throw newUncheckedException("Position is 0");
 		
 		pos--;
 	}
 	
-	public ExtendedStringReader next() {
+	public ExtendedStringInputStream next() {
 		incPos();
 		return this;
 	}
 	
-	public ExtendedStringReader prev() {
+	public ExtendedStringInputStream prev() {
 		decPos();
 		return this;
 	}
@@ -187,7 +187,7 @@ public class ExtendedStringReader extends InputStream {
 		try {
 			marks.popInt();
 		} catch(IndexOutOfBoundsException ex) {
-			throw new UncheckedIOException(new IOException("Not marked"));
+			throw newUncheckedException("Not marked");
 		}
 	}
 	
@@ -199,7 +199,7 @@ public class ExtendedStringReader extends InputStream {
 	@Override
 	public void reset() {
 		if(marks.isEmpty())
-			throw new UncheckedIOException(new IOException("Not marked"));
+			throw newUncheckedException("Not marked");
 		
 		pos = marks.popInt();
 	}

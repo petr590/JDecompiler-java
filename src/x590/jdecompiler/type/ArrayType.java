@@ -5,7 +5,7 @@ import java.util.List;
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.exception.InvalidArrayNameException;
 import x590.jdecompiler.io.ExtendedOutputStream;
-import x590.jdecompiler.io.ExtendedStringReader;
+import x590.jdecompiler.io.ExtendedStringInputStream;
 
 /**
  * Описывает тип массива, включая массив примитивов,
@@ -65,7 +65,7 @@ public final class ArrayType extends ReferenceType {
 		return new ArrayType(arrayEncodedName);
 	}
 	
-	public static ArrayType read(ExtendedStringReader in) {
+	public static ArrayType read(ExtendedStringInputStream in) {
 		return new ArrayType(in);
 	}
 	
@@ -84,10 +84,10 @@ public final class ArrayType extends ReferenceType {
 	private final String braces;
 	
 	private ArrayType(String arrayEncodedName) {
-		this(new ExtendedStringReader(arrayEncodedName));
+		this(new ExtendedStringInputStream(arrayEncodedName));
 	}
 	
-	private ArrayType(ExtendedStringReader in) {
+	private ArrayType(ExtendedStringInputStream in) {
 		super(ARRAY_SUPER_TYPE, ARRAY_INTERFACES);
 		
 		in.mark();

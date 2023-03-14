@@ -1,6 +1,6 @@
 package x590.jdecompiler.exception;
 
-import x590.jdecompiler.io.ExtendedStringReader;
+import x590.jdecompiler.io.ExtendedStringInputStream;
 
 public class InvalidMethodDescriptorException extends NameDisassemblingException {
 	
@@ -14,11 +14,11 @@ public class InvalidMethodDescriptorException extends NameDisassemblingException
 		super(encodedName, pos);
 	}
 	
-	public InvalidMethodDescriptorException(ExtendedStringReader in) {
+	public InvalidMethodDescriptorException(ExtendedStringInputStream in) {
 		super(in);
 	}
 	
-	public InvalidMethodDescriptorException(ExtendedStringReader in, int pos) {
+	public InvalidMethodDescriptorException(ExtendedStringInputStream in, int pos) {
 		super(in, pos);
 	}
 }

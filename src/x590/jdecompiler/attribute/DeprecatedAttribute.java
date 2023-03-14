@@ -8,7 +8,7 @@ public class DeprecatedAttribute extends EmptyAttribute {
 		super(AttributeNames.DEPRECATED);
 	}
 	
-	public static DeprecatedAttribute get(int nameIndex, String name, int length) {
+	public static DeprecatedAttribute get(String name, int length) {
 		checkLength(name, length);
 		return INSTANCE;
 	}

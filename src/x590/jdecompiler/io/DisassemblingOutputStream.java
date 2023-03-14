@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 
 import x590.jdecompiler.DisassemblingWritable;
 import x590.jdecompiler.Writable;
-import x590.util.Util;
+import x590.util.LoopUtil;
 import x590.util.annotation.Nullable;
 import x590.util.function.TriConsumer;
 
@@ -91,7 +91,7 @@ public class DisassemblingOutputStream extends ExtendedOutputStream<Disassemblin
 	}
 	
 	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAll(Collection<? extends W> writables, int startIndex, T param, Consumer<? super W> delimeterWriter) {
-		Util.forEachExcludingLast(writables, writable -> writable.writeDisassembled(this, param), delimeterWriter, startIndex);
+		LoopUtil.forEachExcludingLast(writables, writable -> writable.writeDisassembled(this, param), delimeterWriter, startIndex);
 		return this;
 	}
 	
@@ -109,7 +109,7 @@ public class DisassemblingOutputStream extends ExtendedOutputStream<Disassemblin
 	}
 	
 	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAllUsingFunction(Collection<? extends W> writables, Consumer<? super W> writer, Consumer<? super W> delimeterWriter) {
-		Util.forEachExcludingLast(writables, writer, delimeterWriter);
+		LoopUtil.forEachExcludingLast(writables, writer, delimeterWriter);
 		return this;
 	}
 	
@@ -127,7 +127,7 @@ public class DisassemblingOutputStream extends ExtendedOutputStream<Disassemblin
 	}
 	
 	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAllUsingFunction(Collection<? extends W> writables, int startIndex, T param, Consumer<? super W> delimeterWriter) {
-		Util.forEachExcludingLast(writables, writable -> writable.writeDisassembled(this, param), delimeterWriter, startIndex);
+		LoopUtil.forEachExcludingLast(writables, writable -> writable.writeDisassembled(this, param), delimeterWriter, startIndex);
 		return this;
 	}
 	

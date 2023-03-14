@@ -15,8 +15,8 @@ public class PermittedSubclassesAttribute extends Attribute implements Stringify
 	
 	private final @Immutable List<ClassType> subclasses;
 	
-	protected PermittedSubclassesAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
-		super(nameIndex, name, length);
+	protected PermittedSubclassesAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
+		super(name, length);
 		this.subclasses = in.readImmutableList(() -> pool.getClassConstant(in.readUnsignedShort()).toClassType());
 	}
 	

@@ -1,13 +1,11 @@
 package x590.jdecompiler.attribute;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.FieldDescriptor;
 import x590.jdecompiler.constpool.ConstableValueConstant;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.io.ExtendedDataInputStream;
+import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.Type;
 import x590.util.annotation.Nullable;
@@ -17,8 +15,8 @@ public final class ConstantValueAttribute extends Attribute {
 	public final int valueIndex;
 	public final ConstableValueConstant<?> value;
 	
-	protected ConstantValueAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
-		super(nameIndex, name, length);
+	protected ConstantValueAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
+		super(name, length);
 		this.valueIndex = in.readUnsignedShort();
 		this.value = pool.get(valueIndex);
 	}
@@ -28,8 +26,8 @@ public final class ConstantValueAttribute extends Attribute {
 	}
 	
 	@Override
-	public void serialize(DataOutputStream out) throws IOException {
-		super.serialize(out);
+	public void serialize(ExtendedDataOutputStream out) {
+		serializeHeader(out);
 		out.writeShort(valueIndex);
 	}
 }

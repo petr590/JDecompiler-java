@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.exception.InvalidSignatureException;
 import x590.jdecompiler.io.ExtendedOutputStream;
-import x590.jdecompiler.io.ExtendedStringReader;
+import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.util.annotation.Immutable;
 
 /** Описывает объявление дженерика. Хранит имя и супертип */
@@ -16,7 +16,7 @@ public final class GenericParameterType extends ReferenceType {
 	
 	private final @Immutable List<ReferenceType> types;
 	
-	private static String parseName(ExtendedStringReader in, StringBuilder encodedNameBuilder) {
+	private static String parseName(ExtendedStringInputStream in, StringBuilder encodedNameBuilder) {
 		StringBuilder nameBuilder = new StringBuilder();
 		
 		for(int ch = in.read(); ch != ':'; ch = in.read()) {
@@ -32,7 +32,7 @@ public final class GenericParameterType extends ReferenceType {
 		return nameBuilder.toString();
 	}
 	
-	private static List<ReferenceType> parseTypes(ExtendedStringReader in, StringBuilder encodedNameBuilder) {
+	private static List<ReferenceType> parseTypes(ExtendedStringInputStream in, StringBuilder encodedNameBuilder) {
 		List<ReferenceType> types = new ArrayList<>();
 		
 		do {
@@ -52,7 +52,7 @@ public final class GenericParameterType extends ReferenceType {
 		return Collections.unmodifiableList(types);
 	}
 	
-	public GenericParameterType(ExtendedStringReader in) {
+	public GenericParameterType(ExtendedStringInputStream in) {
 		StringBuilder encodedNameBuilder = new StringBuilder();
 		
 		this.name = parseName(in, encodedNameBuilder);

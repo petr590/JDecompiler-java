@@ -75,7 +75,7 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 		
 		List<Type> argTypes = descriptor.getArguments();
 		
-		if(!argTypes.isEmpty() && argTypes.get(argTypes.size() - 1).isBasicArrayType()) {
+		if(!argTypes.isEmpty() && argTypes.get(argTypes.size() - 1).isArrayType()) {
 			
 			IClassInfo otherClassinfo = ClassInfo.findClassInfo(descriptor.getDeclaringClass());
 			

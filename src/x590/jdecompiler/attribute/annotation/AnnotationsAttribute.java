@@ -14,8 +14,8 @@ public final class AnnotationsAttribute extends Attribute implements StringifyWr
 	
 	private final @Immutable List<Annotation> annotations;
 	
-	public AnnotationsAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
-		super(nameIndex, name, length);
+	public AnnotationsAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
+		super(name, length);
 		
 		this.annotations = in.readImmutableList(() -> new Annotation(in, pool));
 	}

@@ -37,6 +37,12 @@ public final class AnyObjectType extends Type {
 	
 	
 	@Override
+	public final boolean isReferenceType() {
+		return true;
+	}
+	
+	
+	@Override
 	public void addImports(ClassInfo classinfo) {
 		classinfo.addImport(ClassType.OBJECT);
 	}

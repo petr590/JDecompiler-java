@@ -17,12 +17,12 @@ public class TypeAnnotationsAttribute extends Attribute {
 	
 	private final @Immutable List<TypeAnnotation> parametersAnnotations;
 	
-	public TypeAnnotationsAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
-		this(nameIndex, name, length, in.readImmutableList(() -> new TypeAnnotation(in, pool)));
+	public TypeAnnotationsAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
+		this(name, length, in.readImmutableList(() -> new TypeAnnotation(in, pool)));
 	}
 	
-	public TypeAnnotationsAttribute(int nameIndex, String name, int length, @Immutable List<TypeAnnotation> parametersAnnotations) {
-		super(nameIndex, name, length);
+	public TypeAnnotationsAttribute(String name, int length, @Immutable List<TypeAnnotation> parametersAnnotations) {
+		super(name, length);
 		this.parametersAnnotations = parametersAnnotations;
 	}
 	
@@ -48,7 +48,7 @@ public class TypeAnnotationsAttribute extends Attribute {
 				INVISIBLE = new EmptyParameterAnnotationsAttribute("RuntimeInvisibleParameterAnnotations");
 		
 		public EmptyParameterAnnotationsAttribute(String name) {
-			super(0, name, 0, Collections.emptyList());
+			super(name, 0, Collections.emptyList());
 		}
 		
 		@Override

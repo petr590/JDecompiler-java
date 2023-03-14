@@ -14,6 +14,11 @@ public final class VariableDefineOperation extends VoidOperation {
 	}
 	
 	@Override
+	public boolean isVariableDefining() {
+		return true;
+	}
+	
+	@Override
 	public void addImports(ClassInfo classinfo) {
 		classinfo.addImport(variable.getType());
 	}

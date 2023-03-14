@@ -1,9 +1,7 @@
 package x590.jdecompiler.constpool;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 import x590.jdecompiler.io.ExtendedDataInputStream;
+import x590.jdecompiler.io.ExtendedDataOutputStream;
 
 public final class InterfaceMethodrefConstant extends MethodrefConstant {
 	
@@ -16,8 +14,8 @@ public final class InterfaceMethodrefConstant extends MethodrefConstant {
 	}
 	
 	@Override
-	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(0xB);
+	public void serialize(ExtendedDataOutputStream out) {
+		out.writeByte(TAG_INTERFACE_METHODREF);
 		out.writeShort(getClassIndex());
 		out.writeShort(getNameAndTypeIndex());
 	}

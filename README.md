@@ -4,7 +4,7 @@ Writing it in C++ turned out to be a mistake, so I moved it to Java.
 Maybe I'll finish it someday, but I need to add a more functionality.
 
 ## Not implemented:
-- try/catch/finally
+- finally
 - break/continue
 - Jar support
 
@@ -14,7 +14,7 @@ Maybe I'll finish it someday, but I need to add a more functionality.
 
 ## Implemented:
 - A system of primitive types (the type of a variable is determined by its use)
-- Call via `super` (so far only for superclass)
+- Call via `super`
 - Annotations
 - if/else
 - while
@@ -23,6 +23,7 @@ Maybe I'll finish it someday, but I need to add a more functionality.
 - Individual variables
 - Generics
 - Lambdas
+- try/catch
 
 ## Implemented features:
 - Selection of variable names

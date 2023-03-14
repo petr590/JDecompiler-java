@@ -12,12 +12,12 @@ import x590.jdecompiler.attribute.ExceptionsAttribute;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
-import x590.jdecompiler.io.ExtendedStringReader;
+import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.jdecompiler.type.GenericParameterType;
 import x590.jdecompiler.type.GenericParameters;
 import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
-import x590.util.Util;
+import x590.util.LoopUtil;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
@@ -28,10 +28,10 @@ public final class MethodSignatureAttribute extends SignatureAttribute {
 	public final Type returnType;
 	public final @Immutable List<ReferenceType> throwsTypes;
 	
-	public MethodSignatureAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
-		super(nameIndex, name, length);
+	public MethodSignatureAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
+		super(name, length);
 		
-		ExtendedStringReader signatureIn = new ExtendedStringReader(pool.getUtf8String(in.readUnsignedShort()));
+		ExtendedStringInputStream signatureIn = new ExtendedStringInputStream(pool.getUtf8String(in.readUnsignedShort()));
 		
 		this.parameters = Type.parseNullableGenericParameters(signatureIn);
 		this.arguments = Type.parseMethodArguments(signatureIn);
@@ -73,7 +73,7 @@ public final class MethodSignatureAttribute extends SignatureAttribute {
 		for(int i = 0; i < skip && iterator.hasNext(); i++)
 			iterator.next();
 		
-		if(!Util.iteratorsEquals(arguments.iterator(), iterator, Type::baseEquals)) {
+		if(!LoopUtil.iteratorsEquals(arguments.iterator(), iterator, Type::baseEquals)) {
 			throw new DecompilationException("Method signature doesn't matches the arguments: (" + argumentsToString(arguments.stream()) + ") and (" + argumentsToString(descriptor.getArguments().stream().skip(skip)) + ")");
 		}
 		
@@ -82,7 +82,7 @@ public final class MethodSignatureAttribute extends SignatureAttribute {
 		}
 		
 		if(!throwsTypes.isEmpty()) {
-			if(excepionsAttr == null || !Util.collectionsEquals(throwsTypes, excepionsAttr.getExceptionTypes(), Type::baseEquals)) {
+			if(excepionsAttr == null || !LoopUtil.collectionsEquals(throwsTypes, excepionsAttr.getExceptionTypes(), Type::baseEquals)) {
 				throw new DecompilationException("Method signature doesn't matches the \"Excepions\" attribute: " + argumentsToString(throwsTypes) +
 						" and " + (excepionsAttr == null ? "null" : argumentsToString(excepionsAttr.getExceptionTypes())));
 			}

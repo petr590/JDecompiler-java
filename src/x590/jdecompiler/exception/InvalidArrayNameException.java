@@ -1,6 +1,6 @@
 package x590.jdecompiler.exception;
 
-import x590.jdecompiler.io.ExtendedStringReader;
+import x590.jdecompiler.io.ExtendedStringInputStream;
 
 public class InvalidArrayNameException extends InvalidTypeNameException {
 	
@@ -14,11 +14,11 @@ public class InvalidArrayNameException extends InvalidTypeNameException {
 		super(encodedName, pos);
 	}
 	
-	public InvalidArrayNameException(ExtendedStringReader in) {
+	public InvalidArrayNameException(ExtendedStringInputStream in) {
 		super(in);
 	}
 	
-	public InvalidArrayNameException(ExtendedStringReader in, int pos) {
+	public InvalidArrayNameException(ExtendedStringInputStream in, int pos) {
 		super(in, pos);
 	}
 }

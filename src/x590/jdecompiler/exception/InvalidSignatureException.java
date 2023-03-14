@@ -1,6 +1,6 @@
 package x590.jdecompiler.exception;
 
-import x590.jdecompiler.io.ExtendedStringReader;
+import x590.jdecompiler.io.ExtendedStringInputStream;
 
 public class InvalidSignatureException extends InvalidTypeNameException {
 	
@@ -14,11 +14,11 @@ public class InvalidSignatureException extends InvalidTypeNameException {
 		super(encodedName, pos);
 	}
 	
-	public InvalidSignatureException(ExtendedStringReader in) {
+	public InvalidSignatureException(ExtendedStringInputStream in) {
 		super(in);
 	}
 	
-	public InvalidSignatureException(ExtendedStringReader in, int pos) {
+	public InvalidSignatureException(ExtendedStringInputStream in, int pos) {
 		super(in, pos);
 	}
 }

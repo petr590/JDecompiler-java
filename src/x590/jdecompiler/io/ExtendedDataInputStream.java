@@ -11,6 +11,7 @@ import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
 import x590.util.annotation.Immutable;
+import x590.util.io.UncheckedInputStream;
 
 public class ExtendedDataInputStream extends UncheckedInputStream implements DataInput {
 	
@@ -25,12 +26,16 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 	}
 	
 	
+	public DataInputStream getDataInputStream() {
+		return in;
+	}
+	
 	@Override
 	public int available() {
 		try {
 			return in.available();
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -39,7 +44,7 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		try {
 			return in.readByte();
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -49,7 +54,7 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		try {
 			in.readFully(buffer);
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 		
 	}
@@ -59,7 +64,7 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		try {
 			in.readFully(buffer, off, len);
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -69,7 +74,7 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		try {
 			return in.skipBytes(n);
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -79,7 +84,7 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		try {
 			return in.readBoolean();
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -88,7 +93,7 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		try {
 			return in.readByte();
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -97,7 +102,7 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		try {
 			return in.readUnsignedByte();
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -106,7 +111,7 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		try {
 			return in.readShort();
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -115,7 +120,7 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		try {
 			return in.readUnsignedShort();
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -124,7 +129,7 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		try {
 			return in.readChar();
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -133,7 +138,7 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		try {
 			return in.readInt();
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -142,7 +147,7 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		try {
 			return in.readLong();
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -151,7 +156,7 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		try {
 			return in.readFloat();
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -160,7 +165,7 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		try {
 			return in.readDouble();
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -170,7 +175,7 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		try {
 			return in.readLine();
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -179,7 +184,7 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		try {
 			return in.readUTF();
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 	
@@ -224,7 +229,7 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		try {
 			super.reset();
 		} catch(IOException ex) {
-			throw getUncheckedException(ex);
+			throw newUncheckedException(ex);
 		}
 	}
 }

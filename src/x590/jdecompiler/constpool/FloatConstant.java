@@ -1,12 +1,10 @@
 package x590.jdecompiler.constpool;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.FieldDescriptor;
 import x590.jdecompiler.JavaField;
 import x590.jdecompiler.io.ExtendedDataInputStream;
+import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.Priority;
@@ -119,8 +117,8 @@ public final class FloatConstant extends SingleConstableValueConstant<Float> {
 	}
 	
 	@Override
-	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(0x4);
+	public void serialize(ExtendedDataOutputStream out) {
+		out.writeByte(TAG_FLOAT);
 		out.writeFloat(value);
 	}
 	

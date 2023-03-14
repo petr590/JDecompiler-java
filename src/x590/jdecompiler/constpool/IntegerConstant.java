@@ -1,7 +1,5 @@
 package x590.jdecompiler.constpool;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,6 +7,7 @@ import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.FieldDescriptor;
 import x590.jdecompiler.JavaField;
 import x590.jdecompiler.io.ExtendedDataInputStream;
+import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.IConstOperation;
@@ -132,8 +131,8 @@ public final class IntegerConstant extends ConstableValueConstant<Integer> {
 	}
 	
 	@Override
-	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(0x3);
+	public void serialize(ExtendedDataOutputStream out) {
+		out.writeByte(TAG_INTEGER);
 		out.writeInt(value);
 	}
 	

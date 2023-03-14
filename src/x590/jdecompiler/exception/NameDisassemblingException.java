@@ -1,6 +1,6 @@
 package x590.jdecompiler.exception;
 
-import x590.jdecompiler.io.ExtendedStringReader;
+import x590.jdecompiler.io.ExtendedStringInputStream;
 
 public class NameDisassemblingException extends DisassemblingException {
 	
@@ -14,11 +14,11 @@ public class NameDisassemblingException extends DisassemblingException {
 		super('"' + encodedName + '"' + " (at pos " + pos + ")");
 	}
 	
-	public NameDisassemblingException(ExtendedStringReader in) {
+	public NameDisassemblingException(ExtendedStringInputStream in) {
 		super('"' + in.getAllFromMark() + '"');
 	}
 	
-	public NameDisassemblingException(ExtendedStringReader in, int pos) {
+	public NameDisassemblingException(ExtendedStringInputStream in, int pos) {
 		super('"' + in.getAllFromMark() + '"' + " (at pos " + pos + ")");
 	}
 }

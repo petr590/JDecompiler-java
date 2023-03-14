@@ -1,6 +1,5 @@
 package x590.jdecompiler.attribute.annotation;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -8,6 +7,7 @@ import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.StringifyWritable;
 import x590.jdecompiler.attribute.Attribute;
+import x590.jdecompiler.attribute.AttributeNames;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
@@ -17,12 +17,12 @@ public class ParameterAnnotationsAttribute extends Attribute {
 	
 	private final @Immutable List<ParameterAnnotations> parametersAnnotations;
 	
-	public ParameterAnnotationsAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
-		this(nameIndex, name, length, in.readImmutableList(() -> new ParameterAnnotations(in, pool)));
+	public ParameterAnnotationsAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
+		this(name, length, in.readImmutableList(() -> new ParameterAnnotations(in, pool)));
 	}
 	
-	public ParameterAnnotationsAttribute(int nameIndex, String name, int length, @Immutable List<ParameterAnnotations> parametersAnnotations) {
-		super(nameIndex, name, length);
+	public ParameterAnnotationsAttribute(String name, int length, @Immutable List<ParameterAnnotations> parametersAnnotations) {
+		super(name, length);
 		this.parametersAnnotations = parametersAnnotations;
 	}
 	
@@ -44,11 +44,11 @@ public class ParameterAnnotationsAttribute extends Attribute {
 	public static final class EmptyParameterAnnotationsAttribute extends ParameterAnnotationsAttribute {
 		
 		public static final ParameterAnnotationsAttribute
-				VISIBLE = new EmptyParameterAnnotationsAttribute("RuntimeVisibleParameterAnnotations"),
-				INVISIBLE = new EmptyParameterAnnotationsAttribute("RuntimeInvisibleParameterAnnotations");
+				VISIBLE = new EmptyParameterAnnotationsAttribute(AttributeNames.RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS),
+				INVISIBLE = new EmptyParameterAnnotationsAttribute(AttributeNames.RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS);
 		
 		public EmptyParameterAnnotationsAttribute(String name) {
-			super(0, name, 0, Collections.emptyList());
+			super(name, 0, Collections.emptyList());
 		}
 		
 		@Override
@@ -74,15 +74,15 @@ public class ParameterAnnotationsAttribute extends Attribute {
 	
 	public static class ParameterAnnotations implements StringifyWritable<ClassInfo>, Importable {
 		
-		private final Annotation[] annotations;
+		private final @Immutable List<Annotation> annotations;
 		
 		public ParameterAnnotations(ExtendedDataInputStream in, ConstantPool pool) {
-			this.annotations = in.readArray(Annotation[]::new, () -> new Annotation(in, pool));
+			this.annotations = in.readImmutableList(() -> new Annotation(in, pool));
 		}
 		
 		@Override
 		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-			Arrays.stream(annotations).forEachOrdered(annotation -> out.printsp(annotation, classinfo));
+			out.printEachUsingFunction(annotations, annotation -> out.printsp(annotation, classinfo));
 		}
 	}
 }

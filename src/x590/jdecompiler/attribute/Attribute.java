@@ -1,22 +1,12 @@
 package x590.jdecompiler.attribute;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.JavaSerializable;
 import x590.jdecompiler.attribute.Attributes.Location;
-import x590.jdecompiler.attribute.annotation.AnnotationDefaultAttribute;
-import x590.jdecompiler.attribute.annotation.AnnotationsAttribute;
-import x590.jdecompiler.attribute.annotation.ParameterAnnotationsAttribute;
-import x590.jdecompiler.attribute.signature.ClassSignatureAttribute;
-import x590.jdecompiler.attribute.signature.FieldSignatureAttribute;
-import x590.jdecompiler.attribute.signature.MethodSignatureAttribute;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DisassemblingException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
-
-import static x590.jdecompiler.attribute.AttributeNames.*;
+import x590.jdecompiler.io.ExtendedDataOutputStream;
 
 /**
  * Представляет атрибут в class файле.
@@ -24,54 +14,27 @@ import static x590.jdecompiler.attribute.AttributeNames.*;
  */
 public abstract class Attribute implements JavaSerializable, Importable {
 	
-	private final int nameIndex;
 	private final String name;
 	private final int length;
 	
-	protected Attribute(int nameIndex, String name, int length) {
-		this.nameIndex = nameIndex;
+	protected Attribute(String name, int length) {
 		this.name = name;
 		this.length = length;
 	}
 	
 	
+	protected static void checkLength(String name, int length, int requiredLength) {
+		if(length != requiredLength)
+			throw new DisassemblingException("Length of the \"" + name + "\" attribute must be " + requiredLength + ", got " + length);
+	}
+	
+	
 	public static Attribute read(ExtendedDataInputStream in, ConstantPool pool, Location location) {
-		int nameIndex = in.readUnsignedShort();
-		String name = pool.getUtf8String(nameIndex);
+		String name = pool.getUtf8String(in.readUnsignedShort());
 		int length = in.readInt();
 		int pos = in.available() - length;
 		
-		
-		Attribute attribute = switch(name) {
-			case CONSTANT_VALUE       -> new ConstantValueAttribute(nameIndex, name, length, in, pool);
-			case DEPRECATED           -> DeprecatedAttribute.get(nameIndex, name, length);
-			case SYNTHETIC            -> SyntheticAttribute.get(nameIndex, name, length);
-			case EXCEPTIONS           -> new ExceptionsAttribute(nameIndex, name, length, in, pool);
-			case ANNOTATION_DEFAULT   -> new AnnotationDefaultAttribute(nameIndex, name, length, in, pool);
-			case MODULE               -> new ModuleAttribute(nameIndex, name, length, in, pool);
-			case PERMITTED_SUBCLASSES -> new PermittedSubclassesAttribute(nameIndex, name, length, in, pool);
-			
-			case SIGNATURE -> switch(location) {
-				case CLASS -> new ClassSignatureAttribute(nameIndex, name, length, in, pool);
-				case FIELD -> new FieldSignatureAttribute(nameIndex, name, length, in, pool);
-				case METHOD -> new MethodSignatureAttribute(nameIndex, name, length, in, pool);
-				default -> new UnknownAttribute(nameIndex, name, length, in);
-			};
-			
-			case INNER_CLASSES -> new InnerClassesAttribute(nameIndex, name, length, in, pool);
-			
-			case CODE                 -> new CodeAttribute(nameIndex, name, length, in, pool);
-			case BOOTSTRAP_METHODS    -> new BootstrapMethodsAttribute(nameIndex, name, length, in, pool);
-			case LOCAL_VARIABLE_TABLE -> new LocalVariableTableAttribute(nameIndex, name, length, in, pool);
-			
-			case RUNTIME_VISIBLE_ANNOTATIONS, RUNTIME_INVISIBLE_ANNOTATIONS ->
-				new AnnotationsAttribute(nameIndex, name, length, in, pool);
-			
-			case RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS, RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS ->
-				new ParameterAnnotationsAttribute(nameIndex, name, length, in, pool);
-			
-			default -> new UnknownAttribute(nameIndex, name, length, in);
-		};
+		Attribute attribute = AttributeType.getAttributeType(location, name).readAttribute(name, length, in, pool);
 		
 		if(pos == in.available())
 			return attribute;
@@ -87,9 +50,13 @@ public abstract class Attribute implements JavaSerializable, Importable {
 		return length;
 	}
 	
-	@Override
-	public void serialize(DataOutputStream out) throws IOException {
-		out.writeShort(nameIndex);
+	protected void serializeHeader(ExtendedDataOutputStream out) {
+//		out.writeShort(nameIndex);
 		out.writeInt(length);
+	}
+	
+	@Override
+	public void serialize(ExtendedDataOutputStream out) {
+		throw new IllegalStateException("Not released yet :(");
 	}
 }

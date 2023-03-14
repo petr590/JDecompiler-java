@@ -8,7 +8,7 @@ import x590.jdecompiler.constpool.MethodTypeConstant;
 import x590.jdecompiler.constpool.MethodrefConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
-import x590.jdecompiler.io.ExtendedStringReader;
+import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.ClassType;
@@ -23,8 +23,8 @@ public class LambdaOperation extends Operation {
 	public LambdaOperation(DecompilationContext context, List<Operation> capturedArguments, MethodrefConstant methodref, MethodTypeConstant methodType) {
 		this.method = context.getClassinfo().getMethod(new MethodDescriptor(methodref));
 		
-		this.captured = Type.parseMethodArguments(new ExtendedStringReader(methodref.getNameAndType().getDescriptor().getString())).size() -
-						Type.parseMethodArguments(new ExtendedStringReader(methodType.getDescriptor().getString())).size();
+		this.captured = Type.parseMethodArguments(new ExtendedStringInputStream(methodref.getNameAndType().getDescriptor().getString())).size() -
+						Type.parseMethodArguments(new ExtendedStringInputStream(methodType.getDescriptor().getString())).size();
 		
 		this.capturedArguments = capturedArguments;
 	}

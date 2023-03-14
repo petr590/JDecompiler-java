@@ -1,10 +1,8 @@
 package x590.jdecompiler.constpool;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.io.ExtendedDataInputStream;
+import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.ClassConstOperation;
@@ -73,9 +71,9 @@ public final class ClassConstant extends ConstValueConstant {
 		
 		referenceType = Type.parseReferenceType(name.getString());
 		
-		if(referenceType.isBasicClassType())
+		if(referenceType.isClassType())
 			classType = (ClassType)referenceType;
-		else if(referenceType.isBasicArrayType())
+		else if(referenceType.isArrayType())
 			arrayType = (ArrayType)referenceType;
 		
 		return referenceType;
@@ -110,8 +108,8 @@ public final class ClassConstant extends ConstValueConstant {
 	}
 	
 	@Override
-	public void serialize(DataOutputStream out) throws IOException {
-		out.writeByte(0x7);
+	public void serialize(ExtendedDataOutputStream out) {
+		out.writeByte(TAG_CLASS);
 		out.writeShort(nameIndex);
 	}
 	

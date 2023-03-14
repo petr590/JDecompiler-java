@@ -8,7 +8,9 @@ import x590.jdecompiler.operation.IncrementableOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.OperationWithVariable;
 import x590.jdecompiler.operation.Priority;
+import x590.jdecompiler.operation.load.ExceptionLoadOperation;
 import x590.jdecompiler.operation.load.LoadOperation;
+import x590.jdecompiler.scope.CatchScope;
 import x590.jdecompiler.type.Type;
 
 public abstract class StoreOperation extends OperationWithVariable implements IncrementableOperation {
@@ -21,12 +23,23 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 	
 	
 	public StoreOperation(Type requiredType, DecompilationContext context, int index) {
-		super(context.currentScope().getVariableOrDefine(index, requiredType));
 		
 		this.index = index;
 		var value = this.value = context.pop();
 		
 		value.allowImplicitCast();
+		
+		if(requiredType.isReferenceType() && value instanceof ExceptionLoadOperation &&
+				context.currentScope() instanceof CatchScope catchScope && context.currentIndex() == catchScope.startIndex() + 1) {
+			
+			this.variable = catchScope.defineNewVariable(index, value.getReturnType()).defined();
+			variable.addName("ex");
+			
+			this.remove();
+			
+		} else {
+			this.variable = context.currentScope().getVariableOrDefine(index, requiredType);
+		}
 		
 		variable.castTypeToWidest(value.getReturnTypeAsNarrowest(requiredType));
 		variable.addAssignedOperation(value);
@@ -45,6 +58,10 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 		return value;
 	}
 	
+	@Override
+	public boolean isVariableDefining() {
+		return varDefined;
+	}
 	
 	@Override
 	public boolean isLoadOperation(Operation operation) {

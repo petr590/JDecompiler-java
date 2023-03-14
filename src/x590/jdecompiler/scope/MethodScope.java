@@ -8,7 +8,7 @@ import java.util.List;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.MethodDescriptor;
-import x590.jdecompiler.attribute.AttributeNames;
+import x590.jdecompiler.attribute.AttributeType;
 import x590.jdecompiler.attribute.CodeAttribute;
 import x590.jdecompiler.attribute.LocalVariableTableAttribute;
 import x590.jdecompiler.context.StringifyContext;
@@ -41,23 +41,23 @@ public class MethodScope extends Scope {
 		int i = 0;
 		
 		if(modifiers.isNotStatic()) {
-			addLocalVariable(new NamedVariable("this", this, classinfo.getThisType(), true).define());
+			addVariable(new NamedVariable("this", this, classinfo.getThisType(), true).defined());
 			i++;
 		}
 		
 		
-		LocalVariableTableAttribute localVariableTable = codeAttribute.attributes.getNullable(AttributeNames.LOCAL_VARIABLE_TABLE);
+		LocalVariableTableAttribute localVariableTable = codeAttribute.getAttributes().getNullable(AttributeType.LOCAL_VARIABLE_TABLE);
 		
 		
 		EmptyVariable emptyVar = Variable.empty();
 		
 		// public static void main(String[] args)
 		if(localVariableTable == null && modifiers.isAll(ACC_PUBLIC | ACC_STATIC) && descriptor.equals("main", PrimitiveType.VOID, ArrayType.STRING_ARRAY)) {
-			addLocalVariable(new NamedVariable("args", this, ArrayType.STRING_ARRAY, true).define());
+			addVariable(new NamedVariable("args", this, ArrayType.STRING_ARRAY, true).defined());
 			
 		} else {
 			
-			int codeLength = codeAttribute.code.length;
+			int codeLength = codeAttribute.getCode().length;
 			
 			ObjIntFunction<Type, Variable> variableCreator = localVariableTable != null ?
 					(argType, index) -> Variable.valueOf(localVariableTable.findEntry(index, codeLength), this, argType, true) :
@@ -65,10 +65,10 @@ public class MethodScope extends Scope {
 			
 			
 			for(Type argType : descriptor.getArguments()) {
-				addLocalVariable(variableCreator.apply(argType, i).define());
+				addVariable(variableCreator.apply(argType, i).defined());
 				
 				if(argType.getSize() == TypeSize.LONG) {
-					addLocalVariable(emptyVar);
+					addVariable(emptyVar);
 					i++;
 				}
 				
@@ -78,7 +78,7 @@ public class MethodScope extends Scope {
 		
 		
 		for(; i < maxLocals; i++)
-			addLocalVariable(emptyVar);
+			addVariable(emptyVar);
 	}
 	
 	

@@ -2,7 +2,7 @@ package x590.jdecompiler;
 
 import java.lang.reflect.Field;
 
-import x590.jdecompiler.attribute.AttributeNames;
+import x590.jdecompiler.attribute.AttributeType;
 import x590.jdecompiler.attribute.Attributes;
 import x590.jdecompiler.attribute.signature.FieldSignatureAttribute;
 import x590.jdecompiler.constpool.ConstantPool;
@@ -74,7 +74,7 @@ public final class FieldDescriptor extends Descriptor implements Importable {
 	}
 	
 	public void writeType(StringifyOutputStream out, ClassInfo classinfo, Attributes attributes) {
-		FieldSignatureAttribute signature = attributes.getNullable(AttributeNames.SIGNATURE);
+		FieldSignatureAttribute signature = attributes.getNullable(AttributeType.FIELD_SIGNATURE);
 		
 		if(signature != null) {
 			signature.checkType(this);

@@ -12,7 +12,7 @@ import x590.jdecompiler.SameDisassemblingStringifyWritable;
 import x590.jdecompiler.exception.IncopatibleTypesException;
 import x590.jdecompiler.exception.InvalidMethodDescriptorException;
 import x590.jdecompiler.exception.InvalidTypeNameException;
-import x590.jdecompiler.io.ExtendedStringReader;
+import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nonnull;
 import x590.util.annotation.Nullable;
@@ -66,10 +66,6 @@ public abstract class Type implements SameDisassemblingStringifyWritable<ClassIn
 		return isBasicReferenceType();
 	}
 	
-	public final boolean isUncertainReferenceType() {
-		return this instanceof UncertainReferenceType;
-	}
-	
 	
 	/** Гарантирует, что объект - экземпляр класса ReferenceType */
 	public final boolean isBasicReferenceType() {
@@ -77,18 +73,23 @@ public abstract class Type implements SameDisassemblingStringifyWritable<ClassIn
 	}
 	
 	/** Гарантирует, что объект - экземпляр класса ClassType */
-	public final boolean isBasicClassType() {
+	public final boolean isClassType() {
 		return this instanceof ClassType;
-	}
-	
-	/** Гарантирует, что объект - экземпляр класса ArrayType */
-	public final boolean isBasicArrayType() {
-		return this instanceof ArrayType;
 	}
 	
 	/** Гарантирует, что объект - экземпляр класса WrapperClassType */
 	public final boolean isWrapperClassType() {
 		return this instanceof WrapperClassType;
+	}
+	
+	/** Гарантирует, что объект - экземпляр класса ArrayType */
+	public final boolean isArrayType() {
+		return this instanceof ArrayType;
+	}
+	
+	/** Гарантирует, что объект - экземпляр класса UncertainReferenceType */
+	public final boolean isUncertainReferenceType() {
+		return this instanceof UncertainReferenceType;
 	}
 	
 	/** Для всех generic типов */
@@ -285,13 +286,13 @@ public abstract class Type implements SameDisassemblingStringifyWritable<ClassIn
 	}
 	
 	
-	/** @see #parseType(ExtendedStringReader) */
+	/** @see #parseType(ExtendedStringInputStream) */
 	public static BasicType parseType(String str) {
-		return parseType(new ExtendedStringReader(str));
+		return parseType(new ExtendedStringInputStream(str));
 	}
 	
 	/** Парсит любой тип, кроме {@link PrimitiveType#VOID} */
-	public static BasicType parseType(ExtendedStringReader in) {
+	public static BasicType parseType(ExtendedStringInputStream in) {
 		switch(in.get()) {
 			case 'B': in.incPos(); return PrimitiveType.BYTE;
 			case 'C': in.incPos(); return PrimitiveType.CHAR;
@@ -310,13 +311,13 @@ public abstract class Type implements SameDisassemblingStringifyWritable<ClassIn
 	}
 	
 	
-	/** @see #parseMethodArguments(ExtendedStringReader) */
+	/** @see #parseMethodArguments(ExtendedStringInputStream) */
 	public static @Immutable List<Type> parseMethodArguments(String str) {
-		return parseMethodArguments(new ExtendedStringReader(str));
+		return parseMethodArguments(new ExtendedStringInputStream(str));
 	}
 	
 	/** Парсит сигнатуру метода, возвращает список аргументов */
-	public static @Immutable List<Type> parseMethodArguments(ExtendedStringReader in) {
+	public static @Immutable List<Type> parseMethodArguments(ExtendedStringInputStream in) {
 		in.mark();
 		
 		if(in.read() != '(')
@@ -336,13 +337,13 @@ public abstract class Type implements SameDisassemblingStringifyWritable<ClassIn
 	}
 	
 	
-	/** @see #parseMethodArguments(ExtendedStringReader) */
+	/** @see #parseMethodArguments(ExtendedStringInputStream) */
 	public static BasicType parseReturnType(String in) {
 		return in.charAt(0) == 'V' ? PrimitiveType.VOID : parseType(in);
 	}
 	
 	/** Парсит возвращаемый тип метода, который может быть {@link PrimitiveType#VOID} */
-	public static BasicType parseReturnType(ExtendedStringReader in) {
+	public static BasicType parseReturnType(ExtendedStringInputStream in) {
 		if(in.get() == 'V') {
 			in.incPos();
 			return PrimitiveType.VOID;
@@ -359,7 +360,7 @@ public abstract class Type implements SameDisassemblingStringifyWritable<ClassIn
 	
 	
 	/** Парсит тип массива, класса или параметра */
-	public static ReferenceType parseSignatureParameter(ExtendedStringReader in) {
+	public static ReferenceType parseSignatureParameter(ExtendedStringInputStream in) {
 		switch(in.get()) {
 			case 'L': return ClassType.read(in.next());
 			case '[': return ArrayType.read(in);
@@ -370,7 +371,7 @@ public abstract class Type implements SameDisassemblingStringifyWritable<ClassIn
 	}
 	
 	
-	private static final Function<ExtendedStringReader, ReferenceType> signatureParameterGetter =
+	private static final Function<ExtendedStringInputStream, ReferenceType> signatureParameterGetter =
 			in -> switch(in.get()) {
 				case '+' -> new ExtendingGenericType(in.next());
 				case '-' -> new SuperGenericType(in.next());
@@ -379,21 +380,21 @@ public abstract class Type implements SameDisassemblingStringifyWritable<ClassIn
 					yield AnyGenericType.INSTANCE;
 				}
 				
-				case ExtendedStringReader.EOF_CHAR -> throw new InvalidTypeNameException(in, in.distanceToMark());
+				case ExtendedStringInputStream.EOF_CHAR -> throw new InvalidTypeNameException(in, in.distanceToMark());
 				
 				default -> parseSignatureParameter(in);
 			};
 
 	
-	public static @Nonnull GenericParameters<ReferenceType> parseSignature(ExtendedStringReader in) {
+	public static @Nonnull GenericParameters<ReferenceType> parseSignature(ExtendedStringInputStream in) {
 		return GenericParameters.readNonnull(in, signatureParameterGetter);
 	}
 	
-	public static @Nullable GenericParameters<ReferenceType> parseNullableSignature(ExtendedStringReader in) {
+	public static @Nullable GenericParameters<ReferenceType> parseNullableSignature(ExtendedStringInputStream in) {
 		return GenericParameters.readNullable(in, signatureParameterGetter);
 	}
 	
-	public static @Nullable GenericParameters<GenericParameterType> parseNullableGenericParameters(ExtendedStringReader in) {
+	public static @Nullable GenericParameters<GenericParameterType> parseNullableGenericParameters(ExtendedStringInputStream in) {
 		return GenericParameters.readNullable(in, GenericParameterType::new);
 	}
 }

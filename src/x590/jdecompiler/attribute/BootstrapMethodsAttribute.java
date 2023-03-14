@@ -13,8 +13,8 @@ public final class BootstrapMethodsAttribute extends Attribute {
 	
 	private final @Immutable List<BootstrapMethod> bootstrapMethods;
 	
-	public BootstrapMethodsAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
-		super(nameIndex, name, length);
+	public BootstrapMethodsAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
+		super(name, length);
 		this.bootstrapMethods = in.readImmutableList(() -> new BootstrapMethod(in, pool));
 	}
 	

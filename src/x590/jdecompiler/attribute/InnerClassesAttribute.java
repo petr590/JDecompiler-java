@@ -19,12 +19,12 @@ public class InnerClassesAttribute extends Attribute {
 	private final @Immutable Map<ClassType, InnerClassEntry> entries;
 	
 	private InnerClassesAttribute() {
-		super(0, AttributeNames.INNER_CLASSES, 0);
+		super(AttributeNames.INNER_CLASSES, 0);
 		this.entries = Collections.emptyMap();
 	}
 	
-	protected InnerClassesAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
-		super(nameIndex, name, length);
+	protected InnerClassesAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
+		super(name, length);
 		
 		int size = in.readUnsignedShort();
 		Map<ClassType, InnerClassEntry> entries = new HashMap<>(size);

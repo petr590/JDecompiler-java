@@ -7,7 +7,7 @@ import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
-import x590.jdecompiler.io.ExtendedStringReader;
+import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.GenericParameterType;
 import x590.jdecompiler.type.GenericParameters;
@@ -20,10 +20,10 @@ public final class ClassSignatureAttribute extends SignatureAttribute {
 	public final ClassType superType;
 	public final List<ClassType> interfaces;
 	
-	public ClassSignatureAttribute(int nameIndex, String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
-		super(nameIndex, name, length);
+	public ClassSignatureAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
+		super(name, length);
 		
-		ExtendedStringReader signatureIn = new ExtendedStringReader(pool.getUtf8String(in.readUnsignedShort()));
+		ExtendedStringInputStream signatureIn = new ExtendedStringInputStream(pool.getUtf8String(in.readUnsignedShort()));
 		
 		this.parameters = Type.parseNullableGenericParameters(signatureIn);
 		this.superType = ClassType.readAsType(signatureIn);
