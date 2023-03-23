@@ -1,8 +1,8 @@
 package x590.jdecompiler.type;
 
 /**
- * IntegralType - это целочисленный знаковый тип, который занимает
- * 4 байта в стеке: {@literal int}, {@literal short} и {@literal byte}.
+ * Целочисленный знаковый тип, который занимает 4 байта в стеке
+ * ({@literal int}, {@literal short} и {@literal byte}).<br>
  * {@literal boolean} и {@literal char} не включены в этот список, они обрабатываются отдельно
  */
 public abstract class IntegralType extends PrimitiveType {
@@ -30,7 +30,7 @@ public abstract class IntegralType extends PrimitiveType {
 	protected boolean canCastToWidest(Type other) {
 		return this == other ||
 				other instanceof IntegralType integralType && integralType.getCapacity() <= this.getCapacity() ||
-				other == PrimitiveType.CHAR && this.getCapacity() > CHAR_CAPACITY;
+				other == CHAR && this.getCapacity() > CHAR_CAPACITY;
 	}
 	
 	@Override

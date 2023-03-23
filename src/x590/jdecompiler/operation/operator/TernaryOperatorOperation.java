@@ -8,6 +8,7 @@ import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.operation.ReturnableOperation;
 import x590.jdecompiler.operation.condition.ConditionOperation;
 import x590.jdecompiler.operation.constant.IConstOperation;
+import x590.jdecompiler.type.GeneralCastingKind;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 
@@ -26,7 +27,7 @@ public final class TernaryOperatorOperation extends ReturnableOperation {
 		this.operand2 = operand2;
 		this.operand1 = operand1;
 		
-		returnType = operand1.getReturnTypeAsGeneralNarrowest(operand2);
+		returnType = operand1.getReturnTypeAsGeneralNarrowest(operand2, GeneralCastingKind.TERNARY_OPERATOR);
 	}
 	
 	@Override

@@ -222,14 +222,4 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 	public <T> @Immutable List<T> readImmutableList(int length, Supplier<T> elementSupplier) {
 		return Collections.unmodifiableList(readArrayList(length, elementSupplier));
 	}
-	
-	
-	@Override
-	public void reset() {
-		try {
-			super.reset();
-		} catch(IOException ex) {
-			throw newUncheckedException(ex);
-		}
-	}
 }

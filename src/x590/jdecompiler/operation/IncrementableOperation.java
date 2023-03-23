@@ -10,7 +10,7 @@ import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 
-public interface IncrementableOperation {
+public interface IncrementableOperation extends Operation {
 	
 	/** Так как интерфейс не может содержать полей,
 	 * и множественное наследование не поддерживается в Java,
@@ -52,8 +52,6 @@ public interface IncrementableOperation {
 	}
 	
 	public boolean isLoadOperation(Operation operation);
-
-	public Type getReturnType();
 	
 	public void setReturnType(Type returnType);
 	
@@ -114,9 +112,8 @@ public interface IncrementableOperation {
 										setReturnType(operation.getReturnType());
 										data.preInc = true;
 										
-										Operation self = (Operation)this;
-										context.push(self);
-										context.currentScope().remove(self);
+										context.push(this);
+										context.currentScope().remove(this);
 										return false;
 									}
 					

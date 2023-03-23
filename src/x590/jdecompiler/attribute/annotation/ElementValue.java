@@ -224,7 +224,7 @@ public abstract class ElementValue implements StringifyWritable<ClassInfo>, Impo
 			case 'C': return new ConstElementValue(PrimitiveType.CHAR, in, pool);
 			case 'S': return new ConstElementValue(PrimitiveType.SHORT, in, pool);
 			case 'I': return new ConstElementValue(PrimitiveType.INT, in, pool);
-			case 'L': return new ConstElementValue(PrimitiveType.LONG, in, pool);
+			case 'J': return new ConstElementValue(PrimitiveType.LONG, in, pool);
 			case 'F': return new ConstElementValue(PrimitiveType.FLOAT, in, pool);
 			case 'D': return new ConstElementValue(PrimitiveType.DOUBLE, in, pool);
 			case 'Z': return new ConstElementValue(PrimitiveType.BOOLEAN, in, pool);

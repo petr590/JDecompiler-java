@@ -6,13 +6,14 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.operation.AbstractOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.VoidOperation;
 import x590.jdecompiler.operation.operator.TernaryOperatorOperation;
 import x590.jdecompiler.scope.IfScope;
 import x590.jdecompiler.type.Type;
 
-public abstract class ReturnOperation extends VoidOperation {
+public abstract class ReturnOperation extends AbstractOperation implements VoidOperation {
 	
 	private final Operation operand;
 	
@@ -31,7 +32,7 @@ public abstract class ReturnOperation extends VoidOperation {
 		
 		Operation operand = context.popAsNarrowest(methodReturnType);
 		
-		if(context.currentScope().getLastOperation(context) instanceof IfScope ifScope &&
+		if(context.currentScope().getLastOperation() instanceof IfScope ifScope &&
 				ifScope.getOperationsCount() == 1 && ifScope.getOperationAt(0) instanceof ReturnOperation returnOperation) {
 			
 			operand = new TernaryOperatorOperation(ifScope.getCondition(), context, operand, returnOperation.operand);
@@ -49,6 +50,11 @@ public abstract class ReturnOperation extends VoidOperation {
 	
 	protected abstract String getInstructionName();
 	
+	
+	@Override
+	public boolean isTerminable() {
+		return true;
+	}
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {

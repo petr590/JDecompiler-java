@@ -87,7 +87,7 @@ public abstract class ReferenceType extends BasicType {
 	}
 	
 	public boolean isSubclassOf(ReferenceType other) {
-		if(this.equals(other))
+		if(other == ClassType.OBJECT || this.equals(other))
 			return true;
 		
 		var superType = getSuperType();
@@ -96,7 +96,9 @@ public abstract class ReferenceType extends BasicType {
 				interfaces != null && interfaces.stream().anyMatch(interfaceType -> interfaceType.isSubclassOf(other));
 	}
 	
-	protected void tryLoadSuperType() {}
+	protected void tryLoadSuperType() {
+		// По умолчанию ничего не делает
+	}
 	
 	
 	@Override

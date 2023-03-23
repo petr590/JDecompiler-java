@@ -14,7 +14,7 @@ import static x590.jdecompiler.type.PrimitiveType.CHAR_CAPACITY;
  */
 public final class UncertainIntegralType extends Type {
 	
-	private static final UncertainIntegralType[] instances = new UncertainIntegralType[64];
+	private static final UncertainIntegralType[] INSTANCES = new UncertainIntegralType[64];
 	
 	public static final int INCLUDE_BOOLEAN = 0x1, INCLUDE_CHAR = 0x2;
 	
@@ -91,12 +91,12 @@ public final class UncertainIntegralType extends Type {
 		
 		int index = (minCapacity - 1) | (maxCapacity - 1) << 2 | flags << 4;
 		
-		UncertainIntegralType instance = instances[index];
+		UncertainIntegralType instance = INSTANCES[index];
 		
 		if(instance != null)
 			return instance;
 		
-		return instances[index] = new UncertainIntegralType(minCapacity, maxCapacity, flags);
+		return INSTANCES[index] = new UncertainIntegralType(minCapacity, maxCapacity, flags);
 	}
 	
 	
@@ -195,15 +195,17 @@ public final class UncertainIntegralType extends Type {
 				return type.includeBoolean ? other : null;
 			
 			if(other == PrimitiveType.CHAR)
-				return widest && type.maxCapacity > CHAR_CAPACITY ? getInstanceNoexcept(CHAR_CAPACITY * 2, type.maxCapacity, false, type.includeChar) :  
+				return widest && type.maxCapacity > CHAR_CAPACITY ?
+						getInstanceNoexcept(CHAR_CAPACITY * 2, type.maxCapacity, false, type.includeChar) :  
 						type.includeChar ? other : null;
 			
 			if(other instanceof IntegralType integralType) {
 				int capacity = integralType.getCapacity();
 				
-				return widest ?
-						getInstanceNoexcept(Math.max(capacity, type.minCapacity), type.maxCapacity, 0) :
-						getInstanceNoexcept(type.minCapacity, Math.min(capacity, type.maxCapacity), false, type.includeChar && capacity > CHAR_CAPACITY);
+				if(widest)
+					return getInstanceNoexcept(Math.max(capacity, type.minCapacity), type.maxCapacity, 0);
+				
+				return getInstanceNoexcept(type.minCapacity, Math.min(capacity, type.maxCapacity), false, type.includeChar && capacity > CHAR_CAPACITY);
 			}
 			
 		} else if(other instanceof UncertainIntegralType integralType) {
@@ -270,6 +272,11 @@ public final class UncertainIntegralType extends Type {
 	@Override
 	protected Type reversedCastToWidestImpl(Type other) {
 		return reversedCastImpl0(this, other, true);
+	}
+	
+	@Override
+	public boolean isImplicitSubtypeOf(Type other) {
+		return reduced().isImplicitSubtypeOf(other);
 	}
 	
 	

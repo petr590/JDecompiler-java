@@ -5,12 +5,17 @@ import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.ClassType;
 
-public final class AThrowOperation extends VoidOperation {
+public final class AThrowOperation extends AbstractOperation implements VoidOperation {
 	
 	private final Operation throwable;
 	
 	public AThrowOperation(DecompilationContext context) {
 		this.throwable = context.popAsNarrowest(ClassType.THROWABLE);
+	}
+	
+	@Override
+	public boolean isTerminable() {
+		return true;
 	}
 	
 	@Override

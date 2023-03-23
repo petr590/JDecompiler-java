@@ -7,7 +7,7 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.WrapperClassType;
 
-public class CastOperation extends Operation {
+public class CastOperation extends AbstractOperation {
 	
 	private final Operation operand;
 	private final Type requiredType, castedType;
@@ -93,5 +93,10 @@ public class CastOperation extends Operation {
 		return this == other || other instanceof CastOperation operation && operand.equals(operation.operand) &&
 				requiredType.equals(operation.requiredType) && castedType.equals(operation.castedType) &&
 				implicitCast == operation.implicitCast && implicitCastAllowed == operation.implicitCastAllowed;
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("CastOperation {%s -> %s, %s}", requiredType, castedType, implicitCast ? "implicit" : "explicit");
 	}
 }

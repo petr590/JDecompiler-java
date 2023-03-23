@@ -9,6 +9,10 @@ import x590.jdecompiler.type.ReferenceType;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
+/**
+ * Интерфейс ClassInfo. Позволяет создавать экземпляры IClassInfo
+ * не только из JavaClass, но и из обычного объекта Class
+ */
 public interface IClassInfo {
 	
 	public ClassModifiers getModifiers();

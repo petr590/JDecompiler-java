@@ -5,7 +5,7 @@ import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.TypeSize;
 
-public final class PopOperation extends VoidOperation {
+public final class PopOperation extends AbstractOperation implements VoidOperation {
 	
 	public final Operation value;
 	

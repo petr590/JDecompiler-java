@@ -1,6 +1,10 @@
 package x590.jdecompiler.operation.field;
 
+import java.util.Optional;
+
+import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.FieldDescriptor;
+import x590.jdecompiler.JavaField;
 import x590.jdecompiler.constpool.FieldrefConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
@@ -15,9 +19,23 @@ public abstract class FieldOperation extends OperationWithDescriptor<FieldDescri
 		this(context, context.pool.<FieldrefConstant>get(index));
 	}
 	
+	private boolean canOmit(ClassInfo classinfo) {
+		
+		if(descriptor.getDeclaringClass().equals(classinfo.getThisType())) {
+			Optional<JavaField> field = classinfo.findField(descriptor);
+			
+			if(field.isPresent()) {
+				return field.get().getModifiers().isSynthetic();
+			}
+		}
+		
+		return false;
+	}
+	
 	public FieldOperation(DecompilationContext context, FieldrefConstant fieldref) {
 		super(new FieldDescriptor(fieldref));
-		this.canOmit = descriptor.getDeclaringClass().equals(context.getClassinfo().getThisType()) && context.getClassinfo().getField(descriptor).getModifiers().isSynthetic();
+		
+		this.canOmit = canOmit(context.getClassinfo());
 	}
 	
 	protected Operation popObject(DecompilationContext context) {

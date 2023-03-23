@@ -47,7 +47,8 @@ public final class ExcludingBooleanType extends Type {
 	@Override
 	protected Type castToNarrowestImpl(Type other) {
 		if(other instanceof UncertainIntegralType intergalType) {
-			return !intergalType.includeBoolean() ? intergalType :
+			return !intergalType.includeBoolean() ?
+					intergalType :
 					UncertainIntegralType.getInstance(intergalType.minCapacity(), intergalType.maxCapacity(), false, intergalType.includeChar());
 		}
 		

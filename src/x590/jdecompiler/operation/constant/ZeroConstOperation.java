@@ -2,11 +2,12 @@ package x590.jdecompiler.operation.constant;
 
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.operation.AbstractOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 
-public final class ZeroConstOperation extends Operation {
+public final class ZeroConstOperation extends AbstractOperation {
 	
 	public static final ZeroConstOperation INSTANCE = new ZeroConstOperation();
 	

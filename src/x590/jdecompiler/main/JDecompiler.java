@@ -15,6 +15,16 @@ import x590.util.annotation.Immutable;
 
 public class JDecompiler {
 	
+	private static boolean isDebug;
+	
+	public static void setDebug(boolean isDebug) {
+		JDecompiler.isDebug = isDebug;
+	}
+	
+	public static boolean isDebug() {
+		return isDebug;
+	}
+	
 	private static JDecompiler INSTANCE;
 	
 	public static JDecompiler getInstance() {
@@ -80,7 +90,9 @@ public class JDecompiler {
 	private final boolean shortArrayInitAllowed;
 	
 	private final boolean printBracketsAroundBitwiseOperands;
-	private final boolean canOmitCurlyBrackets, canOmitThisAndClass, canOmitSingleImport, useOverrideAnnotation;
+	private final boolean canOmitCurlyBrackets, canOmitThisAndClass;
+	private final boolean canOmitSingleImport, useOverrideAnnotation;
+	private final boolean useCStyleArray;
 	
 	public static void init(String[] args) {
 		
@@ -133,6 +145,7 @@ public class JDecompiler {
 				.add(new Flag("--no-omit-this-and-class").help("No omit `this` keyword and this class in fields and methods access"))
 				.add(new Flag("--omit-single-import").help("Omit import if class uses only one time"))
 				.add(new Flag("--no-use-override").help("Don't use the \"java.lang.Override\" annotation"))
+				.add(new Flag("--c-style-array").help("Use C-style array declaration"))
 				
 				
 				.parse(args);
@@ -140,7 +153,7 @@ public class JDecompiler {
 		
 		this.performingType = performingTypeHolder.get();
 		
-		this.writeToConsole = arguments.getBoolean("--console");
+		this.writeToConsole = arguments.getBoolean("--console") || isDebug;
 		
 		this.constantsUsagePolicy = arguments.get("--constants");
 		
@@ -187,6 +200,7 @@ public class JDecompiler {
 		this.canOmitThisAndClass = !arguments.getBoolean("--no-omit-this-and-class");
 		this.canOmitSingleImport = arguments.getBoolean("--omit-single-import");
 		this.useOverrideAnnotation = !arguments.getBoolean("--no-use-override");
+		this.useCStyleArray = arguments.getBoolean("--c-style-array");
 	}
 
 	
@@ -306,5 +320,9 @@ public class JDecompiler {
 	
 	public boolean useOverrideAnnotation() {
 		return useOverrideAnnotation;
+	}
+	
+	public boolean useCStyleArray() {
+		return useCStyleArray;
 	}
 }

@@ -1,5 +1,7 @@
 package x590.jdecompiler.type;
 
+import java.io.Serializable;
+import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.util.Arrays;
@@ -85,10 +87,10 @@ public class ClassType extends ReferenceType {
 			METHOD_TYPE   = new ClassType("java/lang/invoke/MethodType", MethodType.class),
 			METHOD_HANDLE = new ClassType("java/lang/invoke/MethodHandle", MethodHandle.class),
 			
-			ANNOTATION    = new ClassType("java/lang/annotation/Annotation", java.lang.annotation.Annotation.class),
-			CLONEABLE     = new ClassType("java/lang/Cloneable", Cloneable.class),
-			SERIALIZABLE  = new ClassType("java/io/Serializable", java.io.Serializable.class),
+			ANNOTATION    = new ClassType("java/lang/annotation/Annotation", Annotation.class),
 			OVERRIDE      = new ClassType("java/lang/Override", Override.class),
+			CLONEABLE     = new ClassType("java/lang/Cloneable", Cloneable.class),
+			SERIALIZABLE  = new ClassType("java/io/Serializable", Serializable.class),
 			
 			BYTE      = new WrapperClassType("java/lang/Byte", Byte.class, PrimitiveType.BYTE),
 			SHORT     = new WrapperClassType("java/lang/Short", Short.class, PrimitiveType.SHORT),
@@ -105,8 +107,7 @@ public class ClassType extends ReferenceType {
 		String classEncodedName = clazz.descriptorString();
 		classEncodedName = classEncodedName.substring(1, classEncodedName.length() - 1);
 		
-		ClassType classType = CLASS_TYPES.get(classEncodedName);
-		return classType != null ? classType : new ClassType(classEncodedName, clazz);
+		return CLASS_TYPES.computeIfAbsent(classEncodedName, encodedName -> new ClassType(encodedName, clazz));
 	}
 	
 	public static ClassType fromConstant(ClassConstant clazz) {
@@ -116,8 +117,7 @@ public class ClassType extends ReferenceType {
 	
 	/** Принимает строку без префикса 'L', т.е. в виде "java/lang/Object;" */
 	public static ClassType fromDescriptor(String classEncodedName) {
-		ClassType classType = CLASS_TYPES.get(classEncodedName);
-		return classType != null ? classType : new ClassType(classEncodedName);
+		return CLASS_TYPES.computeIfAbsent(classEncodedName, encodedName -> new ClassType(encodedName));
 	}
 	
 	/** Принимает строку с префиксом 'L', т.е. в виде "Ljava/lang/Object;" */
@@ -190,18 +190,12 @@ public class ClassType extends ReferenceType {
 	
 	private String nameForVariable;
 	
-	private final ClassType enclosingClass;
+	private final @Nullable ClassType enclosingClass;
 	
 	private @Nullable GenericParameters<ReferenceType> signature;
 	private ClassType rawType;
 	
 	private final ClassKind kind;
-	
-	
-	private void cacheIfNotCached() {
-		if(!CLASS_TYPES.containsKey(classEncodedName))
-			CLASS_TYPES.put(classEncodedName, this);
-	}
 	
 	
 	ClassType(String encodedName, Class<?> clazz) {
@@ -211,11 +205,11 @@ public class ClassType extends ReferenceType {
 		initSuperType(clazz);
 	}
 	
-	ClassType(String encodedName) {
+	private ClassType(String encodedName) {
 		this(new ExtendedStringInputStream(encodedName));
 	}
 	
-	ClassType(ExtendedStringInputStream in) {
+	private ClassType(ExtendedStringInputStream in) {
 		
 		in.mark();
 		
@@ -350,16 +344,12 @@ public class ClassType extends ReferenceType {
 			rawType = this;
 		
 		in.unmark();
-		
-		
-		this.cacheIfNotCached();
 	}
+	
 	
 	@Override
 	public String toString() {
 		return "class " + (signature == null ? name : name + signature.toString());
-//				(superType != null ? " extends " + superType.getName() : "") +
-//				(interfaces != null ? " implements " + interfaces.stream().map(ReferenceType::getName).collect(Collectors.joining(", ")) : "");
 	}
 	
 	@Override
@@ -401,8 +391,14 @@ public class ClassType extends ReferenceType {
 	}
 	
 	
-	public ClassType getEnclosingClass() {
+	public @Nullable ClassType getEnclosingClass() {
 		return enclosingClass;
+	}
+	
+	/** @return внешний класс верхнего уровня для вложенных классов,
+	 * для всех остальных классов - {@literal this} */
+	public ClassType getTopLevelClass() {
+		return enclosingClass == null ? this : enclosingClass.getTopLevelClass();
 	}
 	
 	public @Nullable GenericParameters<ReferenceType> getSignature() {

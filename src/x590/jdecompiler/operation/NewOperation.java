@@ -7,7 +7,7 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
 
-public final class NewOperation extends Operation {
+public final class NewOperation extends AbstractOperation {
 	
 	private final ClassType type;
 	

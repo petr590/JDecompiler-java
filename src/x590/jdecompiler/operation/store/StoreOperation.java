@@ -8,18 +8,19 @@ import x590.jdecompiler.operation.IncrementableOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.OperationWithVariable;
 import x590.jdecompiler.operation.Priority;
+import x590.jdecompiler.operation.VariableDefinitionOperation;
 import x590.jdecompiler.operation.load.ExceptionLoadOperation;
 import x590.jdecompiler.operation.load.LoadOperation;
 import x590.jdecompiler.scope.CatchScope;
 import x590.jdecompiler.type.Type;
 
-public abstract class StoreOperation extends OperationWithVariable implements IncrementableOperation {
+public abstract class StoreOperation extends OperationWithVariable implements IncrementableOperation, VariableDefinitionOperation {
 	
 	private final int index;
 	private final Operation value;
 	
 	private final IncrementData incData;
-	private boolean varDefined;
+	private boolean isVarDefinition, isTypeHidden;
 	
 	
 	public StoreOperation(Type requiredType, DecompilationContext context, int index) {
@@ -32,13 +33,13 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 		if(requiredType.isReferenceType() && value instanceof ExceptionLoadOperation &&
 				context.currentScope() instanceof CatchScope catchScope && context.currentIndex() == catchScope.startIndex() + 1) {
 			
-			this.variable = catchScope.defineNewVariable(index, value.getReturnType()).defined();
-			variable.addName("ex");
+			this.variable = catchScope.defineNewVariable(index, value.getReturnType(), context.currentIndex());
+			variable.addPossibleName("ex");
 			
 			this.remove();
 			
 		} else {
-			this.variable = context.currentScope().getVariableOrDefine(index, requiredType);
+			this.variable = context.currentScope().getVariableOrDefine(index, context.currentIndex(), requiredType);
 		}
 		
 		variable.castTypeToWidest(value.getReturnTypeAsNarrowest(requiredType));
@@ -59,8 +60,13 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 	}
 	
 	@Override
-	public boolean isVariableDefining() {
-		return varDefined;
+	public boolean isVariableDefinition() {
+		return isVarDefinition;
+	}
+	
+	@Override
+	public void hideTypeDefinition() {
+		this.isTypeHidden = true;
 	}
 	
 	@Override
@@ -82,16 +88,16 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 	public boolean defineVariable() {
 		if(incData.getOperator() == null) {
 			variable.define();
-			varDefined = true;
+			isVarDefinition = true;
 		}
 		
-		return varDefined;
+		return isVarDefinition;
 	}
 	
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		if(varDefined)
+		if(isVarDefinition && !isTypeHidden)
 			classinfo.addImport(variable.getType());
 	}
 	
@@ -102,10 +108,11 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 	
 	@Override
 	public void writeName(StringifyOutputStream out, StringifyContext context) {
-		if(varDefined)
-			out.printsp(variable.getType(), context.getClassinfo());
-			
-		out.write(variable.getName());
+		if(isVarDefinition && !isTypeHidden) {
+			out.print(variable.getType(), context.getClassinfo(), variable.getName());
+		} else {
+			out.write(variable.getName());
+		}
 	}
 	
 	@Override
@@ -120,7 +127,7 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 	
 	@Override
 	public void addVariableName(String name) {
-		variable.addName(name);
+		variable.addPossibleName(name);
 	}
 	
 	@Override

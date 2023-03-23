@@ -8,9 +8,14 @@ import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
 import x590.util.annotation.Nullable;
 
-public class UnnamedVariable extends Variable {
+public class UnnamedVariable extends AbstractVariable {
+	
+	private enum Kind {
+		PLAIN, INDEX
+	}
 	
 	private final Set<String> names = new HashSet<>();
+	private Kind kind = Kind.PLAIN;
 	
 	public UnnamedVariable(Scope enclosingScope) {
 		super(enclosingScope);
@@ -30,7 +35,22 @@ public class UnnamedVariable extends Variable {
 	
 	@Override
 	protected String chooseName() {
-		return names.isEmpty() ? getNameByType(type) : names.iterator().next();
+		return switch(kind) {
+			case PLAIN -> names.isEmpty() ? getNameByType(type) : names.iterator().next();
+			case INDEX -> "i";
+		};
+	}
+	
+	@Override
+	protected String nextName(String baseName, int index) {
+		return switch(kind) {
+			case PLAIN -> super.nextName(baseName, index);
+			case INDEX -> {
+				int num = --index / 18;
+				yield Character.toString((char)('i' + index - num * 18)) +
+					(num == 0 ? "" : Integer.toString(num + 1));
+			}
+		};
 	}
 	
 	
@@ -128,13 +148,18 @@ public class UnnamedVariable extends Variable {
 	}
 	
 	@Override
-	public void addName(String name) {
+	public void addPossibleName(String name) {
 		names.add(name);
+	}
+	
+	@Override
+	public void makeAnIndex() {
+		kind = Kind.INDEX;
 	}
 	
 	
 	@Override
 	public String toString() {
-		return String.format("UnnamedVariable { type = %s, names = %s, enclosingScope = %s }", type, names, getEnclosingScope());
+		return String.format("UnnamedVariable #%x { type = %s, names = %s, enclosingScope = %s }", hashCode(), type, names, getEnclosingScope());
 	}
 }

@@ -16,13 +16,21 @@ public class CatchScope extends Scope {
 	private final ExceptionLoadOperation loadOperation;
 	private final boolean hasNext;
 	
-	public CatchScope(DecompilationContext context, int startIndex, int endIndex, @Immutable List<ClassType> exceptionTypes, boolean hasNext) {
-		super(context, startIndex, Math.min(endIndex, context.currentScope().endIndex()));
+	public CatchScope(DecompilationContext context, int endIndex, @Immutable List<ClassType> exceptionTypes, boolean hasNext) {
+		super(context, context.currentIndex() - 1, Math.min(endIndex, context.currentScope().endIndex()));
 		
 		this.loadOperation = new ExceptionLoadOperation(context, exceptionTypes);
 		context.push(loadOperation);
 		
 		this.hasNext = hasNext;
+	}
+	
+	@Override
+	public void addOperation(Operation operation, int fromIndex) {
+		super.addOperation(operation, fromIndex);
+		if(operation.isTerminable()) {
+			setEndIndex(fromIndex);
+		}
 	}
 	
 	@Override

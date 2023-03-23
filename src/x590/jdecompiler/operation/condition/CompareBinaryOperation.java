@@ -5,6 +5,7 @@ import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.cmp.CmpOperation;
+import x590.jdecompiler.type.GeneralCastingKind;
 import x590.jdecompiler.type.Type;
 
 public final class CompareBinaryOperation extends CompareOperation {
@@ -25,7 +26,8 @@ public final class CompareBinaryOperation extends CompareOperation {
 			operand2.allowImplicitCast();
 		}
 		
-		Type generalType = operand1.getReturnType().castToGeneral(operand2.getReturnType());
+		Type generalType = operand1.getReturnType().castToGeneral(operand2.getReturnType(),
+				compareType.isEqualsCompareType ? GeneralCastingKind.EQUALS_COMPARASION : GeneralCastingKind.COMPARASION);
 		
 		operand1.castReturnTypeToNarrowest(generalType);
 		operand2.castReturnTypeToNarrowest(generalType);

@@ -30,6 +30,6 @@ public final class CharType extends PrimitiveType {
 	
 	@Override
 	public boolean isImplicitSubtypeOf(Type other) {
-		return canCastTo(other) || other == PrimitiveType.INT || other.isLongOrFloatOrDouble();
+		return canCastTo(other) || other.isLongOrFloatOrDouble();
 	}
 }

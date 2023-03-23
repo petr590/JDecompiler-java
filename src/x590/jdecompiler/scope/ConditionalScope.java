@@ -12,14 +12,12 @@ public abstract class ConditionalScope extends Scope {
 		super(context, endIndex);
 		this.condition = condition;
 		this.conditionStartIndex = context.currentExpressionStartIndex();
-//		Logger.debug("conditionStartIndex = " + conditionStartIndex + " for " + this);
 	}
 	
 	public ConditionalScope(DecompilationContext context, int startIndex, int endIndex, ConditionOperation condition) {
 		super(context, startIndex, endIndex);
 		this.condition = condition;
 		this.conditionStartIndex = context.currentExpressionStartIndex();
-//		Logger.debug("conditionStartIndex = " + conditionStartIndex + " for " + this);
 	}
 	
 	public ConditionalScope(DecompilationContext context, int startIndex, int endIndex, ConditionOperation condition, int conditionStartIndex) {
@@ -42,5 +40,11 @@ public abstract class ConditionalScope extends Scope {
 	
 	public int conditionStartIndex() {
 		return conditionStartIndex;
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("%s {%d, %d - %d}",
+				getClass().getSimpleName(), conditionStartIndex, startIndex(), endIndex());
 	}
 }

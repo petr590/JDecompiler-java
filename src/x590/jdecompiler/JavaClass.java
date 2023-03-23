@@ -1,6 +1,7 @@
 package x590.jdecompiler;
 
 import static x590.jdecompiler.modifiers.Modifiers.*;
+import static java.io.File.separatorChar;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -8,7 +9,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -19,10 +19,9 @@ import x590.jdecompiler.attribute.Attributes;
 import x590.jdecompiler.attribute.InnerClassesAttribute;
 import x590.jdecompiler.attribute.InnerClassesAttribute.InnerClassEntry;
 import x590.jdecompiler.attribute.ModuleAttribute;
+import x590.jdecompiler.attribute.SourceFileAttribute;
 import x590.jdecompiler.attribute.Attributes.Location;
-import x590.jdecompiler.attribute.annotation.AnnotationsAttribute;
 import x590.jdecompiler.attribute.signature.ClassSignatureAttribute;
-import x590.jdecompiler.attribute.signature.FieldSignatureAttribute;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.exception.ClassFormatException;
@@ -35,12 +34,10 @@ import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.modifiers.ClassModifiers;
-import x590.jdecompiler.modifiers.Modifiers;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.util.WhitespaceStringBuilder;
 import x590.jdecompiler.util.IWhitespaceStringBuilder;
-import x590.util.Pair;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
@@ -77,6 +74,9 @@ public class JavaClass extends JavaClassElement {
 	private final Attributes attributes;
 	private final @Nullable ClassSignatureAttribute signature;
 	
+	private final String sourceFileName;
+	private final @Nullable String directory;
+	
 	
 	private @Nullable Type getVisibleSuperType() {
 		if(superType.equals(ClassType.OBJECT)) {
@@ -109,7 +109,7 @@ public class JavaClass extends JavaClassElement {
 	}
 	
 	
-	JavaClass(ExtendedDataInputStream in) {
+	JavaClass(ExtendedDataInputStream in, @Nullable String directory) {
 		if(in.readInt() != 0xCAFEBABE)
 			throw new ClassFormatException("Illegal class header");
 		
@@ -141,15 +141,28 @@ public class JavaClass extends JavaClassElement {
 		this.visibleSuperType = getVisibleSuperType();
 		this.visibleInterfaces = getVisibleInterfaces();
 		
+		SourceFileAttribute sourceFileAttr = attributes.getNullable(AttributeType.SOURCE_FILE);
+		
+		this.sourceFileName = sourceFileAttr == null ? thisType.getTopLevelClass().getSimpleName() + ".java" : sourceFileAttr.getSourceFileName();
+		this.directory = directory;
+		
 		classes.put(thisType, this);
 	}
 	
 	public static JavaClass read(InputStream in) {
-		return new JavaClass(new ExtendedDataInputStream(in));
+		return read(in, null);
+	}
+	
+	public static JavaClass read(InputStream in, String directory) {
+		return new JavaClass(new ExtendedDataInputStream(in), directory);
 	}
 	
 	public static JavaClass read(ExtendedDataInputStream in) {
-		return new JavaClass(in);
+		return read(in, null);
+	}
+	
+	public static JavaClass read(ExtendedDataInputStream in, String directory) {
+		return new JavaClass(in, directory);
 	}
 	
 	// TODO
@@ -214,11 +227,13 @@ public class JavaClass extends JavaClassElement {
 	}
 	
 	public String getSourceFileName() {
-		return attributes.get(AttributeType.SOURCE_FILE).getSourceFileName();
+		return sourceFileName;
 	}
 	
 	public String getSourceFilePath() {
-		return getSourceFileName();
+		return directory == null ?
+				sourceFileName :
+				directory + separatorChar + getSourceFileName();
 	}
 	
 	
@@ -500,44 +515,29 @@ public class JavaClass extends JavaClassElement {
 	
 	private static void writeFields(List<JavaField> fields, StringifyOutputStream out, ClassInfo classinfo) {
 		
-		Modifiers modifiers = null;
-		Type type = null; // NullPointerException никогда не возникнет для этих переменных
-		Pair<AnnotationsAttribute, AnnotationsAttribute> annotationAttributes = null;
-		FieldSignatureAttribute signature = null;
-		boolean prevFieldWritten = false;
+		JavaField prevField = null; // NullPointerException никогда не возникнет для этой переменной
 		
 		for(JavaField field : fields) {
 			
-			if(prevFieldWritten) {
+			if(prevField != null) {
 				
-				boolean typesEquals = field.getDescriptor().getType().equals(type);
-				
-				if(typesEquals && field.getModifiers().equals(modifiers) &&
-						field.getAnnotationAttributes().equals(annotationAttributes) && Objects.equals(field.getSignature(), signature)) {
-					
+				if(field.canJoinDeclaration(prevField)) {
 					out.print(", ").printUsingFunction(field, classinfo, JavaField::writeNameAndInitializer);
 					continue;
 					
 				} else {
-					out.print(';');
-					if(!typesEquals) {
+					out.println(';');
+					if(!field.getDescriptor().getType().equals(prevField.getDescriptor().getType())) {
 						out.println();
 					}
 				}
-						
-			} else {
-				prevFieldWritten = true;
 			}
 			
 			field.writeWithoutSemicolon(out, classinfo);
-			
-			modifiers = field.getModifiers();
-			type = field.getDescriptor().getType();
-			annotationAttributes = field.getAnnotationAttributes();
-			signature = field.getSignature();
+			prevField = field;
 		}
 		
-		if(prevFieldWritten)
+		if(prevField != null)
 			out.println(';');
 	}
 	

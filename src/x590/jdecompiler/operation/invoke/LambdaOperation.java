@@ -10,11 +10,12 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.operation.AbstractOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
 
-public class LambdaOperation extends Operation {
+public class LambdaOperation extends AbstractOperation {
 	
 	private final JavaMethod method;
 	private final int captured;

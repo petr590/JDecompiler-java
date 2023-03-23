@@ -8,8 +8,13 @@ import x590.jdecompiler.JavaSerializable;
 import x590.jdecompiler.attribute.Attributes.Location;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.context.DecompilationContext;
+import x590.jdecompiler.context.PreDecompilationContext;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.ExtendedDataOutputStream;
+import x590.jdecompiler.scope.CatchScope;
+import x590.jdecompiler.scope.FinallyScope;
+import x590.jdecompiler.scope.Scope;
+import x590.jdecompiler.scope.TryScope;
 import x590.jdecompiler.type.ClassType;
 import x590.util.LoopUtil;
 import x590.util.Util;
@@ -132,8 +137,24 @@ public class CodeAttribute extends Attribute {
 				return endPos;
 			}
 			
+			public int getStartIndex(PreDecompilationContext context) {
+				return context.posToIndex(startPos);
+			}
+			
+			public int getEndIndex(PreDecompilationContext context) {
+				return context.posToIndex(endPos);
+			}
+			
+			public int getFactualEndIndex(PreDecompilationContext context) {
+				return getEndIndex(context) - (isFinally() ? 1 : 0);
+			}
+			
 			public @Immutable List<CatchEntry> getCatchEntries() {
 				return catchEntries;
+			}
+			
+			public boolean isFinally() {
+				return catchEntries.stream().allMatch(CatchEntry::isFinally);
 			}
 			
 			public void setLastPos(int lastCatchEntryEndPos) {
@@ -160,7 +181,11 @@ public class CodeAttribute extends Attribute {
 						.filter(entry -> entry.startPos == startPos && entry.endPos == endPos).findAny()
 						.orElseGet(() -> Util.addAndGetBack(entries, new TryEntry(startPos, endPos)));
 				
-				CatchEntry.readTo(in, pool, tryEntry.catchEntries);
+				CatchEntry.readTo(in, pool, tryEntry.catchEntries, entries);
+			}
+			
+			public Scope createScope(DecompilationContext context) {
+				return new TryScope(context, context.posToIndex(getEndPos()));
 			}
 			
 			@Override
@@ -221,6 +246,10 @@ public class CodeAttribute extends Attribute {
 				return exceptionTypes;
 			}
 			
+			public boolean isFinally() {
+				return exceptionTypes.isEmpty();
+			}
+			
 			public boolean hasNext() {
 				return hasNext;
 			}
@@ -237,16 +266,23 @@ public class CodeAttribute extends Attribute {
 				this.exceptionTypes = Collections.unmodifiableList(exceptionTypes);
 			}
 			
-			private static void readTo(ExtendedDataInputStream in, ConstantPool pool, List<CatchEntry> entries) {
+			private static void readTo(ExtendedDataInputStream in, ConstantPool pool, List<CatchEntry> entries, List<TryEntry> tryEntries) {
 				
 				int startPos = in.readUnsignedShort(),
 					exceptionTypeIndex = in.readUnsignedShort();
 				
-				CatchEntry catchEntry = entries.stream()
+				CatchEntry catchEntry = tryEntries.stream()
+						.flatMap(tryEntry -> tryEntry.catchEntries.stream())
 						.filter(entry -> entry.startPos == startPos).findAny()
 						.orElseGet(() -> Util.addAndGetBack(entries, new CatchEntry(startPos, exceptionTypeIndex)));
 				
 				catchEntry.addExceptionType(pool, exceptionTypeIndex);
+			}
+			
+			public Scope createScope(DecompilationContext context) {
+				return isFinally() ?
+						new FinallyScope(context, getEndIndex(context), hasNext) :
+						new CatchScope(context, getEndIndex(context), exceptionTypes, hasNext);
 			}
 			
 			@Override

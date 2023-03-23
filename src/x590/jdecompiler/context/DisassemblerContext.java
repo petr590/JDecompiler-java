@@ -20,6 +20,7 @@ import x590.jdecompiler.instruction.store.*;
 import x590.jdecompiler.type.TypeSize;
 import x590.util.IntegerUtil;
 import x590.util.Logger;
+import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
 public class DisassemblerContext extends Context {
@@ -29,7 +30,7 @@ public class DisassemblerContext extends Context {
 	private final byte[] bytes;
 	
 	private int pos;
-	private final List<Instruction> instructions;
+	private final @Immutable List<Instruction> instructions;
 	
 	private DisassemblerContext(ConstantPool pool, byte[] bytes) {
 		super(pool, bytes.length);
@@ -45,8 +46,8 @@ public class DisassemblerContext extends Context {
 		List<Instruction> instructions = new ArrayList<>(length);
 		
 		while(pos < length) {
-			indexMap[pos] = index;
-			posMap[index] = pos;
+			indexMap.put(pos, index);
+			posMap.put(index, pos);
 			
 			Instruction instruction = readInstruction();
 			
@@ -71,7 +72,7 @@ public class DisassemblerContext extends Context {
 	}
 	
 	
-	public List<Instruction> getInstructions() {
+	public @Immutable List<Instruction> getInstructions() {
 		return instructions;
 	}
 	
@@ -97,8 +98,8 @@ public class DisassemblerContext extends Context {
 		return readShort() & 0xFFFF;
 	}
 	
-	private void skip(int skip) {
-		pos += skip;
+	private void skip(int count) {
+		pos += count;
 	}
 	
 	
@@ -266,21 +267,21 @@ public class DisassemblerContext extends Context {
 			case 0x95: case 0x96: return Instructions.FCMP;
 			case 0x97: case 0x98: return Instructions.DCMP;
 			
-			case 0x99: return new IfEqInstruction(this, 	readShort());
-			case 0x9A: return new IfNotEqInstruction(this, 	readShort());
-			case 0x9B: return new IfLtInstruction(this, 	readShort());
-			case 0x9C: return new IfGeInstruction(this, 	readShort());
-			case 0x9D: return new IfGtInstruction(this, 	readShort());
-			case 0x9E: return new IfLeInstruction(this, 	readShort());
-			case 0x9F: return new IfIEqInstruction(this, 	readShort());
-			case 0xA0: return new IfINotEqInstruction(this, readShort());
-			case 0xA1: return new IfILtInstruction(this, 	readShort());
-			case 0xA2: return new IfIGeInstruction(this, 	readShort());
-			case 0xA3: return new IfIGtInstruction(this, 	readShort());
-			case 0xA4: return new IfILeInstruction(this, 	readShort());
-			case 0xA5: return new IfAEqInstruction(this, 	readShort());
-			case 0xA6: return new IfANotEqInstruction(this, readShort());
-			case 0xA7: return new GotoInstruction(this, 	readShort());
+			case 0x99: return new IfEqInstruction(this,		readShort());
+			case 0x9A: return new IfNotEqInstruction(this,	readShort());
+			case 0x9B: return new IfLtInstruction(this,		readShort());
+			case 0x9C: return new IfGeInstruction(this,		readShort());
+			case 0x9D: return new IfGtInstruction(this,		readShort());
+			case 0x9E: return new IfLeInstruction(this,		readShort());
+			case 0x9F: return new IfIEqInstruction(this,	readShort());
+			case 0xA0: return new IfINotEqInstruction(this,	readShort());
+			case 0xA1: return new IfILtInstruction(this,	readShort());
+			case 0xA2: return new IfIGeInstruction(this,	readShort());
+			case 0xA3: return new IfIGtInstruction(this,	readShort());
+			case 0xA4: return new IfILeInstruction(this,	readShort());
+			case 0xA5: return new IfAEqInstruction(this,	readShort());
+			case 0xA6: return new IfANotEqInstruction(this,	readShort());
+			case 0xA7: return new GotoInstruction(this,		readShort());
 			
 			/*case 0xA8: return jsr(readShort());
 			case 0xA9: return ret(readUnsignedByte());*/
@@ -363,7 +364,7 @@ public class DisassemblerContext extends Context {
 				case 0x84: return new IIncInstruction(readUnsignedShort(), readShort());
 //				case 0xA9: return ret(readUnsignedShort());
 				default:
-					throw new InvalidOpcodeException("Illegal wide opcode 0x" + IntegerUtil.hex(bytes[pos]));
+					throw new InvalidOpcodeException("Illegal wide opcode 0x" + IntegerUtil.hex2(bytes[pos]));
 			}
 			
 			case 0xC5: return new MultiANewArrayInstruction(readUnsignedShort(), readUnsignedByte());

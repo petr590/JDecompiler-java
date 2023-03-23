@@ -9,20 +9,32 @@ import x590.util.annotation.Nullable;
  */
 public final class UncertainReferenceType extends Type {
 	
+	/** Наиболее широкий тип */
 	private final ReferenceType widestType;
+	
+	/** Наиболее узкий тип. Если он равен {@literal null}, то {@literal this}
+	 * обозначает тип {@link #widestType} и любой его подтип */
 	private final @Nullable ReferenceType narrowestType;
+	
 	private final String encodedName;
 	
 	public UncertainReferenceType(ReferenceType widestType, @Nullable ReferenceType narrowestType) {
 		this.widestType = widestType;
 		this.narrowestType = narrowestType;
-		this.encodedName = "UncertainClassType:" + widestType.getClassEncodedName() + ":" +
-				(narrowestType == null ? "null" : narrowestType.getClassEncodedName());
+		this.encodedName = "UncertainClassType:" + widestType.getClassEncodedName() +
+				(narrowestType == null ? "" : ":" + narrowestType.getClassEncodedName());
 	}
 	
 	public UncertainReferenceType(ReferenceType widestType) {
 		this(widestType, null);
 	}
+	
+	
+	public Type getInstance(ReferenceType widestType, @Nullable ReferenceType narrowestType) {
+		return narrowestType != null && widestType.equals(narrowestType) ? widestType :
+			new UncertainReferenceType(widestType, narrowestType);
+	}
+	
 	
 	private ReferenceType getNotNullType() {
 		return narrowestType == null ? widestType : narrowestType;
@@ -72,17 +84,22 @@ public final class UncertainReferenceType extends Type {
 	}
 	
 	
-	private Type castImpl0(Type other, boolean widest) {
+	private Type castImpl(Type other, boolean widest) {
 		if(this.equals(other))
 			return this;
 		
 		if(other instanceof ReferenceType referenceType) {
 			
 			if(referenceType.isSubclassOf(widestType) && (narrowestType == null || narrowestType.isSubclassOf(referenceType))) {
-				return widest ? new UncertainReferenceType(widestType, referenceType) : new UncertainReferenceType(referenceType, narrowestType);
+				return widest ?
+						getInstance(widestType, referenceType) :
+						getInstance(referenceType, narrowestType);
 			}
 			
-			if(widest ? referenceType.isSubclassOf(narrowestType) :  widestType.isSubclassOf(referenceType)) {
+			if(widest ?
+				referenceType.isSubclassOf(narrowestType) :
+				widestType.isSubclassOf(referenceType)) {
+				
 				return this;
 			}
 		}
@@ -91,13 +108,14 @@ public final class UncertainReferenceType extends Type {
 	}
 	
 	
-	private Type reversedCastImpl0(Type other, boolean widest) {
+	private Type reversedCastImpl(Type other, boolean widest) {
 		if(this.equals(other))
 			return this;
 		
 		if(other instanceof ReferenceType referenceType) {
 			
-			if(widest ? widestType.isSubclassOf(referenceType) || narrowestType != null && referenceType.isSubclassOf(narrowestType) :
+			if(widest ?
+				widestType.isSubclassOf(referenceType) || narrowestType != null && referenceType.isSubclassOf(narrowestType) :
 				referenceType.isSubclassOf(widestType)) {
 				
 				return referenceType;
@@ -115,22 +133,22 @@ public final class UncertainReferenceType extends Type {
 	
 	@Override
 	protected Type castToNarrowestImpl(Type other) {
-		return castImpl0(other, false);
+		return castImpl(other, false);
 	}
 	
 	@Override
 	protected Type castToWidestImpl(Type other) {
-		return castImpl0(other, true);
+		return castImpl(other, true);
 	}
 	
 	@Override
 	protected Type reversedCastToNarrowestImpl(Type other) {
-		return reversedCastImpl0(other, false);
+		return reversedCastImpl(other, false);
 	}
 	
 	@Override
 	protected Type reversedCastToWidestImpl(Type other) {
-		return reversedCastImpl0(other, true);
+		return reversedCastImpl(other, true);
 	}
 	
 	@Override

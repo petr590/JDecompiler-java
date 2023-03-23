@@ -1,34 +1,39 @@
 package x590.jdecompiler.scope;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
+import x590.jdecompiler.operation.VariableDefinitionOperation;
+import x590.jdecompiler.operation.IIncOperation;
 import x590.jdecompiler.operation.condition.AndOperation;
 import x590.jdecompiler.operation.condition.ConditionOperation;
 import x590.jdecompiler.operation.condition.OrOperation;
+import x590.jdecompiler.operation.store.StoreOperation;
+import x590.util.Logger;
 
 public class LoopScope extends ConditionalScope {
 	
-	private boolean isWhile;
+	private boolean isPreCondition;
+	
+	private List<VariableDefinitionOperation> initializationOperations = Collections.emptyList();
+	private List<Operation> incrementOperations = Collections.emptyList();
 	
 	public LoopScope(DecompilationContext context, int startIndex, int endIndex, ConditionOperation condition) {
 		super(context, startIndex, endIndex, condition);
 	}
 	
-	public LoopScope(DecompilationContext context, int startIndex, int endIndex, ConditionOperation condition, int conditionStartIndex) {
-		super(context, startIndex, endIndex, condition, conditionStartIndex);
+	public LoopScope(DecompilationContext context, int startIndex, int endIndex, ConditionOperation condition, boolean isPreCondition) {
+		super(context, startIndex, endIndex, condition);
+		this.isPreCondition = isPreCondition;
 	}
 	
 	public LoopScope(DecompilationContext context, Scope superScope, int startIndex, int endIndex, ConditionOperation condition) {
 		super(context, startIndex, endIndex, condition);
-		init(startIndex, endIndex, superScope);
-	}
-	
-	public LoopScope(DecompilationContext context, Scope superScope, int startIndex, int endIndex, ConditionOperation condition, int conditionStartIndex) {
-		super(context, startIndex, endIndex, condition, conditionStartIndex);
 		init(startIndex, endIndex, superScope);
 	}
 	
@@ -53,7 +58,6 @@ public class LoopScope extends ConditionalScope {
 		Scope currentScope = superScope();
 		
 		if(currentScope instanceof IfScope ifScope && ifScope.endIndex() == context.currentIndex() + 1) {
-//			Logger.debug("IIIIIIIIIIIIIIFFFFFFFFFFF!!!!!!!!!!!!!");
 			
 			ifScope.remove();
 			setCondition(new AndOperation(ifScope.getCondition(), getCondition()));
@@ -75,21 +79,120 @@ public class LoopScope extends ConditionalScope {
 	}
 	
 	
+	private void resolveInitializationOperations() {
+		var initializationOperations = this.initializationOperations = new ArrayList<>();
+		
+		List<Operation> operations = superScope().getOperations();
+		VariableDefinitionOperation prevOperation = null;
+		
+		for(var iter = operations.listIterator(operations.indexOf(this));
+				iter.hasPrevious() && iter.previous() instanceof VariableDefinitionOperation operation;) {
+			
+			boolean variableDefinition = operation.isVariableDefinition();
+			
+			Logger.debug(variableDefinition);
+			
+			if(prevOperation == null ||
+					variableDefinition == prevOperation.isVariableDefinition() &&
+					(!variableDefinition || operation.getVariable().getType().equals(prevOperation.getVariable().getType()))) {
+				
+				initializationOperations.add(0, operation);
+				operation.remove();
+				operation.getVariable().makeAnIndex();
+				
+				if(prevOperation != null) {
+					prevOperation.hideTypeDefinition();
+				}
+			}
+			
+			prevOperation = operation;
+		}
+	}
+	
+	private void resolveIncrementOperations() {
+		var incrementOperations = this.incrementOperations = new ArrayList<>();
+		
+		List<Operation> operations = getOperations();
+		
+		for(var iter = operations.listIterator(operations.size()); iter.hasPrevious();) {
+			
+			Operation operation = iter.previous();
+			
+			if(operation instanceof IIncOperation ||
+				operation instanceof StoreOperation store && !store.isVariableDefinition()) {
+				
+				incrementOperations.add(0, operation);
+				operation.remove();
+			} else {
+				break;
+			}
+		}
+	}
+	
+	
 	@Override
 	public void finalizeScope(DecompilationContext context) {
 		super.finalizeScope(context);
 		update(context);
 	}
 	
-	
-	public void makeWhileLoop() {
-		isWhile = true;
+	public void makePreCondition() {
+		isPreCondition = true;
 	}
 	
 	@Override
+	public void postDecompilation() {
+		if(!isPreCondition && getCondition().isAlwaysTrue()) {
+			isPreCondition = true;
+		}
+		
+		if(isPreCondition) {
+			
+			if(getOperationsCount() == 1 && getOperationAt(0) instanceof IfScope ifScope &&
+					conditionStartIndex() == ifScope.conditionStartIndex() && endIndex() + 1 == ifScope.endIndex()) {
+				
+				ifScope.removeOnlySelf();
+				this.addOperations(ifScope.getOperations(), startIndex());
+				this.setCondition(getCondition().isAlwaysTrue() ?
+						ifScope.getCondition() :
+						new AndOperation(getCondition(), ifScope.getCondition()));
+			}
+			
+			resolveInitializationOperations();
+			resolveIncrementOperations();
+			
+			this.deleteRemovedOperations();
+			superScope().deleteRemovedOperations();
+		}
+	}
+	
+	
+	@Override
 	protected void writeHeader(StringifyOutputStream out, StringifyContext context) {
-		if(isWhile) {
-			writeWhilePart(out, context);
+		if(isPreCondition) {
+
+			var condition = getCondition();
+			
+			if(!initializationOperations.isEmpty() || !incrementOperations.isEmpty()) {
+				out.print("for(").printAll(initializationOperations, context, ", ").print(';');
+				
+				if(!condition.isAlwaysTrue())
+					out.printsp().print(condition, context);
+				
+				out.write(';');
+				
+				if(!incrementOperations.isEmpty())
+					out.printsp().printAll(incrementOperations, context, ", ");
+				
+				out.write(')');
+				
+			} else if(condition.isAlwaysTrue()) {
+				out.write("for(;;)");
+				
+			} else {
+				writeWhilePart(out, context);
+			}
+			
 		} else {
 			out.write("do");
 		}
@@ -98,7 +201,8 @@ public class LoopScope extends ConditionalScope {
 	@Override
 	public void writeBack(StringifyOutputStream out, StringifyContext context) {
 		
-		if(!isWhile) {
+		if(!isPreCondition) {
+			
 			if(canOmitCurlyBrackets())
 				out.println().printIndent();
 			else

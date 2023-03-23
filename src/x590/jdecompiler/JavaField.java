@@ -3,6 +3,7 @@ package x590.jdecompiler;
 import static x590.jdecompiler.modifiers.Modifiers.*;
 
 import java.util.List;
+import java.util.Objects;
 
 import x590.jdecompiler.attribute.AttributeType;
 import x590.jdecompiler.attribute.Attributes;
@@ -132,6 +133,10 @@ public class JavaField extends JavaClassElement {
 		return initializer;
 	}
 	
+	public boolean hasAnyInitializer() {
+		return constantValueAttribute != null || initializer != null;
+	}
+	
 	
 	public boolean isConstant() {
 		return constantValueAttribute != null;
@@ -174,8 +179,9 @@ public class JavaField extends JavaClassElement {
 	}
 	
 	public void writeNameAndInitializer(StringifyOutputStream out, ClassInfo classinfo) {
-
+		
 		out.write(descriptor.getName());
+		descriptor.getType().writeRightDefinition(out, classinfo);
 		
 		if(initializer != null) {
 			out.write(" = ");
@@ -220,6 +226,17 @@ public class JavaField extends JavaClassElement {
 	public String toString() {
 		return modifiers + " " + descriptor;
 	}
+	
+	
+	public boolean canJoinDeclaration(JavaField other) {
+		return descriptor.getType().getArrayMemberIfUsingCArrays()
+						.equals(other.descriptor.getType().getArrayMemberIfUsingCArrays()) &&
+				!hasAnyInitializer() && !other.hasAnyInitializer() &&
+				modifiers.equals(other.modifiers) &&
+				annotationAttributes.equals(other.annotationAttributes) &&
+				Objects.equals(getSignature(), other.getSignature());
+	}
+	
 	
 	@Override
 	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {

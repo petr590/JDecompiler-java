@@ -1,6 +1,6 @@
 package x590.jdecompiler.operation;
 
-public class Priority {
+public final class Priority {
 	
 	private Priority() {}
 	

@@ -1,6 +1,9 @@
 package x590.jdecompiler.type;
 
-public class Types {
+/**
+ * Содержит объявления некоторых типов-синглтонов для более удобного доступа
+ */
+public final class Types {
 	
 	private Types() {}
 	

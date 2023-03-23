@@ -5,6 +5,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import x590.jdecompiler.JavaClass;
@@ -22,13 +23,15 @@ public abstract class DecodingPerforming<S extends ExtendedOutputStream<S>> exte
 	
 	@Override
 	public @Nullable JavaClass read(String file) throws IOException, UncheckedIOException {
-		DataInputStream in = new DataInputStream(new BufferedInputStream(Files.newInputStream(Paths.get(file))));
+		Path path = Paths.get(file);
+		
+		DataInputStream in = new DataInputStream(new BufferedInputStream(Files.newInputStream(path)));
 		int wasAvailable = in.available();
 		
 		try {
 			Timer timer = Timer.startNewTimer();
 			
-			JavaClass javaClass = JavaClass.read(in);
+			JavaClass javaClass = JavaClass.read(in, path.getParent().toString());
 			
 			timer.logElapsed("Class reading");
 			

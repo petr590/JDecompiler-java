@@ -4,7 +4,7 @@ import x590.jdecompiler.scope.Scope;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.Types;
 
-public class NamedVariable extends Variable {
+public class NamedVariable extends AbstractVariable {
 	
 	private final String name;
 	
@@ -31,11 +31,11 @@ public class NamedVariable extends Variable {
 	}
 	
 	@Override
-	public void addName(String name) {}
+	public void addPossibleName(String name) {}
 	
 	
 	@Override
 	public String toString() {
-		return String.format("NamedVariable { type = %s, name = %s, enclosingScope = %s }", type, name, getEnclosingScope());
+		return String.format("NamedVariable #%x { type = %s, name = %s, enclosingScope = %s }", hashCode(), type, name, getEnclosingScope());
 	}
 }

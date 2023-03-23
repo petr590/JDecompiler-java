@@ -12,6 +12,11 @@ public class EmptyInfiniteLoopScope extends Scope {
 	}
 	
 	@Override
+	public boolean isTerminable() {
+		return true;
+	}
+	
+	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		out.write(JDecompiler.getInstance().canOmitCurlyBrackets() ? "for(;;);" : "for(;;) {}");
 	}

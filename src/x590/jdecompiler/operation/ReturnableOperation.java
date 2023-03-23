@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import x590.jdecompiler.type.Type;
 
-public abstract class ReturnableOperation extends Operation {
+public abstract class ReturnableOperation extends AbstractOperation {
 	
 	protected Type returnType;
 	

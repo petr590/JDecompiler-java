@@ -158,7 +158,7 @@ public class StringifyOutputStream extends ExtendedOutputStream<StringifyOutputS
 		return this;
 	}
 	
-	public <T, U, S extends BiStringifyWritable<T, U>> StringifyOutputStream printUsingFunction(S writable, Consumer<? super S> writer) {
+	public <T, U, W extends BiStringifyWritable<T, U>> StringifyOutputStream printUsingFunction(W writable, Consumer<? super W> writer) {
 		writer.accept(writable);
 		return this;
 	}

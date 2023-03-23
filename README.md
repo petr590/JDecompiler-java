@@ -4,11 +4,11 @@ Writing it in C++ turned out to be a mistake, so I moved it to Java.
 Maybe I'll finish it someday, but I need to add a more functionality.
 
 ## Not implemented:
-- finally
 - break/continue
 - Jar support
 
 ## Partially implemented:
+- finally
 - for
 - switch
 

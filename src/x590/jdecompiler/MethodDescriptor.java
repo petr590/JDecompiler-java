@@ -217,10 +217,10 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 		boolean canOmitTypes = asLambda && visibleParameterAnnotations.isEmpty() && invisibleParameterAnnotations.isEmpty();
 		
 		IntConsumer writeParameterAnnotations = canOmitTypes ?
-				i -> {} :
-				i -> {
-					visibleParameterAnnotations.write(out, classinfo, i);
-					invisibleParameterAnnotations.write(out, classinfo, i);
+				slot -> {} :
+				slot -> {
+					visibleParameterAnnotations.write(out, classinfo, slot);
+					invisibleParameterAnnotations.write(out, classinfo, slot);
 				};
 		
 		
@@ -235,15 +235,15 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 				throw new IllegalMethodHeaderException("Varargs method must have array as last argument");
 			
 			write = canOmitTypes ?
-					(type, i) -> out.write(getVariableName.apply(type)) :
-					(type, i) ->
-						(i != varargsIndex ? out.printsp(type, classinfo) : out.print(((ArrayType)type).getElementType(), classinfo).printsp("..."))
+					(type, slot) -> out.write(getVariableName.apply(type)) :
+					(type, slot) ->
+						(slot != varargsIndex ? out.printsp(type, classinfo) : out.print(((ArrayType)type).getElementType(), classinfo).printsp("..."))
 							.write(getVariableName.apply(type));
 			
 		} else {
 			write = canOmitTypes ?
-					(type, i) -> out.write(getVariableName.apply(type)) :
-					(type, i) -> out.printsp(type, classinfo).write(getVariableName.apply(type));
+					(type, slot) -> out.write(getVariableName.apply(type)) :
+					(type, slot) -> out.printsp(type, classinfo).write(getVariableName.apply(type));
 		}
 		
 		
@@ -253,9 +253,9 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 			out.write('(');
 		
 		LoopUtil.forEachExcludingLast(signature != null ? signature.arguments : arguments,
-				(type, i) -> {
-					writeParameterAnnotations.accept(i);
-					write.accept(type, i);
+				(type, slot) -> {
+					writeParameterAnnotations.accept(slot);
+					write.accept(type, slot);
 				},
 				type -> out.write(", "),
 				signature == null ? startIndex : 0, startIndex);

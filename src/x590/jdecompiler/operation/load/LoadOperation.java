@@ -3,24 +3,25 @@ package x590.jdecompiler.operation.load;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.operation.AbstractOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.variable.Variable;
 
-public abstract class LoadOperation extends Operation {
+public abstract class LoadOperation extends AbstractOperation {
 	
-	private final int index;
+	private final int slot;
 	private final Variable variable;
 	
-	public LoadOperation(Type type, DecompilationContext context, int index) {
-		this.index = index;
-		this.variable = context.currentScope().getDefinedVariable(index);
+	public LoadOperation(Type type, DecompilationContext context, int slot) {
+		this.slot = slot;
+		this.variable = context.currentScope().getDefinedVariable(slot);
 		variable.castTypeToNarrowest(type);
 	}
 	
 	
 	public int getIndex() {
-		return index;
+		return slot;
 	}
 	
 	public Variable getVariable() {
@@ -45,7 +46,7 @@ public abstract class LoadOperation extends Operation {
 	
 	@Override
 	public void addVariableName(String name) {
-		variable.addName(name);
+		variable.addPossibleName(name);
 	}
 	
 	@Override

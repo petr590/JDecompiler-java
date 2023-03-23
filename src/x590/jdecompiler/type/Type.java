@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
+import x590.jdecompiler.BiStringifyWritable;
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.SameDisassemblingStringifyWritable;
@@ -13,6 +14,7 @@ import x590.jdecompiler.exception.IncopatibleTypesException;
 import x590.jdecompiler.exception.InvalidMethodDescriptorException;
 import x590.jdecompiler.exception.InvalidTypeNameException;
 import x590.jdecompiler.io.ExtendedStringInputStream;
+import x590.jdecompiler.io.StringifyOutputStream;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nonnull;
 import x590.util.annotation.Nullable;
@@ -20,8 +22,39 @@ import x590.util.annotation.Nullable;
 /**
  * Класс, описывающий тип в Java: int, double, String и т.д.
  */
+
 @Immutable
-public abstract class Type implements SameDisassemblingStringifyWritable<ClassInfo>, Importable {
+public abstract class Type implements
+		SameDisassemblingStringifyWritable<ClassInfo>, BiStringifyWritable<ClassInfo, String>, Importable {
+	
+	/**
+	 * Записывает себя и имя переменной через пробел.
+	 * Если включены c-style массивы, то массив записывается как в C
+	 */
+	@Override
+	public void writeTo(StringifyOutputStream out, ClassInfo classinfo, String name) {
+		writeLeftDefinition(out, classinfo);
+		out.printsp().write(name);
+		writeRightDefinition(out, classinfo);
+	}
+	
+	/** Записывает левую часть объявления массива, если включены c-style массивы.
+	 * Если нет, то работает просто как {@link #writeTo(StringifyOutputStream, ClassInfo)} */
+	public void writeLeftDefinition(StringifyOutputStream out, ClassInfo classinfo) {
+		writeTo(out, classinfo);
+	}
+	
+	/** Записывает правую часть объявления массива, если включены c-style массивы.
+	 * Если нет, то ничего не делает */
+	public void writeRightDefinition(StringifyOutputStream out, ClassInfo classinfo) {}
+	
+	
+	/** Возвращает самый вложенный тип массива, если {@code JDecompiler.getInstance().useCStyleArray() == true}.
+	 * Иначе возвращает себя */
+	public Type getArrayMemberIfUsingCArrays() {
+		return this;
+	}
+	
 	
 	@Override
 	public abstract String toString();
@@ -114,7 +147,7 @@ public abstract class Type implements SameDisassemblingStringifyWritable<ClassIn
 	}
 	
 	
-	/** Размер типа на стеке (кратен 4 байтам) */
+	/** Размер типа на стеке */
 	public abstract TypeSize getSize();
 	
 	
@@ -122,8 +155,8 @@ public abstract class Type implements SameDisassemblingStringifyWritable<ClassIn
 		return this.castToNarrowestNoexcept(other) != null;
 	}
 	
-	/** Возвращает {@literal true} если мы можем неявно преобразовать {@literal this} в {@code other}
-	 * (например, int -> long. На уровне байткода мы не можем сделать такое преобразование неявно) */
+	/** @return {@literal true} если мы можем неявно преобразовать {@code this} в {@code other}. Например,
+	 * {@literal int} -> {@literal long}. На уровне байткода мы не можем сделать такое преобразование неявно. */
 	public boolean isImplicitSubtypeOf(Type other) {
 		return isSubtypeOf(other);
 	}
@@ -202,17 +235,46 @@ public abstract class Type implements SameDisassemblingStringifyWritable<ClassIn
 	}
 	
 	
-	/** Преобразует тип к общему типу (используется, например, в тернарном операторе) */
-	public Type castToGeneral(Type other) {
-		Type type = this.castToWidestNoexcept(other);
+	/** Преобразует тип к общему типу (используется, например, в тернарном операторе)
+	 * @return результат преобразования
+	 * @throws IncopatibleTypesException, если преобразование невозможно */
+	public final Type castToGeneral(Type other, GeneralCastingKind kind) {
+		Type type = this.castToGeneralNoexcept(other, kind);
 		
-		if(type != null) return type;
-		
-		type = other.castToWidestNoexcept(this);
-		
-		if(type != null) return type;
+		if(type != null)
+			return type;
 		
 		throw new IncopatibleTypesException(this, other);
+	}
+	
+	
+	/** Преобразует тип к общему типу. Может мыть переопределён в подклассах
+	 * @return результат преобразования или {@literal null}, если преобразование невозможно */
+	public @Nullable Type castToGeneralNoexcept(Type other, GeneralCastingKind kind) {
+		Type type = this.castToWidestNoexcept(other);
+		
+		if(type != null)
+			return type;
+		
+		return other.castToWidestNoexcept(this);
+	}
+	
+	
+	/** Преобразует тип к общему типу.
+	 * @return результат преобразования или {@literal null}, если преобразование невозможно */
+	public @Nullable Type implicitCastToGeneralNoexcept(Type other, GeneralCastingKind kind) {
+		Type type = castToGeneralNoexcept(other, kind);
+		
+		if(type != null)
+			return type;
+		
+		if(this.isImplicitSubtypeOf(other))
+			return other;
+		
+		if(other.isImplicitSubtypeOf(this))
+			return this;
+		
+		return null;
 	}
 	
 	
@@ -228,12 +290,14 @@ public abstract class Type implements SameDisassemblingStringifyWritable<ClassIn
 	}
 	
 	public final boolean equals(Type other) {
-		return this == other || this.getClass() == other.getClass() && this.getEncodedName().equals(other.getEncodedName());
+		return this == other ||
+				this.getClass() == other.getClass() &&
+				this.getEncodedName().equals(other.getEncodedName());
 	}
 	
 	@Override
 	public final int hashCode() {
-		return this.getEncodedName().hashCode();
+		return getEncodedName().hashCode();
 	}
 	
 	
@@ -245,8 +309,8 @@ public abstract class Type implements SameDisassemblingStringifyWritable<ClassIn
 		return this.equals(other1) || this.equals(other2) || this.equals(other3);
 	}
 	
-	public final boolean equalsOneOf(Type... others) {
-		return Arrays.stream(others).anyMatch(other -> this.equals(other));
+	public final boolean equalsOneOf(Type other1, Type other2, Type other3, Type... others) {
+		return equalsOneOf(other1, other2, other3) || Arrays.stream(others).anyMatch(this::equals);
 	}
 	
 	/** Сравнивает типы без учёта сигнатуры */
@@ -257,7 +321,7 @@ public abstract class Type implements SameDisassemblingStringifyWritable<ClassIn
 	
 	/** @return статус неявного преобразование к типу.
 	 * (для компилятора, т.е. мы можем конвертировать int в long в коде, но не можем сделать это на уровне байткода).
-	 * Чем меньше статус, тем выше приоритет. Если статус больше или равен {@link CastStatus.EXTEND}, значит преобразование невозможно */
+	 * Чем меньше статус, тем выше приоритет. Если статус больше или равен {@link CastStatus.NONE}, значит преобразование невозможно */
 	public int implicitCastStatus(Type other) {
 		return this == other ? CastStatus.SAME : this.canCastTo(other) ? CastStatus.EXTEND : CastStatus.NONE;
 	}
@@ -337,7 +401,7 @@ public abstract class Type implements SameDisassemblingStringifyWritable<ClassIn
 	}
 	
 	
-	/** @see #parseMethodArguments(ExtendedStringInputStream) */
+	/** Парсит возвращаемый тип метода, который может быть {@link PrimitiveType#VOID} */
 	public static BasicType parseReturnType(String in) {
 		return in.charAt(0) == 'V' ? PrimitiveType.VOID : parseType(in);
 	}
@@ -355,7 +419,9 @@ public abstract class Type implements SameDisassemblingStringifyWritable<ClassIn
 	
 	/** Парсит тип массива или класса (без префикса 'L') */
 	public static ReferenceType parseReferenceType(String encodedName) {
-		return encodedName.charAt(0) == '[' ? ArrayType.fromDescriptor(encodedName) : ClassType.fromDescriptor(encodedName);
+		return encodedName.charAt(0) == '[' ?
+				ArrayType.fromDescriptor(encodedName) :
+				ClassType.fromDescriptor(encodedName);
 	}
 	
 	
@@ -384,7 +450,7 @@ public abstract class Type implements SameDisassemblingStringifyWritable<ClassIn
 				
 				default -> parseSignatureParameter(in);
 			};
-
+	
 	
 	public static @Nonnull GenericParameters<ReferenceType> parseSignature(ExtendedStringInputStream in) {
 		return GenericParameters.readNonnull(in, signatureParameterGetter);

@@ -11,8 +11,8 @@ public final class IIncOperation extends OperationWithVariable {
 	private final int value;
 	private boolean isPreInc;
 	
-	public IIncOperation(DecompilationContext context, int index, int value) {
-		super(context.currentScope().getDefinedVariable(index));
+	public IIncOperation(DecompilationContext context, int slot, int value) {
+		super(context.currentScope().getDefinedVariable(slot));
 		
 		this.value = value;
 		

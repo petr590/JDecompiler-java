@@ -66,9 +66,9 @@ public class ParameterAnnotationsAttribute extends Attribute {
 		classinfo.addImportsFor(parametersAnnotations);
 	}
 	
-	public void write(StringifyOutputStream out, ClassInfo classinfo, int index) {
-		if(index < parametersAnnotations.size() && parametersAnnotations.get(index) != null)
-			parametersAnnotations.get(index).writeTo(out, classinfo);
+	public void write(StringifyOutputStream out, ClassInfo classinfo, int slot) {
+		if(slot < parametersAnnotations.size() && parametersAnnotations.get(slot) != null)
+			parametersAnnotations.get(slot).writeTo(out, classinfo);
 	}
 	
 	

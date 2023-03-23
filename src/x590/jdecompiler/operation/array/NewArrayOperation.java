@@ -9,6 +9,7 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.operation.AbstractOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.IConstOperation;
 import x590.jdecompiler.operation.constant.ZeroConstOperation;
@@ -18,7 +19,7 @@ import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 import x590.util.annotation.Immutable;
 
-public class NewArrayOperation extends Operation {
+public class NewArrayOperation extends AbstractOperation {
 	
 	private final ArrayType arrayType;
 	private final @Immutable List<Operation> arrayLengths;
@@ -122,6 +123,12 @@ public class NewArrayOperation extends Operation {
 		writeAsArrayInitializer(out, context);
 	}
 	
+	
+	private boolean canUseSpaceFor(Operation operation) {
+		return !(operation instanceof NewArrayOperation newArray) || !newArray.canInitAsList();
+	}
+	
+	
 	@Override
 	public void writeAsArrayInitializer(StringifyOutputStream out, StringifyContext context) {
 		
@@ -129,11 +136,14 @@ public class NewArrayOperation extends Operation {
 			fillInitializersWithZeros(length);
 		
 		if(canInitAsList()) {
-			boolean useSpaces = arrayType.getNestingLevel() == 1 && !initializers.isEmpty();
 			
-			out .print(useSpaces ? "{ " : "{")
-				.printAllUsingFunction(initializers, element -> element.writeAsArrayInitializer(out, context), ", ")
-				.print(useSpaces ? " }" : "}");
+			if(initializers.isEmpty()) {
+				out.write("{}");
+			} else {
+				out .print(canUseSpaceFor(initializers.get(0)) ? "{ " : "{")
+					.printAllUsingFunction(initializers, element -> element.writeAsArrayInitializer(out, context), ", ")
+					.print(canUseSpaceFor(initializers.get(initializers.size() - 1)) ? " }" : "}");
+			}
 			
 		} else {
 			out.printsp("new").print(arrayType.getMemberType(), context.getClassinfo())

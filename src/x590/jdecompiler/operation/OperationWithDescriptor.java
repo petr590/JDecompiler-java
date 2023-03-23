@@ -5,7 +5,7 @@ import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.operation.load.ALoadOperation;
 
-public abstract class OperationWithDescriptor<D extends Descriptor> extends Operation {
+public abstract class OperationWithDescriptor<D extends Descriptor> extends AbstractOperation {
 	
 	public final D descriptor;
 	

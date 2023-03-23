@@ -50,7 +50,7 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 			return newOperation.getType();
 		}
 		
-		return PrimitiveType.VOID;
+		return descriptor.getReturnType();
 	}
 	
 	public InvokespecialOperation(DecompilationContext context, int index) {

@@ -7,7 +7,7 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Types;
 
-public final class InstanceofOperation extends BooleanOperation {
+public final class InstanceofOperation extends AbstractOperation implements BooleanOperation {
 	
 	private final ReferenceType clazz;
 	private final Operation object;

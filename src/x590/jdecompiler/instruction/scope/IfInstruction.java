@@ -3,8 +3,8 @@ package x590.jdecompiler.instruction.scope;
 import java.util.function.Supplier;
 
 import x590.jdecompiler.context.DecompilationContext;
-import x590.jdecompiler.context.DecompilationContext.PreDecompilationContext;
 import x590.jdecompiler.context.DisassemblerContext;
+import x590.jdecompiler.context.PreDecompilationContext;
 import x590.jdecompiler.operation.condition.AndOperation;
 import x590.jdecompiler.operation.condition.CompareOperation;
 import x590.jdecompiler.operation.condition.CompareType;
@@ -13,8 +13,9 @@ import x590.jdecompiler.operation.condition.OrOperation;
 import x590.jdecompiler.scope.IfScope;
 import x590.jdecompiler.scope.LoopScope;
 import x590.jdecompiler.scope.Scope;
+import x590.util.annotation.Nullable;
 
-public abstract class IfInstruction extends InstructionWithEndPos {
+public abstract class IfInstruction extends TransitionInstruction {
 	
 	private Role role;
 	
@@ -25,7 +26,7 @@ public abstract class IfInstruction extends InstructionWithEndPos {
 	
 	public IfInstruction(DisassemblerContext context, int offset) {
 		super(context, offset);
-		this.role = endPos >= context.currentPos() ? Role.IF : Role.LOOP;
+		this.role = targetPos >= context.currentPos() ? Role.IF : Role.LOOP;
 	}
 	
 	public Role getRole() {
@@ -37,12 +38,17 @@ public abstract class IfInstruction extends InstructionWithEndPos {
 	public void preDecompilation(PreDecompilationContext context) {
 		
 	}
+
 	
+	@Override
+	public @Nullable Scope toScopeAtTargetPos(DecompilationContext context) {
+		return null;
+	}
 	
 	@Override
 	public Scope toScope(DecompilationContext context) {
-
-		int endIndex = context.posToIndex(endPos);
+		
+		int endIndex = context.posToIndex(targetPos);
 		Scope currentScope = context.currentScope();
 		ConditionOperation condition = getCondition(context);
 		

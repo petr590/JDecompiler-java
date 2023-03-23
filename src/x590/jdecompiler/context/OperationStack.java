@@ -98,4 +98,8 @@ public class OperationStack extends Stack<Operation> {
 	public void onNextPush(Predicate<Operation> nextPushHandler) {
 		this.nextPushHandler = nextPushHandler;
 	}
+	
+	public void clearNextPushHandler() {
+		this.nextPushHandler = null;
+	}
 }

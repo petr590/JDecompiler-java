@@ -2,6 +2,7 @@ package x590.jdecompiler.type;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.io.ExtendedOutputStream;
+import x590.util.annotation.Nullable;
 
 import static x590.jdecompiler.type.UncertainIntegralType.INCLUDE_BOOLEAN;
 import static x590.jdecompiler.type.UncertainIntegralType.INCLUDE_CHAR;
@@ -73,6 +74,43 @@ public abstract class PrimitiveType extends BasicType {
 	@Override
 	protected Type castToWidestImpl(Type other) {
 		return this.canCastToWidest(other) ? this : null;
+	}
+	
+	@Override
+	public @Nullable Type castToGeneralNoexcept(Type other, GeneralCastingKind kind) {
+		if(other instanceof WrapperClassType wrapper) {
+			return this.castToGeneralNoexcept(wrapper.getPrimitiveType(), kind);
+		}
+		
+		if(kind == GeneralCastingKind.BINARY_OPERATOR) {
+			if((this == CHAR || this.isIntegral()) && (other == CHAR || other.isIntegral())) {
+				return INT;
+			}
+			
+		} else {
+			if(this == other) {
+				return this;
+			}
+			
+			if(this == CHAR && other.isIntegral() || other == CHAR && this.isIntegral()) {
+				return INT;
+			}
+			
+			if(this instanceof IntegralType integralType1 && other instanceof IntegralType integralType2) {
+				return integralType1.getCapacity() > integralType2.getCapacity() ? this : other;
+			}
+		}
+		
+		return super.castToGeneralNoexcept(other, kind);
+	}
+	
+	@Override
+	public @Nullable Type implicitCastToGeneralNoexcept(Type other, GeneralCastingKind kind) {
+		if(other instanceof WrapperClassType wrapper) {
+			return this.implicitCastToGeneralNoexcept(wrapper.getPrimitiveType(), kind);
+		}
+		
+		return super.implicitCastToGeneralNoexcept(other, kind);
 	}
 	
 	public Type toUncertainIntegralType() {

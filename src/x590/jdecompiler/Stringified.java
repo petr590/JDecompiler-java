@@ -2,6 +2,9 @@ package x590.jdecompiler;
 
 import x590.jdecompiler.io.StringifyOutputStream;
 
+/**
+ * Описывает объект, который можно привести к строке с помощью параметра
+ */
 public interface Stringified<T> extends StringifyWritable<T> {
 	
 	public String toString(T param);

@@ -6,6 +6,8 @@ import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.exception.InvalidArrayNameException;
 import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.io.ExtendedStringInputStream;
+import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.main.JDecompiler;
 
 /**
  * Описывает тип массива, включая массив примитивов,
@@ -96,8 +98,9 @@ public final class ArrayType extends ReferenceType {
 		
 		int nestingLevel = 0;
 		
-		for(int ch = in.read(); ch == '['; ch = in.read())
+		for(int ch = in.read(); ch == '['; ch = in.read()) {
 			nestingLevel++;
+		}
 		
 		in.prev();
 		
@@ -105,8 +108,9 @@ public final class ArrayType extends ReferenceType {
 		
 		this.memberType = parseType(in);
 		
-		if(nestingLevel == 0)
+		if(nestingLevel == 0) {
 			throw new InvalidArrayNameException(in);
+		}
 		
 		this.elementType = nestingLevel == 1 ? memberType : new ArrayType(memberType, nestingLevel - 1);
 		
@@ -151,6 +155,11 @@ public final class ArrayType extends ReferenceType {
 		return memberType;
 	}
 	
+	@Override
+	public Type getArrayMemberIfUsingCArrays() {
+		return JDecompiler.getInstance().useCStyleArray() ? memberType : this;
+	}
+	
 	public Type getElementType() {
 		return elementType;
 	}
@@ -163,6 +172,17 @@ public final class ArrayType extends ReferenceType {
 	@Override
 	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
 		out.printObject(memberType, classinfo).print(braces);
+	}
+	
+	@Override
+	public void writeLeftDefinition(StringifyOutputStream out, ClassInfo classinfo) {
+		out.print(JDecompiler.getInstance().useCStyleArray() ? memberType : this, classinfo);
+	}
+	
+	@Override
+	public void writeRightDefinition(StringifyOutputStream out, ClassInfo classinfo) {
+		if(JDecompiler.getInstance().useCStyleArray())
+			out.write(braces);
 	}
 	
 	@Override
@@ -189,7 +209,7 @@ public final class ArrayType extends ReferenceType {
 		}
 		
 		if(other instanceof ArrayType arrayType) {
-			return (nestingLevel == arrayType.nestingLevel && memberType.isSubtypeOf(arrayType.memberType))
+			return nestingLevel == arrayType.nestingLevel && memberType.isSubtypeOf(arrayType.memberType)
 					|| elementType.isSubtypeOf(arrayType.elementType);
 		}
 		

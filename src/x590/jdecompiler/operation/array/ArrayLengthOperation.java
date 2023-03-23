@@ -3,11 +3,12 @@ package x590.jdecompiler.operation.array;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.operation.AbstractOperation;
 import x590.jdecompiler.operation.IntOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.ArrayType;
 
-public final class ArrayLengthOperation extends IntOperation {
+public final class ArrayLengthOperation extends AbstractOperation implements IntOperation {
 	
 	private final Operation array;
 	

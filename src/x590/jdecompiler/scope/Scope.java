@@ -15,6 +15,7 @@ import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.exception.VariableNotFoundException;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
+import x590.jdecompiler.operation.AbstractOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.VariableDefineOperation;
 import x590.jdecompiler.operation.store.StoreOperation;
@@ -23,6 +24,7 @@ import x590.jdecompiler.type.Type;
 import x590.jdecompiler.variable.EmptyableVariable;
 import x590.jdecompiler.variable.UnnamedVariable;
 import x590.jdecompiler.variable.Variable;
+import x590.jdecompiler.variable.EmptyableVariableWrapper;
 import x590.util.LoopUtil;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
@@ -31,7 +33,7 @@ import x590.util.annotation.Nullable;
  * Описывает область видимости (Scope). Почти всё, что в исходном коде
  * оборачивается фигурными скобками, является Scope-ом.
  */
-public abstract class Scope extends Operation {
+public abstract class Scope extends AbstractOperation {
 	
 	private final List<Operation> code = new ArrayList<>();
 	private final List<Scope> scopes = new ArrayList<>();
@@ -41,7 +43,9 @@ public abstract class Scope extends Operation {
 	private int startIndex, endIndex; // Невключительно
 	private final @Nullable Scope superScope;
 	
-	private final List<EmptyableVariable> locals;
+	/** Список локальных переменных */
+	private final List<EmptyableVariableWrapper> locals;
+	
 	private final Int2IntMap indexTable;
 	
 	
@@ -61,7 +65,7 @@ public abstract class Scope extends Operation {
 		this(startIndex, endIndex, superScope, new ArrayList<>(superScope.locals));
 	}
 	
-	public Scope(int startIndex, int endIndex, @Nullable Scope superScope, List<EmptyableVariable> locals) {
+	public Scope(int startIndex, int endIndex, @Nullable Scope superScope, List<EmptyableVariableWrapper> locals) {
 		assert startIndex <= endIndex;
 		assert superScope != this;
 		
@@ -95,86 +99,77 @@ public abstract class Scope extends Operation {
 	
 	
 	protected void addVariable(EmptyableVariable var) {
-		locals.add(var);
+		locals.add(var.wrapped());
 	}
 	
-	/** Устанавливает переменную по индексу для текущего scope и для всех вложенных */
-	private void setVariable(int index, EmptyableVariable var) {
-		locals.set(index, var);
-		scopes.forEach(innerScope -> innerScope.setVariable(index, var));
-	}
-	
-	
-	public Variable getDefinedVariable(int index) {
-		EmptyableVariable var = findVariable(index);
+	/** Устанавливает переменную {@code var} в слот {@code slot} для текущего scope и для всех вложенных, начиная с {@code fromIndex} */
+	private EmptyableVariableWrapper setVariable(int slot, int fromIndex, EmptyableVariable var) {
+		var varWrapper = locals.get(slot);
+		varWrapper.makeSame(var);
 		
-		if(!var.isEmpty())
-			return var.notEmpty();
+		scopes.stream().filter(innerScope -> innerScope.isAfterIndex(fromIndex))
+				.forEach(innerScope -> innerScope.setVariable(slot, fromIndex, var));
 		
-		throw new VariableNotFoundException("Variable #" + index + " not found in scope " + this.toString());
+		return varWrapper;
 	}
 	
 	
-	public Variable getVariableOrDefine(int index, Type type) {
-		EmptyableVariable var = findVariable(index);
-		
-		if(!var.isEmpty())
-			return var.notEmpty();
-		
-		var = new UnnamedVariable(this, type);
-		setVariable(index, var);
-		
-		return var.notEmpty();
+	private boolean isAfterIndex(int index) {
+		return endIndex > index;
 	}
 	
 	
-	public Variable defineNewVariable(int index, Type type) {
-		if(!locals.get(index).isEmpty())
-			throw new DecompilationException("Variable #" + index + " " + locals.get(index) + " already defined for scope " + this);
+	public Variable getDefinedVariable(int slot) {
+		EmptyableVariable var = findVariable(slot, 0);
 		
-		Variable var = new UnnamedVariable(this, type);
-		locals.set(index, var);
-		return var;
+		if(var.isNonEmpty())
+			return var.nonEmpty();
+		
+		throw new VariableNotFoundException("Variable #" + slot + " not found in scope " + this.toString());
+	}
+	
+	
+	public Variable getVariableOrDefine(int slot, int fromIndex, Type type) {
+		EmptyableVariableWrapper var = findVariable(slot, fromIndex);
+		
+		return var.isNonEmpty() ? var.nonEmpty() :
+			setVariable(slot, fromIndex, new UnnamedVariable(this, type)).nonEmpty();
+	}
+	
+	
+	public Variable defineNewVariable(int slot, Type type, int fromIndex) {
+		if(!locals.get(slot).isEmpty())
+			throw new DecompilationException("Variable #" + slot + " " + locals.get(slot) + " already defined for scope " + this);
+		
+		return setVariable(slot, fromIndex, new UnnamedVariable(this, type)).nonEmpty().defined();
 	}
 	
 	
 	/** Ищет переменную в текущем scope и во всех вложенных */
-	protected EmptyableVariable findVariable(int index) {
-		EmptyableVariable var = locals.get(index);
+	protected EmptyableVariableWrapper findVariable(int slot, int fromIndex) {
+		EmptyableVariableWrapper var = locals.get(slot);
 		
 		if(!var.isEmpty())
 			return var;
 		
-		for(Scope innerScope : scopes) {
-			var = innerScope.findVariable(index);
-			if(!var.isEmpty()) {
-				Variable notEmptyVar = var.notEmpty();
-				
-				setVariable(index, notEmptyVar);
-				notEmptyVar.setEnclosingScope(this);
-				return notEmptyVar;
-			}
-		}
+		Optional<EmptyableVariableWrapper> foundVar = scopes.stream()
+				.filter(innerScope -> innerScope.isAfterIndex(fromIndex))
+				.map(innerScope -> innerScope.findVariable(slot, fromIndex))
+				.filter(EmptyableVariableWrapper::isNonEmpty).findAny();
 		
-		return Variable.empty();
+		foundVar.ifPresent(varWrapper -> setVariable(slot, fromIndex, varWrapper).nonEmpty().setEnclosingScope(this));
+		
+		return foundVar.orElse(var);
 	}
-	
 	
 	private static Predicate<EmptyableVariable> varNameEquals(String name) {
 		return var -> var.hasName() && var.getName().equals(name);
 	}
 	
 	public EmptyableVariable getVariableWithName(String name) {
-		return locals.stream().filter(varNameEquals(name)).findAny()
-				.orElseGet(() -> {
-					for(Scope scope : scopes) {
-						EmptyableVariable var = scope.getVariableWithName(name);
-						if(!var.isEmpty())
-							return var;
-					}
-					
-					return Variable.empty();
-				});
+		return locals.stream().filter(varNameEquals(name)).findAny().map(var -> (EmptyableVariable)var)
+				.orElseGet(() -> scopes.stream().map(scope -> scope.getVariableWithName(name))
+							.filter(EmptyableVariable::isNonEmpty).findAny().orElse(Variable.empty()));
 	}
 	
 	public boolean hasVariableWithName(String name) {
@@ -182,7 +177,7 @@ public abstract class Scope extends Operation {
 				scopes.stream().anyMatch(scope -> scope.hasVariableWithName(name));
 	}
 	
-	/** Выполняет сведение типа для всех переменных и всех операций в этом и во вложенных scope-ах */
+	/** Выполняет сведение типа для всех переменных и всех локальных переменных в этом и во вложенных scope-ах */
 	protected void reduceTypes() {
 		locals.forEach(EmptyableVariable::reduceType);
 		scopes.forEach(Scope::reduceTypes);
@@ -190,19 +185,20 @@ public abstract class Scope extends Operation {
 	
 	/** Объявляет все необъявленные переменные в этом и во вложенных scope-ах */
 	protected void defineVariables() {
-		locals.stream().filter(var -> !var.isEmpty()).map(EmptyableVariable::notEmpty).forEach(variable -> {
-			if(!variable.isDefined()) {
-				
-				Optional<StoreOperation> foundStore = code.stream().filter(operation -> operation instanceof StoreOperation store && store.getVariable() == variable)
-						.map(operation -> (StoreOperation)operation).findFirst();
-				
-				if(foundStore.isPresent() && foundStore.get().defineVariable()) {
-					return;
+		locals.stream().filter(EmptyableVariable::isNonEmpty).map(EmptyableVariable::nonEmpty)
+			.forEach(variable -> {
+				if(!variable.isDefined()) {
+					
+					Optional<StoreOperation> foundStore = code.stream().filter(operation -> operation instanceof StoreOperation store && store.getVariable() == variable)
+							.findFirst().map(operation -> (StoreOperation)operation);
+					
+					if(foundStore.isPresent() && foundStore.get().defineVariable()) {
+						return;
+					}
+					
+					code.add(foundStore.isPresent() ? code.indexOf(foundStore.get()) : 0, new VariableDefineOperation(variable));
 				}
-				
-				code.add(foundStore.isPresent() ? code.indexOf(foundStore.get()) : 0, new VariableDefineOperation(variable));
-			}
-		});
+			});
 		
 		scopes.forEach(Scope::defineVariables);
 	}
@@ -233,7 +229,7 @@ public abstract class Scope extends Operation {
 	}
 	
 	
-	public @Nullable Operation getLastOperation(DecompilationContext context) {
+	public @Nullable Operation getLastOperation() {
 		return code.isEmpty() ? null : code.get(code.size() - 1);
 	}
 	
@@ -284,9 +280,13 @@ public abstract class Scope extends Operation {
 	
 	
 	/** Возвращает неизменяемый список операций, начиная с заданного индекса.
+	 * 
 	 * @param fromIndex - индекс, с которого будут возвращаться операции.
+	 * Преобразуется в индекс для внутреннего массива.
+	 * Не должен быть меньше {@link #startIndex} или больше {@link #endIndex}.
+	 * 
 	 * @implNote Может изменить внутреннее состояние при добавлении и удалении операций в scope,
-	 * в том числе и при вызове метода {@link #pullOperationsFromIndex(int)} */
+	 * в том числе и при вызове метода {@link #pullOperationsFromIndex(int)}. */
 	public @Immutable List<Operation> getOperationsFromIndex(int fromIndex) {
 		
 		assert fromIndex >= startIndex && fromIndex <= endIndex :
@@ -297,6 +297,7 @@ public abstract class Scope extends Operation {
 	
 	
 	/** Удаляет все операции, начиная с заданного индекса, и возвращает их.
+	 * 
 	 * @param fromIndex - индекс операции в коде (тот индекс, который возвращается,
 	 * например, методом {@link DecompilationContext#currentIndex()}).
 	 * {@code fromIndex} преобразуется в индекс для внутреннего массива.
@@ -321,6 +322,9 @@ public abstract class Scope extends Operation {
 		return sublistCopy;
 	}
 	
+	public void removeOnlySelf() {
+		super.remove();
+	}
 	
 	@Override
 	public void remove() {
@@ -341,9 +345,11 @@ public abstract class Scope extends Operation {
 	}
 	
 	
-	/** Удаляет все операции с установленным флагом {@link Operation#removed} */
+	/** Удаляет все операции с установленным флагом {@link Operation#removed}.
+	 * При этом очищается {@link #indexTable}, так как индексы могут сместиться */
 	protected void deleteRemovedOperations() {
 		code.removeIf(operation -> operation.isRemoved() || operation.canOmit());
+		indexTable.clear();
 	}
 	
 	
@@ -390,7 +396,7 @@ public abstract class Scope extends Operation {
 				(code.isEmpty() || code.size() == 1 && (
 						code.get(0) instanceof Scope scope ?
 								scope.canOmitCurlyBrackets() :
-								!code.get(0).isVariableDefining()
+								!code.get(0).isVariableDefinition()
 				));
 	}
 	
@@ -421,7 +427,8 @@ public abstract class Scope extends Operation {
 	
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + " {" + startIndex + ", " + endIndex + "}";
+		return String.format("%s {%d - %d}",
+				getClass().getSimpleName(), startIndex, endIndex);
 	}
 	
 	public void remove(Operation operation) {

@@ -7,8 +7,8 @@ import x590.jdecompiler.operation.Operation;
 
 public class TryScope extends Scope {
 	
-	public TryScope(DecompilationContext context, int startIndex, int endIndex) {
-		super(context, startIndex, endIndex);
+	public TryScope(DecompilationContext context, int endIndex) {
+		super(context, context.currentIndex() - 1, endIndex);
 	}
 	
 	@Override

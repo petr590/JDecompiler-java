@@ -106,12 +106,11 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 	}
 	
 	
-	private static final Pattern METHOD_NAME_PATTERN = Pattern.compile("(is|get|set|equals).*");
+	private static final Pattern METHOD_NAME_PATTERN = Pattern.compile("equals.*");
 	
 	@Override
 	protected boolean canOmitObject(StringifyContext context, Operation object) {
-		
-		// Не опускать this для вызовов методов, название которых начинается с is, get, set, equals
+		// Не опускать this для вызовов методов, название которых начинается с equals
 		return super.canOmitObject(context, object) && !METHOD_NAME_PATTERN.matcher(descriptor.getName()).matches();
 	}
 	

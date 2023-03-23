@@ -1,6 +1,5 @@
 package x590.jdecompiler.context;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EmptyStackException;
@@ -14,8 +13,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArraySet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.JavaMethod;
@@ -24,57 +23,16 @@ import x590.jdecompiler.attribute.CodeAttribute.ExceptionTable.CatchEntry;
 import x590.jdecompiler.attribute.CodeAttribute.ExceptionTable.TryEntry;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.instruction.Instruction;
-import x590.jdecompiler.instruction.scope.IfInstruction;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.returning.VReturnOperation;
-import x590.jdecompiler.scope.CatchScope;
 import x590.jdecompiler.scope.Scope;
-import x590.jdecompiler.scope.TryScope;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.TypeSize;
 import x590.util.Logger;
 import x590.util.annotation.Immutable;
-import x590.util.annotation.Nullable;
 
 public class DecompilationContext extends DecompilationAndStringifyContext implements Importable {
-	
-	public static class PreDecompilationContext extends DecompilationAndStringifyContext {
-		
-		private static final @Immutable List<IfInstruction> DEFAULT_IF_INSTRUCTIONS_LIST = Collections.singletonList(null);
-		
-		private final Int2ObjectMap<List<IfInstruction>> ifInstructions = new Int2ObjectOpenHashMap<>();
-		
-		public PreDecompilationContext(Context otherContext, ClassInfo classinfo, JavaMethod method, List<Instruction> instructions) {
-			
-			super(otherContext, classinfo, method);
-			
-			for(Instruction instruction : instructions) {
-				
-				instruction.preDecompilation(this);
-				
-				if(instruction instanceof IfInstruction ifInstruction) {
-					ifInstructions.computeIfAbsent(posToIndex(ifInstruction.endPos), key -> new ArrayList<>()).add(ifInstruction);
-				}
-				
-				index++;
-			}
-		}
-		
-		public @Nullable IfInstruction getIfInstructionsPointedTo(int index) {
-			return ifInstructions.getOrDefault(index, DEFAULT_IF_INSTRUCTIONS_LIST).get(0);
-		}
-		
-		public boolean hasIfInstructionsPointedTo(int index) {
-			return ifInstructions.containsKey(index);
-		}
-
-		@Override
-		public void warning(String message) {
-			Logger.warning("Pre-decompilation warning: " + message);
-		}
-	}
-	
 	
 	private final OperationStack stack = new OperationStack();
 	private final @Immutable Set<Operation> operations;
@@ -88,7 +46,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	
 	/** Точки "разрыва", через которые мы не можем проводить соединение опрераций (например, инкремент и использование переменной).
 	 * Нужно для корректной декомпиляции циклов и, возможно, других конструкций */
-	private final Set<Integer> breaks = new HashSet<>();
+	private final IntSet breaks = new IntArraySet();
 	
 	private Consumer<Operation> nextOperationHandler;
 	
@@ -100,7 +58,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	private DecompilationContext(Context otherContext, ClassInfo classinfo, JavaMethod method, List<Instruction> instructions, int maxLocals) {
 		super(otherContext, classinfo, method);
 		
-		new PreDecompilationContext(otherContext, classinfo, method, instructions);
+		var transitionInstructions = new PreDecompilationContext(otherContext, classinfo, method, instructions).getTransitionInstructions();
 		
 		
 		this.currentScope = getMethodScope();
@@ -111,10 +69,14 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 		
 		ExceptionTable exceptionTable = method.getCodeAttribute().getExceptionTable();
 		
-		List<TryEntry> tryEntries = new ArrayList<>(exceptionTable.getEntries());
+		List<TryEntry> tryEntries = exceptionTable.getEntries().stream()
+//				.filter(Predicate.not(TryEntry::isFinally))
+				.collect(Collectors.toList());
 		
 		List<CatchEntry> catchEntries = tryEntries.stream()
-				.flatMap(tryEntry -> tryEntry.getCatchEntries().stream()).collect(Collectors.toList());
+				.flatMap(tryEntry -> tryEntry.getCatchEntries().stream())
+//				.filter(Predicate.not(CatchEntry::isFinally))
+				.collect(Collectors.toList());
 		
 		final Operation vreturnOperation = VReturnOperation.getInstance();
 		
@@ -130,21 +92,31 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 //			Logger.debugf("%d: operation stack: [%s]", index, stack.stream().map(operation -> operation.getClass().getSimpleName() + " " + operation.getReturnType()).collect(Collectors.joining(", ")));
 //			Logger.debugf("%d: scope stack: [%s]", index, StreamSupport.stream(this.getCurrentScopes().spliterator(), false).map(Scope::toString).collect(Collectors.joining(", ")));
 			
+//			Logger.debugf("%d: locals: [%s]", index,
+//					Stream.concat(Stream.of(method.getMethodScope()), method.getMethodScope().getOperations().stream().filter(Operation::isScope).map(operation -> (Scope)operation))
+//							.map(
+//									scope -> '[' + scope.locals.stream().map(var -> var.isEmpty() ? "empty" : "0x" + Integer.toHexString(var.hashCode())).collect(Collectors.joining(", ")) + ']'
+//							).collect(Collectors.joining(", ")));
+			
 			
 			expressionIndexTable[index] = expressionIndex;
 			
 			
 			final int currentPos = currentPos();
 			
-			tryEntries.removeIf(
-					entry -> entry.getStartPos() == currentPos &&
-							addScope(new TryScope(this, index - 1, posToIndex(entry.getEndPos())))
-			);
+			tryEntries.removeIf(entry -> entry.getStartPos() == currentPos && addScope(entry.createScope(this)));
+			catchEntries.removeIf(entry -> entry.getStartPos() == currentPos && addScope(entry.createScope(this)));
 			
-			catchEntries.removeIf(
-					entry -> entry.getStartPos() == currentPos &&
-							addScope(new CatchScope(this, index - 1, entry.getEndIndex(this), entry.getExceptionTypes(), entry.hasNext()))
-			);
+			
+			transitionInstructions.getOrDefault(index, PreDecompilationContext.DEFAULT_TRANSITION_INSTRUCTIONS_LIST)
+					.forEach(transitionInstruction -> {
+						Scope scope = transitionInstruction.toScopeAtTargetPos(this);
+						if(scope != null) {
+							operations.add(scope);
+							currentScope.addOperation(scope, this);
+							scopesQueue.add(scope);
+						}
+					});
 			
 			
 			Operation operation;
@@ -174,6 +146,10 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 						}
 					}
 					
+					// Мы должны вызывать nextPushHandler только если push вызывается на следующем индексе,
+					// но не на последующих. Это нужно для предотвращения багов с декомпиляцией инкремента.
+					stack.clearNextPushHandler();
+					
 				} else {
 					push(operation);
 				}
@@ -194,8 +170,22 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 			index++;
 		});
 		
-		operations.removeIf(Operation::isRemoved);
+		deleteRemovedOperations();
 		operations.forEach(Operation::reduceType);
+		
+		getMethodScope().reduceTypes();
+		getMethodScope().defineVariables();
+		
+		operations.forEach(Operation::postDecompilation);
+		
+		// Если мы удаляем операции при вызове Operation#postDecompilation, то мы получаем ConcurrentModificationException.
+		// Приходится удалять их после вызова Operation#postDecompilation 
+		deleteRemovedOperations();
+	}
+	
+	
+	public void deleteRemovedOperations() {
+		mutableOperations.removeIf(Operation::isRemoved);
 	}
 	
 	

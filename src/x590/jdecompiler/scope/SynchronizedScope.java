@@ -17,7 +17,7 @@ public class SynchronizedScope extends Scope {
 		super(context, context.currentScope().endIndex());
 		this.object = context.popAsNarrowest(Types.ANY_OBJECT_TYPE);
 		
-		if(context.currentScope().getLastOperation(context) instanceof AStoreOperation astoreOperation && astoreOperation.getValue() == object) {
+		if(context.currentScope().getLastOperation() instanceof AStoreOperation astoreOperation && astoreOperation.getValue() == object) {
 			astoreOperation.remove();
 			this.variable = astoreOperation.getVariable();
 		} else {

@@ -21,13 +21,14 @@ import x590.jdecompiler.modifiers.ClassModifiers;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
+import x590.util.BooleanHolder;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
-/** Представляет собой объект, который хранит основную информацию о классе, а так же все импорты.
+/**
+ * Представляет собой объект, который хранит основную информацию о классе, а так же все импорты.
  * Изначально появился из-за того, что в C++ нельзя использовать класс до его объявления, в отличие от Java.
- * Планируется добавление интерфейса для создания экземпляра ClassInfo из java.lang.Class
- * без дополнительных танцов с бубном. */
+ */
 public final class ClassInfo implements IClassInfo {
 	
 	private static final Map<ReferenceType, IClassInfo> INSTANCES = new HashMap<>();
@@ -185,20 +186,20 @@ public final class ClassInfo implements IClassInfo {
 		writeImports(out, true);
 	}
 	
-	public void writeImports(StringifyOutputStream out, boolean writeTrailingLineBreak) {
-		boolean written = false;
+	public void writeImports(StringifyOutputStream out, boolean canWriteTrailingLineBreak) {
+		BooleanHolder writeTrailingLineBreak = new BooleanHolder();
 		
-		for(ClassType clazz : imports.keySet()) {
-			
-			String packageName = clazz.getPackageName();
-			
-			if(!packageName.isEmpty() && !packageName.equals("java.lang") && !packageName.equals(thisType.getPackageName())) {
-				out.printIndent().print("import ").print(clazz.getName()).println(';');
-				written = writeTrailingLineBreak;
-			}
-		}
+		imports.keySet().stream().sorted((class1, class2) -> class1.getName().compareTo(class2.getName()))
+			.forEach(clazz -> {
+				String packageName = clazz.getPackageName();
+				
+				if(!packageName.isEmpty() && !packageName.equals("java.lang") && !packageName.equals(thisType.getPackageName())) {
+					out.printIndent().printsp("import").print(clazz.getName()).println(';');
+					writeTrailingLineBreak.set(canWriteTrailingLineBreak);
+				}
+			});
 		
-		if(written)
+		if(writeTrailingLineBreak.isTrue())
 			out.println();
 	}
 	
@@ -224,7 +225,7 @@ public final class ClassInfo implements IClassInfo {
 	}
 	
 	public JavaMethod getMethod(Predicate<JavaMethod> predicate) {
-		return findMethod(predicate).orElseThrow(() -> new NoSuchMethodException());
+		return findMethod(predicate).orElseThrow(NoSuchMethodException::new);
 	}
 	
 	

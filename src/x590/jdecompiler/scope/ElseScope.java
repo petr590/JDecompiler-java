@@ -3,6 +3,7 @@ package x590.jdecompiler.scope;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.operator.TernaryOperatorOperation;
 import x590.util.annotation.Nullable;
 
@@ -14,6 +15,17 @@ public class ElseScope extends Scope {
 	protected ElseScope(DecompilationContext context, int endIndex, IfScope ifScope) {
 		super(context, endIndex, ifScope.superScope());
 		this.ifScope = ifScope;
+	}
+	
+	
+	@Override
+	public boolean isTerminable() {
+		Operation
+				lastOperation = this.getLastOperation(),
+				ifLastOperation = ifScope.getLastOperation();
+		
+		return lastOperation != null && ifLastOperation != null &&
+				lastOperation.isTerminable() && ifLastOperation.isTerminable();
 	}
 	
 	

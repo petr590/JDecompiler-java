@@ -19,7 +19,9 @@ public final class InvokevirtualOperation extends InvokeNonstaticOperation {
 		
 		var returnType = descriptor.getReturnType();
 		
-		if(returnType.isPrimitive() && descriptor.getDeclaringClass().equals(((PrimitiveType)returnType).getWrapperType()) && descriptor.argumentsEquals()) {
+		if(returnType instanceof PrimitiveType primitiveType &&
+				descriptor.getDeclaringClass().equals(primitiveType.getWrapperType()) &&
+				descriptor.argumentsEquals()) {
 			
 			var name = descriptor.getName();
 			
