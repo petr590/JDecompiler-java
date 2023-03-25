@@ -17,7 +17,7 @@ public abstract class PutFieldOperation extends FieldOperation implements Increm
 	
 	private Operation getValue(DecompilationContext context) {
 		Operation value = context.popAsNarrowest(descriptor.getType());
-		value.addVariableName(descriptor.getName());
+		value.addPossibleVariableName(descriptor.getName());
 		value.allowImplicitCast();
 		return value;
 	}

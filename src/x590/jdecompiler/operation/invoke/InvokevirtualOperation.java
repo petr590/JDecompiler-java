@@ -1,17 +1,29 @@
 package x590.jdecompiler.operation.invoke;
 
+import java.util.LinkedList;
+
 import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.operation.CastOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.PrimitiveType;
+import x590.util.annotation.Nullable;
 
 public final class InvokevirtualOperation extends InvokeNonstaticOperation {
 	
 	public InvokevirtualOperation(DecompilationContext context, MethodDescriptor descriptor) {
 		super(context, descriptor);
 	}
+	
+	public InvokevirtualOperation(DecompilationContext context, MethodDescriptor descriptor, Operation object) {
+		super(context, descriptor, object);
+	}
+	
+	
+	/** Несуществующий дескриптор метода, просто чтобы было */
+	private static final MethodDescriptor DEFAULT_STRING_CONCAT_DESCRIPTOR =
+			new MethodDescriptor(ClassType.STRING_BUILDER, "toString", ClassType.STRING, ClassType.STRING);
 	
 	
 	public static Operation operationOf(DecompilationContext context, int descriptorIndex) {
@@ -48,11 +60,32 @@ public final class InvokevirtualOperation extends InvokeNonstaticOperation {
 			
 			if(returnType.equals(PrimitiveType.BOOLEAN) && name.equals("booleanValue"))
 				return new CastOperation(ClassType.BOOLEAN, PrimitiveType.BOOLEAN, true, context);
+			
+		} else if(descriptor.equals(ClassType.STRING_BUILDER, "toString", ClassType.STRING)) {
+			Operation object = context.popAsNarrowest(ClassType.STRING_BUILDER);
+			
+			LinkedList<Operation> operands = object.getStringBuilderChain(new LinkedList<>());
+			
+			if(operands != null) {
+				return new ConcatStringsOperation(context, DEFAULT_STRING_CONCAT_DESCRIPTOR, operands);
+			}
+			
+			return new InvokevirtualOperation(context, descriptor, object);
 		}
 		
 		return new InvokevirtualOperation(context, descriptor);
 	}
 	
+	@Override
+	public @Nullable LinkedList<Operation> getStringBuilderChain(LinkedList<Operation> operands) {
+		if(descriptor.equals(ClassType.STRING_BUILDER, "append", ClassType.STRING_BUILDER, 1)) {
+			
+			operands.addFirst(arguments.getFirst());
+			return object.getStringBuilderChain(operands);
+		}
+		
+		return null;
+	}
 	
 	@Override
 	protected String getInstructionName() {

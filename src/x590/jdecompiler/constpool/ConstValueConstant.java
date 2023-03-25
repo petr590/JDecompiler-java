@@ -14,7 +14,8 @@ import x590.jdecompiler.type.TypeSize;
 /**
  * Константа, описывающяя какое-то константное значение - примитив или объект
  */
-public abstract class ConstValueConstant extends Constant implements StringifyWritable<ClassInfo>, BiStringifyWritable<ClassInfo, Type>, Importable {
+public abstract class ConstValueConstant extends Constant
+		implements StringifyWritable<ClassInfo>, BiStringifyWritable<ClassInfo, Type>, Importable {
 	
 	public abstract Type getType();
 	

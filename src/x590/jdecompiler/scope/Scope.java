@@ -24,6 +24,7 @@ import x590.jdecompiler.type.Type;
 import x590.jdecompiler.variable.EmptyableVariable;
 import x590.jdecompiler.variable.UnnamedVariable;
 import x590.jdecompiler.variable.Variable;
+import x590.jdecompiler.variable.VariableWrapper;
 import x590.jdecompiler.variable.EmptyableVariableWrapper;
 import x590.util.LoopUtil;
 import x590.util.annotation.Immutable;
@@ -44,7 +45,7 @@ public abstract class Scope extends AbstractOperation {
 	private final @Nullable Scope superScope;
 	
 	/** Список локальных переменных */
-	private final List<EmptyableVariableWrapper> locals;
+	/* private */ public final List<EmptyableVariableWrapper> locals;
 	
 	private final Int2IntMap indexTable;
 	
@@ -103,11 +104,12 @@ public abstract class Scope extends AbstractOperation {
 	}
 	
 	/** Устанавливает переменную {@code var} в слот {@code slot} для текущего scope и для всех вложенных, начиная с {@code fromIndex} */
-	private EmptyableVariableWrapper setVariable(int slot, int fromIndex, EmptyableVariable var) {
-		var varWrapper = locals.get(slot);
-		varWrapper.makeSame(var);
+	private VariableWrapper setVariable(int slot, int fromIndex, Variable var) {
+		var varWrapper = locals.get(slot).assign(var);
+		locals.set(slot, varWrapper);
 		
-		scopes.stream().filter(innerScope -> innerScope.isAfterIndex(fromIndex))
+		scopes.stream()
+				.filter(innerScope -> innerScope.isAfterIndex(fromIndex))
 				.forEach(innerScope -> innerScope.setVariable(slot, fromIndex, var));
 		
 		return varWrapper;
@@ -133,7 +135,7 @@ public abstract class Scope extends AbstractOperation {
 		EmptyableVariableWrapper var = findVariable(slot, fromIndex);
 		
 		return var.isNonEmpty() ? var.nonEmpty() :
-			setVariable(slot, fromIndex, new UnnamedVariable(this, type)).nonEmpty();
+			setVariable(slot, fromIndex, new UnnamedVariable(this, type));
 	}
 	
 	
@@ -141,7 +143,7 @@ public abstract class Scope extends AbstractOperation {
 		if(!locals.get(slot).isEmpty())
 			throw new DecompilationException("Variable #" + slot + " " + locals.get(slot) + " already defined for scope " + this);
 		
-		return setVariable(slot, fromIndex, new UnnamedVariable(this, type)).nonEmpty().defined();
+		return setVariable(slot, fromIndex, new UnnamedVariable(this, type)).defined();
 	}
 	
 	
@@ -157,7 +159,7 @@ public abstract class Scope extends AbstractOperation {
 				.map(innerScope -> innerScope.findVariable(slot, fromIndex))
 				.filter(EmptyableVariableWrapper::isNonEmpty).findAny();
 		
-		foundVar.ifPresent(varWrapper -> setVariable(slot, fromIndex, varWrapper).nonEmpty().setEnclosingScope(this));
+		foundVar.ifPresent(varWrapper -> setVariable(slot, fromIndex, varWrapper.nonEmpty()).setEnclosingScope(this));
 		
 		return foundVar.orElse(var);
 	}
@@ -185,11 +187,13 @@ public abstract class Scope extends AbstractOperation {
 	
 	/** Объявляет все необъявленные переменные в этом и во вложенных scope-ах */
 	protected void defineVariables() {
-		locals.stream().filter(EmptyableVariable::isNonEmpty).map(EmptyableVariable::nonEmpty)
+		locals.stream()
+			.filter(EmptyableVariable::isNonEmpty).map(EmptyableVariable::nonEmpty)
 			.forEach(variable -> {
 				if(!variable.isDefined()) {
 					
-					Optional<StoreOperation> foundStore = code.stream().filter(operation -> operation instanceof StoreOperation store && store.getVariable() == variable)
+					Optional<StoreOperation> foundStore = code.stream()
+							.filter(operation -> operation instanceof StoreOperation store && store.getVariable() == variable)
 							.findFirst().map(operation -> (StoreOperation)operation);
 					
 					if(foundStore.isPresent() && foundStore.get().defineVariable()) {

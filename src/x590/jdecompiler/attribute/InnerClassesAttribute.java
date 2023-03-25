@@ -4,11 +4,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import x590.jdecompiler.constpool.ClassConstant;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DisassemblingException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.modifiers.ClassModifiers;
 import x590.jdecompiler.type.ClassType;
+import x590.util.Util;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
@@ -57,14 +59,15 @@ public class InnerClassesAttribute extends Attribute {
 	
 	public static class InnerClassEntry {
 		
-		private final ClassType innerType, outerType;
-		private final String name;
+		private final ClassType innerType;
+		private final @Nullable ClassType outerType;
+		private final @Nullable String name;
 		private final ClassModifiers modifiers;
 		
 		private InnerClassEntry(ExtendedDataInputStream in, ConstantPool pool) {
 			this.innerType = pool.getClassConstant(in.readUnsignedShort()).toClassType();
-			this.outerType = pool.getClassConstant(in.readUnsignedShort()).toClassType();
-			this.name = pool.getUtf8String(in.readUnsignedShort());
+			this.outerType = Util.getIfNonNull(pool.getNullable(in.readUnsignedShort()), ClassConstant::toClassType);
+			this.name = pool.getNullableUtf8String(in.readUnsignedShort());
 			this.modifiers = ClassModifiers.read(in);
 		}
 		
@@ -72,11 +75,15 @@ public class InnerClassesAttribute extends Attribute {
 			return innerType;
 		}
 		
-		public ClassType getOuterType() {
+		public boolean hasOuterType() {
+			return outerType != null;
+		}
+		
+		public @Nullable ClassType getOuterType() {
 			return outerType;
 		}
 		
-		public String getName() {
+		public @Nullable String getName() {
 			return name;
 		}
 		

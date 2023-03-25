@@ -58,11 +58,14 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 		
 		if(kind != MethodKind.PLAIN) {
 			
-			if(returnType != PrimitiveType.VOID)
+			if(returnType != PrimitiveType.VOID) {
 				throw new InvalidMethodDescriptorException("Method " + this.toString() + " must return void");
+			}
 			
-			if(!getDeclaringClass().isClassType())
-				throw new InvalidMethodDescriptorException("Class " + getDeclaringClass() + " cannot have " + this.toString() + " method");
+			if(!getDeclaringClass().isClassType()) {
+				throw new InvalidMethodDescriptorException("Class " + getDeclaringClass() +
+						" cannot have " + this.toString() + " method");
+			}
 		}
 		
 		return kind;
@@ -284,32 +287,38 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	}
 	
 	public boolean equals(MethodDescriptor other) {
-		return this == other || getName().equals(other.getName()) && getDeclaringClass().equals(other.getDeclaringClass()) &&
+		return this == other ||
+				getName().equals(other.getName()) &&
+				getDeclaringClass().equals(other.getDeclaringClass()) &&
 				returnType.equals(other.returnType) && arguments.equals(other.arguments);
 	}
 	
 	
-	public boolean equals(String name, Type returnType) {
-		return this.equalsRaw(name, returnType) && argumentsEquals();
+	public boolean equalsIgnoreClass(String name, Type returnType) {
+		return this.equalsRawIgnoreClass(name, returnType) && argumentsEquals();
 	}
 	
-	public boolean equals(String name, Type returnType, Type arg1) {
-		return this.equalsRaw(name, returnType) && argumentsEquals(arg1);
+	public boolean equalsIgnoreClass(String name, Type returnType, Type arg1) {
+		return this.equalsRawIgnoreClass(name, returnType) && argumentsEquals(arg1);
 	}
 	
-	public boolean equals(String name, Type returnType, Type arg1, Type arg2) {
-		return this.equalsRaw(name, returnType) && argumentsEquals(arg1, arg2);
+	public boolean equalsIgnoreClass(String name, Type returnType, Type arg1, Type arg2) {
+		return this.equalsRawIgnoreClass(name, returnType) && argumentsEquals(arg1, arg2);
 	}
 	
-	public boolean equals(String name, Type returnType, Type arg1, Type arg2, Type arg3) {
-		return this.equalsRaw(name, returnType) && argumentsEquals(arg1, arg2, arg3);
+	public boolean equalsIgnoreClass(String name, Type returnType, Type arg1, Type arg2, Type arg3) {
+		return this.equalsRawIgnoreClass(name, returnType) && argumentsEquals(arg1, arg2, arg3);
 	}
 	
-	public boolean equals(String name, Type returnType, Type... args) {
-		return this.equalsRaw(name, returnType) && argumentsEquals(args);
+	public boolean equalsIgnoreClass(String name, Type returnType, Type... args) {
+		return this.equalsRawIgnoreClass(name, returnType) && argumentsEquals(args);
 	}
 	
-	private boolean equalsRaw(String name, Type returnType) {
+	public boolean equalsIgnoreClass(String name, Type returnType, int argumentsCount) {
+		return this.equalsRawIgnoreClass(name, returnType) && arguments.size() == argumentsCount;
+	}
+	
+	private boolean equalsRawIgnoreClass(String name, Type returnType) {
 		return this.getName().equals(name) && this.returnType.equals(returnType);
 	}
 	
@@ -332,6 +341,10 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	
 	public boolean equals(ClassType declaringClass, String name, Type returnType, Type... args) {
 		return this.equalsRaw(declaringClass, name, returnType) && argumentsEquals(args);
+	}
+	
+	public boolean equals(ClassType declaringClass, String name, Type returnType, int argumentsCount) {
+		return this.equalsRaw(declaringClass, name, returnType) && arguments.size() == argumentsCount;
 	}
 	
 	private boolean equalsRaw(ClassType declaringClass, String name, Type returnType) {

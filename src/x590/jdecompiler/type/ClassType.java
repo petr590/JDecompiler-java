@@ -4,9 +4,14 @@ import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.constpool.ClassConstant;
@@ -16,6 +21,7 @@ import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.util.StringUtil;
+import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
 import static x590.jdecompiler.io.ExtendedStringInputStream.EOF_CHAR;
@@ -76,39 +82,89 @@ public class ClassType extends ReferenceType {
 	
 	private static final Map<String, ClassType> CLASS_TYPES = new HashMap<>();
 	
+	// Debug
+	private static final List<ClassType> ALL_CLASSES = new ArrayList<>();
+	
 	
 	public static final ClassType
-			OBJECT        = new ClassType("java/lang/Object", Object.class),
-			STRING        = new ClassType("java/lang/String", String.class),
-			CLASS         = new ClassType("java/lang/Class", Class.class),
-			ENUM          = new ClassType("java/lang/Enum", Enum.class),
-			THROWABLE     = new ClassType("java/lang/Throwable", Throwable.class),
-			EXCEPTION     = new ClassType("java/lang/Exception", Exception.class),
-			METHOD_TYPE   = new ClassType("java/lang/invoke/MethodType", MethodType.class),
-			METHOD_HANDLE = new ClassType("java/lang/invoke/MethodHandle", MethodHandle.class),
+			OBJECT         = initFromClass(Object.class),
+			STRING         = initFromClass(String.class),
+			CLASS          = initFromClass(Class.class),
+			ENUM           = initFromClass(Enum.class),
+			THROWABLE      = initFromClass(Throwable.class),
+			METHOD_TYPE    = initFromClass(MethodType.class),
+			METHOD_HANDLE  = initFromClass(MethodHandle.class),
+			STRING_BUILDER = initFromClass(StringBuilder.class),
 			
-			ANNOTATION    = new ClassType("java/lang/annotation/Annotation", Annotation.class),
-			OVERRIDE      = new ClassType("java/lang/Override", Override.class),
-			CLONEABLE     = new ClassType("java/lang/Cloneable", Cloneable.class),
-			SERIALIZABLE  = new ClassType("java/io/Serializable", Serializable.class),
+			ANNOTATION   = initFromClass(Annotation.class),
+			OVERRIDE     = initFromClass(Override.class),
+			CLONEABLE    = initFromClass(Cloneable.class),
+			SERIALIZABLE = initFromClass(Serializable.class),
 			
-			BYTE      = new WrapperClassType("java/lang/Byte", Byte.class, PrimitiveType.BYTE),
-			SHORT     = new WrapperClassType("java/lang/Short", Short.class, PrimitiveType.SHORT),
-			CHARACTER = new WrapperClassType("java/lang/Character", Character.class, PrimitiveType.CHAR),
-			INTEGER   = new WrapperClassType("java/lang/Integer", Integer.class, PrimitiveType.INT),
-			LONG      = new WrapperClassType("java/lang/Long", Long.class, PrimitiveType.LONG),
-			FLOAT     = new WrapperClassType("java/lang/Float", Float.class, PrimitiveType.FLOAT),
-			DOUBLE    = new WrapperClassType("java/lang/Double", Double.class, PrimitiveType.DOUBLE),
-			BOOLEAN   = new WrapperClassType("java/lang/Boolean", Boolean.class, PrimitiveType.BOOLEAN),
-			VOID      = new WrapperClassType("java/lang/Void", Void.class, PrimitiveType.VOID);
+			BYTE      = initWrapperFromClass(Byte.class, PrimitiveType.BYTE),
+			SHORT     = initWrapperFromClass(Short.class, PrimitiveType.SHORT),
+			CHARACTER = initWrapperFromClass(Character.class, PrimitiveType.CHAR),
+			INTEGER   = initWrapperFromClass(Integer.class, PrimitiveType.INT),
+			LONG      = initWrapperFromClass(Long.class, PrimitiveType.LONG),
+			FLOAT     = initWrapperFromClass(Float.class, PrimitiveType.FLOAT),
+			DOUBLE    = initWrapperFromClass(Double.class, PrimitiveType.DOUBLE),
+			BOOLEAN   = initWrapperFromClass(Boolean.class, PrimitiveType.BOOLEAN),
+			VOID      = initWrapperFromClass(Void.class, PrimitiveType.VOID);
+	
+	
+	// Debug
+	public static @Immutable Map<String, ClassType> classTypes() {
+		return Collections.unmodifiableMap(CLASS_TYPES);
+	}
+	
+	// Debug
+	public static @Immutable List<ClassType> allClassTypes() {
+		return Collections.unmodifiableList(ALL_CLASSES);
+	}
+	
+	
+	private static ClassType initFromClass(Class<?> clazz) {
+		String classEncodedName = encodedNameForClass(clazz);
+		return addToMap(classEncodedName, clazz, new ClassType(classEncodedName, clazz));
+	}
+	
+	private static WrapperClassType initWrapperFromClass(Class<?> clazz, PrimitiveType type) {
+		String classEncodedName = encodedNameForClass(clazz);
+		return addToMap(classEncodedName, clazz, new WrapperClassType(classEncodedName, clazz, type));
+	}
+	
+	private static <T extends ClassType> T addToMap(String classEncodedName, Class<?> clazz, T classType) {
+		var prev = CLASS_TYPES.put(classEncodedName, classType);
+		assert prev == null;
+		
+		return classType;
+	}
+	
+	
+	private static String encodedNameForClass(Class<?> clazz) {
+		String encodedName = clazz.descriptorString();
+		return encodedName.substring(1, encodedName.length() - 1);
+	}
+	
+	
+	/** Не получается через {@link Map#computeIfAbsent(Object, Function)}
+	 * из-за того, что иногда надо рекурсивно создавать ClassType */
+	private static ClassType getOrCreateClassType(String classEncodedName, Function<String, ClassType> creator) {
+		ClassType classType = CLASS_TYPES.get(classEncodedName);
+		
+		if(classType != null)
+			return classType;
+		
+		classType = creator.apply(classEncodedName);
+		CLASS_TYPES.put(classEncodedName, classType);
+		return classType;
+	}
 	
 	
 	public static ClassType fromClass(Class<?> clazz) {
-		String classEncodedName = clazz.descriptorString();
-		classEncodedName = classEncodedName.substring(1, classEncodedName.length() - 1);
-		
-		return CLASS_TYPES.computeIfAbsent(classEncodedName, encodedName -> new ClassType(encodedName, clazz));
+		return getOrCreateClassType(encodedNameForClass(clazz), encodedName -> new ClassType(encodedName, clazz));
 	}
+	
 	
 	public static ClassType fromConstant(ClassConstant clazz) {
 		return fromDescriptor(clazz.getNameConstant().getString());
@@ -117,7 +173,7 @@ public class ClassType extends ReferenceType {
 	
 	/** Принимает строку без префикса 'L', т.е. в виде "java/lang/Object;" */
 	public static ClassType fromDescriptor(String classEncodedName) {
-		return CLASS_TYPES.computeIfAbsent(classEncodedName, encodedName -> new ClassType(encodedName));
+		return getOrCreateClassType(classEncodedName, encodedName -> new ClassType(encodedName));
 	}
 	
 	/** Принимает строку с префиксом 'L', т.е. в виде "Ljava/lang/Object;" */
@@ -192,22 +248,64 @@ public class ClassType extends ReferenceType {
 	
 	private final @Nullable ClassType enclosingClass;
 	
-	private @Nullable GenericParameters<ReferenceType> signature;
-	private ClassType rawType;
+	private final @Nullable GenericParameters<ReferenceType> signature;
+	private final ClassType rawType;
 	
 	private final ClassKind kind;
 	
 	
-	ClassType(String encodedName, Class<?> clazz) {
-		this(encodedName);
-		triedLoadClass = true;
-		classInstance = clazz;
-		initSuperType(clazz);
+	private static final Pattern
+			NAME_NUM_PATTERN = Pattern.compile("\\$(\\d+)");
+	
+	ClassType(String classEncodedName, Class<?> clazz) {
+		super(clazz);
+		
+		this.classEncodedName = classEncodedName;
+		super.encodedName = clazz.descriptorString();
+		super.name = clazz.getName().replaceAll("\\$(?!\\d)", ".");
+		
+		this.packageName = clazz.getPackageName();
+		
+		Class<?> enclosingClassInstance = clazz.getEnclosingClass();
+		
+		if(enclosingClassInstance != null) {
+			this.enclosingClass = fromClass(enclosingClassInstance);
+			
+			if(clazz.isAnonymousClass()) {
+				
+				var matcher = NAME_NUM_PATTERN.matcher(classEncodedName);
+				String nameNumber = matcher.find() ? matcher.group(1) : "0";
+				
+				this.simpleName = enclosingClass.simpleName + '$' + nameNumber;
+				this.fullSimpleName = enclosingClass.fullSimpleName + '$' + nameNumber;
+				
+				this.kind = ClassKind.ANONYMOUS;
+				
+			} else {
+				this.simpleName = clazz.getSimpleName();
+				this.fullSimpleName = enclosingClass.fullSimpleName + '.' + simpleName;
+				
+				this.kind = ClassKind.NESTED;
+			}
+			
+		} else {
+			this.enclosingClass = null;
+			this.simpleName = clazz.getSimpleName();
+			this.fullSimpleName = simpleName;
+			
+			this.kind = classEncodedName.endsWith("/package-info") ? ClassKind.PACKAGE_INFO :
+						classEncodedName.equals("module-info") ? ClassKind.MODULE_INFO : ClassKind.PLAIN;
+		}
+		
+		this.signature = null;
+		this.rawType = this;
 	}
+	
 	
 	private ClassType(String encodedName) {
 		this(new ExtendedStringInputStream(encodedName));
 	}
+	
 	
 	private ClassType(ExtendedStringInputStream in) {
 		
@@ -221,12 +319,19 @@ public class ClassType extends ReferenceType {
 			packageEndPos = 0,
 			enclosingClassNameEndPos = 0;
 		
+		GenericParameters<ReferenceType> signature = null;
+		ClassType rawType = null;
+		
 		// Некоторые названия классов (такие как package-info и module-info)
 		// содержат тире, и эта переменная нужна для полной проверки валидности названия
 		int dashIndex = 0;
 		
-		Loop: for(int i = 0;; i++) {
-			int ch = in.read();
+		Loop: for(int i = 0, ch, prevCh = 0;; i++, prevCh = ch) {
+			ch = in.read();
+			
+			if(prevCh == '$') {
+				nameBuilder.append(Character.isLetter((char)ch) ? '.' : '$');
+			}
 			
 			switch(ch) {
 				case '/' -> {
@@ -241,11 +346,10 @@ public class ClassType extends ReferenceType {
 					
 					continue;
 				}
-					
+				
 				case '$' -> {
 					enclosingClassNameEndPos = i;
 					nameStartPos = i + 1;
-					nameBuilder.append('.');
 					classEncodedNameBuilder.append('$');
 					
 					if(dashIndex != 0)
@@ -253,7 +357,7 @@ public class ClassType extends ReferenceType {
 					
 					continue;
 				}
-					
+				
 				case '<' -> {
 					signature = parseSignature(in.prev());
 					rawType = ClassType.fromDescriptor(classEncodedNameBuilder.toString());
@@ -301,9 +405,9 @@ public class ClassType extends ReferenceType {
 		
 		String classEncodedName = classEncodedNameBuilder.toString();
 		
-		this.encodedName = "L" + classEncodedName + ";";
 		this.classEncodedName = classEncodedName;
-		this.name = nameBuilder.toString();
+		super.encodedName = "L" + classEncodedName + ";";
+		super.name = nameBuilder.toString();
 		
 		String simpleName = nameBuilder.substring(nameStartPos);
 		this.packageName = nameBuilder.substring(0, packageEndPos);
@@ -311,7 +415,7 @@ public class ClassType extends ReferenceType {
 		if(enclosingClassNameEndPos != 0) { // Nested class
 			boolean isAnonymous = simpleName.matches("^\\d+$");
 			this.kind = isAnonymous ? ClassKind.ANONYMOUS : ClassKind.NESTED;
-			this.enclosingClass = new ClassType(classEncodedName.substring(0, enclosingClassNameEndPos));
+			this.enclosingClass = fromDescriptor(classEncodedName.substring(0, enclosingClassNameEndPos));
 			
 			this.fullSimpleName = enclosingClass.fullSimpleName + (isAnonymous ? '$' : '.') + simpleName;
 			
@@ -326,12 +430,13 @@ public class ClassType extends ReferenceType {
 			
 			if(dashIndex != 0) {
 				
-				if(classEncodedName.endsWith("/package-info"))
+				if(classEncodedName.endsWith("/package-info")) {
 					this.kind = ClassKind.PACKAGE_INFO;
-				else if(classEncodedName.equals("module-info"))
+				} else if(classEncodedName.equals("module-info")) {
 					this.kind = ClassKind.MODULE_INFO;
-				else
+				} else {
 					throw new InvalidClassNameException(in, dashIndex);
+				}
 			
 			} else {
 				this.kind = ClassKind.PLAIN;
@@ -340,10 +445,12 @@ public class ClassType extends ReferenceType {
 		
 		this.simpleName = simpleName;
 		
-		if(rawType == null)
-			rawType = this;
+		this.signature = signature;
+		this.rawType = rawType == null ? this : rawType;
 		
 		in.unmark();
+		
+		ALL_CLASSES.add(this);
 	}
 	
 	
@@ -365,19 +472,27 @@ public class ClassType extends ReferenceType {
 		}
 	}
 	
+	/** @return Закодированное имя класса без префикса 'L' и без постфикса ';'<br>
+	 * Пример: "java/lang/Object" */
 	@Override
 	public String getClassEncodedName() {
 		return classEncodedName;
 	}
 	
+	/** @return Имя класса без пакета и внешних класстов<br>
+	 * Пример: для класса "java/lang/Character$Subset" вернёт "Subset" */
 	public String getSimpleName() {
 		return simpleName;
 	}
 	
+	/** @return Имя класса без пакета, но включая имена внешних класстов<br>
+	 * Пример: для класса "java/lang/Character$Subset" вернёт "Character.Subset" */
 	public String getFullSimpleName() {
 		return fullSimpleName;
 	}
 	
+	/** @return Имя класса пакета<br>
+	 * Пример: "java.lang" */
 	public String getPackageName() {
 		return packageName;
 	}
@@ -443,7 +558,7 @@ public class ClassType extends ReferenceType {
 	
 	
 	@Override
-	protected void tryLoadSuperType() {
+	protected void tryLoadSuperTypes() {
 		Class<?> thisClass = getClassInstance();
 		
 		if(thisClass != null) {
@@ -455,17 +570,17 @@ public class ClassType extends ReferenceType {
 	private void initSuperType(Class<?> thisClass) {
 		
 		if(thisClass.isInterface()) {
-			superType = OBJECT;
+			setSuperType(OBJECT);
 			
 		} else {
 			Class<?> superClass = thisClass.getSuperclass();
 			
 			if(superClass != null) {
-				superType = fromClass(superClass);
+				setSuperType(fromClass(superClass));
 			}
 		}
 		
-		interfaces = Arrays.stream(thisClass.getInterfaces()).map(interfaceClass -> fromClass(interfaceClass)).toList();
+		setInterfaces(Arrays.stream(thisClass.getInterfaces()).map(ClassType::fromClass).toList());
 	}
 	
 	

@@ -21,8 +21,8 @@ public interface Variable extends EmptyableVariable {
 	/** Устанавливает имя переменной */
 	public void setName(String name);
 	
-	/** Добавляет переменной возможное имя */
-	public void addPossibleName(String name);
+	/** Добавляет переменной возможное имя, если оно не {@literal null} */
+	public void addPossibleName(@Nullable String name);
 	
 	/** Делает переменную индексом */
 	public default void makeAnIndex() {}
@@ -60,6 +60,11 @@ public interface Variable extends EmptyableVariable {
 	@Override
 	public default VariableWrapper wrapped() {
 		return new WrappedVariable(this);
+	}
+	
+	@Override
+	public default Variable unwrapped() {
+		return this;
 	}
 	
 	

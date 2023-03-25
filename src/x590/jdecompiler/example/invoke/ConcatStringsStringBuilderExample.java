@@ -4,9 +4,9 @@ import x590.jdecompiler.example.Example;
 import x590.jdecompiler.example.ExampleTesting;
 
 @Example(classes = ConcatStringsExample.class, directory = ExampleTesting.VANILLA_DIR)
-public class ConcatStringsInvokedynamicExample {
+public class ConcatStringsStringBuilderExample {
 	
 	public static void main(String[] args) {
-		ExampleTesting.runDecompiler("vbin", ConcatStringsExample.class);
+		ExampleTesting.runDecompiler(ConcatStringsExample.class);
 	}
 }

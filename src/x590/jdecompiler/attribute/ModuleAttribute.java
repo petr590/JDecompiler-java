@@ -29,7 +29,7 @@ public class ModuleAttribute extends Attribute implements StringifyWritable<Clas
 		
 		this.module = pool.get(in.readUnsignedShort());
 		this.modifiers = ModuleModifiers.read(in);
-		this.version = pool.getUtf8StringNullable(in.readUnsignedShort());
+		this.version = pool.getNullableUtf8String(in.readUnsignedShort());
 		
 		this.allEntries = List.of(
 				in.readImmutableList(() -> new RequirementEntry(in, pool)),
@@ -79,7 +79,7 @@ public class ModuleAttribute extends Attribute implements StringifyWritable<Clas
 		private RequirementEntry(ExtendedDataInputStream in, ConstantPool pool) {
 			this.module = pool.get(in.readUnsignedShort());
 			this.modifiers = ModuleRequirementModifiers.read(in);
-			this.version = pool.getUtf8StringNullable(in.readUnsignedShort());
+			this.version = pool.getNullableUtf8String(in.readUnsignedShort());
 		}
 		
 		@Override

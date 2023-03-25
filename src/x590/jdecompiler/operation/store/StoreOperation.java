@@ -40,6 +40,7 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 			
 		} else {
 			this.variable = context.currentScope().getVariableOrDefine(index, context.currentIndex(), requiredType);
+			variable.addPossibleName(value.getPossibleVariableName());
 		}
 		
 		variable.castTypeToWidest(value.getReturnTypeAsNarrowest(requiredType));
@@ -126,7 +127,7 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 	}
 	
 	@Override
-	public void addVariableName(String name) {
+	public void addPossibleVariableName(String name) {
 		variable.addPossibleName(name);
 	}
 	

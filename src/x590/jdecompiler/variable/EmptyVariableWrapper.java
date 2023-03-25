@@ -2,24 +2,20 @@ package x590.jdecompiler.variable;
 
 import x590.util.annotation.Nullable;
 
-/**
- * Используется для замены {@literal null}, чтобы не проверять на {@literal null} везде.
- */
-public final class EmptyVariable implements EmptyableVariable {
+public final class EmptyVariableWrapper implements EmptyableVariableWrapper {
 	
-	public static final EmptyVariable INSTANCE = new EmptyVariable();
+	public static final EmptyVariableWrapper INSTANCE = new EmptyVariableWrapper();
 	
 	
-	private EmptyVariable() {}
-	
+	private EmptyVariableWrapper() {}
 	
 	@Override
 	public boolean isEmpty() {
 		return true;
 	}
-	
+
 	@Override
-	public Variable nonEmpty() {
+	public VariableWrapper nonEmpty() {
 		throw new UnsupportedOperationException("Variable is empty");
 	}
 	
@@ -27,26 +23,26 @@ public final class EmptyVariable implements EmptyableVariable {
 	public boolean hasName() {
 		return false;
 	}
-	
+
 	@Override
 	public void assignName() {}
-	
+
 	@Override
 	public @Nullable String getName() {
 		throw new UnsupportedOperationException("Empty variable has not name");
 	}
-	
+
 	@Override
 	public void reduceType() {}
-	
+
 	@Override
-	public EmptyableVariableWrapper wrapped() {
-		return VariableWrapper.empty();
+	public VariableWrapper assign(Variable other) {
+		return new WrappedVariable(other);
 	}
 	
 	
 	@Override
 	public String toString() {
-		return "EmptyVariable";
+		return "EmptyVariableWrapper";
 	}
 }

@@ -25,4 +25,9 @@ public abstract class GetFieldOperation extends FieldOperation {
 	public Type getReturnType() {
 		return descriptor.getType();
 	}
+	
+	@Override
+	public String getPossibleVariableName() {
+		return descriptor.getName();
+	}
 }

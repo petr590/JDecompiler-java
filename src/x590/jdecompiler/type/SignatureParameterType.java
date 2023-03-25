@@ -14,8 +14,8 @@ public final class SignatureParameterType extends ReferenceType {
 		for(int ch = in.read(); ch != ';' && ch != ExtendedStringInputStream.EOF_CHAR; ch = in.read())
 			nameBuilder.append((char)ch);
 		
-		this.name = nameBuilder.toString();
-		this.encodedName = "T" + name + ";";
+		super.name = nameBuilder.toString();
+		super.encodedName = "T" + name + ";";
 	}
 	
 	@Override

@@ -20,10 +20,10 @@ import x590.jdecompiler.type.ArrayType;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.TypeSize;
-import x590.jdecompiler.variable.EmptyVariable;
 import x590.jdecompiler.variable.NamedVariable;
 import x590.jdecompiler.variable.UnnamedVariable;
 import x590.jdecompiler.variable.Variable;
+import x590.jdecompiler.variable.VariableWrapper;
 import x590.util.function.ObjIntFunction;
 import x590.util.lazyloading.LazyLoadingValue;
 
@@ -49,10 +49,13 @@ public class MethodScope extends Scope {
 		LocalVariableTableAttribute localVariableTable = codeAttribute.getAttributes().getNullable(AttributeType.LOCAL_VARIABLE_TABLE);
 		
 		
-		EmptyVariable emptyVar = Variable.empty();
+		final var emptyVar = VariableWrapper.empty();
 		
 		// public static void main(String[] args)
-		if(localVariableTable == null && modifiers.isAll(ACC_PUBLIC | ACC_STATIC) && descriptor.equals("main", PrimitiveType.VOID, ArrayType.STRING_ARRAY)) {
+		if(localVariableTable == null &&
+				modifiers.isAll(ACC_PUBLIC | ACC_STATIC) &&
+				descriptor.equalsIgnoreClass("main", PrimitiveType.VOID, ArrayType.STRING_ARRAY)) {
+			
 			addVariable(new NamedVariable("args", this, ArrayType.STRING_ARRAY, true).defined());
 			
 		} else {

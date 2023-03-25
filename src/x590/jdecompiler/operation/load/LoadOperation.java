@@ -7,6 +7,7 @@ import x590.jdecompiler.operation.AbstractOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.variable.Variable;
+import x590.util.annotation.Nullable;
 
 public abstract class LoadOperation extends AbstractOperation {
 	
@@ -45,8 +46,14 @@ public abstract class LoadOperation extends AbstractOperation {
 	}
 	
 	@Override
-	public void addVariableName(String name) {
+	public void addPossibleVariableName(String name) {
 		variable.addPossibleName(name);
+	}
+	
+	@Override
+	public @Nullable String getPossibleVariableName() {
+		String name = variable.getName();
+		return "this".equals(name) ? null : name;
 	}
 	
 	@Override

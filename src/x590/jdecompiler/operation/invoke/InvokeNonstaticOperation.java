@@ -5,7 +5,6 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
-import x590.jdecompiler.type.Types;
 
 public abstract class InvokeNonstaticOperation extends InvokeOperation {
 	
@@ -15,15 +14,16 @@ public abstract class InvokeNonstaticOperation extends InvokeOperation {
 		this(context, getDescriptor(context, index));
 	}
 	
-	// Не переделывать через делегирование конструктору this,
-	// так как важен порядок: сначала со стека снимаются аргументы, затем объект
+	/** Не переделывать через делегирование конструктору this,
+	 * так как важен порядок: сначала со стека снимаются аргументы, затем объект */
 	public InvokeNonstaticOperation(DecompilationContext context, MethodDescriptor descriptor) {
-		super(context, descriptor, false);
-		this.object = context.popAsNarrowest(Types.ANY_TYPE).castIfNull(descriptor.getDeclaringClass());
+		super(context, descriptor);
+		this.object = context.popAsNarrowest(descriptor.getDeclaringClass()).castIfNull(descriptor.getDeclaringClass());
 	}
 	
+	/** Только для случаев, когда у метода нет аргументов или когда объект не на стеке */
 	public InvokeNonstaticOperation(DecompilationContext context, MethodDescriptor descriptor, Operation object) {
-		super(context, descriptor, false);
+		super(context, descriptor);
 		this.object = object.castIfNull(descriptor.getDeclaringClass());
 	}
 	

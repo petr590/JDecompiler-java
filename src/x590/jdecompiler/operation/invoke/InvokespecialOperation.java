@@ -1,5 +1,7 @@
 package x590.jdecompiler.operation.invoke;
 
+import java.util.LinkedList;
+
 import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
@@ -12,6 +14,7 @@ import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
+import x590.util.annotation.Nullable;
 
 public final class InvokespecialOperation extends InvokeNonstaticOperation {
 	
@@ -82,6 +85,32 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 	@Override
 	protected String getInstructionName() {
 		return "invokespecial";
+	}
+	
+	@Override
+	public @Nullable LinkedList<Operation> getStringBuilderChain(LinkedList<Operation> operands) {
+		if(descriptor.isConstructor() &&
+				descriptor.getDeclaringClass().equals(ClassType.STRING_BUILDER)) {
+			
+			if(descriptor.argumentsEmpty()) {
+				return operands;
+			}
+			
+			if(descriptor.argumentsEquals(ClassType.STRING)) {
+				Operation firstArg = arguments.getFirst();
+				
+				if(firstArg instanceof InvokestaticOperation invokestatic &&
+						invokestatic.descriptor.equals(ClassType.STRING, "valueOf", ClassType.STRING, 1)) {
+					
+					firstArg = invokestatic.arguments.getFirst();
+				}
+				
+				operands.addFirst(firstArg);
+				return operands;
+			}
+		}
+		
+		return null;
 	}
 	
 	@Override

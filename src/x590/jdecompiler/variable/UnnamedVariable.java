@@ -148,8 +148,9 @@ public class UnnamedVariable extends AbstractVariable {
 	}
 	
 	@Override
-	public void addPossibleName(String name) {
-		names.add(name);
+	public void addPossibleName(@Nullable String name) {
+		if(name != null)
+			names.add(name);
 	}
 	
 	@Override

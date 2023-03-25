@@ -3,22 +3,24 @@ package x590.jdecompiler.variable;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.scope.Scope;
 import x590.jdecompiler.type.Type;
+import x590.util.annotation.Nullable;
 
 public class WrappedVariable implements VariableWrapper {
 	
-	private EmptyableVariable variable;
+	private Variable variable;
 	
-	public WrappedVariable(EmptyableVariable variable) {
+	public WrappedVariable(Variable variable) {
 		this.variable = variable;
 	}
 	
 	@Override
-	public void makeSame(EmptyableVariable other) {
+	public VariableWrapper assign(Variable other) {
 		this.variable = other.unwrapped();
+		return this;
 	}
 	
 	@Override
-	public EmptyableVariable unwrapped() {
+	public Variable unwrapped() {
 		return variable;
 	}
 	
@@ -44,7 +46,7 @@ public class WrappedVariable implements VariableWrapper {
 	}
 	
 	@Override
-	public String getName() {
+	public @Nullable String getName() {
 		return variable.getName();
 	}
 	
@@ -59,7 +61,7 @@ public class WrappedVariable implements VariableWrapper {
 	}
 	
 	@Override
-	public void addPossibleName(String name) {
+	public void addPossibleName(@Nullable String name) {
 		variable.nonEmpty().addPossibleName(name);
 	}
 	

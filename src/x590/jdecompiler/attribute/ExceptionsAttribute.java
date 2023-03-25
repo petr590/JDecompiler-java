@@ -5,7 +5,6 @@ import java.util.List;
 
 import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.attribute.signature.MethodSignatureAttribute;
-import x590.jdecompiler.constpool.ClassConstant;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DisassemblingException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
@@ -26,7 +25,7 @@ public class ExceptionsAttribute extends Attribute {
 		if(exceptionsLength == 0)
 			throw new DisassemblingException("The \"" + AttributeNames.EXCEPTIONS + "\" attribute cannot be empty");
 		
-		this.exceptionTypes = in.readImmutableList(exceptionsLength, () -> pool.<ClassConstant>get(in.readUnsignedShort()).toClassType());
+		this.exceptionTypes = in.readImmutableList(exceptionsLength, () -> pool.getClassConstant(in.readUnsignedShort()).toClassType());
 	}
 	
 	private ExceptionsAttribute(String name, int length, List<ReferenceType> exceptionTypes) {

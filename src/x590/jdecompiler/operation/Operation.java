@@ -1,5 +1,7 @@
 package x590.jdecompiler.operation;
 
+import java.util.LinkedList;
+
 import x590.jdecompiler.FieldDescriptor;
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.StringifyWritable;
@@ -11,6 +13,7 @@ import x590.jdecompiler.type.GeneralCastingKind;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
+import x590.util.annotation.Nullable;
 import x590.util.annotation.RemoveIfNotUsed;
 
 /**
@@ -143,8 +146,13 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	}
 	
 	
-	/** Добавляет имя переменной (для load операций) */
-	public default void addVariableName(String name) {}
+	/** Добавляет имя переменной (для операций, работающих с переменными) */
+	public default void addPossibleVariableName(String name) {}
+	
+	/** @return Возможное имя для переменной. По умолчанию {@literal null} */
+	public default @Nullable String getPossibleVariableName() {
+		return null;
+	}
 	
 	
 	/** Возвращает {@literal true}, если операция использует локальные переменные */
@@ -179,6 +187,16 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	 */
 	public default boolean isTerminable() {
 		return false;
+	}
+	
+	
+	/**
+	 * Проверяет, что операция является цепью вызовом {@code StringBuilder#append(...)}
+	 * или {@code new StringBuilder(...)}. Если это так, добавляет операнд в список операндов.
+	 * @return Список операндов, если цепь вызовов полностью распознана, иначе {@literal null}
+	 */
+	public default @Nullable LinkedList<Operation> getStringBuilderChain(LinkedList<Operation> operands) {
+		return null;
 	}
 	
 	

@@ -11,7 +11,8 @@ public class ExampleTesting {
 	
 	public static final String
 			DEFAULT_DIR = "bin",
-			VANILLA_DIR = "/home/winch/0x590/java/jdk-8-rt";
+			VANILLA_DIR = "vbin",
+			JDK_DIR = "/home/winch/0x590/java/jdk-8-rt";
 	
 	
 	
@@ -28,20 +29,20 @@ public class ExampleTesting {
 	}
 	
 	
-	public static void runDecompilerVanilla(Class<?> clazz) {
-		runDecompiler(VANILLA_DIR, clazz);
+	public static void runDecompilerForJdk(Class<?> clazz) {
+		runDecompiler(JDK_DIR, clazz);
 	}
 	
-	public static void runDecompilerVanilla(Class<?>... classes) {
-		runDecompiler(VANILLA_DIR, classes);
+	public static void runDecompilerForJdk(Class<?>... classes) {
+		runDecompiler(JDK_DIR, classes);
 	}
 	
-	public static void runDecompilerVanilla(Class<?> clazz, String... otherArgs) {
-		runDecompiler(VANILLA_DIR, clazz, otherArgs);
+	public static void runDecompilerForJdk(Class<?> clazz, String... otherArgs) {
+		runDecompiler(JDK_DIR, clazz, otherArgs);
 	}
 	
-	public static void runDecompilerVanilla(Class<?>[] classes, String... otherArgs) {
-		runDecompiler(VANILLA_DIR, classes, otherArgs);
+	public static void runDecompilerForJdk(Class<?>[] classes, String... otherArgs) {
+		runDecompiler(JDK_DIR, classes, otherArgs);
 	}
 	
 	

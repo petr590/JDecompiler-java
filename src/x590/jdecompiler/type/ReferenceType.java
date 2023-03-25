@@ -8,11 +8,51 @@ import x590.util.annotation.Nullable;
 
 public abstract class ReferenceType extends BasicType {
 	
-	@Nullable ClassType superType;
-	@Nullable @Immutable List<ClassType> interfaces;
+	private @Nullable Class<?> classInstance;
+	private boolean triedLoadClass;
 	
-	@Nullable Class<?> classInstance;
-	boolean triedLoadClass, triedLoadSuperType;
+	private @Nullable ClassType superType;
+	private @Nullable @Immutable List<ClassType> interfaces;
+	private boolean triedLoadSuperTypes;
+	
+	
+	public ReferenceType() {}
+	
+	public ReferenceType(Class<?> classInstance) {
+		this.classInstance = classInstance;
+		this.triedLoadClass = true;
+	}
+	
+	public ReferenceType(String encodedName, String name) {
+		super(encodedName, name);
+	}
+	
+	public ReferenceType(ClassType superType, @Immutable List<ClassType> interfaces) {
+		this.superType = superType;
+		this.interfaces = interfaces;
+		this.triedLoadSuperTypes = true;
+	}
+	
+	public ReferenceType(String encodedName, String name, ClassType superType, @Immutable List<ClassType> interfaces) {
+		super(encodedName, name);
+		this.superType = superType;
+		this.interfaces = interfaces;
+		this.triedLoadSuperTypes = true;
+	}
+	
+	@Override
+	public final boolean isReferenceType() {
+		return true;
+	}
+	
+	@Override
+	public TypeSize getSize() {
+		return TypeSize.WORD;
+	}
+	
+	public String getClassEncodedName() {
+		return encodedName;
+	}
 	
 	
 	public @Nullable Class<?> getClassInstance() {
@@ -32,57 +72,34 @@ public abstract class ReferenceType extends BasicType {
 	}
 	
 	
-	public ReferenceType() {}
+	protected void setClassInstance(Class<?> classInstance) {
+		this.classInstance = classInstance;
+		this.triedLoadClass = true;
+	}
 	
-	public ReferenceType(ClassType superType) {
+	protected void setSuperType(ClassType superType) {
 		this.superType = superType;
 	}
 	
-	public ReferenceType(ClassType superType, List<ClassType> interfaces) {
-		this.superType = superType;
+	protected void setInterfaces(List<ClassType> interfaces) {
 		this.interfaces = interfaces;
-	}
-	
-	public ReferenceType(String encodedName, String name, ClassType superType) {
-		super(encodedName, name);
-		this.superType = superType;
-	}
-	
-	public ReferenceType(String encodedName, String name, ClassType superType, List<ClassType> interfaces) {
-		super(encodedName, name);
-		this.superType = superType;
-		this.interfaces = interfaces;
-	}
-	
-	@Override
-	public final boolean isReferenceType() {
-		return true;
-	}
-	
-	@Override
-	public TypeSize getSize() {
-		return TypeSize.WORD;
-	}
-	
-	public String getClassEncodedName() {
-		return encodedName;
 	}
 	
 	public @Nullable ClassType getSuperType() {
-		if(triedLoadSuperType)
+		if(triedLoadSuperTypes)
 			return superType;
 		
-		triedLoadSuperType = true;
-		tryLoadSuperType();
+		triedLoadSuperTypes = true;
+		tryLoadSuperTypes();
 		return superType;
 	}
 	
 	public @Nullable @Immutable List<ClassType> getInterfaces() {
-		if(triedLoadSuperType)
+		if(triedLoadSuperTypes)
 			return interfaces;
 		
-		triedLoadSuperType = true;
-		tryLoadSuperType();
+		triedLoadSuperTypes = true;
+		tryLoadSuperTypes();
 		return interfaces;
 	}
 	
@@ -96,7 +113,9 @@ public abstract class ReferenceType extends BasicType {
 				interfaces != null && interfaces.stream().anyMatch(interfaceType -> interfaceType.isSubclassOf(other));
 	}
 	
-	protected void tryLoadSuperType() {
+	/** Метод, который пытается загрузить суперкласс и суперинтерфейсы.
+	 *  */
+	protected void tryLoadSuperTypes() {
 		// По умолчанию ничего не делает
 	}
 	

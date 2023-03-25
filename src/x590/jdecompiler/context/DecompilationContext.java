@@ -93,10 +93,16 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 //			Logger.debugf("%d: scope stack: [%s]", index, StreamSupport.stream(this.getCurrentScopes().spliterator(), false).map(Scope::toString).collect(Collectors.joining(", ")));
 			
 //			Logger.debugf("%d: locals: [%s]", index,
-//					Stream.concat(Stream.of(method.getMethodScope()), method.getMethodScope().getOperations().stream().filter(Operation::isScope).map(operation -> (Scope)operation))
+//					Stream.concat(Stream.of(method.getMethodScope()), method.getMethodScope().getOperations().stream()
+//							.filter(Operation::isScope)
+//							.map(operation -> (Scope)operation))
 //							.map(
-//									scope -> '[' + scope.locals.stream().map(var -> var.isEmpty() ? "empty" : "0x" + Integer.toHexString(var.hashCode())).collect(Collectors.joining(", ")) + ']'
-//							).collect(Collectors.joining(", ")));
+//									scope -> scope.getClass().getSimpleName() + '[' + scope.locals.stream()
+//											.map(var -> var.isEmpty() ? "empty" : "0x" + Integer.toHexString(var.hashCode()))
+//											.collect(Collectors.joining(", ")) + ']'
+//							
+//							).collect(Collectors.joining(", "))
+//			);
 			
 			
 			expressionIndexTable[index] = expressionIndex;

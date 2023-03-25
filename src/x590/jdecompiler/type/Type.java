@@ -49,8 +49,8 @@ public abstract class Type implements
 	public void writeRightDefinition(StringifyOutputStream out, ClassInfo classinfo) {}
 	
 	
-	/** Возвращает самый вложенный тип массива, если {@code JDecompiler.getInstance().useCStyleArray() == true}.
-	 * Иначе возвращает себя */
+	/** @return Самый вложенный тип массива, если {@code JDecompiler.getInstance().useCStyleArray() == true}.
+	 * Иначе возвращает {@literal this}. Для всех типов, не являющихся массивами, возвращает {@literal this} */
 	public Type getArrayMemberIfUsingCArrays() {
 		return this;
 	}
@@ -59,13 +59,11 @@ public abstract class Type implements
 	@Override
 	public abstract String toString();
 	
-	/** Закодированное имя типа:<br>
-	 * "Ljava/lang/Object;", "I".
+	/** @return Закодированное имя типа: "Ljava/lang/Object;", "I".<br>
 	 * Используется для сравнения типов и для получения хеш-кода */
 	public abstract String getEncodedName();
 	
-	/** Имя типа:<br>
-	 * "java.lang.Object", "int" */
+	/** @return Имя типа: "java.lang.Object", "int" */
 	public abstract String getName();
 	
 	/** Имя для переменной. Например, все переменные типа int называются "n".

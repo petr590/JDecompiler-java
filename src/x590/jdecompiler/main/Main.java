@@ -56,6 +56,12 @@ public final class Main {
 			}
 		}
 		
+//		for(var entry : ClassType.classTypes().entrySet())
+//			System.out.printf("%-40s %s\n", entry.getKey(), entry.getValue());
+//		
+//		for(var classType : ClassType.allClassTypes())
+//			System.out.println(classType);
+		
 		try {
 			performing.close();
 		} catch(IOException | UncheckedIOException ex) {

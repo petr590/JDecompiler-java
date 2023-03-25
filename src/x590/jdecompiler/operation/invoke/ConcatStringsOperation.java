@@ -21,10 +21,17 @@ public final class ConcatStringsOperation extends InvokeOperation {
 	// Должно вызываться после сведения типов, поэтому реализовано через функцию
 	private BooleanSupplier canOmitEmptyStringFunc = () -> false;
 	
+	public ConcatStringsOperation(DecompilationContext context, MethodDescriptor descriptor,
+			LinkedList<Operation> operands) {
+		
+		super(context, descriptor);
+		this.operands = operands;
+	}
+	
 	public ConcatStringsOperation(DecompilationContext context, MethodDescriptor concater,
 				StringConstOperation pattern, List<Operation> staticArguments) {
 		
-		super(context, concater, true);
+		super(context, concater);
 		
 		String patternStr = pattern.getValue();
 		
@@ -48,9 +55,9 @@ public final class ConcatStringsOperation extends InvokeOperation {
 				switch(ch) {
 					case '\1': operands.add(arg.next()); break;
 					case '\2': operands.add(staticArg.next()); break;
-					default: throw new RuntimeException("WTF??"); // 🙃️
+					default: throw new IllegalStateException("WTF??"); // 🙃️
 				}
-			
+				
 			} else {
 				str.append(ch);
 			}

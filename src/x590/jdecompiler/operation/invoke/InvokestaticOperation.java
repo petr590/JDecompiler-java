@@ -13,7 +13,7 @@ import x590.jdecompiler.type.PrimitiveType;
 public final class InvokestaticOperation extends InvokeOperation {
 	
 	public InvokestaticOperation(DecompilationContext context, MethodDescriptor descriptor) {
-		super(context, descriptor, true);
+		super(context, descriptor);
 	}
 	
 	

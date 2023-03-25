@@ -9,7 +9,7 @@ public final class WrapperClassType extends ClassType {
 	
 	private final PrimitiveType primitiveType;
 	
-	public WrapperClassType(String encodedName, Class<?> thisClass, PrimitiveType primitiveType) {
+	WrapperClassType(String encodedName, Class<?> thisClass, PrimitiveType primitiveType) {
 		super(encodedName, thisClass);
 		this.primitiveType = primitiveType;
 	}

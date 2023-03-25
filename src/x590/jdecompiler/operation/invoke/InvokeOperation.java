@@ -18,11 +18,12 @@ import x590.jdecompiler.operation.array.NewArrayOperation;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.util.StringUtil;
+import x590.util.annotation.Nullable;
 
 public abstract class InvokeOperation extends OperationWithDescriptor<MethodDescriptor> {
 	
 	protected final Deque<Operation> arguments;
-	protected final boolean isStatic;
 	
 	private Deque<Operation> popArguments(DecompilationContext context) {
 		List<Type> argTypes = descriptor.getArguments();
@@ -56,11 +57,11 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 	}
 	
 	
-	public InvokeOperation(DecompilationContext context, int index, boolean isStatic) {
-		this(context, getDescriptor(context, index), isStatic);
+	public InvokeOperation(DecompilationContext context, int index) {
+		this(context, getDescriptor(context, index));
 	}
 	
-	public InvokeOperation(DecompilationContext context, MethodDescriptor descriptor, boolean isStatic) {
+	public InvokeOperation(DecompilationContext context, MethodDescriptor descriptor) {
 		super(descriptor);
 		
 		if(descriptor.isStaticInitializer())
@@ -70,7 +71,6 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 			throw new DecompilationException("Cannot invoke constructor by the " + getInstructionName() + "instruction");
 		
 		this.arguments = popArguments(context);
-		this.isStatic = isStatic;
 		
 		
 		List<Type> argTypes = descriptor.getArguments();
@@ -105,13 +105,33 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 		return descriptor.getReturnType();
 	}
 	
+	private static final Pattern
+			GETTER_PATTERN = Pattern.compile("get([A-Z].*)"),
+			BOOLEAN_GETTER_PATTERN = Pattern.compile("is[A-Z].*"),
+			PATTERN_FOR_NOT_OMIT_THIS = Pattern.compile("equals.*");
 	
-	private static final Pattern METHOD_NAME_PATTERN = Pattern.compile("equals.*");
+	@Override
+	public @Nullable String getPossibleVariableName() {
+		String name = descriptor.getName();
+		
+		var matcher = GETTER_PATTERN.matcher(name);
+		if(matcher.matches()) {
+			return StringUtil.toLowerCamelCase(matcher.group(1));
+		}
+		
+		matcher = BOOLEAN_GETTER_PATTERN.matcher(name);
+		if(matcher.matches()) {
+			return name;
+		}
+		
+		return null;
+	}
+	
 	
 	@Override
 	protected boolean canOmitObject(StringifyContext context, Operation object) {
 		// Не опускать this для вызовов методов, название которых начинается с equals
-		return super.canOmitObject(context, object) && !METHOD_NAME_PATTERN.matcher(descriptor.getName()).matches();
+		return super.canOmitObject(context, object) && !PATTERN_FOR_NOT_OMIT_THIS.matcher(descriptor.getName()).matches();
 	}
 	
 	

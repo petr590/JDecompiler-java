@@ -35,10 +35,15 @@ public final class ArrayType extends ReferenceType {
 			FLOAT_ARRAY   = new ArrayType(PrimitiveType.FLOAT),
 			DOUBLE_ARRAY  = new ArrayType(PrimitiveType.DOUBLE);
 	
-
+	
 	
 	public static ArrayType fromClass(Class<?> clazz) {
+		
 		Class<?> componentClass = clazz.getComponentType();
+		
+		if(componentClass == null) {
+			throw new IllegalArgumentException("Class " + clazz.getName() + " is not an array");
+		}
 		
 		if(componentClass.isPrimitive()) {
 			if(componentClass == byte.class) return BYTE_ARRAY;
@@ -115,8 +120,8 @@ public final class ArrayType extends ReferenceType {
 		this.elementType = nestingLevel == 1 ? memberType : new ArrayType(memberType, nestingLevel - 1);
 		
 		this.braces = "[]".repeat(nestingLevel);
-		this.name = memberType.getName() + braces;
-		this.encodedName = in.readString(memberTypeStart, in.getPos());
+		super.name = memberType.getName() + braces;
+		super.encodedName = in.readString(memberTypeStart, in.getPos());
 		
 		in.unmark();
 	}
@@ -144,8 +149,8 @@ public final class ArrayType extends ReferenceType {
 		
 		this.braces = "[]".repeat(nestingLevel);
 		
-		this.name = memberType.getName() + braces;
-		this.encodedName = "[".repeat(nestingLevel) + memberType.getEncodedName();
+		super.name = memberType.getName() + braces;
+		super.encodedName = "[".repeat(nestingLevel) + memberType.getEncodedName();
 		
 		this.memberType = memberType;
 	}

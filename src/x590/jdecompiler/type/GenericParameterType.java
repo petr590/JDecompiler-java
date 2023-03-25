@@ -55,10 +55,10 @@ public final class GenericParameterType extends ReferenceType {
 	public GenericParameterType(ExtendedStringInputStream in) {
 		StringBuilder encodedNameBuilder = new StringBuilder();
 		
-		this.name = parseName(in, encodedNameBuilder);
+		super.name = parseName(in, encodedNameBuilder);
 		this.types = parseTypes(in, encodedNameBuilder);
 		
-		this.encodedName = encodedNameBuilder.toString();
+		super.encodedName = encodedNameBuilder.toString();
 	}
 	
 	@Override

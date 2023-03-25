@@ -3,6 +3,7 @@ package x590.jdecompiler.variable;
 import x590.jdecompiler.scope.Scope;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.Types;
+import x590.util.annotation.Nullable;
 
 public class NamedVariable extends AbstractVariable {
 	
@@ -31,7 +32,7 @@ public class NamedVariable extends AbstractVariable {
 	}
 	
 	@Override
-	public void addPossibleName(String name) {}
+	public void addPossibleName(@Nullable String name) {}
 	
 	
 	@Override

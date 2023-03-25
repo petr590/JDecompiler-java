@@ -52,30 +52,37 @@ public final class ConstantPool implements JavaSerializable {
 	}
 	
 	
-	@SuppressWarnings("unchecked")
 	public <C extends Constant> C get(int index) {
 		if(index != 0)
-			return (C)data.get(index);
+			return getNullable(index);
 		
 		throw new NoSuchConstantException("By index " + index);
 	}
 	
 	@SuppressWarnings("unchecked")
 	public <C extends Constant> @Nullable C getNullable(int index) {
-		return (C)data.get(index);
+		try {
+			return (C)data.get(index);
+		} catch(IndexOutOfBoundsException ex) {
+			throw new NoSuchConstantException("By index " + index);
+		}
 	}
 	
 	public String getUtf8String(int index) {
 		return this.<Utf8Constant>get(index).getString();
 	}
 	
-	public @Nullable String getUtf8StringNullable(int index) {
-		Utf8Constant utf8Constant = this.<Utf8Constant>getNullable(index);
+	public @Nullable String getNullableUtf8String(int index) {
+		Utf8Constant utf8Constant = getNullable(index);
 		return utf8Constant == null ? null : utf8Constant.getString();
 	}
 	
 	public ClassConstant getClassConstant(int index) {
-		return this.<ClassConstant>get(index);
+		return get(index);
+	}
+	
+	public @Nullable ClassConstant getNullableClassConstant(int index) {
+		return getNullable(index);
 	}
 	
 	
@@ -85,13 +92,13 @@ public final class ConstantPool implements JavaSerializable {
 		return index;
 	}
 	
-	private int findOrAdd(Predicate<Constant> predicate, Supplier<Constant> supplier) {
+	private int findOrAdd(Predicate<Constant> equalsPredicate, Supplier<Constant> newConstantSupplier) {
 		for(int i = 0; i < data.size(); i++) {
-			if(predicate.test(data.get(i)))
+			if(equalsPredicate.test(data.get(i)))
 				return i;
 		}
 				
-		return add(supplier.get());
+		return add(newConstantSupplier.get());
 	}
 	
 	public int findOrAddUtf8(String value) {

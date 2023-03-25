@@ -118,8 +118,8 @@ public class JavaClass extends JavaClassElement {
 		var pool = this.pool;
 		
 		this.modifiers = ClassModifiers.read(in);
-		this.thisType = ClassType.fromConstant(pool.get(in.readUnsignedShort()));
-		this.superType = ClassType.fromNullableConstant(pool.getNullable(in.readUnsignedShort()), ClassType.OBJECT);
+		this.thisType = ClassType.fromConstant(pool.getClassConstant(in.readUnsignedShort()));
+		this.superType = ClassType.fromNullableConstant(pool.getNullableClassConstant(in.readUnsignedShort()), ClassType.OBJECT);
 		
 		this.interfaces = in.readImmutableList(() -> pool.getClassConstant(in.readUnsignedShort()).toClassType());
 		
@@ -253,7 +253,7 @@ public class JavaClass extends JavaClassElement {
 		
 		if(innerClassesAttribute != null) {
 			innerClasses = innerClassesAttribute.getEntries().values().stream()
-					.filter(entry -> entry.getOuterType().equals(thisType))
+					.filter(entry -> entry.hasOuterType() && entry.getOuterType().equals(thisType))
 					.map(entry -> classes.get(entry.getInnerType()))
 					.filter(innerClass -> innerClass != null).toList();
 			

@@ -91,8 +91,8 @@ public class JavaMethod extends JavaClassElement {
 				return true;
 			}
 				
-			if( descriptor.equals("valueOf", thisClassType, ClassType.STRING) || // Enum valueOf(String name)
-				descriptor.equals("values", ArrayType.forType(thisClassType))) { // Enum[] values()
+			if( descriptor.equalsIgnoreClass("valueOf", thisClassType, ClassType.STRING) || // Enum valueOf(String name)
+				descriptor.equalsIgnoreClass("values", ArrayType.forType(thisClassType))) { // Enum[] values()
 				return true;
 			}
 		}
