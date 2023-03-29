@@ -18,7 +18,7 @@ public abstract class OperationWithDescriptor<D extends Descriptor> extends Abst
 	}
 	
 	protected boolean canOmitObject(StringifyContext context, Operation object) {
-		return JDecompiler.getInstance().canOmitThisAndClass() && context.getModifiers().isNotStatic() &&
+		return JDecompiler.getConfig().canOmitThisAndClass() && context.getModifiers().isNotStatic() &&
 				object instanceof ALoadOperation aload && aload.getIndex() == 0;
 	}
 	

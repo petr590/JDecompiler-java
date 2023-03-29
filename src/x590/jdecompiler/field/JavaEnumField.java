@@ -1,4 +1,4 @@
-package x590.jdecompiler;
+package x590.jdecompiler.field;
 
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DecompilationException;
@@ -8,8 +8,10 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.modifiers.FieldModifiers;
 import x590.jdecompiler.operation.invoke.InvokeOperation;
 
+import static x590.jdecompiler.method.MethodDescriptor.IMPLICIT_ENUM_ARGUMENTS;
 import static x590.jdecompiler.modifiers.Modifiers.*;
-import static x590.jdecompiler.MethodDescriptor.IMPLICIT_ENUM_ARGUMENTS;
+
+import x590.jdecompiler.clazz.ClassInfo;
 
 public class JavaEnumField extends JavaField {
 	

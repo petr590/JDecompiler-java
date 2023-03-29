@@ -71,14 +71,26 @@ public final class AttributeType<A extends Attribute> implements AttributeReader
 		ATTRIBUTE_TYPES.computeIfAbsent(location, loc -> new HashMap<>()).put(name, this);
 	}
 	
+	private AttributeType(String name, AttributeReaderIgnoringLocation<A> reader) {
+		this(name, (AttributeReader<A>)reader);
+	}
+	
 	private AttributeType(String name, AttributeReader<A> reader) {
 		this.name = name;
 		this.reader = reader;
 	}
 	
+	protected AttributeType(Location location, String name, AttributeReaderIgnoringLocation<A> reader) {
+		this(location, name, (AttributeReader<A>)reader);
+	}
+	
 	protected AttributeType(Location location, String name, AttributeReader<A> reader) {
 		this(name, reader);
 		putToMap(location);
+	}
+	
+	protected AttributeType(Set<Location> locations, String name, AttributeReaderIgnoringLocation<A> reader) {
+		this(locations, name, (AttributeReader<A>)reader);
 	}
 	
 	protected AttributeType(Set<Location> locations, String name, AttributeReader<A> reader) {
@@ -93,8 +105,8 @@ public final class AttributeType<A extends Attribute> implements AttributeReader
 	}
 	
 	@Override
-	public A readAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
-		return reader.readAttribute(name, length, in, pool);
+	public A readAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool, Location location) {
+		return reader.readAttribute(name, length, in, pool, location);
 	}
 	
 	public static AttributeType<?> getAttributeType(Location location, String name) {

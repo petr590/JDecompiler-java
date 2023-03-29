@@ -2,7 +2,7 @@ package x590.jdecompiler.type;
 
 import java.util.List;
 
-import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.exception.InvalidArrayNameException;
 import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.io.ExtendedStringInputStream;
@@ -88,7 +88,7 @@ public final class ArrayType extends ReferenceType {
 	
 	private final Type memberType, elementType;
 	private final int nestingLevel;
-	private final String braces;
+	private final String braces, encodedName, name;
 	
 	private ArrayType(String arrayEncodedName) {
 		this(new ExtendedStringInputStream(arrayEncodedName));
@@ -120,8 +120,8 @@ public final class ArrayType extends ReferenceType {
 		this.elementType = nestingLevel == 1 ? memberType : new ArrayType(memberType, nestingLevel - 1);
 		
 		this.braces = "[]".repeat(nestingLevel);
-		super.name = memberType.getName() + braces;
-		super.encodedName = in.readString(memberTypeStart, in.getPos());
+		this.name = memberType.getName() + braces;
+		this.encodedName = in.readString(memberTypeStart, in.getPos());
 		
 		in.unmark();
 	}
@@ -149,8 +149,8 @@ public final class ArrayType extends ReferenceType {
 		
 		this.braces = "[]".repeat(nestingLevel);
 		
-		super.name = memberType.getName() + braces;
-		super.encodedName = "[".repeat(nestingLevel) + memberType.getEncodedName();
+		this.name = memberType.getName() + braces;
+		this.encodedName = "[".repeat(nestingLevel) + memberType.getEncodedName();
 		
 		this.memberType = memberType;
 	}
@@ -162,7 +162,7 @@ public final class ArrayType extends ReferenceType {
 	
 	@Override
 	public Type getArrayMemberIfUsingCArrays() {
-		return JDecompiler.getInstance().useCStyleArray() ? memberType : this;
+		return JDecompiler.getConfig().useCStyleArray() ? memberType : this;
 	}
 	
 	public Type getElementType() {
@@ -181,18 +181,28 @@ public final class ArrayType extends ReferenceType {
 	
 	@Override
 	public void writeLeftDefinition(StringifyOutputStream out, ClassInfo classinfo) {
-		out.print(JDecompiler.getInstance().useCStyleArray() ? memberType : this, classinfo);
+		out.print(JDecompiler.getConfig().useCStyleArray() ? memberType : this, classinfo);
 	}
 	
 	@Override
 	public void writeRightDefinition(StringifyOutputStream out, ClassInfo classinfo) {
-		if(JDecompiler.getInstance().useCStyleArray())
+		if(JDecompiler.getConfig().useCStyleArray())
 			out.write(braces);
 	}
 	
 	@Override
 	public String toString() {
 		return memberType.toString() + braces;
+	}
+	
+	@Override
+	public String getEncodedName() {
+		return encodedName;
+	}
+	
+	@Override
+	public String getName() {
+		return name;
 	}
 	
 	@Override
@@ -222,12 +232,13 @@ public final class ArrayType extends ReferenceType {
 	}
 	
 	@Override
-	public boolean baseEquals(Type other) {
-		return this == other || other instanceof ArrayType arrayType && this.baseEquals(arrayType);
+	public boolean equalsIgnoreSignature(Type other) {
+		return this == other || other instanceof ArrayType arrayType && this.equalsIgnoreSignature(arrayType);
 	}
 	
-	public boolean baseEquals(ArrayType other) {
-		return this == other || nestingLevel == other.nestingLevel && memberType.baseEquals(other.memberType) ||
-				elementType.baseEquals(other.elementType);
+	public boolean equalsIgnoreSignature(ArrayType other) {
+		return this == other || nestingLevel == other.nestingLevel &&
+				memberType.equalsIgnoreSignature(other.memberType) ||
+				elementType.equalsIgnoreSignature(other.elementType);
 	}
 }

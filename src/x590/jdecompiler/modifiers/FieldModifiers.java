@@ -9,6 +9,10 @@ public final class FieldModifiers extends ClassEntryModifiers {
 		super(value);
 	}
 	
+	public static FieldModifiers of(int modifiers) {
+		return new FieldModifiers(modifiers);
+	}
+	
 	public static FieldModifiers read(ExtendedDataInputStream in) {
 		return new FieldModifiers(in.readUnsignedShort());
 	}

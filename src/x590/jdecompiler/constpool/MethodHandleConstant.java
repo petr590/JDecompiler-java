@@ -1,6 +1,6 @@
 package x590.jdecompiler.constpool;
 
-import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.exception.DisassemblingException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.ExtendedDataOutputStream;
@@ -13,28 +13,37 @@ import x590.jdecompiler.type.Type;
 public final class MethodHandleConstant extends ConstValueConstant {
 	
 	public enum ReferenceKind {
-		GETFIELD(1),
-		GETSTATIC(2),
-		PUTFIELD(3),
-		PUTSTATIC(4),
-		INVOKEVIRTUAL(5),
-		INVOKESTATIC(6),
-		INVOKESPECIAL(7),
-		NEWINVOKESPECIAL(8),
-		INVOKEINTERFACE(9);
+		GETFIELD  (1),
+		GETSTATIC (2),
+		PUTFIELD  (3),
+		PUTSTATIC (4),
+		INVOKEVIRTUAL    (5, 1),
+		INVOKESTATIC     (6, 0),
+		INVOKESPECIAL    (7, 1),
+		NEWINVOKESPECIAL (8, 0),
+		INVOKEINTERFACE  (9, 1);
 		
 		private static final ReferenceKind[] VALUES = values();
 		
-		private final int index;
+		private final int index, argumentsForLambdaReference;
 		private final String name;
 		
 		private ReferenceKind(int index) {
+			this(index, -1);
+		}
+		
+		private ReferenceKind(int index, int argumentsForLambdaReference) {
 			this.index = index;
+			this.argumentsForLambdaReference = argumentsForLambdaReference;
 			this.name = name().toLowerCase();
 		}
 		
 		public int getIndex() {
 			return index;
+		}
+		
+		public int argumentsForLambdaReference() {
+			return argumentsForLambdaReference;
 		}
 		
 		public static ReferenceKind byIndex(int index) {

@@ -12,7 +12,7 @@ public class MethodsExample extends SuperclassExample {
 	}
 	
 	{
-		foo();
+		foo(0);
 		bar();
 	}
 	
@@ -21,8 +21,8 @@ public class MethodsExample extends SuperclassExample {
 	}
 	
 	@Override
-	public void foo() {
-		super.foo();
+	public void foo(int x) {
+		super.foo(x);
 	}
 	
 	@Override

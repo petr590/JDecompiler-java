@@ -4,7 +4,8 @@ import java.nio.charset.Charset;
 
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.main.JDecompiler;
-import x590.jdecompiler.main.JDecompiler.UsagePolicy;
+import x590.jdecompiler.main.Config;
+import x590.jdecompiler.main.Config.UsagePolicy;
 import x590.util.IntegerUtil;
 import x590.util.LongUtil;
 import x590.util.MathUtil;
@@ -97,7 +98,7 @@ public class StringUtil {
 			case '\r': return "\\r";
 			case '\\': return "\\\\";
 			default:   return ch == quote ? "\\" + quote :
-					isNotDisplayedChar(ch) || (JDECOMPILER.escapeUnicodeChars() && ch >= 0x80) ?
+					isNotDisplayedChar(ch) || (CONFIG.escapeUnicodeChars() && ch >= 0x80) ?
 							quote == '\'' && ch < 0x100 ?
 									escapeUtf16Octal(ch) :
 									escapeUtf16(ch) :
@@ -155,11 +156,11 @@ public class StringUtil {
 	}
 	
 	
-	private static final JDecompiler JDECOMPILER = JDecompiler.getInstance();
+	private static final Config CONFIG = JDecompiler.getConfig();
 	
 	
 	private static String numberConstantToString(int value) {
-		UsagePolicy hexNumbersUsagePolicy = JDECOMPILER.hexNumbersUsagePolicy();
+		UsagePolicy hexNumbersUsagePolicy = CONFIG.hexNumbersUsagePolicy();
 		
 		if( hexNumbersUsagePolicy == UsagePolicy.ALWAYS ||
 			hexNumbersUsagePolicy == UsagePolicy.AUTO && (value >= 16 || value <= -16) &&
@@ -172,7 +173,7 @@ public class StringUtil {
 	}
 	
 	private static String numberConstantToString(long value) {
-		UsagePolicy hexNumbersUsagePolicy = JDECOMPILER.hexNumbersUsagePolicy();
+		UsagePolicy hexNumbersUsagePolicy = CONFIG.hexNumbersUsagePolicy();
 		
 		if( hexNumbersUsagePolicy == UsagePolicy.ALWAYS ||
 			hexNumbersUsagePolicy == UsagePolicy.AUTO && (value >= 16 || value <= -16) &&
@@ -206,37 +207,37 @@ public class StringUtil {
 	}
 	
 	public static String toLiteral(long value) {
-		return numberConstantToString(value) + JDECOMPILER.getLongSuffix();
+		return numberConstantToString(value) + CONFIG.getLongSuffix();
 	}
 	
 	public static String toLiteral(float value) {
 		if(!Float.isFinite(value)) {
 			
-			String end = (JDECOMPILER.printTrailingZero() ? ".0" : "") + Character.toString(JDECOMPILER.getDoubleSuffix());
+			String end = (CONFIG.printTrailingZero() ? ".0" : "") + Character.toString(CONFIG.getDoubleSuffix());
 			
 			return  value == Float.POSITIVE_INFINITY ? "1" + end + " / 0" + end :
 					value == Float.NEGATIVE_INFINITY ? "-1" + end + " / 0" + end : "0" + end + " / 0" + end;
 		}
 		
-		return (!JDECOMPILER.printTrailingZero() && (int)value == value ? Integer.toString((int)value) : Float.toString(value)) +
-				 JDECOMPILER.getFloatSuffix();
+		return (!CONFIG.printTrailingZero() && (int)value == value ? Integer.toString((int)value) : Float.toString(value)) +
+				 CONFIG.getFloatSuffix();
 	}
 	
 	public static String toLiteral(double value) {
 		if(!Double.isFinite(value)) {
 			
-			String end = JDECOMPILER.printTrailingZero() ?
-					JDECOMPILER.printDoubleSuffix() ? ".0" + JDECOMPILER.getDoubleSuffix() : ".0" :
-					Character.toString(JDECOMPILER.getDoubleSuffix());
+			String end = CONFIG.printTrailingZero() ?
+					CONFIG.printDoubleSuffix() ? ".0" + CONFIG.getDoubleSuffix() : ".0" :
+					Character.toString(CONFIG.getDoubleSuffix());
 			
 			return  value == Double.POSITIVE_INFINITY ? "1" + end + " / 0" + end :
 					value == Double.NEGATIVE_INFINITY ? "-1" + end + " / 0" + end : "0" + end + " / 0" + end;
 		}
 		
-		return !JDECOMPILER.printTrailingZero() && (int)value == value ?
-					Integer.toString((int)value) + JDECOMPILER.getDoubleSuffix() :
-					JDECOMPILER.printDoubleSuffix() ?
-						Double.toString(value) + JDECOMPILER.getDoubleSuffix() :
+		return !CONFIG.printTrailingZero() && (int)value == value ?
+					Integer.toString((int)value) + CONFIG.getDoubleSuffix() :
+					CONFIG.printDoubleSuffix() ?
+						Double.toString(value) + CONFIG.getDoubleSuffix() :
 						Double.toString(value);
 	}
 }

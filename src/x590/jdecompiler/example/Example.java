@@ -22,4 +22,11 @@ public @interface Example {
 	
 	/** Папка, где будет поиск классов */
 	public String directory() default ExampleTesting.DEFAULT_DIR;
+	
+	/** Откуда брать классы */
+	public DecompilationSource source() default DecompilationSource.FILESYSTEM;
+	
+	public enum DecompilationSource {
+		FILESYSTEM, JDK
+	}
 }

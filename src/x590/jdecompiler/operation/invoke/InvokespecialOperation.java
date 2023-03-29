@@ -2,11 +2,13 @@ package x590.jdecompiler.operation.invoke;
 
 import java.util.LinkedList;
 
-import x590.jdecompiler.MethodDescriptor;
+import x590.jdecompiler.clazz.ClassInfo;
+import x590.jdecompiler.clazz.JavaClass;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.operation.NewOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.load.ALoadOperation;
@@ -28,6 +30,7 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 	private final SuperState superState;
 	private final boolean isEnum;
 	private final Type returnType;
+	private final @Nullable JavaClass anonymousClass;
 	
 	private SuperState getSuperState(DecompilationContext context) {
 		if(context.getModifiers().isNotStatic() &&
@@ -47,8 +50,9 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 	
 	private Type getReturnType(DecompilationContext context) {
 		if(descriptor.isConstructor() && object instanceof NewOperation newOperation) {
-			if(context.stackEmpty() || context.pop() != newOperation)
-				throw new DecompilationException("Cannot invoke constructor of new object, invalid stack state");
+			
+			if(context.pop() != newOperation)
+				throw new DecompilationException("Cannot invoke constructor of object that is not new, invalid stack state");
 			
 			return newOperation.getType();
 		}
@@ -56,11 +60,26 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 		return descriptor.getReturnType();
 	}
 	
+	private JavaClass getAnonymousClass() {
+		if(descriptor.isConstructor() && returnType instanceof ClassType classType && classType.isAnonymous()) {
+			JavaClass anonymousClass = JavaClass.find(classType);
+			
+			if(anonymousClass != null) {
+				anonymousClass.decompile();
+			}
+			
+			return anonymousClass;
+		}
+		
+		return null;
+	}
+	
 	public InvokespecialOperation(DecompilationContext context, int index) {
 		super(context, index);
 		this.superState = getSuperState(context);
 		this.isEnum = context.getClassinfo().getModifiers().isEnum();
 		this.returnType = getReturnType(context);
+		this.anonymousClass = getAnonymousClass();
 	}
 	
 	public InvokespecialOperation(DecompilationContext context, MethodDescriptor descriptor) {
@@ -68,6 +87,7 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 		this.superState = getSuperState(context);
 		this.isEnum = context.getClassinfo().getModifiers().isEnum();
 		this.returnType = getReturnType(context);
+		this.anonymousClass = getAnonymousClass();
 	}
 	
 	public InvokespecialOperation(DecompilationContext context, MethodDescriptor descriptor, Operation object) {
@@ -75,6 +95,7 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 		this.superState = getSuperState(context);
 		this.isEnum = context.getClassinfo().getModifiers().isEnum();
 		this.returnType = getReturnType(context);
+		this.anonymousClass = getAnonymousClass();
 	}
 	
 	@Override
@@ -97,12 +118,12 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 			}
 			
 			if(descriptor.argumentsEquals(ClassType.STRING)) {
-				Operation firstArg = arguments.getFirst();
+				Operation firstArg = getArguments().getFirst();
 				
 				if(firstArg instanceof InvokestaticOperation invokestatic &&
 						invokestatic.descriptor.equals(ClassType.STRING, "valueOf", ClassType.STRING, 1)) {
 					
-					firstArg = invokestatic.arguments.getFirst();
+					firstArg = invokestatic.getArguments().getFirst();
 				}
 				
 				operands.addFirst(firstArg);
@@ -113,11 +134,26 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 		return null;
 	}
 	
+	
+	@Override
+	public void addImports(ClassInfo classino) {
+		if(anonymousClass != null) {
+			classino.addImport(returnType);
+			anonymousClass.addImports(classino);
+		}
+	}
+	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		if(descriptor.isConstructor()) {
-			writeObject(out, context);
-			writeArguments(out, context);
+			if(anonymousClass != null) {
+				anonymousClass.writeAsNewAnonymousObject(out, context, this);
+				
+			} else {
+				writeObject(out, context);
+				writeArguments(out, context);
+			}
+			
 		} else {
 			super.writeTo(out, context);
 		}
@@ -125,7 +161,13 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 	
 	@Override
 	protected int skipArguments() {
-		return descriptor.isConstructor() && isEnum ? MethodDescriptor.IMPLICIT_ENUM_ARGUMENTS : 0;
+		return descriptor.isConstructor() && isEnum ? MethodDescriptor.IMPLICIT_ENUM_ARGUMENTS :
+				anonymousClass != null ? 1 : 0;
+	}
+	
+	@Override
+	public void writeArguments(StringifyOutputStream out, StringifyContext context) {
+		super.writeArguments(out, context);
 	}
 	
 	@Override
@@ -160,7 +202,7 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 	@Override
 	public boolean canOmit() {
 		return descriptor.isConstructor() && superState == SuperState.SUPERCLASS &&
-				(arguments.isEmpty() || isEnum && descriptor.argumentsEquals(ClassType.STRING, PrimitiveType.INT));
+				(isArgumentsEmpty() || isEnum && descriptor.argumentsEquals(ClassType.STRING, PrimitiveType.INT));
 	}
 	
 	@Override

@@ -2,8 +2,9 @@ package x590.jdecompiler.operation.invoke;
 
 import java.util.LinkedList;
 
-import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.context.DecompilationContext;
+import x590.jdecompiler.main.JDecompiler;
+import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.operation.CastOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.ClassType;
@@ -23,7 +24,7 @@ public final class InvokevirtualOperation extends InvokeNonstaticOperation {
 	
 	/** Несуществующий дескриптор метода, просто чтобы было */
 	private static final MethodDescriptor DEFAULT_STRING_CONCAT_DESCRIPTOR =
-			new MethodDescriptor(ClassType.STRING_BUILDER, "toString", ClassType.STRING, ClassType.STRING);
+			new MethodDescriptor(ClassType.STRING_BUILDER, "toString", ClassType.STRING);
 	
 	
 	public static Operation operationOf(DecompilationContext context, int descriptorIndex) {
@@ -61,12 +62,14 @@ public final class InvokevirtualOperation extends InvokeNonstaticOperation {
 			if(returnType.equals(PrimitiveType.BOOLEAN) && name.equals("booleanValue"))
 				return new CastOperation(ClassType.BOOLEAN, PrimitiveType.BOOLEAN, true, context);
 			
-		} else if(descriptor.equals(ClassType.STRING_BUILDER, "toString", ClassType.STRING)) {
+		} else if(JDecompiler.getConfig().decompileStringBuilderAsConcatenation() &&
+				descriptor.equals(ClassType.STRING_BUILDER, "toString", ClassType.STRING)) {
+			
 			Operation object = context.popAsNarrowest(ClassType.STRING_BUILDER);
 			
 			LinkedList<Operation> operands = object.getStringBuilderChain(new LinkedList<>());
 			
-			if(operands != null) {
+			if(operands != null && !operands.isEmpty()) {
 				return new ConcatStringsOperation(context, DEFAULT_STRING_CONCAT_DESCRIPTOR, operands);
 			}
 			
@@ -80,7 +83,7 @@ public final class InvokevirtualOperation extends InvokeNonstaticOperation {
 	public @Nullable LinkedList<Operation> getStringBuilderChain(LinkedList<Operation> operands) {
 		if(descriptor.equals(ClassType.STRING_BUILDER, "append", ClassType.STRING_BUILDER, 1)) {
 			
-			operands.addFirst(arguments.getFirst());
+			operands.addFirst(getArguments().getFirst());
 			return object.getStringBuilderChain(operands);
 		}
 		

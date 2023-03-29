@@ -1,9 +1,9 @@
 package x590.jdecompiler.attribute.signature;
 
-import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.FieldDescriptor;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DecompilationException;
+import x590.jdecompiler.field.FieldDescriptor;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.jdecompiler.type.ReferenceType;
@@ -21,7 +21,7 @@ public final class FieldSignatureAttribute extends SignatureAttribute {
 	}
 	
 	public void checkType(FieldDescriptor descriptor) {
-		if(!type.baseEquals(descriptor.getType()))
+		if(!type.equalsIgnoreSignature(descriptor.getType()))
 			throw new DecompilationException("Field signature doesn't matches the field type: " + type + " and " + descriptor.getType());
 	}
 	

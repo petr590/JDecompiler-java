@@ -106,6 +106,6 @@ public abstract class Modifiers {
 	}
 	
 	public boolean equals(Modifiers other) {
-		return this.value == other.value;
+		return value == other.value;
 	}
 }

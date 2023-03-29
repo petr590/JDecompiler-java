@@ -1,7 +1,7 @@
 package x590.jdecompiler.modifiers;
 
-import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.StringifyWritable;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.util.IWhitespaceStringBuilder;

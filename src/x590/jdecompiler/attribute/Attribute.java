@@ -34,7 +34,7 @@ public abstract class Attribute implements JavaSerializable, Importable {
 		int length = in.readInt();
 		int pos = in.available() - length;
 		
-		Attribute attribute = AttributeType.getAttributeType(location, name).readAttribute(name, length, in, pool);
+		Attribute attribute = AttributeType.getAttributeType(location, name).readAttribute(name, length, in, pool, location);
 		
 		if(pos == in.available())
 			return attribute;

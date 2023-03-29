@@ -1,10 +1,10 @@
 package x590.jdecompiler.operation.invoke;
 
-import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.MethodDescriptor;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.operation.CastOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.ClassType;

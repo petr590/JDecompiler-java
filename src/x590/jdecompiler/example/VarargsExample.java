@@ -1,27 +1,24 @@
 package x590.jdecompiler.example;
 
+import static x590.jdecompiler.example.VarargsSuperclass.*;
+
 @Example
 public class VarargsExample {
-
+	
 	public static void main(String[] args) {
-		ExampleTesting.runDecompiler(VarargsExample.class);
+		ExampleTesting.runDecompiler(VarargsSuperclass.class, VarargsExample.class);
 	}
-
-	void foo() {}
-
-	void foo(double arg1) {}
-
-	void foo(double arg1, double arg2) {}
-
-	void foo(double arg1, double arg2, double arg3) {}
-
-	void foo(double... args) {}
-
-	void bar() {
+	
+	void bar() throws NoSuchMethodException, SecurityException {
 		foo();
 		foo(0);
 		foo(0, 0);
 		foo(0, 0, 0);
 		foo(0, 0, 0, 0);
+		foo2("foo");
+		foo2("foo", Object.class.getDeclaredMethod("equals", Object.class));
+		foo2("foo", Object.class.getDeclaredMethods());
+//		foo3("foo", new Class[] {});
+//		foo3("foo", new Class[] { Object.class });
 	}
 }

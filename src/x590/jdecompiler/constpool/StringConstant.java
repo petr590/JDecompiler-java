@@ -1,8 +1,8 @@
 package x590.jdecompiler.constpool;
 
-import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.FieldDescriptor;
-import x590.jdecompiler.JavaField;
+import x590.jdecompiler.clazz.ClassInfo;
+import x590.jdecompiler.field.FieldDescriptor;
+import x590.jdecompiler.field.JavaField;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.io.StringifyOutputStream;

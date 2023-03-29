@@ -14,7 +14,6 @@ import x590.jdecompiler.operation.condition.AndOperation;
 import x590.jdecompiler.operation.condition.ConditionOperation;
 import x590.jdecompiler.operation.condition.OrOperation;
 import x590.jdecompiler.operation.store.StoreOperation;
-import x590.util.Logger;
 
 public class LoopScope extends ConditionalScope {
 	
@@ -89,8 +88,6 @@ public class LoopScope extends ConditionalScope {
 				iter.hasPrevious() && iter.previous() instanceof VariableDefinitionOperation operation;) {
 			
 			boolean variableDefinition = operation.isVariableDefinition();
-			
-			Logger.debug(variableDefinition);
 			
 			if(prevOperation == null ||
 					variableDefinition == prevOperation.isVariableDefinition() &&

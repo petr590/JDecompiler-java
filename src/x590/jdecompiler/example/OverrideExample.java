@@ -4,11 +4,17 @@ package x590.jdecompiler.example;
 public abstract class OverrideExample extends SuperclassExample {
 	
 	public static void main(String[] args) {
-		ExampleTesting.runDecompiler(OverrideExample.class, "-x=never");
+		ExampleTesting.runDecompiler(new Class[] { SuperclassOfSuperclassExample.class, OverrideExample.class }, "-x=never");
+	}
+	
+	public OverrideExample(int x) {}
+	
+	static {
+		System.out.println();
 	}
 	
 	@Override
-	public abstract void foo();
+	public abstract void foo(int x);
 	
 	@Override
 	public abstract int bar();

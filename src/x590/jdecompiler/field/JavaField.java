@@ -1,16 +1,16 @@
-package x590.jdecompiler;
-
-import static x590.jdecompiler.modifiers.Modifiers.*;
+package x590.jdecompiler.field;
 
 import java.util.List;
 import java.util.Objects;
 
+import x590.jdecompiler.JavaClassElement;
 import x590.jdecompiler.attribute.AttributeType;
 import x590.jdecompiler.attribute.Attributes;
 import x590.jdecompiler.attribute.Attributes.Location;
 import x590.jdecompiler.attribute.ConstantValueAttribute;
 import x590.jdecompiler.attribute.annotation.AnnotationsAttribute;
 import x590.jdecompiler.attribute.signature.FieldSignatureAttribute;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.constpool.ConstValueConstant;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.context.DecompilationContext;
@@ -21,6 +21,7 @@ import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
+import x590.jdecompiler.method.JavaMethod;
 import x590.jdecompiler.modifiers.FieldModifiers;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.util.IWhitespaceStringBuilder;
@@ -33,6 +34,8 @@ public class JavaField extends JavaClassElement {
 	private final FieldModifiers modifiers;
 	private final FieldDescriptor descriptor;
 	private final Attributes attributes;
+	
+	private @Nullable FieldInfo fieldInfo;
 	
 	private final ConstantValueAttribute constantValueAttribute;
 	private Operation initializer;
@@ -49,7 +52,7 @@ public class JavaField extends JavaClassElement {
 	}
 	
 	
-	static List<JavaField> readFields(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool) {
+	public static List<JavaField> readFields(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool) {
 		return in.readArrayList(() -> {
 			FieldModifiers modifiers = FieldModifiers.read(in);
 			return modifiers.isEnum() ? new JavaEnumField(in, classinfo, pool, modifiers) : new JavaField(in, classinfo, pool, modifiers);
@@ -68,6 +71,10 @@ public class JavaField extends JavaClassElement {
 	
 	public Attributes getAttributes() {
 		return attributes;
+	}
+	
+	public FieldInfo getFieldInfo() {
+		return fieldInfo == null ? fieldInfo = new FieldInfo(descriptor, modifiers) : fieldInfo;
 	}
 	
 	
@@ -186,7 +193,7 @@ public class JavaField extends JavaClassElement {
 		if(initializer != null) {
 			out.write(" = ");
 			
-			if(descriptor.getType().isArrayType() && JDecompiler.getInstance().shortArrayInitAllowed())
+			if(descriptor.getType().isArrayType() && JDecompiler.getConfig().shortArrayInitAllowed())
 				initializer.writeAsArrayInitializer(out, method.getStringifyContext());
 			else
 				initializer.writeTo(out, method.getStringifyContext());
@@ -197,24 +204,21 @@ public class JavaField extends JavaClassElement {
 		}
 	}
 	
+	@Override
+	public String getModifiersTarget() {
+		return "field " + descriptor.toString();
+	}
+	
 	private IWhitespaceStringBuilder modifiersToString() {
 		IWhitespaceStringBuilder str = new WhitespaceStringBuilder().printTrailingSpace();
 		
 		var modifiers = this.modifiers;
 		
-		switch(modifiers.and(ACC_ACCESS_FLAGS)) {
-			case ACC_VISIBLE   -> {}
-			case ACC_PUBLIC    -> str.append("public");
-			case ACC_PRIVATE   -> str.append("private");
-			case ACC_PROTECTED -> str.append("protected");
-			default ->
-				throw new IllegalModifiersException(modifiers);
-		}
+		baseModifiersToString(str);
 		
 		if(modifiers.isFinal() && modifiers.isVolatile())
-			throw new IllegalModifiersException(modifiers);
+			throw new IllegalModifiersException(this, modifiers, "field cannot be both final and volatile");
 		
-		if(modifiers.isStatic())    str.append("static");
 		if(modifiers.isFinal())     str.append("final");
 		if(modifiers.isTransient()) str.append("transient");
 		if(modifiers.isVolatile())  str.append("volatile");
@@ -229,12 +233,12 @@ public class JavaField extends JavaClassElement {
 	
 	
 	public boolean canJoinDeclaration(JavaField other) {
-		return descriptor.getType().getArrayMemberIfUsingCArrays()
-						.equals(other.descriptor.getType().getArrayMemberIfUsingCArrays()) &&
-				!hasAnyInitializer() && !other.hasAnyInitializer() &&
+		return !hasAnyInitializer() && !other.hasAnyInitializer() &&
 				modifiers.equals(other.modifiers) &&
-				annotationAttributes.equals(other.annotationAttributes) &&
-				Objects.equals(getSignature(), other.getSignature());
+				descriptor.getType().getArrayMemberIfUsingCArrays()
+						.equals(other.descriptor.getType().getArrayMemberIfUsingCArrays()) &&
+				Objects.equals(getSignature(), other.getSignature()) &&
+				annotationAttributes.equals(other.annotationAttributes);
 	}
 	
 	

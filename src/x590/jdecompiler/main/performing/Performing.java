@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 
-import x590.jdecompiler.JavaClass;
+import x590.jdecompiler.clazz.JavaClass;
 import x590.util.annotation.Nullable;
 
 /**

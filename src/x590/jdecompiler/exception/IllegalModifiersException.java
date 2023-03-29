@@ -1,7 +1,7 @@
 package x590.jdecompiler.exception;
 
+import x590.jdecompiler.JavaClassElement;
 import x590.jdecompiler.modifiers.Modifiers;
-import x590.jdecompiler.type.ClassType;
 
 public class IllegalModifiersException extends DecompilationException {
 	
@@ -15,11 +15,11 @@ public class IllegalModifiersException extends DecompilationException {
 		super(modifiers.toHexWithPrefix());
 	}
 	
-	public IllegalModifiersException(ClassType classType, Modifiers modifiers) {
-		super("in class " + classType.getName() + ": " + modifiers.toHexWithPrefix());
+	public IllegalModifiersException(JavaClassElement element, Modifiers modifiers) {
+		super("in " + element.getModifiersTarget() + ": " + modifiers.toHexWithPrefix());
 	}
 	
-	public IllegalModifiersException(ClassType classType, Modifiers modifiers, String message) {
-		super("in class " + classType.getName() + ": " + modifiers.toHexWithPrefix() + ": " + message);
+	public IllegalModifiersException(JavaClassElement element, Modifiers modifiers, String message) {
+		super("in " + element.getModifiersTarget() + ": " + modifiers.toHexWithPrefix() + ": " + message);
 	}
 }

@@ -52,8 +52,8 @@ public class InnerClassesAttribute extends Attribute {
 		return entries;
 	}
 	
-	public @Nullable InnerClassEntry find(ClassType type) {
-		return entries.get(type);
+	public @Nullable InnerClassEntry find(ClassType innerType) {
+		return entries.get(innerType);
 	}
 	
 	

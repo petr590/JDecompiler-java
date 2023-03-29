@@ -1,6 +1,6 @@
 package x590.jdecompiler.exception;
 
-import x590.jdecompiler.MethodDescriptor;
+import x590.jdecompiler.method.MethodDescriptor;
 
 public class NoSuchMethodException extends NoSuchClassMemberException {
 	

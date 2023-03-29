@@ -2,10 +2,10 @@ package x590.jdecompiler.operation;
 
 import java.util.LinkedList;
 
-import x590.jdecompiler.FieldDescriptor;
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.StringifyWritable;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.field.FieldDescriptor;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.constant.ConstOperation;
 import x590.jdecompiler.operationinstruction.constant.AConstNullOperationInstruction;
@@ -108,9 +108,6 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	
 	/** Запрещает опустить явное преобразование */
 	public void denyImplicitCast();
-	
-	/** Убирает неявное объявление массива при вызове метода с varargs */
-	public default void inlineVarargs() {}
 	
 	/** Нужно для {@link ConstOperation} */
 	@RemoveIfNotUsed

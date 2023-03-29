@@ -1,7 +1,7 @@
 package x590.jdecompiler.util;
 
-import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.SameDisassemblingStringifyWritable;
+import x590.jdecompiler.clazz.ClassInfo;
 
 public abstract class AbstractWhitespaceStringBuilder implements IWhitespaceStringBuilder, SameDisassemblingStringifyWritable<ClassInfo> {
 	

@@ -1,5 +1,6 @@
 package x590.jdecompiler;
 
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.type.ReferenceType;
 
 public abstract class Descriptor implements DisassemblingWritable<ClassInfo> {

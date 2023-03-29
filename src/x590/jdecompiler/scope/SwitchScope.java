@@ -9,7 +9,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntComparators;
 import it.unimi.dsi.fastutil.ints.IntList;
-import x590.jdecompiler.Version;
+import x590.jdecompiler.clazz.Version;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.constpool.IntegerConstant;
 import x590.jdecompiler.context.DecompilationContext;

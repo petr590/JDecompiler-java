@@ -1,11 +1,12 @@
 package x590.jdecompiler;
 
+import x590.jdecompiler.clazz.JavaClass;
 import x590.util.ObjectHolder;
 
 /**
  * Стадия декомпиляции. Используется для контроля правильного использования {@link JavaClass}
  */
-enum DecompilationStage {
+public enum DecompilationStage {
 	DISASSEMBLED     ("Cannot disassemble class", "class yet not disassembled", "class already disassembled"),
 	DECOMPILED       ("Cannot decompile class",   "class yet not decompiled",   "class already decompiled"),
 	IMPORTS_RESOLVED ("Cannot resolve imports",   "imports yet not resolved",   "imports already resolved"),
@@ -41,7 +42,7 @@ enum DecompilationStage {
 	}
 	
 	
-	static class DecompilationStageHolder extends ObjectHolder<DecompilationStage> {
+	public static class DecompilationStageHolder extends ObjectHolder<DecompilationStage> {
 		
 		public DecompilationStageHolder(DecompilationStage stage) {
 			super(stage);

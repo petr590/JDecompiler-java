@@ -15,14 +15,14 @@ import java.util.stream.Collectors;
 
 import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
-import x590.jdecompiler.JavaMethod;
 import x590.jdecompiler.attribute.CodeAttribute.ExceptionTable;
 import x590.jdecompiler.attribute.CodeAttribute.ExceptionTable.CatchEntry;
 import x590.jdecompiler.attribute.CodeAttribute.ExceptionTable.TryEntry;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.instruction.Instruction;
+import x590.jdecompiler.method.JavaMethod;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.returning.VReturnOperation;
 import x590.jdecompiler.scope.Scope;
@@ -89,7 +89,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 			startScopes(index);
 			
 			
-//			Logger.debugf("%d: operation stack: [%s]", index, stack.stream().map(operation -> operation.getClass().getSimpleName() + " " + operation.getReturnType()).collect(Collectors.joining(", ")));
+//			Logger.debugf("%d: operation stack: [%s]", index, stack.stream().map(operation -> operation.getClass().getSimpleName() + " " + operation.getReturnType().getName()).collect(Collectors.joining(", ")));
 //			Logger.debugf("%d: scope stack: [%s]", index, StreamSupport.stream(this.getCurrentScopes().spliterator(), false).map(Scope::toString).collect(Collectors.joining(", ")));
 			
 //			Logger.debugf("%d: locals: [%s]", index,
@@ -130,7 +130,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 			try {
 				operation = instruction.toOperation(this);
 			} catch(DecompilationException | EmptyStackException ex) {
-				throw new DecompilationException("At index " + index, ex);
+				throw new DecompilationException(index, ex);
 			}
 			
 			if(operation != null) {
@@ -276,6 +276,10 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	}
 	
 	
+	public OperationStack getStack() {
+		return stack;
+	}
+	
 	public Operation pop() {
 		return stack.pop();
 	}
@@ -327,7 +331,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	}
 	
 	public boolean stackEmpty() {
-		return stack.empty();
+		return stack.isEmpty();
 	}
 	
 	public int stackSize() {

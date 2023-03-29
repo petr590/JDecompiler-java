@@ -1,8 +1,9 @@
 package x590.jdecompiler.type;
 
-import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.io.ExtendedOutputStream;
 
+/** Дженерик, не ограниченный ни сверху, ни снизу */
 public final class AnyGenericType extends GenericType {
 	
 	public static final AnyGenericType INSTANCE = new AnyGenericType();
@@ -17,5 +18,15 @@ public final class AnyGenericType extends GenericType {
 	@Override
 	public String toString() {
 		return "AnyGenericType";
+	}
+	
+	@Override
+	public String getEncodedName() {
+		return "*";
+	}
+	
+	@Override
+	public String getName() {
+		return "?";
 	}
 }

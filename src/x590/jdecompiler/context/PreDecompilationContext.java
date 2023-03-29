@@ -6,11 +6,11 @@ import java.util.List;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.JavaMethod;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.instruction.Instruction;
 import x590.jdecompiler.instruction.scope.IfInstruction;
 import x590.jdecompiler.instruction.scope.TransitionInstruction;
+import x590.jdecompiler.method.JavaMethod;
 import x590.util.Logger;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;

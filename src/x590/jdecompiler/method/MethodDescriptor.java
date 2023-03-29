@@ -1,5 +1,6 @@
-package x590.jdecompiler;
+package x590.jdecompiler.method;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
@@ -10,10 +11,13 @@ import java.util.function.IntConsumer;
 import java.util.function.ObjIntConsumer;
 import java.util.stream.Collectors;
 
+import x590.jdecompiler.Descriptor;
+import x590.jdecompiler.Importable;
 import x590.jdecompiler.attribute.AttributeType;
 import x590.jdecompiler.attribute.Attributes;
 import x590.jdecompiler.attribute.annotation.ParameterAnnotationsAttribute;
 import x590.jdecompiler.attribute.signature.MethodSignatureAttribute;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.constpool.ClassConstant;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.constpool.NameAndTypeConstant;
@@ -85,6 +89,10 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	}
 	
 	
+	public boolean isPlain() {
+		return kind == MethodKind.PLAIN;
+	}
+	
 	public boolean isConstructor() {
 		return kind == MethodKind.CONSTRUCTOR;
 	}
@@ -146,6 +154,13 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 		this.kind = kindForName(name);
 	}
 	
+	private MethodDescriptor(ReferenceType declaringClass, String name, MethodKind kind, @Immutable List<Type> arguments, Type returnType) {
+		super(declaringClass, name);
+		this.arguments = arguments;
+		this.returnType = returnType;
+		this.kind = kind;
+	}
+	
 	
 	public MethodDescriptor(ReferenceType declaringClass, ExtendedDataInputStream in, ConstantPool pool) {
 		this(declaringClass, pool.getUtf8String(in.readUnsignedShort()), pool.getUtf8String(in.readUnsignedShort()));
@@ -153,7 +168,19 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	
 	
 	public static MethodDescriptor fromReflectMethod(ReferenceType thisType, Method method) {
-		return new MethodDescriptor(thisType, method.getName(), Arrays.stream(method.getParameterTypes()).map(Type::fromClass).toList(), Type.fromClass(method.getReturnType()));
+		return new MethodDescriptor(
+				thisType, method.getName(),
+				Arrays.stream(method.getParameterTypes()).map(Type::fromClass).toList(),
+				Type.fromClass(method.getReturnType())
+		);
+	}
+	
+	public static MethodDescriptor fromReflectConstructor(ReferenceType thisType, Constructor<?> constructor) {
+		return new MethodDescriptor(
+				thisType, "<init>", MethodKind.CONSTRUCTOR,
+				Arrays.stream(constructor.getParameterTypes()).map(Type::fromClass).toList(),
+				PrimitiveType.VOID
+		);
 	}
 	
 	
@@ -272,13 +299,15 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 		return getDeclaringClass().getName() + "." +
 				(kind == MethodKind.STATIC_INITIALIZER ? "static {}" :
 				(kind == MethodKind.CONSTRUCTOR ? ((ClassType)getDeclaringClass()).getSimpleName() : getName())
-						+ "(" + arguments.stream().map(Type::getName).collect(Collectors.joining(", ")) + ")");
+						+ arguments.stream().map(Type::getName).collect(Collectors.joining(", ", "(", ")")));
 	}
 	
 	
 	public boolean equalsIgnoreClass(MethodDescriptor other) {
-		return this == other || getName().equals(other.getName()) &&
-				returnType.equals(other.returnType) && arguments.equals(other.arguments);
+		return this == other ||
+				getName().equals(other.getName()) &&
+				returnType.equals(other.returnType) &&
+				arguments.equals(other.arguments);
 	}
 	
 	@Override

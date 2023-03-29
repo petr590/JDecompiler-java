@@ -6,15 +6,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.attribute.AttributeType;
 import x590.jdecompiler.attribute.CodeAttribute;
 import x590.jdecompiler.attribute.LocalVariableTableAttribute;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.modifiers.MethodModifiers;
 import x590.jdecompiler.operation.Operation;
+import x590.jdecompiler.operation.array.NewArrayOperation;
+import x590.jdecompiler.operation.load.ILoadOperation;
+import x590.jdecompiler.operation.returning.AReturnOperation;
 import x590.jdecompiler.operation.returning.ReturnOperation;
 import x590.jdecompiler.type.ArrayType;
 import x590.jdecompiler.type.PrimitiveType;
@@ -128,5 +131,25 @@ public class MethodScope extends Scope {
 		} else {
 			this.writeTo(out, context);
 		}
+	}
+	
+	public boolean writeAsLambdaNewArray(StringifyOutputStream out, StringifyContext context) {
+		List<Operation> operations = getOperations();
+		
+		if(operations.size() == 1 &&
+				operations.get(0) instanceof AReturnOperation areturn &&
+				areturn.getOperand() instanceof NewArrayOperation newArray) {
+			
+			List<Operation> lengths = newArray.getLengths();
+			
+			if(lengths.size() == 1 && lengths.get(0) instanceof ILoadOperation iload &&
+					iload.getVariable() == locals.get(0)) {
+				
+				out.print(newArray.getReturnType(), context.getClassinfo()).print("::new");
+				return true;
+			}
+		}
+		
+		return false;
 	}
 }

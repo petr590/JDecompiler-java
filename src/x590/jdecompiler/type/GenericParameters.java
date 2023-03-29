@@ -6,11 +6,10 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.SameDisassemblingStringifyWritable;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.exception.InvalidSignatureException;
-import x590.jdecompiler.exception.InvalidTypeNameException;
 import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.util.annotation.Immutable;
@@ -25,7 +24,7 @@ public final class GenericParameters<T extends ReferenceType> implements SameDis
 		in.mark();
 		
 		if(in.read() != '<')
-			throw new InvalidTypeNameException(in, 0);
+			throw new InvalidSignatureException(in, 0);
 		
 		List<T> types = new ArrayList<>();
 		
@@ -56,8 +55,8 @@ public final class GenericParameters<T extends ReferenceType> implements SameDis
 	}
 	
 	@Override
-	public String toString() {
-		return "<" + types.stream().map(type -> type.toString()).collect(Collectors.joining(", ")) + ">";
+	public void addImports(ClassInfo classinfo) {
+		classinfo.addImportsFor(types);
 	}
 	
 	@Override
@@ -66,7 +65,7 @@ public final class GenericParameters<T extends ReferenceType> implements SameDis
 	}
 	
 	@Override
-	public void addImports(ClassInfo classinfo) {
-		classinfo.addImportsFor(types);
+	public String toString() {
+		return types.stream().map(Type::toString).collect(Collectors.joining(", ", "<", ">"));
 	}
 }

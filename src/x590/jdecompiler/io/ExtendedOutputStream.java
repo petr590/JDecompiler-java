@@ -43,12 +43,12 @@ public abstract class ExtendedOutputStream<Self extends ExtendedOutputStream<Sel
 			String indent = INDENT_CACHE[width];
 			
 			if(indent == null)
-				indent = INDENT_CACHE[width] = JDecompiler.getInstance().getIndent().repeat(width);
+				indent = INDENT_CACHE[width] = JDecompiler.getConfig().getIndent().repeat(width);
 			
 			return indent;
 		}
 		
-		return JDecompiler.getInstance().getIndent().repeat(width);
+		return JDecompiler.getConfig().getIndent().repeat(width);
 	}
 	
 	

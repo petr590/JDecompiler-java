@@ -9,6 +9,10 @@ public final class MethodModifiers extends ClassEntryModifiers {
 		super(value);
 	}
 	
+	public static MethodModifiers of(int modifiers) {
+		return new MethodModifiers(modifiers);
+	}
+	
 	public static MethodModifiers read(ExtendedDataInputStream in) {
 		return new MethodModifiers(in.readUnsignedShort());
 	}

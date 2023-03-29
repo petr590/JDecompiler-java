@@ -1,11 +1,22 @@
 package x590.jdecompiler.example;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import x590.jdecompiler.clazz.JavaClass;
+import x590.jdecompiler.exception.DecompilationException;
+import x590.jdecompiler.exception.DisassemblingException;
+import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.main.Config;
 import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.main.Main;
+import x590.jdecompiler.main.performing.AbstractPerforming.PerformingType;
 
 public class ExampleTesting {
 	
@@ -14,6 +25,7 @@ public class ExampleTesting {
 			VANILLA_DIR = "vbin",
 			JDK_DIR = "/home/winch/0x590/java/jdk-8-rt";
 	
+	private static final String[] EMPTY_ARGS = {};
 	
 	
 	public static String getClassPath(String dir, Class<?> clazz) {
@@ -30,21 +42,64 @@ public class ExampleTesting {
 	
 	
 	public static void runDecompilerForJdk(Class<?> clazz) {
-		runDecompiler(JDK_DIR, clazz);
+		runDecompilerForJdk(new Class[] { clazz }, EMPTY_ARGS);
 	}
 	
 	public static void runDecompilerForJdk(Class<?>... classes) {
-		runDecompiler(JDK_DIR, classes);
+		runDecompilerForJdk(classes, EMPTY_ARGS);
 	}
 	
 	public static void runDecompilerForJdk(Class<?> clazz, String... otherArgs) {
-		runDecompiler(JDK_DIR, clazz, otherArgs);
+		runDecompilerForJdk(new Class[] { clazz }, otherArgs);
 	}
 	
 	public static void runDecompilerForJdk(Class<?>[] classes, String... otherArgs) {
-		runDecompiler(JDK_DIR, classes, otherArgs);
+		JDecompiler.init(PerformingType.DECOMPILE, Config.newBuilder().build());
+		
+		List<JavaClass> javaClasses = new ArrayList<>(classes.length);
+		
+		for(Class<?> clazz : classes) {
+			URL resource = clazz.getResource(getClassSimpleName(clazz) + ".class");
+			
+			if(resource != null) {
+				try(InputStream in = resource.openStream()) {
+					JavaClass javaClass = JavaClass.read(in);
+					
+					javaClasses.add(javaClass);
+					
+				} catch(IOException | DisassemblingException | DecompilationException ex) {
+					ex.printStackTrace();
+				}
+				
+			} else {
+				System.err.println("Cannot find resource for class " + clazz.getName() + ";" + getClassSimpleName(clazz));
+			}
+		}
+		
+		var out = new StringifyOutputStream(System.out);
+		
+		for(JavaClass javaClass : javaClasses) {
+			javaClass.decompile();
+			javaClass.resolveImports();
+			
+			if(javaClass.canStringify())
+				javaClass.writeTo(out);
+		}
+		
+		out.flush();
 	}
 	
+	
+	private static String getClassSimpleName(Class<?> clazz) {
+		String simpleName = clazz.getSimpleName();
+		
+		if(!simpleName.isEmpty())
+			return simpleName;
+		
+		String name = clazz.getName();
+		String packageName = clazz.getPackageName();
+		return name.startsWith(packageName) ? name.substring(packageName.length() + 1) : name;
+	}
 	
 	public static void runDecompiler(Class<?> clazz) {
 		runDecompiler(DEFAULT_DIR, clazz);

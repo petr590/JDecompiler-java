@@ -1,9 +1,9 @@
 package x590.jdecompiler.attribute;
 
-import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.FieldDescriptor;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.constpool.ConstableValueConstant;
 import x590.jdecompiler.constpool.ConstantPool;
+import x590.jdecompiler.field.FieldDescriptor;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.io.StringifyOutputStream;

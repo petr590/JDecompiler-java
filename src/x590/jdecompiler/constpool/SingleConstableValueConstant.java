@@ -1,7 +1,7 @@
 package x590.jdecompiler.constpool;
 
-import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.JavaField;
+import x590.jdecompiler.clazz.ClassInfo;
+import x590.jdecompiler.field.JavaField;
 import x590.jdecompiler.type.Type;
 import x590.util.lazyloading.FunctionalLazyLoadingValue;
 

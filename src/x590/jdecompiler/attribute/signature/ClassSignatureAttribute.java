@@ -3,7 +3,7 @@ package x590.jdecompiler.attribute.signature;
 import java.util.List;
 import java.util.stream.Stream;
 
-import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
@@ -41,14 +41,14 @@ public final class ClassSignatureAttribute extends SignatureAttribute {
 	}
 	
 	public void checkTypes(ClassType superType, List<ClassType> interfaces) {
-		if(!this.superType.baseEquals(superType)) {
+		if(!this.superType.equalsIgnoreSignature(superType)) {
 			throw new DecompilationException("Class signature doesn't matches the super type: " + this.superType + " and " + superType);
 		}
 		
 		if(this.interfaces.size() == interfaces.size()) {
 			var iterator = interfaces.iterator();
 			
-			if(this.interfaces.stream().allMatch(interfaceType -> interfaceType.baseEquals(iterator.next()))) {
+			if(this.interfaces.stream().allMatch(interfaceType -> interfaceType.equalsIgnoreSignature(iterator.next()))) {
 				return;
 			}
 		}

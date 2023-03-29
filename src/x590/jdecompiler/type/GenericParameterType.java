@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.exception.InvalidSignatureException;
 import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.io.ExtendedStringInputStream;
@@ -14,6 +14,7 @@ import x590.util.annotation.Immutable;
 /** Описывает объявление дженерика. Хранит имя и супертип */
 public final class GenericParameterType extends ReferenceType {
 	
+	private final String encodedName, name;
 	private final @Immutable List<ReferenceType> types;
 	
 	private static String parseName(ExtendedStringInputStream in, StringBuilder encodedNameBuilder) {
@@ -43,10 +44,10 @@ public final class GenericParameterType extends ReferenceType {
 				in.incPos();
 			} while(in.get() == ':');
 			
-			
 			ReferenceType type = Type.parseSignatureParameter(in);
 			types.add(type);
 			encodedNameBuilder.append(':').append(type.getEncodedName());
+			
 		} while(in.get() == ':');
 		
 		return Collections.unmodifiableList(types);
@@ -55,16 +56,16 @@ public final class GenericParameterType extends ReferenceType {
 	public GenericParameterType(ExtendedStringInputStream in) {
 		StringBuilder encodedNameBuilder = new StringBuilder();
 		
-		super.name = parseName(in, encodedNameBuilder);
+		this.name = parseName(in, encodedNameBuilder);
 		this.types = parseTypes(in, encodedNameBuilder);
 		
-		super.encodedName = encodedNameBuilder.toString();
+		this.encodedName = encodedNameBuilder.toString();
 	}
 	
 	@Override
 	public String toString() {
 		return types.size() == 1 && types.get(0).equals(ClassType.OBJECT) ? name : name + " extends " +
-				types.stream().map(type -> type.toString()).collect(Collectors.joining(" & "));
+				types.stream().map(Type::toString).collect(Collectors.joining(" & "));
 	}
 	
 	@Override
@@ -82,12 +83,22 @@ public final class GenericParameterType extends ReferenceType {
 	}
 	
 	@Override
+	public String getEncodedName() {
+		return encodedName;
+	}
+	
+	@Override
+	public String getName() {
+		return name;
+	}
+	
+	@Override
 	public String getNameForVariable() {
 		throw new UnsupportedOperationException("Variable cannot have generic parameter type");
 	}
 	
 	@Override
 	protected boolean canCastTo(Type other) {
-		return other.isBasicReferenceType();
+		return other.isReferenceType();
 	}
 }

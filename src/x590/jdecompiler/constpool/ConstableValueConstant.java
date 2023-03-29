@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.FieldDescriptor;
-import x590.jdecompiler.JavaField;
+import x590.jdecompiler.clazz.ClassInfo;
+import x590.jdecompiler.field.FieldDescriptor;
+import x590.jdecompiler.field.JavaField;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.type.CastStatus;
@@ -20,7 +20,7 @@ import x590.util.lazyloading.FunctionalLazyLoadingValue;
  */
 public abstract class ConstableValueConstant<T> extends ConstValueConstant implements ICachedConstant<T> {
 	
-	protected FunctionalLazyLoadingValue<ClassInfo, @Nullable JavaField> newConstantLoader(Type type) {
+	protected FunctionalLazyLoadingValue<ClassInfo, x590.jdecompiler.field.JavaField> newConstantLoader(Type type) {
 		return new FunctionalLazyLoadingValue<>(
 				classinfo -> {
 					var groupedConstants = classinfo.getConstants().stream()
@@ -77,7 +77,7 @@ public abstract class ConstableValueConstant<T> extends ConstValueConstant imple
 	
 	
 	protected static boolean canUseConstants() {
-		return JDecompiler.getInstance().constantsUsagePolicy().isNotNever();
+		return JDecompiler.getConfig().constantsUsagePolicy().isNotNever();
 	}
 	
 	protected boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo,

@@ -1,6 +1,6 @@
 package x590.jdecompiler.exception;
 
-import x590.jdecompiler.FieldDescriptor;
+import x590.jdecompiler.field.FieldDescriptor;
 
 public class NoSuchFieldException extends NoSuchClassMemberException {
 	

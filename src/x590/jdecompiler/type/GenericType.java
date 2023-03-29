@@ -10,7 +10,7 @@ public abstract class GenericType extends ReferenceType {
 	
 	@Override
 	protected boolean canCastTo(Type other) {
-		return other.isBasicReferenceType();
+		return other.isReferenceType();
 	}
 	
 	@Override

@@ -13,13 +13,12 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.constpool.ClassConstant;
 import x590.jdecompiler.exception.InvalidClassNameException;
 import x590.jdecompiler.exception.InvalidTypeNameException;
 import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.io.ExtendedStringInputStream;
-import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.util.StringUtil;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
@@ -239,7 +238,9 @@ public class ClassType extends ReferenceType {
 	
 	
 	private final String
+			encodedName,
 			classEncodedName,
+			name,
 			simpleName,
 			fullSimpleName,
 			packageName;
@@ -261,8 +262,8 @@ public class ClassType extends ReferenceType {
 		super(clazz);
 		
 		this.classEncodedName = classEncodedName;
-		super.encodedName = clazz.descriptorString();
-		super.name = clazz.getName().replaceAll("\\$(?!\\d)", ".");
+		this.encodedName = clazz.descriptorString();
+		this.name = clazz.getName().replaceAll("\\$(?!\\d)", ".");
 		
 		this.packageName = clazz.getPackageName();
 		
@@ -406,8 +407,8 @@ public class ClassType extends ReferenceType {
 		String classEncodedName = classEncodedNameBuilder.toString();
 		
 		this.classEncodedName = classEncodedName;
-		super.encodedName = "L" + classEncodedName + ";";
-		super.name = nameBuilder.toString();
+		this.encodedName = 'L' + classEncodedName + ';';
+		this.name = nameBuilder.toString();
 		
 		String simpleName = nameBuilder.substring(nameStartPos);
 		this.packageName = nameBuilder.substring(0, packageEndPos);
@@ -461,15 +462,20 @@ public class ClassType extends ReferenceType {
 	
 	@Override
 	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
-		if(kind.isAnonymous()) {
-			out.write(fullSimpleName);
-		} else {
-			out.write(classinfo.imported(this) ? simpleName : name);
-			
-			if(signature != null) {
-				out.printlnObject(signature, classinfo);
-			}
-		}
+		String name = classinfo.getNameForClass(this);
+		assert name != null && !name.isEmpty();
+		out.write(name);
+		
+		if(signature != null) {
+			out.printObject(signature, classinfo);
+		}	
+	}
+	
+	/** @return Закодированное имя класса с префиксом 'L' и без постфиксом ';'<br>
+	 * Пример: "Ljava/lang/Object;" */
+	@Override
+	public String getEncodedName() {
+		return encodedName;
 	}
 	
 	/** @return Закодированное имя класса без префикса 'L' и без постфикса ';'<br>
@@ -479,7 +485,14 @@ public class ClassType extends ReferenceType {
 		return classEncodedName;
 	}
 	
-	/** @return Имя класса без пакета и внешних класстов<br>
+	/** @return Полное имя класса<br>
+	 * Пример: для класса "java/lang/Character$Subset" вернёт "java.lang.Character.Subset" */
+	@Override
+	public String getName() {
+		return name;
+	}
+	
+	/** @return Имя класса без пакета и внешних классов<br>
 	 * Пример: для класса "java/lang/Character$Subset" вернёт "Subset" */
 	public String getSimpleName() {
 		return simpleName;
@@ -532,10 +545,12 @@ public class ClassType extends ReferenceType {
 	}
 	
 	
+	/** package-info or module-info */
 	public boolean isSpecialClassType() {
 		return kind.isSpecial();
 	}
 	
+	/** neither package-info nor module-info */
 	public boolean isPlainClassType() {
 		return kind.isPlain();
 	}
@@ -596,12 +611,6 @@ public class ClassType extends ReferenceType {
 	
 	
 	@Override
-	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-		out.print(kind.isAnonymous() ? fullSimpleName : (classinfo.imported(this) ? simpleName : name)).printIfNotNull(signature, classinfo);
-	}
-	
-	
-	@Override
 	public int implicitCastStatus(Type other) {
 		return other instanceof PrimitiveType primitiveType && primitiveType.getWrapperType().equals(this) ?
 				CastStatus.AUTOBOXING : super.implicitCastStatus(other);
@@ -613,11 +622,11 @@ public class ClassType extends ReferenceType {
 	}
 	
 	@Override
-	public boolean baseEquals(Type other) {
-		return this == other || other instanceof ClassType classType && this.baseEquals(classType);
+	public boolean equalsIgnoreSignature(Type other) {
+		return this == other || other instanceof ClassType classType && this.equalsIgnoreSignature(classType);
 	}
 	
-	public boolean baseEquals(ClassType other) {
+	public boolean equalsIgnoreSignature(ClassType other) {
 		return this == other || name.equals(other.name);
 	}
 }

@@ -3,8 +3,8 @@ package x590.jdecompiler.attribute;
 import java.util.Collections;
 import java.util.List;
 
-import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.attribute.signature.MethodSignatureAttribute;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DisassemblingException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
@@ -47,7 +47,7 @@ public class ExceptionsAttribute extends Attribute {
 		private static final ExceptionsAttribute INSTANCE = new EmptyExceptionsAttribute();
 		
 		private EmptyExceptionsAttribute() {
-			super("Exceptions", 0, Collections.emptyList());
+			super(AttributeNames.EXCEPTIONS, 0, Collections.emptyList());
 		}
 		
 		@Override
@@ -64,6 +64,15 @@ public class ExceptionsAttribute extends Attribute {
 	}
 	
 	public void write(StringifyOutputStream out, ClassInfo classinfo, @Nullable MethodSignatureAttribute signature) {
-		out.print(" throws ").printAll(signature != null ? signature.throwsTypes : exceptionTypes, classinfo, ", ");
+		List<ReferenceType> exceptions;
+		
+		if(signature != null) {
+			var signatureExceptionTypes = signature.exceptionTypes;
+			exceptions = signatureExceptionTypes.isEmpty() ? this.exceptionTypes : signatureExceptionTypes;
+		} else {
+			exceptions = this.exceptionTypes;
+		}
+		
+		out.print(" throws ").printAll(exceptions, classinfo, ", ");
 	}
 }

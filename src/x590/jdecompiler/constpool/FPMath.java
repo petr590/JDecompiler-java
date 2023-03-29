@@ -1,6 +1,6 @@
 package x590.jdecompiler.constpool;
 
-import x590.jdecompiler.FieldDescriptor;
+import x590.jdecompiler.field.FieldDescriptor;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.PrimitiveType;
 

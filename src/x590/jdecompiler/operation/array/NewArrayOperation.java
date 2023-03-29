@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.DecompilationException;
@@ -25,6 +25,7 @@ public class NewArrayOperation extends AbstractOperation {
 	private final @Immutable List<Operation> arrayLengths;
 	private final int length;
 	private final List<Operation> initializers = new ArrayList<>();
+	private final @Immutable List<Operation> immutableInitializers = Collections.unmodifiableList(initializers);
 	private boolean varargsInlined;
 	
 	public NewArrayOperation(DecompilationContext context, int index) {
@@ -64,8 +65,16 @@ public class NewArrayOperation extends AbstractOperation {
 		return arrayType;
 	}
 	
+	public @Immutable List<Operation> getLengths() {
+		return arrayLengths;
+	}
+	
 	public int getLength() {
 		return length;
+	}
+	
+	public @Immutable List<Operation> getInitializers() {
+		return immutableInitializers;
 	}
 	
 	private void fillInitializersWithZeros(int toIndex) {
@@ -87,7 +96,8 @@ public class NewArrayOperation extends AbstractOperation {
 		return false;
 	}
 	
-	@Override
+	/** Убирает явное объявление массива при вызове метода с varargs */
+	@Deprecated
 	public void inlineVarargs() {
 		if(canInitAsList()) {
 			varargsInlined = true;
@@ -103,8 +113,11 @@ public class NewArrayOperation extends AbstractOperation {
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		arrayType.addImports(classinfo);
-		classinfo.addImportsFor(arrayLengths);
+		if(!varargsInlined) {
+			arrayType.addImports(classinfo);
+			classinfo.addImportsFor(arrayLengths);
+		}
+		
 		classinfo.addImportsFor(initializers);
 	}
 	

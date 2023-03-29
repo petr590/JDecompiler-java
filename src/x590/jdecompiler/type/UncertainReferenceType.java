@@ -1,6 +1,6 @@
 package x590.jdecompiler.type;
 
-import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.util.annotation.Nullable;
 
@@ -68,7 +68,7 @@ public final class UncertainReferenceType extends Type {
 	
 	
 	@Override
-	public final boolean isReferenceType() {
+	public final boolean isAnyReferenceType() {
 		return true;
 	}
 	

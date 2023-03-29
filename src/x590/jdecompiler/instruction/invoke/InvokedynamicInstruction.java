@@ -3,7 +3,6 @@ package x590.jdecompiler.instruction.invoke;
 import java.util.ArrayList;
 import java.util.List;
 
-import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.attribute.BootstrapMethodsAttribute.BootstrapMethod;
 import x590.jdecompiler.constpool.InvokeDynamicConstant;
 import x590.jdecompiler.constpool.MethodHandleConstant;
@@ -15,6 +14,7 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.DisassemblerContext;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.instruction.InstructionWithIndex;
+import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.StringConstOperation;
 import x590.jdecompiler.operation.field.GetInstanceFieldOperation;
@@ -114,7 +114,7 @@ public final class InvokedynamicInstruction extends InstructionWithIndex {
 									" must have three static arguments");
 						
 						return new LambdaOperation(context, arguments,
-								bootstrapMethod.getArgument(MethodHandleConstant.class, 1).getMethodrefConstant(),
+								bootstrapMethod.getArgument(MethodHandleConstant.class, 1),
 								bootstrapMethod.getArgument(MethodTypeConstant.class, 2));
 					}
 				}

@@ -1,8 +1,22 @@
-Improved ClassType creation from java.lang.Class
+Decompilation of nested class names has been fixed. Now each use of a nested class takes into account the context in which we use it.
+For example, using the class `Outer.Middle.Inner` from the 'Outer` class gives `Middle.Inner`, and from the class `Outer.Middle` gives `Inner`.
 
-Fixed a bug with reading the InnerClasses attribute
+Fixed a funny bug: the @Override annotation was hung on all methods of the Object class
+(since the Object superclass is considered to be the Object itself, so that there is no NullPointerException),
+as well as constructors, static methods, and even a static initializer! Carl!
 
-Added decompilation of call chains like `new StringBuilder(...).append(...).append(...).toString()` as string concatenation.
+Improved output of decompilation exceptions in the method comments.
 
-Fixed a bug with declaring all variables in the external scope method
-Added definition of the variable name by the names of fields and methods
+Fixed a bug with string concatenation via StringBuilder when the stack was incorrect
+due to an incorrectly spelled empty descriptor for StringConcatOperation
+
+Fixed a bug when a method with a signature that declares throws, when outputting, wrote just throws without a list of declared exceptions
+
+Fixed a bug with calling a method with one or more arguments followed by varargs.
+When calling such a method with an empty varargs list, an extra comma was output.
+
+Added decompilation of lambda references to methods
+
+Added decompilation of anonymous classes
+
+Added search for nested and anonymous classes in the same folder as the external class

@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.function.Function;
 
 import x590.jdecompiler.BiStringifyWritable;
-import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.SameDisassemblingStringifyWritable;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.exception.IncopatibleTypesException;
 import x590.jdecompiler.exception.InvalidMethodDescriptorException;
 import x590.jdecompiler.exception.InvalidTypeNameException;
@@ -93,13 +93,13 @@ public abstract class Type implements
 	
 	
 	/** Для всех ссылочных типов, в том числе и для специальных */
-	public boolean isReferenceType() {
-		return isBasicReferenceType();
+	public boolean isAnyReferenceType() {
+		return isReferenceType();
 	}
 	
 	
 	/** Гарантирует, что объект - экземпляр класса ReferenceType */
-	public final boolean isBasicReferenceType() {
+	public final boolean isReferenceType() {
 		return this instanceof ReferenceType;
 	}
 	
@@ -312,7 +312,7 @@ public abstract class Type implements
 	}
 	
 	/** Сравнивает типы без учёта сигнатуры */
-	public boolean baseEquals(Type other) {
+	public boolean equalsIgnoreSignature(Type other) {
 		return this.equals(other);
 	}
 	

@@ -5,7 +5,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import x590.jdecompiler.JavaClass;
+import x590.jdecompiler.clazz.JavaClass;
 import x590.jdecompiler.main.performing.Performing;
 
 /**

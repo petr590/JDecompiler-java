@@ -1,10 +1,11 @@
 package x590.jdecompiler.type;
 
-import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.util.WhitespaceStringBuilder;
 
 import static x590.jdecompiler.type.PrimitiveType.CHAR_CAPACITY;
+
+import x590.jdecompiler.clazz.ClassInfo;
 
 /**
  * Класс, который представляет возможный целочисленный тип

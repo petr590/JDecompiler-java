@@ -18,6 +18,6 @@ public class EmptyInfiniteLoopScope extends Scope {
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-		out.write(JDecompiler.getInstance().canOmitCurlyBrackets() ? "for(;;);" : "for(;;) {}");
+		out.write(JDecompiler.getConfig().canOmitCurlyBrackets() ? "for(;;);" : "for(;;) {}");
 	}
 }

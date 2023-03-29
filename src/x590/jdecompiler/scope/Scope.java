@@ -396,7 +396,7 @@ public abstract class Scope extends AbstractOperation {
 	 * (когда scope пустой или в нём только одна операция)
 	 */
 	protected boolean canOmitCurlyBrackets() {
-		return JDecompiler.getInstance().canOmitCurlyBrackets() &&
+		return JDecompiler.getConfig().canOmitCurlyBrackets() &&
 				(code.isEmpty() || code.size() == 1 && (
 						code.get(0) instanceof Scope scope ?
 								scope.canOmitCurlyBrackets() :

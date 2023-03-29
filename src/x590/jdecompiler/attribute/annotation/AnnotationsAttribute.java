@@ -2,9 +2,9 @@ package x590.jdecompiler.attribute.annotation;
 
 import java.util.List;
 
-import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.StringifyWritable;
 import x590.jdecompiler.attribute.Attribute;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;

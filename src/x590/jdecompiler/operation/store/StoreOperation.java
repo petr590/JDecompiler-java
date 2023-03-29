@@ -1,6 +1,6 @@
 package x590.jdecompiler.operation.store;
 
-import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
@@ -30,7 +30,7 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 		
 		value.allowImplicitCast();
 		
-		if(requiredType.isReferenceType() && value instanceof ExceptionLoadOperation &&
+		if(requiredType.isAnyReferenceType() && value instanceof ExceptionLoadOperation &&
 				context.currentScope() instanceof CatchScope catchScope && context.currentIndex() == catchScope.startIndex() + 1) {
 			
 			this.variable = catchScope.defineNewVariable(index, value.getReturnType(), context.currentIndex());

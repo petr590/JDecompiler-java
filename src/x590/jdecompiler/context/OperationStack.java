@@ -1,33 +1,54 @@
 package x590.jdecompiler.context;
 
+import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.Stack;
+import java.util.Deque;
+import java.util.EmptyStackException;
+import java.util.NoSuchElementException;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.TypeSize;
 
-public class OperationStack extends Stack<Operation> {
+public class OperationStack {
 	
-	private static final long serialVersionUID = -8788056838805079743L;
-	
+	private final Deque<Operation> stack;
 	
 	private Predicate<Operation> nextPushHandler;
 	
 	
-	@Override
+	public OperationStack() {
+		this.stack = new ArrayDeque<>();
+	}
+	
+	public OperationStack(int initalCapacity) {
+		this.stack = new ArrayDeque<>(initalCapacity);
+	}
+	
+	
+	public boolean isEmpty() {
+		return stack.isEmpty();
+	}
+	
+	public int size() {
+		return stack.size();
+	}
+	
+	
 	public Operation push(Operation operation) {
 		if(nextPushHandler != null) {
 			if(nextPushHandler.test(operation))
-				super.push(operation);
+				stack.push(operation);
 			
 			nextPushHandler = null;
 			return operation;
 		}
 		
-		return super.push(operation);
+		stack.push(operation);
+		return operation;
 	}
 	
 	public void pushAll(Collection<Operation> operations) {
@@ -36,6 +57,14 @@ public class OperationStack extends Stack<Operation> {
 		}
 	}
 	
+	
+	public Operation pop() {
+		try {
+			return stack.pop();
+		} catch(NoSuchElementException ex) {
+			throw new EmptyStackException();
+		}
+	}
 	
 	public Operation popAsNarrowest(Type requiredType) {
 		Operation operation = pop();
@@ -59,10 +88,25 @@ public class OperationStack extends Stack<Operation> {
 	}
 	
 	
-	public Operation peek(int index) {
-		return get(this.size() - index - 1);
+	public Operation peek() {
+		try {
+			return stack.peek();
+		} catch(NoSuchElementException ex) {
+			throw new EmptyStackException();
+		}
 	}
 	
+	public Operation peek(int index) {
+		if(index < 0) {
+			throw new IllegalArgumentException("index = " + index);
+		}
+		
+		if(index >= stack.size()) {
+			throw new IndexOutOfBoundsException("Index " + index + " out of range for stack size " + stack.size());
+		}
+		
+		return stack.stream().limit(index + 1).reduce(null, (first, second) -> second);
+	}
 	
 	public Operation peekAsNarrowest(Type requiredType) {
 		Operation operation = peek();
@@ -101,5 +145,19 @@ public class OperationStack extends Stack<Operation> {
 	
 	public void clearNextPushHandler() {
 		this.nextPushHandler = null;
+	}
+	
+	public Stream<Operation> stream() {
+		return stack.stream();
+	}
+	
+	@Override
+	public String toString() {
+		return stack.toString();
+	}
+	
+	@Override
+	public int hashCode() {
+		return stack.hashCode();
 	}
 }

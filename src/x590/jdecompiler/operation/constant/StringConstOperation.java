@@ -20,7 +20,7 @@ public final class StringConstOperation extends ConstOperation<StringConstant> {
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		
-		if(JDecompiler.getInstance().multilineStringAllowed()) {
+		if(JDecompiler.getConfig().multilineStringAllowed()) {
 			int lnPos = getValue().indexOf('\n');
 			
 			if(lnPos != -1 && lnPos != getValue().length() - 1) {

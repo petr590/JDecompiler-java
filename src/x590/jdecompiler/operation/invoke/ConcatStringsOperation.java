@@ -4,10 +4,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 
-import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.operation.constant.StringConstOperation;
@@ -35,7 +35,7 @@ public final class ConcatStringsOperation extends InvokeOperation {
 		
 		String patternStr = pattern.getValue();
 		
-		var arg = arguments.iterator();
+		var arg = getArguments().iterator();
 		var staticArg = staticArguments.iterator();
 		
 		StringBuilder str = new StringBuilder();

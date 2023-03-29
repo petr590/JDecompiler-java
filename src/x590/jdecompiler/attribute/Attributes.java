@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.JavaSerializable;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.AttributeNotFoundException;
 import x590.jdecompiler.io.ExtendedDataInputStream;

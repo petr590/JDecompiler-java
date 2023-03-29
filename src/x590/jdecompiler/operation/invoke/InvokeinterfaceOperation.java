@@ -1,7 +1,7 @@
 package x590.jdecompiler.operation.invoke;
 
-import x590.jdecompiler.MethodDescriptor;
 import x590.jdecompiler.context.DecompilationContext;
+import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.operation.Operation;
 
 public final class InvokeinterfaceOperation extends InvokeNonstaticOperation {

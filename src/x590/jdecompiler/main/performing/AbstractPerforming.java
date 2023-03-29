@@ -7,7 +7,7 @@ import java.io.UncheckedIOException;
 import java.util.function.Supplier;
 
 import it.unimi.dsi.fastutil.booleans.Boolean2ObjectFunction;
-import x590.jdecompiler.JavaClass;
+import x590.jdecompiler.clazz.JavaClass;
 
 public abstract class AbstractPerforming<S extends OutputStream> implements Performing<S> {
 	

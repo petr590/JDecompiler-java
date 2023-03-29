@@ -2,9 +2,9 @@ package x590.jdecompiler.context;
 
 import x590.jdecompiler.attribute.CodeAttribute;
 import x590.jdecompiler.attribute.CodeAttribute.ExceptionTable;
-import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.JavaMethod;
-import x590.jdecompiler.MethodDescriptor;
+import x590.jdecompiler.clazz.ClassInfo;
+import x590.jdecompiler.method.JavaMethod;
+import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.modifiers.MethodModifiers;
 import x590.jdecompiler.scope.MethodScope;
 

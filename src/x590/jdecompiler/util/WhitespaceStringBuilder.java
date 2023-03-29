@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.io.ExtendedOutputStream;
 
 public class WhitespaceStringBuilder extends AbstractWhitespaceStringBuilder {
@@ -51,7 +51,7 @@ public class WhitespaceStringBuilder extends AbstractWhitespaceStringBuilder {
 	
 	@Override
 	public String toString() {
-		return values.stream().collect(Collectors.joining(" ")).toString();
+		return values.stream().collect(Collectors.joining(" "));
 	}
 	
 	@Override

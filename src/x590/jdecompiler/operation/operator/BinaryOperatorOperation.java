@@ -6,7 +6,6 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.GeneralCastingKind;
 import x590.jdecompiler.type.Type;
-import x590.util.Logger;
 
 public abstract class BinaryOperatorOperation extends OperatorOperation {
 	
@@ -30,8 +29,6 @@ public abstract class BinaryOperatorOperation extends OperatorOperation {
 		returnType = operand2.getReturnTypeAsGeneralNarrowest(operand1, GeneralCastingKind.BINARY_OPERATOR);
 		
 		Type implicitGeneralType = operand2.getImplicitType().implicitCastToGeneralNoexcept(operand1.getImplicitType(), GeneralCastingKind.BINARY_OPERATOR);
-		
-		Logger.debug(operand2.getImplicitType(), operand1.getImplicitType(), implicitGeneralType);
 		
 		if(implicitGeneralType != null && implicitGeneralType.equals(returnType)) {
 			operand2.allowImplicitCast();

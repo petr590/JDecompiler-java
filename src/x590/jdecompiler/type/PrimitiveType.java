@@ -1,11 +1,12 @@
 package x590.jdecompiler.type;
 
-import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.util.annotation.Nullable;
 
 import static x590.jdecompiler.type.UncertainIntegralType.INCLUDE_BOOLEAN;
 import static x590.jdecompiler.type.UncertainIntegralType.INCLUDE_CHAR;
+
+import x590.jdecompiler.clazz.ClassInfo;
 
 public abstract class PrimitiveType extends BasicType {
 	
@@ -35,10 +36,11 @@ public abstract class PrimitiveType extends BasicType {
 	public static final int CHAR_CAPACITY = 2;
 	
 	
-	private final String nameForVariable;
+	private final String encodedName, name, nameForVariable;
 	
 	public PrimitiveType(String encodedName, String name, String nameForVariable) {
-		super(encodedName, name);
+		this.encodedName = encodedName;
+		this.name = name;
 		this.nameForVariable = nameForVariable;
 	}
 	
@@ -49,6 +51,16 @@ public abstract class PrimitiveType extends BasicType {
 	
 	@Override
 	public String toString() {
+		return name;
+	}
+	
+	@Override
+	public String getEncodedName() {
+		return encodedName;
+	}
+	
+	@Override
+	public String getName() {
 		return name;
 	}
 	

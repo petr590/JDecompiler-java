@@ -1,10 +1,13 @@
-package x590.jdecompiler;
+package x590.jdecompiler.field;
 
 import java.lang.reflect.Field;
 
+import x590.jdecompiler.Descriptor;
+import x590.jdecompiler.Importable;
 import x590.jdecompiler.attribute.AttributeType;
 import x590.jdecompiler.attribute.Attributes;
 import x590.jdecompiler.attribute.signature.FieldSignatureAttribute;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.constpool.FieldrefConstant;
 import x590.jdecompiler.constpool.NameAndTypeConstant;

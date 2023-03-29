@@ -1,7 +1,7 @@
 package x590.jdecompiler.context;
 
-import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.JavaMethod;
+import x590.jdecompiler.clazz.ClassInfo;
+import x590.jdecompiler.method.JavaMethod;
 import x590.util.Logger;
 
 public class StringifyContext extends DecompilationAndStringifyContext {

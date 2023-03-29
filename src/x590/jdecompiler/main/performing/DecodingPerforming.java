@@ -8,7 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import x590.jdecompiler.JavaClass;
+import x590.jdecompiler.clazz.JavaClass;
 import x590.jdecompiler.exception.DisassemblingException;
 import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.util.Logger;

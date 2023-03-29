@@ -1,6 +1,6 @@
 package x590.jdecompiler.type;
 
-import x590.jdecompiler.ClassInfo;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.io.ExtendedOutputStream;
 
 public final class ExcludingBooleanType extends Type {

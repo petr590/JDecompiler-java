@@ -1,6 +1,8 @@
-package x590.jdecompiler;
+package x590.jdecompiler.clazz;
 
+import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,13 +12,21 @@ import java.util.stream.Collectors;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import x590.jdecompiler.Descriptor;
+import x590.jdecompiler.Importable;
 import x590.jdecompiler.attribute.Attributes;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.NoSuchFieldException;
 import x590.jdecompiler.exception.NoSuchMethodException;
+import x590.jdecompiler.field.FieldDescriptor;
+import x590.jdecompiler.field.FieldInfo;
+import x590.jdecompiler.field.JavaField;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
+import x590.jdecompiler.method.JavaMethod;
+import x590.jdecompiler.method.MethodDescriptor;
+import x590.jdecompiler.method.MethodInfo;
 import x590.jdecompiler.modifiers.ClassModifiers;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.ReferenceType;
@@ -44,8 +54,10 @@ public final class ClassInfo implements IClassInfo {
 	
 	private Attributes attributes;
 	
-	private Object2IntMap<ClassType> imports = new Object2IntOpenHashMap<>();
+	/* private */ public Object2IntMap<ClassType> imports = new Object2IntOpenHashMap<>();
 	private boolean importsUniqued;
+	
+	private Deque<ClassType> enteredClasses = new ArrayDeque<>();
 	
 	
 	public ClassInfo(JavaClass clazz, Version version, ConstantPool pool, ClassModifiers modifiers,
@@ -140,19 +152,25 @@ public final class ClassInfo implements IClassInfo {
 		importables.forEach(importable -> importable.addImports(this));
 	}
 	
-	void bindImportsTo(ClassInfo other) {
+	void bindEnvironmentTo(ClassInfo other) {
+		if(this == other)
+			return;
+		
+		other.imports.putAll(imports);
 		imports = other.imports;
+		enteredClasses = other.enteredClasses;
 	}
 	
 	void uniqImports() {
 		if(importsUniqued)
 			throw new IllegalStateException("Imports already uniqued");
 		
-		var groupedImports = imports.object2IntEntrySet().stream().collect(Collectors.groupingBy(entry -> entry.getKey().getSimpleName()));
+		var groupedImports = imports.object2IntEntrySet().stream()
+				.collect(Collectors.groupingBy(entry -> entry.getKey().getSimpleName()));
 		
 		groupedImports.forEach((name, list) -> {
 			
-			if(JDecompiler.getInstance().canOmitSingleImport()) {
+			if(JDecompiler.getConfig().canOmitSingleImport()) {
 				list.removeIf(entry -> {
 					
 					if(entry.getIntValue() == 1) {
@@ -260,16 +278,69 @@ public final class ClassInfo implements IClassInfo {
 	public boolean hasMethodByDescriptor(Predicate<MethodDescriptor> predicate) {
 		return hasMethod(method -> predicate.test(method.getDescriptor()));
 	}
-
 	
-	private boolean canOmitClass;
 	
-	void enableClassOmitting() {
-		canOmitClass = JDecompiler.getInstance().canOmitThisAndClass();
+	@Override
+	public Optional<FieldInfo> findFieldInfo(FieldDescriptor descriptor) {
+		return findField(descriptor).map(JavaField::getFieldInfo);
 	}
 	
+	@Override
+	public Optional<MethodInfo> findMethodInfo(MethodDescriptor descriptor) {
+		return findMethod(descriptor).map(JavaMethod::getMethodInfo);
+	}
+	
+	
+	void enterClassScope(ClassType clazz) {
+		enteredClasses.push(clazz);
+	}
+	
+	void leaveClassScope(ClassType clazz) {
+		if(enteredClasses.isEmpty())
+			throw new IllegalStateException("Class scope has not been entered");
+			
+		if(!clazz.equals(enteredClasses.peek()))
+			throw new IllegalArgumentException("Scope of class " + clazz.getName() +
+					" has not been entered or other class has not been leaved");
+		
+		enteredClasses.pop();
+	}
+	
+	public String getNameForClass(ClassType clazz) {
+		if(!imported(clazz)) {
+			return clazz.getName();
+		}
+		
+		if(clazz.isAnonymous() || enteredClasses.isEmpty()) {
+			return clazz.getFullSimpleName();
+		}
+		
+		Optional<ClassType> foundClass = enteredClasses.stream()
+				.filter(clazz::equalsIgnoreSignature).findAny();
+		
+		if(foundClass.isPresent()) {
+			return foundClass.get().getSimpleName();
+		}
+		
+		Deque<String> names = new ArrayDeque<>();
+		names.addFirst(clazz.getSimpleName());
+		
+		for(ClassType lastEnteredClass = enteredClasses.peek(), enclosingClass = clazz;;) {
+			enclosingClass = enclosingClass.getEnclosingClass();
+			
+			if(enclosingClass == null || enclosingClass.equalsIgnoreSignature(lastEnteredClass)) {
+				break;
+			}
+			
+			names.addFirst(enclosingClass.getSimpleName());
+		}
+		
+		return names.stream().collect(Collectors.joining("."));
+	}
+	
+	
 	public boolean canOmitClass(Descriptor descriptor) {
-		return canOmitClass && descriptor.getDeclaringClass().equals(thisType);
+		return JDecompiler.getConfig().canOmitThisAndClass() && descriptor.getDeclaringClass().equals(thisType);
 	}
 	
 	

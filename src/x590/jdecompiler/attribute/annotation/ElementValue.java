@@ -2,9 +2,9 @@ package x590.jdecompiler.attribute.annotation;
 
 import java.util.List;
 
-import x590.jdecompiler.ClassInfo;
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.StringifyWritable;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.constpool.ConstValueConstant;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DisassemblingException;
@@ -114,7 +114,7 @@ public abstract class ElementValue implements StringifyWritable<ClassInfo>, Impo
 		private final ClassType clazz;
 		
 		private ClassElementValue(ExtendedDataInputStream in, ConstantPool pool) {
-			this.clazz = ClassType.fromDescriptor(pool.getUtf8String(in.readUnsignedShort()));
+			this.clazz = ClassType.fromTypeDescriptor(pool.getUtf8String(in.readUnsignedShort()));
 		}
 		
 		@Override

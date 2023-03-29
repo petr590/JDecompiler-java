@@ -23,25 +23,14 @@ public abstract class ReferenceType extends BasicType {
 		this.triedLoadClass = true;
 	}
 	
-	public ReferenceType(String encodedName, String name) {
-		super(encodedName, name);
-	}
-	
 	public ReferenceType(ClassType superType, @Immutable List<ClassType> interfaces) {
 		this.superType = superType;
 		this.interfaces = interfaces;
 		this.triedLoadSuperTypes = true;
 	}
 	
-	public ReferenceType(String encodedName, String name, ClassType superType, @Immutable List<ClassType> interfaces) {
-		super(encodedName, name);
-		this.superType = superType;
-		this.interfaces = interfaces;
-		this.triedLoadSuperTypes = true;
-	}
-	
 	@Override
-	public final boolean isReferenceType() {
+	public final boolean isAnyReferenceType() {
 		return true;
 	}
 	
@@ -51,7 +40,7 @@ public abstract class ReferenceType extends BasicType {
 	}
 	
 	public String getClassEncodedName() {
-		return encodedName;
+		return getEncodedName();
 	}
 	
 	
@@ -61,6 +50,8 @@ public abstract class ReferenceType extends BasicType {
 		}
 		
 		triedLoadClass = true;
+		
+		String name = getClassEncodedName().replace('/', '.');
 		
 		try {
 			classInstance = Class.forName(name);

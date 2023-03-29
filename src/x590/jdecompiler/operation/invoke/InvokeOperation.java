@@ -5,13 +5,13 @@ import java.util.Deque;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import x590.jdecompiler.ClassInfo;
-import x590.jdecompiler.IClassInfo;
-import x590.jdecompiler.MethodDescriptor;
+import x590.jdecompiler.clazz.ClassInfo;
+import x590.jdecompiler.clazz.IClassInfo;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.OperationWithDescriptor;
 import x590.jdecompiler.operation.array.NewArrayOperation;
@@ -23,7 +23,7 @@ import x590.util.annotation.Nullable;
 
 public abstract class InvokeOperation extends OperationWithDescriptor<MethodDescriptor> {
 	
-	protected final Deque<Operation> arguments;
+	private final Deque<Operation> arguments;
 	
 	private Deque<Operation> popArguments(DecompilationContext context) {
 		List<Type> argTypes = descriptor.getArguments();
@@ -34,7 +34,7 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 			Type argType = argTypes.get(--i);
 			Operation argument = context.popAsNarrowest(argType);
 			
-			if(argType.isBasicReferenceType() && !argType.equals(ClassType.OBJECT)) {
+			if(argType.isReferenceType() && !argType.equals(ClassType.OBJECT)) {
 				argument = argument.castIfNull((ReferenceType)argType);
 			}
 			
@@ -56,6 +56,10 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 		return arguments.size();
 	}
 	
+	public boolean isArgumentsEmpty() {
+		return arguments.isEmpty();
+	}
+	
 	
 	public InvokeOperation(DecompilationContext context, int index) {
 		this(context, getDescriptor(context, index));
@@ -73,22 +77,38 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 		this.arguments = popArguments(context);
 		
 		
-		List<Type> argTypes = descriptor.getArguments();
+		IClassInfo otherClassinfo = ClassInfo.findClassInfo(descriptor.getDeclaringClass());
 		
-		if(!argTypes.isEmpty() && argTypes.get(argTypes.size() - 1).isArrayType()) {
+		if(otherClassinfo != null) {
 			
-			IClassInfo otherClassinfo = ClassInfo.findClassInfo(descriptor.getDeclaringClass());
+			var foundMethodInfo = otherClassinfo.findMethodInfo(descriptor);
 			
-			Operation lastOperation = arguments.getLast();
+			if(foundMethodInfo.isPresent() && foundMethodInfo.get().modifiers().isVarargs()) {
 			
-			if(lastOperation instanceof NewArrayOperation varargsArray && varargsArray.canInitAsList()) {
-				var name = descriptor.getName();
-				var argumentsCount = arguments.size() - 1 + varargsArray.getLength();
+				List<Type> argTypes = descriptor.getArguments();
 				
-				if(otherClassinfo != null && !otherClassinfo.hasMethodByDescriptor(
-						methodDescriptor -> methodDescriptor != descriptor && methodDescriptor.getName().equals(name) && methodDescriptor.getArguments().size() == argumentsCount)) {
+				if(!argTypes.isEmpty() && argTypes.get(argTypes.size() - 1).isArrayType()) {
 					
-					arguments.getLast().inlineVarargs();
+					Operation lastOperation = arguments.getLast();
+					
+					if(lastOperation instanceof NewArrayOperation varargsArray && varargsArray.canInitAsList()) {
+						var name = descriptor.getName();
+						var argumentsCount = arguments.size() - 1 + varargsArray.getLength();
+						
+						if(!otherClassinfo.hasMethodByDescriptor(
+								methodDescriptor ->
+										!methodDescriptor.equals(descriptor) && methodDescriptor.getName().equals(name) &&
+										methodDescriptor.getArguments().size() == argumentsCount)
+						) {
+//							varargsArray.inlineVarargs();
+							
+							arguments.removeLast();
+							arguments.addAll(varargsArray.getInitializers());
+						}
+					}
+					
+				} else {
+					context.warning("Varargs method " + descriptor + " must have an array as the last argument");
 				}
 			}
 		}
