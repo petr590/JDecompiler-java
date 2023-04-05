@@ -47,14 +47,14 @@ public final class ClassInfo implements IClassInfo {
 	
 	private final Version version;
 	private final ConstantPool pool;
-	private final ClassModifiers modifiers;
+	private ClassModifiers modifiers;
 	
 	private final ClassType thisType, superType;
 	private final @Immutable List<ClassType> interfaces;
 	
-	private Attributes attributes;
+	private @Nullable Attributes attributes;
 	
-	/* private */ public Object2IntMap<ClassType> imports = new Object2IntOpenHashMap<>();
+	private Object2IntMap<ClassType> imports = new Object2IntOpenHashMap<>();
 	private boolean importsUniqued;
 	
 	private Deque<ClassType> enteredClasses = new ArrayDeque<>();
@@ -101,6 +101,11 @@ public final class ClassInfo implements IClassInfo {
 	public ClassModifiers getModifiers() {
 		return modifiers;
 	}
+	
+	void setModifiers(ClassModifiers modifiers) {
+		this.modifiers = modifiers;
+	}
+	
 	
 	@Override
 	public ClassType getThisType() {
@@ -226,8 +231,12 @@ public final class ClassInfo implements IClassInfo {
 		return clazz.getFields();
 	}
 	
-	public @Immutable List<JavaField> getConstants() {
+	public @Nullable @Immutable List<JavaField> getConstants() {
 		return clazz.getConstants();
+	}
+	
+	public @Immutable List<JavaField> getRecordComponents() {
+		return clazz.getRecordComponents();
 	}
 	
 	public @Immutable List<JavaMethod> getMethods() {

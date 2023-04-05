@@ -31,15 +31,15 @@ public final class WrapperClassType extends ClassType {
 			default -> {
 				if(this == other) {
 					return kind == GeneralCastingKind.TERNARY_OPERATOR ?
-							this : this.primitiveType;
+							this : func.apply(primitiveType, primitiveType, kind);
 				}
 				
-				if(other instanceof WrapperClassType wrapper) {
-					return func.apply(this.primitiveType, wrapper.primitiveType, kind);
+				if(other instanceof WrapperClassType otherWrapper) {
+					return func.apply(primitiveType, otherWrapper.primitiveType, kind);
 				}
 				
-				if(other instanceof PrimitiveType primitiveType) {
-					return func.apply(this.primitiveType, primitiveType, kind);
+				if(other instanceof PrimitiveType otherPrimitive) {
+					return func.apply(primitiveType, otherPrimitive, kind);
 				}
 				
 				return defaultFunc.apply(primitiveType, kind);

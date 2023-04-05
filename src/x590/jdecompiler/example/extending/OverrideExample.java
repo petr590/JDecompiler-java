@@ -1,4 +1,9 @@
-package x590.jdecompiler.example;
+package x590.jdecompiler.example.extending;
+
+import x590.jdecompiler.example.Example;
+import x590.jdecompiler.example.ExampleTesting;
+import x590.jdecompiler.example.SuperclassExample;
+import x590.jdecompiler.example.SuperclassOfSuperclassExample;
 
 @Example
 public abstract class OverrideExample extends SuperclassExample {

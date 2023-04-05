@@ -46,7 +46,7 @@ import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.util.WhitespaceStringBuilder;
 import x590.jdecompiler.util.IWhitespaceStringBuilder;
-import x590.util.BooleanHolder;
+import x590.util.LoopUtil;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
@@ -55,7 +55,7 @@ import x590.util.annotation.Nullable;
  */
 public final class JavaClass extends JavaClassElement {
 	
-	private static final Map<ClassType, JavaClass> classes = new HashMap<>();
+	private static final Map<ClassType, JavaClass> CLASSES = new HashMap<>();
 	
 	
 	private final Version version;
@@ -76,6 +76,7 @@ public final class JavaClass extends JavaClassElement {
 	
 	private final @Immutable List<JavaField> fields, constants;
 	private final @Nullable @Immutable List<JavaEnumField> enumConstants;
+	private final @Nullable @Immutable List<JavaField> recordComponents;
 	private final @Immutable List<JavaMethod> methods;
 	
 	private @Immutable List<JavaClass> innerClasses;
@@ -90,7 +91,7 @@ public final class JavaClass extends JavaClassElement {
 	private @Nullable Type getVisibleSuperType() {
 		if(!thisType.isAnonymous()) {
 			
-			if(superType.equals(ClassType.OBJECT)) {
+			if(superType.equals(ClassType.OBJECT) || isRecord()) {
 				return null;
 			}
 			
@@ -130,25 +131,52 @@ public final class JavaClass extends JavaClassElement {
 			throw new ClassFormatException("Illegal class header");
 		
 		this.version = Version.read(in);
-		this.pool = ConstantPool.read(in);
-		var pool = this.pool;
+		var pool = this.pool = ConstantPool.read(in);
 		
-		this.modifiers = ClassModifiers.read(in);
+		var modifiers = ClassModifiers.read(in);
 		this.thisType = ClassType.fromConstant(pool.getClassConstant(in.readUnsignedShort()));
 		this.superType = ClassType.fromNullableConstant(pool.getNullableClassConstant(in.readUnsignedShort()), ClassType.OBJECT);
 		
 		this.interfaces = in.readImmutableList(() -> pool.getClassConstant(in.readUnsignedShort()).toClassType());
 		
-		this.classinfo = new ClassInfo(this, version, pool, modifiers, thisType, superType, interfaces);
+		var classinfo = this.classinfo = new ClassInfo(this, version, pool, modifiers, thisType, superType, interfaces);
 		
 		this.fields = Collections.unmodifiableList(JavaField.readFields(in, classinfo, pool));
 		this.methods = Collections.unmodifiableList(JavaMethod.readMethods(in, classinfo, pool));
 		
 		this.constants = fields.stream().filter(JavaField::isConstant).toList();
-		this.enumConstants = modifiers.isEnum() ? fields.stream().filter(field -> field.getModifiers().isEnum()).map(field -> (JavaEnumField)field).toList() : null;
+		this.enumConstants = modifiers.isEnum() ?
+				fields.stream().filter(field -> field.getModifiers().isEnum()).map(field -> (JavaEnumField)field).toList() :
+				null;
+		
+		this.recordComponents = isRecord() ?
+				fields.stream().filter(field -> field.isRecordComponent(classinfo) && field.canStringifyAsRecordComponent(classinfo)).toList() :
+				null;
 		
 		this.attributes = Attributes.read(in, pool, Location.CLASS);
 		classinfo.setAttributes(attributes);
+		
+		if(thisType.isNested()) {
+			
+			InnerClassEntry innerClass = attributes.getOrDefault(AttributeType.INNER_CLASSES, InnerClassesAttribute.empty())
+					.find(thisType);
+			
+			if(innerClass != null) {
+				ClassModifiers innerClassModifiers = innerClass.getModifiers();
+				
+				if(innerClassModifiers.and(~(ACC_ACCESS_FLAGS | ACC_STATIC | ACC_SUPER)) != (modifiers.and(~(ACC_ACCESS_FLAGS | ACC_STATIC | ACC_SUPER)))) {
+					DecompilationContext.logWarning("modifiers of class " + thisType.getName()
+							+ " are not matching to the modifiers in \"" + AttributeNames.INNER_CLASSES + "\" attribute:"
+							+ modifiers.toHexWithPrefix() + ", " + innerClassModifiers.toHexWithPrefix());
+				}
+				
+				modifiers = innerClassModifiers;
+				classinfo.setModifiers(modifiers);
+			}
+		}
+		
+		this.modifiers = modifiers;
+		
 		
 		this.signature = attributes.getNullable(AttributeType.CLASS_SIGNATURE);
 		if(signature != null)
@@ -157,12 +185,16 @@ public final class JavaClass extends JavaClassElement {
 		this.visibleSuperType = getVisibleSuperType();
 		this.visibleInterfaces = getVisibleInterfaces();
 		
+		
 		SourceFileAttribute sourceFileAttr = attributes.getNullable(AttributeType.SOURCE_FILE);
 		
-		this.sourceFileName = sourceFileAttr == null ? thisType.getTopLevelClass().getSimpleName() + ".java" : sourceFileAttr.getSourceFileName();
+		this.sourceFileName = sourceFileAttr == null ?
+				thisType.getTopLevelClass().getSimpleName() + ".java" :
+				sourceFileAttr.getSourceFileName();
+		
 		this.directory = directory;
 		
-		classes.put(thisType, this);
+		CLASSES.put(thisType, this);
 	}
 	
 	public static JavaClass read(InputStream in) {
@@ -187,7 +219,7 @@ public final class JavaClass extends JavaClassElement {
 	}
 	
 	public static @Nullable JavaClass find(ClassType type) {
-		JavaClass javaClass = classes.get(type);
+		JavaClass javaClass = CLASSES.get(type);
 		
 		if(javaClass != null) {
 			return javaClass;
@@ -201,7 +233,7 @@ public final class JavaClass extends JavaClassElement {
 	}
 	
 	private static final @Nullable JavaClass loadAnonymousClass(ClassType type) {
-		JavaClass enclosingClass = classes.get(type.getTopLevelClass());
+		JavaClass enclosingClass = CLASSES.get(type.getTopLevelClass());
 		
 		if(enclosingClass != null && enclosingClass.directory != null) {
 			
@@ -227,6 +259,24 @@ public final class JavaClass extends JavaClassElement {
 		return modifiers;
 	}
 	
+	
+	public boolean isNested() {
+		return thisType.isNested();
+	}
+	
+	public boolean isAnonymous() {
+		return thisType.isAnonymous();
+	}
+	
+	public boolean isSealed() {
+		return attributes.has(AttributeType.PERMITTED_SUBCLASSES);
+	}
+	
+	public boolean isRecord() {
+		return superType.equals(ClassType.RECORD);
+	}
+	
+	
 	public ClassType getThisType() {
 		return thisType;
 	}
@@ -250,6 +300,10 @@ public final class JavaClass extends JavaClassElement {
 	
 	public @Immutable List<JavaField> getConstants() {
 		return constants;
+	}
+	
+	public @Nullable @Immutable List<JavaField> getRecordComponents() {
+		return recordComponents;
 	}
 	
 	public @Nullable @Immutable List<JavaEnumField> getEnumConstants() {
@@ -357,13 +411,13 @@ public final class JavaClass extends JavaClassElement {
 		}
 		
 		if(thisType.isAnonymous()) {
-			return !classes.containsKey(thisType.getEnclosingClass());
+			return !CLASSES.containsKey(thisType.getEnclosingClass());
 		}
 		
 		InnerClassEntry innerClass =
 				attributes.getOrDefault(AttributeType.INNER_CLASSES, InnerClassesAttribute.empty()).find(thisType);
 		
-		return innerClass == null || !classes.containsKey(
+		return innerClass == null || !CLASSES.containsKey(
 				Objects.requireNonNullElse(innerClass.getOuterType(), thisType.getEnclosingClass())
 			);
 	}
@@ -439,10 +493,10 @@ public final class JavaClass extends JavaClassElement {
 		
 		writeAnnotations(out, classinfo, attributes);
 		
+		writeHeader(out, classinfo);
+		
 		// Мы можем опустить указание класса только внутри тела класса, поэтому этот метод вызывается здесь
 		classinfo.enterClassScope(thisType);
-		
-		writeHeader(out, classinfo);
 		
 		writeBody(out, classinfo);
 		
@@ -457,11 +511,16 @@ public final class JavaClass extends JavaClassElement {
 	
 	private void writeHeader(StringifyOutputStream out, ClassInfo classinfo) {
 		
-		out .printIndent().print(modifiersToString(classinfo), classinfo).print(thisType.getSimpleName())
-			.printIfNotNull(attributes.getNullable(AttributeType.PERMITTED_SUBCLASSES), classinfo);
+		out.printIndent().print(modifiersToString(classinfo), classinfo).print(thisType.getSimpleName());
 		
 		if(signature != null) {
 			out.printIfNotNull(signature.parameters, classinfo);
+		}
+		
+		if(isRecord()) {
+			out .print('(')
+				.printAllUsingFunction(recordComponents, field -> field.writeAsRecordComponent(out, classinfo), ", ")
+				.print(')');
 		}
 		
 		if(visibleSuperType != null) {
@@ -472,6 +531,8 @@ public final class JavaClass extends JavaClassElement {
 			out .print(modifiers.isInterface() ? " extends " : " implements ")
 				.printAll(visibleInterfaces, classinfo, ", ");
 		}
+		
+		out.printIfNotNull(attributes.getNullable(AttributeType.PERMITTED_SUBCLASSES), classinfo);
 	}
 	
 	@Override
@@ -484,27 +545,30 @@ public final class JavaClass extends JavaClassElement {
 		
 		var modifiers = this.modifiers;
 		
+		accessModifiersToString(modifiers, str);
+		
 		if(thisType.isNested()) {
 			
-			InnerClassesAttribute innerClasses = attributes.getNullable(AttributeType.INNER_CLASSES);
-			if(innerClasses != null) {
+			if(modifiers.isEnum() || modifiers.isInterface()) {
+				if(!modifiers.isStatic())
+					throw new IllegalModifiersException(this, modifiers,
+							"nested " + (modifiers.isEnum() ? "enum" : "interface") + " cannot be non-static");
 				
-				InnerClassEntry innerClass = innerClasses.find(thisType);
-				if(innerClass != null) {
-					ClassModifiers innerClassModifiers = innerClass.getModifiers();
-					
-					if(innerClassModifiers.and(~(ACC_ACCESS_FLAGS | ACC_STATIC | ACC_SUPER)) != (modifiers.and(~(ACC_ACCESS_FLAGS | ACC_STATIC | ACC_SUPER)))) {
-						DecompilationContext.logWarning("modifiers of class " + thisType.getName()
-								+ " are not matching to the modifiers in \"" + AttributeNames.INNER_CLASSES + "\" attribute:"
-								+ innerClassModifiers.toHexWithPrefix() + ", " + modifiers.toHexWithPrefix());
-					}
-					
-					modifiers = innerClassModifiers;
+			} else {
+				if(modifiers.isStatic()) {
+					str.append("static");
 				}
+			}
+			
+		} else {
+			if(modifiers.isStatic()) {
+				throw new IllegalModifiersException(this, modifiers, "non-nested class cannot be static");
 			}
 		}
 		
-		baseModifiersToString(str);
+		if(modifiers.isSynthetic()) {
+			str.append("/* synthetic */");
+		}
 		
 		if(modifiers.isStrictfp()) {
 			str.append("strictfp");
@@ -515,6 +579,14 @@ public final class JavaClass extends JavaClassElement {
 				throw new IllegalModifiersException(this, modifiers, "sealed class cannot be final");
 			
 			str.append("sealed");
+			
+		} else if(modifiers.isNotFinal()) {
+			
+			JavaClass superslass = find(superType);
+			
+			if(superslass != null && superslass.isSealed()) {
+				str.append("non-sealed");
+			}
 		}
 		
 		switch(modifiers.and(ACC_FINAL | ACC_ABSTRACT | ACC_INTERFACE | ACC_ANNOTATION | ACC_ENUM)) {
@@ -542,12 +614,22 @@ public final class JavaClass extends JavaClassElement {
 
 		out.print(" {").increaseIndent();
 		
-		if(enumConstants != null) {
-			writeEnumConstants(out, classinfo);
+		var stringableFields = fields.stream().filter(field -> field.canStringify(classinfo)).toList();
+		var stringableMethods = methods.stream().filter(method -> method.canStringify(classinfo)).toList();
+		var stringableClasses = innerClasses.stream().filter(JavaClass::canStringifyAsInnerClass).toList();
+		
+		boolean canWriteSomething = !stringableFields.isEmpty() || !stringableMethods.isEmpty() || !stringableClasses.isEmpty();
+		
+		if(canWriteSomething && enumConstants != null && enumConstants.isEmpty()) {
+			out.println().printIndent().print(';');
 		}
 		
-		List<JavaField> stringableFields = fields.stream().filter(field -> field.canStringify(classinfo)).toList();
-		List<JavaMethod> stringableMethods = methods.stream().filter(method -> method.canStringify(classinfo)).toList();
+		boolean hasEnumConstants = enumConstants != null && !enumConstants.isEmpty();
+		
+		if(hasEnumConstants) {
+			writeEnumConstants(out, classinfo);
+			out.print(canWriteSomething ? ';' : '\n');
+		}
 		
 		
 		if(!stringableFields.isEmpty())
@@ -557,19 +639,11 @@ public final class JavaClass extends JavaClassElement {
 		
 		writeFields(stringableFields, out, classinfo);
 		writeMethods(stringableMethods, out, classinfo);
-		
-		var wroteSomething = new BooleanHolder(!stringableFields.isEmpty() || !stringableMethods.isEmpty());
-		
-		innerClasses.stream()
-				.filter(JavaClass::canStringifyAsInnerClass)
-				.forEach(innerClass -> {
-						wroteSomething.set(true);
-						out.println().printUsingFunction(innerClass, JavaClass::writeAsInnerClass).println();
-					});
+		writeInnerClasses(stringableClasses, out, classinfo);
 		
 		out.reduceIndent();
 		
-		if(wroteSomething.isTrue())
+		if(canWriteSomething | hasEnumConstants)
 			out.printIndent();
 		
 		out.write('}');
@@ -577,11 +651,11 @@ public final class JavaClass extends JavaClassElement {
 	
 	
 	private void writeEnumConstants(StringifyOutputStream out, ClassInfo classinfo) {
-		out .println().printIndent()
-			.printAllUsingFunction(enumConstants,
+		out.println().printIndent();
+		
+		LoopUtil.forEachPair(enumConstants,
 				enumConstant -> enumConstant.writeNameAndInitializer(out, classinfo),
-				enumConstant -> enumConstant.writeIndent(out, classinfo)
-			).println(';');
+				(enumConstant1, enumConstant2) -> enumConstant1.writeIndent(out, classinfo, enumConstant2));
 	}
 	
 	
@@ -615,6 +689,10 @@ public final class JavaClass extends JavaClassElement {
 	
 	private static void writeMethods(List<JavaMethod> methods, StringifyOutputStream out, ClassInfo classinfo) {
 		out.printEachUsingFunction(methods, method -> out.println().print(method, classinfo));
+	}
+	
+	private static void writeInnerClasses(List<JavaClass> innerClasses, StringifyOutputStream out, ClassInfo classinfo) {
+		innerClasses.forEach(innerClass -> out.println().println().printUsingFunction(innerClass, JavaClass::writeAsInnerClass).println());
 	}
 	
 	

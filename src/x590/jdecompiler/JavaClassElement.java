@@ -33,9 +33,7 @@ public abstract class JavaClassElement implements DisassemblingStringifyWritable
 	
 	public abstract String getModifiersTarget();
 	
-	protected void baseModifiersToString(IWhitespaceStringBuilder str) {
-		var modifiers = getModifiers();
-		
+	protected void accessModifiersToString(ClassEntryModifiers modifiers, IWhitespaceStringBuilder str) {
 		switch(modifiers.and(ACC_ACCESS_FLAGS)) {
 			case ACC_VISIBLE   -> {}
 			case ACC_PRIVATE   -> str.append("private");
@@ -44,10 +42,6 @@ public abstract class JavaClassElement implements DisassemblingStringifyWritable
 			
 			default ->
 				throw new IllegalModifiersException(this, modifiers, ILLEGAL_ACCESS_MODIFIERS_MESSAGE);
-		}
-		
-		if(modifiers.isStatic()) {
-			str.append("static");
 		}
 	}
 }

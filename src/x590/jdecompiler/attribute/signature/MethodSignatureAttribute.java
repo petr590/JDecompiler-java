@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import x590.jdecompiler.attribute.ExceptionsAttribute;
 import x590.jdecompiler.clazz.ClassInfo;
@@ -17,7 +16,7 @@ import x590.jdecompiler.type.GenericParameterType;
 import x590.jdecompiler.type.GenericParameters;
 import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
-import x590.util.LoopUtil;
+import x590.util.CollectionUtil;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
@@ -68,15 +67,13 @@ public final class MethodSignatureAttribute extends SignatureAttribute {
 	}
 	
 	public void checkTypes(MethodDescriptor descriptor, int skip, @Nullable ExceptionsAttribute excepionsAttr) {
-		var iterator = descriptor.getArguments().iterator();
 		
-		for(int i = 0; i < skip && iterator.hasNext(); i++)
-			iterator.next();
+		List<Type> descriptorArguments = descriptor.getArguments();
 		
-		if(!LoopUtil.iteratorsEquals(arguments.iterator(), iterator, Type::equalsIgnoreSignature)) {
+		if(!CollectionUtil.collectionsEquals(arguments, descriptorArguments.subList(skip, descriptorArguments.size()), Type::equalsIgnoreSignature)) {
 			throw new DecompilationException(
-					"Method signature doesn't matches the arguments: (" + argumentsToString(arguments.stream()) + ")"
-					+ " and (" + argumentsToString(descriptor.getArguments().stream().skip(skip)) + ")"
+					"Method signature doesn't matches the arguments: (" + argumentsToString(arguments) + ")"
+					+ " and (" + argumentsToString(descriptorArguments.subList(skip, descriptorArguments.size())) + ")"
 			);
 		}
 		
@@ -85,7 +82,7 @@ public final class MethodSignatureAttribute extends SignatureAttribute {
 		}
 		
 		if(!exceptionTypes.isEmpty()) {
-			if(excepionsAttr == null || !LoopUtil.collectionsEquals(exceptionTypes, excepionsAttr.getExceptionTypes(), Type::equalsIgnoreSignature)) {
+			if(excepionsAttr == null || !CollectionUtil.collectionsEquals(exceptionTypes, excepionsAttr.getExceptionTypes(), Type::equalsIgnoreSignature)) {
 				throw new DecompilationException("Method signature doesn't matches the \"Excepions\" attribute: " + argumentsToString(exceptionTypes) +
 						" and " + (excepionsAttr == null ? "null" : argumentsToString(excepionsAttr.getExceptionTypes())));
 			}
@@ -93,10 +90,6 @@ public final class MethodSignatureAttribute extends SignatureAttribute {
 	}
 	
 	private static String argumentsToString(List<? extends Type> arguments) {
-		return argumentsToString(arguments.stream());
-	}
-	
-	private static String argumentsToString(Stream<? extends Type> arguments) {
-		return arguments.map(Type::toString).collect(Collectors.joining(", "));
+		return arguments.stream().map(Type::toString).collect(Collectors.joining(", "));
 	}
 }

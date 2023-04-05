@@ -219,13 +219,28 @@ public final class ArrayType extends ReferenceType {
 	
 	@Override
 	protected boolean canCastTo(Type other) {
-		if(other.equals(ClassType.OBJECT)) {
+		if(other.equals(ARRAY_SUPER_TYPE) || ARRAY_INTERFACES.stream().anyMatch(other::equals)) {
 			return true;
 		}
 		
 		if(other instanceof ArrayType arrayType) {
 			return nestingLevel == arrayType.nestingLevel && memberType.isSubtypeOf(arrayType.memberType)
 					|| elementType.isSubtypeOf(arrayType.elementType);
+		}
+		
+		return false;
+	}
+	
+	@Override
+	public boolean isSubclassOf(ReferenceType other) {
+		if(super.isSubclassOf(other)) {
+			return true;
+		}
+		
+		if(other instanceof ArrayType otherArray) {
+			return nestingLevel == otherArray.nestingLevel ?
+					memberType.isSubtypeOf(otherArray.memberType) :
+					elementType.isSubtypeOf(otherArray.elementType);
 		}
 		
 		return false;

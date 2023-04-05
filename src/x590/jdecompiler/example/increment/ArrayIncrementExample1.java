@@ -4,10 +4,10 @@ import x590.jdecompiler.example.Example;
 import x590.jdecompiler.example.ExampleTesting;
 
 @Example
-public class ArrayIncrement1Example {
+public class ArrayIncrementExample1 {
 	
 	public static void main(String[] args) {
-		ExampleTesting.runDecompiler(ArrayIncrement1Example.class);
+		ExampleTesting.runDecompiler(ArrayIncrementExample1.class);
 	}
 	
 	public static void foo() {

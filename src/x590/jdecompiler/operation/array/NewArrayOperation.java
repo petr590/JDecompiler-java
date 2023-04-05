@@ -26,7 +26,7 @@ public class NewArrayOperation extends AbstractOperation {
 	private final int length;
 	private final List<Operation> initializers = new ArrayList<>();
 	private final @Immutable List<Operation> immutableInitializers = Collections.unmodifiableList(initializers);
-	private boolean varargsInlined;
+	private boolean shortArrayInitializerAllowed, varargsInlined;
 	
 	public NewArrayOperation(DecompilationContext context, int index) {
 		this(context, context.pool.getClassConstant(index).toArrayType());
@@ -106,6 +106,12 @@ public class NewArrayOperation extends AbstractOperation {
 	}
 	
 	
+	@Override
+	public void allowShortArrayInitializer() {
+		this.shortArrayInitializerAllowed = true;
+	}
+	
+	
 	public boolean canInitAsList() {
 		return !initializers.isEmpty() || arrayLengths.size() == 1 && length == 0;
 	}
@@ -129,32 +135,23 @@ public class NewArrayOperation extends AbstractOperation {
 			return;
 		}
 		
-		if(canInitAsList()) {
-			out.printsp("new").printsp(arrayType, context.getClassinfo());
-		}
-		
-		writeAsArrayInitializer(out, context);
-	}
-	
-	
-	private boolean canUseSpaceFor(Operation operation) {
-		return !(operation instanceof NewArrayOperation newArray) || !newArray.canInitAsList();
-	}
-	
-	
-	@Override
-	public void writeAsArrayInitializer(StringifyOutputStream out, StringifyContext context) {
-		
 		if(!initializers.isEmpty() && length != -1)
 			fillInitializersWithZeros(length);
 		
-		if(canInitAsList()) {
+		if(canInitAsList() && (shortArrayInitializerAllowed || !initializers.isEmpty())) {
+			
+			if(!shortArrayInitializerAllowed) {
+				out.printsp("new").printsp(arrayType, context.getClassinfo());
+			}
 			
 			if(initializers.isEmpty()) {
 				out.write("{}");
+				
 			} else {
+				initializers.forEach(Operation::allowShortArrayInitializer);
+				
 				out .print(canUseSpaceFor(initializers.get(0)) ? "{ " : "{")
-					.printAllUsingFunction(initializers, element -> element.writeAsArrayInitializer(out, context), ", ")
+					.printAll(initializers, context, ", ")
 					.print(canUseSpaceFor(initializers.get(initializers.size() - 1)) ? " }" : "}");
 			}
 			
@@ -165,6 +162,11 @@ public class NewArrayOperation extends AbstractOperation {
 			for(int i = arrayLengths.size(), nestLevel = arrayType.getNestingLevel(); i < nestLevel; i++)
 				out.write("[]");
 		}
+	}
+	
+	
+	private boolean canUseSpaceFor(Operation operation) {
+		return !(operation instanceof NewArrayOperation newArray) || !newArray.canInitAsList();
 	}
 	
 	@Override

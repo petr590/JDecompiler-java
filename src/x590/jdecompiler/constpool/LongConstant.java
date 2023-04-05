@@ -74,8 +74,8 @@ public final class LongConstant extends SingleConstableValueConstant<Long> {
 	
 	
 	private static final FieldDescriptor
-			MAX_VALUE_DESCRIPTOR = new FieldDescriptor(ClassType.LONG, "MAX_VALUE", PrimitiveType.LONG),
-			MIN_VALUE_DESCRIPTOR = new FieldDescriptor(ClassType.LONG, "MIN_VALUE", PrimitiveType.LONG);
+			MAX_VALUE_DESCRIPTOR = new FieldDescriptor(PrimitiveType.LONG, ClassType.LONG, "MAX_VALUE"),
+			MIN_VALUE_DESCRIPTOR = new FieldDescriptor(PrimitiveType.LONG, ClassType.LONG, "MIN_VALUE");
 	
 	private boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo, @Nullable FieldDescriptor ownerConstant, long value, FieldDescriptor requiredConstant) {
 		return writeConstantIfEquals(out, classinfo, ownerConstant, this.value == value, this.value == -value, requiredConstant);

@@ -1,21 +1,25 @@
-package x590.jdecompiler.example;
+package x590.jdecompiler.example.increment;
+
+import x590.jdecompiler.example.Example;
+import x590.jdecompiler.example.ExampleTesting;
 
 @Example
-public class NonStaticFieldsIncrementExample {
-	
-	public byte b;
-	public short s;
-	public char c;
-	public int i;
-	public long l;
-	public float f;
-	public double d;
+public class IncrementExample1 {
 	
 	public static void main(String[] args) {
-		ExampleTesting.runDecompiler(NonStaticFieldsIncrementExample.class);
+		ExampleTesting.runDecompiler(IncrementExample1.class);
 	}
 	
-	public void inc() {
+	public static void foo() {
+		
+		byte b = 0;
+		short s = 0;
+		char c = 0;
+		int i = 0;
+		long l = 0;
+		float f = 0;
+		double d = 0;
+		
 		System.out.println(b++);
 		System.out.println(s++);
 		System.out.println(c++);
@@ -25,7 +29,17 @@ public class NonStaticFieldsIncrementExample {
 		System.out.println(d++);
 	}
 	
-	public void dec() {
+	public static void inc(byte b, short s, char c, int i, long l, float f, double d) {
+		System.out.println(b++);
+		System.out.println(s++);
+		System.out.println(c++);
+		System.out.println(i++);
+		System.out.println(l++);
+		System.out.println(f++);
+		System.out.println(d++);
+	}
+	
+	public static void dec(byte b, short s, char c, int i, long l, float f, double d) {
 		System.out.println(b--);
 		System.out.println(s--);
 		System.out.println(c--);
@@ -35,7 +49,7 @@ public class NonStaticFieldsIncrementExample {
 		System.out.println(d--);
 	}
 	
-	public void preInc() {
+	public static void preInc(byte b, short s, char c, int i, long l, float f, double d) {
 		System.out.println(++b);
 		System.out.println(++s);
 		System.out.println(++c);
@@ -45,7 +59,7 @@ public class NonStaticFieldsIncrementExample {
 		System.out.println(++d);
 	}
 	
-	public void preDec() {
+	public static void preDec(byte b, short s, char c, int i, long l, float f, double d) {
 		System.out.println(--b);
 		System.out.println(--s);
 		System.out.println(--c);
@@ -55,7 +69,7 @@ public class NonStaticFieldsIncrementExample {
 		System.out.println(--d);
 	}
 	
-	public void add() {
+	public static void add(byte b, short s, char c, int i, long l, float f, double d) {
 		System.out.println(b += b);
 		System.out.println(s += s);
 		System.out.println(c += c);
@@ -65,7 +79,7 @@ public class NonStaticFieldsIncrementExample {
 		System.out.println(d += d);
 	}
 	
-	public void sub() {
+	public static void sub(byte b, short s, char c, int i, long l, float f, double d) {
 		System.out.println(b -= b);
 		System.out.println(s -= s);
 		System.out.println(c -= c);
@@ -75,7 +89,7 @@ public class NonStaticFieldsIncrementExample {
 		System.out.println(d -= d);
 	}
 	
-	public void mul() {
+	public static void mul(byte b, short s, char c, int i, long l, float f, double d) {
 		System.out.println(b *= b);
 		System.out.println(s *= s);
 		System.out.println(c *= c);
@@ -85,7 +99,7 @@ public class NonStaticFieldsIncrementExample {
 		System.out.println(d *= d);
 	}
 	
-	public void div() {
+	public static void div(byte b, short s, char c, int i, long l, float f, double d) {
 		System.out.println(b /= b);
 		System.out.println(s /= s);
 		System.out.println(c /= c);
@@ -95,7 +109,7 @@ public class NonStaticFieldsIncrementExample {
 		System.out.println(d /= d);
 	}
 	
-	public void rem() {
+	public static void rem(byte b, short s, char c, int i, long l, float f, double d) {
 		System.out.println(b %= b);
 		System.out.println(s %= s);
 		System.out.println(c %= c);
@@ -105,7 +119,8 @@ public class NonStaticFieldsIncrementExample {
 		System.out.println(d %= d);
 	}
 	
-	public void and() {
+	public static void and(boolean z, byte b, short s, char c, int i, long l) {
+		System.out.println(z &= z);
 		System.out.println(b &= b);
 		System.out.println(s &= s);
 		System.out.println(c &= c);
@@ -113,7 +128,8 @@ public class NonStaticFieldsIncrementExample {
 		System.out.println(l &= l);
 	}
 	
-	public void or() {
+	public static void or(boolean z, byte b, short s, char c, int i, long l) {
+		System.out.println(z |= z);
 		System.out.println(b |= b);
 		System.out.println(s |= s);
 		System.out.println(c |= c);
@@ -121,7 +137,8 @@ public class NonStaticFieldsIncrementExample {
 		System.out.println(l |= l);
 	}
 	
-	public void xor() {
+	public static void xor(boolean z, byte b, short s, char c, int i, long l) {
+		System.out.println(z ^= z);
 		System.out.println(b ^= b);
 		System.out.println(s ^= s);
 		System.out.println(c ^= c);
@@ -129,7 +146,7 @@ public class NonStaticFieldsIncrementExample {
 		System.out.println(l ^= l);
 	}
 	
-	public void not() {
+	public static void not(byte b, short s, char c, int i, long l) {
 		System.out.println(b = (byte)~b);
 		System.out.println(s = (short)~s);
 		System.out.println(c = (char)~c);
@@ -137,7 +154,7 @@ public class NonStaticFieldsIncrementExample {
 		System.out.println(l = ~l);
 	}
 	
-	public void neg() {
+	public static void neg(byte b, short s, char c, int i, long l) {
 		System.out.println(b = (byte)-b);
 		System.out.println(s = (short)-s);
 		System.out.println(c = (char)-c);
@@ -145,7 +162,7 @@ public class NonStaticFieldsIncrementExample {
 		System.out.println(l = -l);
 	}
 	
-	public void shl() {
+	public static void shl(byte b, short s, char c, int i, long l) {
 		System.out.println(b <<= b);
 		System.out.println(s <<= s);
 		System.out.println(c <<= c);
@@ -153,7 +170,7 @@ public class NonStaticFieldsIncrementExample {
 		System.out.println(l <<= l);
 	}
 	
-	public void shr() {
+	public static void shr(byte b, short s, char c, int i, long l) {
 		System.out.println(b >>= b);
 		System.out.println(s >>= s);
 		System.out.println(c >>= c);
@@ -161,7 +178,7 @@ public class NonStaticFieldsIncrementExample {
 		System.out.println(l >>= l);
 	}
 	
-	public void ushr() {
+	public static void ushr(byte b, short s, char c, int i, long l) {
 		System.out.println(b >>>= b);
 		System.out.println(s >>>= s);
 		System.out.println(c >>>= c);
@@ -169,7 +186,7 @@ public class NonStaticFieldsIncrementExample {
 		System.out.println(l >>>= l);
 	}
 	
-	public void assign() {
+	public static void assign(byte b, short s, char c, int i, long l, float f, double d) {
 		System.out.println(b = -1);
 		System.out.println(s = -1);
 		System.out.println(c = '\uFFFF');

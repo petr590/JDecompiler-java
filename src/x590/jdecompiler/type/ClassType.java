@@ -90,6 +90,7 @@ public class ClassType extends ReferenceType {
 			STRING         = initFromClass(String.class),
 			CLASS          = initFromClass(Class.class),
 			ENUM           = initFromClass(Enum.class),
+			RECORD         = initFromClass(Record.class),
 			THROWABLE      = initFromClass(Throwable.class),
 			METHOD_TYPE    = initFromClass(MethodType.class),
 			METHOD_HANDLE  = initFromClass(MethodHandle.class),
@@ -569,6 +570,11 @@ public class ClassType extends ReferenceType {
 	
 	public boolean isModuleInfo() {
 		return kind.isModuleInfo();
+	}
+	
+	public boolean isNestmateOf(ClassType other) {
+		var enclosingClass = this.enclosingClass;
+		return enclosingClass == other || enclosingClass != null && enclosingClass.isNestmateOf(other);
 	}
 	
 	

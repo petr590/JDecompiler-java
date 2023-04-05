@@ -59,6 +59,13 @@ public class SwitchScope extends Scope {
 		setEndIndex(indexes.isEmpty() ? defaultIndex : Math.max(defaultIndex, indexes.getInt(0)));
 	}
 	
+	
+	@Override
+	public boolean isBreakable() {
+		return true;
+	}
+	
+	
 	@Override
 	protected void writeHeader(StringifyOutputStream out, StringifyContext context) {
 		out.print("switch(").print(value, context).print(')');

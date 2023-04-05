@@ -54,7 +54,7 @@ public abstract class ClassEntryModifiers extends Modifiers {
 	
 	
 	@Override
-	IWhitespaceStringBuilder toStringBuilder(boolean forWriting) {
+	protected IWhitespaceStringBuilder toStringBuilder(boolean forWriting) {
 		return super.toStringBuilder(forWriting)
 				.appendIf(isPublic(), "public")
 				.appendIf(isPrivate(), "private")

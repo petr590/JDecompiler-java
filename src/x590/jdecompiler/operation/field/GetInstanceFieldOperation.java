@@ -20,6 +20,10 @@ public final class GetInstanceFieldOperation extends GetFieldOperation {
 		this.object = popObject(context);
 	}
 	
+	public Operation getObject() {
+		return object;
+	}
+	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		if(!canOmitObject(context, object)) {

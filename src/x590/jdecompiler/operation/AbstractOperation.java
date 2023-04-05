@@ -8,11 +8,16 @@ import x590.jdecompiler.type.Type;
 
 public abstract class AbstractOperation implements Operation {
 	
-	private boolean removed;
+	private boolean removed, removedFromScope;
 	
 	@Override
 	public void remove() {
-		this.removed = true;
+		this.removedFromScope = this.removed = true;
+	}
+	
+	@Override
+	public void removeFromScope() {
+		this.removedFromScope = true;
 	}
 	
 	@Override
@@ -21,8 +26,18 @@ public abstract class AbstractOperation implements Operation {
 	}
 	
 	@Override
+	public void unremoveFromScope() {
+		this.removedFromScope = false;
+	}
+	
+	@Override
 	public boolean isRemoved() {
 		return removed;
+	}
+	
+	@Override
+	public boolean isRemovedFromScope() {
+		return removedFromScope;
 	}
 	
 	@Override

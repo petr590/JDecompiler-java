@@ -1,4 +1,6 @@
-package x590.jdecompiler.example;
+package x590.jdecompiler.example.extending;
+
+import x590.jdecompiler.example.Example;
 
 @Example
 public interface SuperinterfaceExample {

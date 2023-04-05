@@ -47,8 +47,9 @@ public final class UncertainReferenceType extends Type {
 	
 	@Override
 	public String toString() {
-		return narrowestType == null ? "(" + widestType.toString() + ")" :
-			"(" + widestType.toString() + " - " + narrowestType.toString() + ")";
+		return narrowestType == null ?
+				"(" + widestType.toString() + ")" :
+				"(" + widestType.toString() + " - " + narrowestType.toString() + ")";
 	}
 	
 	@Override
@@ -102,11 +103,34 @@ public final class UncertainReferenceType extends Type {
 				
 				return this;
 			}
+			
+			return null;
+		}
+		
+		if(other instanceof UncertainReferenceType uncertainType) {
+			if(!widest) {
+				ReferenceType widestType = chooseNarrwestFrom(this.widestType, uncertainType.widestType);
+				
+				if(widestType != null) {
+					return getInstance(widestType, chooseWidestFrom(this.narrowestType, uncertainType.widestType));
+				}
+			}
 		}
 		
 		return null;
 	}
 	
+	private static @Nullable ReferenceType chooseNarrwestFrom(ReferenceType type1, ReferenceType type2) {
+		return  type1.isSubclassOf(type2) ? type1 :
+				type2.isSubclassOf(type1) ? type2 : null;
+	}
+	
+	private static @Nullable ReferenceType chooseWidestFrom(@Nullable ReferenceType type1, @Nullable ReferenceType type2) {
+		return  type1 == null ? type2 :
+				type2 == null ? type1 :
+				type1.isSubclassOf(type2) ? type1 :
+				type2.isSubclassOf(type1) ? type2 : null;
+	}
 	
 	private Type reversedCastImpl(Type other, boolean widest) {
 		if(this.equals(other))

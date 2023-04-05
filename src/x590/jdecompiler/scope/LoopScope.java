@@ -94,8 +94,8 @@ public class LoopScope extends ConditionalScope {
 					(!variableDefinition || operation.getVariable().getType().equals(prevOperation.getVariable().getType()))) {
 				
 				initializationOperations.add(0, operation);
-				operation.remove();
 				operation.getVariable().makeAnIndex();
+				operation.removeFromScope();
 				
 				if(prevOperation != null) {
 					prevOperation.hideTypeDefinition();
@@ -119,7 +119,7 @@ public class LoopScope extends ConditionalScope {
 				operation instanceof StoreOperation store && !store.isVariableDefinition()) {
 				
 				incrementOperations.add(0, operation);
-				operation.remove();
+				operation.removeFromScope();
 			} else {
 				break;
 			}
@@ -161,6 +161,17 @@ public class LoopScope extends ConditionalScope {
 			this.deleteRemovedOperations();
 			superScope().deleteRemovedOperations();
 		}
+	}
+	
+	
+	@Override
+	public boolean isBreakable() {
+		return true;
+	}
+	
+	@Override
+	public boolean isContinuable() {
+		return true;
 	}
 	
 	

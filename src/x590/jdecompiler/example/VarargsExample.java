@@ -18,7 +18,7 @@ public class VarargsExample {
 		foo2("foo");
 		foo2("foo", Object.class.getDeclaredMethod("equals", Object.class));
 		foo2("foo", Object.class.getDeclaredMethods());
-//		foo3("foo", new Class[] {});
-//		foo3("foo", new Class[] { Object.class });
+//		foo3("foo", new java.lang.reflect.Method[] {});
+//		foo3("foo", new java.lang.reflect.Method[] { null });
 	}
 }

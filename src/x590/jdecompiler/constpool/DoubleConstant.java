@@ -80,12 +80,12 @@ public final class DoubleConstant extends SingleConstableValueConstant<Double> {
 	
 	
 	private static final FieldDescriptor
-			MAX_VALUE_DESCRIPTOR         = new FieldDescriptor(ClassType.DOUBLE, "MAX_VALUE", PrimitiveType.DOUBLE),
-			MIN_VALUE_DESCRIPTOR         = new FieldDescriptor(ClassType.DOUBLE, "MIN_VALUE", PrimitiveType.DOUBLE),
-			MIN_NORMAL_DESCRIPTOR        = new FieldDescriptor(ClassType.DOUBLE, "MIN_NORMAL", PrimitiveType.DOUBLE),
-			POSITIVE_INFINITY_DESCRIPTOR = new FieldDescriptor(ClassType.DOUBLE, "POSITIVE_INFINITY", PrimitiveType.DOUBLE),
-			NEGATIVE_INFINITY_DESCRIPTOR = new FieldDescriptor(ClassType.DOUBLE, "NEGATIVE_INFINITY", PrimitiveType.DOUBLE),
-			NaN_DESCRIPTOR               = new FieldDescriptor(ClassType.DOUBLE, "NaN", PrimitiveType.DOUBLE);
+			MAX_VALUE_DESCRIPTOR         = new FieldDescriptor(PrimitiveType.DOUBLE, ClassType.DOUBLE, "MAX_VALUE"),
+			MIN_VALUE_DESCRIPTOR         = new FieldDescriptor(PrimitiveType.DOUBLE, ClassType.DOUBLE, "MIN_VALUE"),
+			MIN_NORMAL_DESCRIPTOR        = new FieldDescriptor(PrimitiveType.DOUBLE, ClassType.DOUBLE, "MIN_NORMAL"),
+			POSITIVE_INFINITY_DESCRIPTOR = new FieldDescriptor(PrimitiveType.DOUBLE, ClassType.DOUBLE, "POSITIVE_INFINITY"),
+			NEGATIVE_INFINITY_DESCRIPTOR = new FieldDescriptor(PrimitiveType.DOUBLE, ClassType.DOUBLE, "NEGATIVE_INFINITY"),
+			NaN_DESCRIPTOR               = new FieldDescriptor(PrimitiveType.DOUBLE, ClassType.DOUBLE, "NaN");
 	
 	private boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo, @Nullable FieldDescriptor ownerConstant, double value, FieldDescriptor requiredConstant) {
 		return writeConstantIfEquals(out, classinfo, ownerConstant, value, requiredConstant, true);

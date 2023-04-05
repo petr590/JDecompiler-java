@@ -1,4 +1,8 @@
-package x590.jdecompiler.example;
+package x590.jdecompiler.example.scope;
+
+import x590.jdecompiler.example.Example;
+import x590.jdecompiler.example.ExampleTesting;
+import x590.jdecompiler.example.SuperclassExample;
 
 @Example
 public class LocalsExample extends SuperclassExample {

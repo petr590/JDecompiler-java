@@ -57,7 +57,7 @@ public class MethodScope extends Scope {
 		// public static void main(String[] args)
 		if(localVariableTable == null &&
 				modifiers.isAll(ACC_PUBLIC | ACC_STATIC) &&
-				descriptor.equalsIgnoreClass("main", PrimitiveType.VOID, ArrayType.STRING_ARRAY)) {
+				descriptor.equalsIgnoreClass(PrimitiveType.VOID, "main", ArrayType.STRING_ARRAY)) {
 			
 			addVariable(new NamedVariable("args", this, ArrayType.STRING_ARRAY, true).defined());
 			
@@ -117,6 +117,12 @@ public class MethodScope extends Scope {
 	}
 	
 	
+	@Override
+	public void initLabel() {
+		throw new UnsupportedOperationException("Cannot write label from MethodScope");
+	}
+	
+	
 	public void writeAsLabmda(StringifyOutputStream out, StringifyContext context) {
 		List<Operation> operations = getOperations();
 		
@@ -143,7 +149,7 @@ public class MethodScope extends Scope {
 			List<Operation> lengths = newArray.getLengths();
 			
 			if(lengths.size() == 1 && lengths.get(0) instanceof ILoadOperation iload &&
-					iload.getVariable() == locals.get(0)) {
+					iload.getVariable() == getDefinedVariable(0)) {
 				
 				out.print(newArray.getReturnType(), context.getClassinfo()).print("::new");
 				return true;

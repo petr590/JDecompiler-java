@@ -17,7 +17,7 @@ public class SwitchInstruction extends ScopeInstruction {
 	}
 	
 	@Override
-	public Scope toScope(DecompilationContext context) {
+	protected Scope toScope(DecompilationContext context) {
 		return new SwitchScope(context, context.posToIndex(defaultPos), offsetTable);
 	}
 }

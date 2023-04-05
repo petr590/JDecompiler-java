@@ -4,10 +4,13 @@ import java.util.LinkedList;
 
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.StringifyWritable;
+import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.field.FieldDescriptor;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.modifiers.MethodModifiers;
 import x590.jdecompiler.operation.constant.ConstOperation;
+import x590.jdecompiler.operation.load.ALoadOperation;
 import x590.jdecompiler.operationinstruction.constant.AConstNullOperationInstruction;
 import x590.jdecompiler.type.GeneralCastingKind;
 import x590.jdecompiler.type.PrimitiveType;
@@ -43,11 +46,6 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context);
 	
-	/** Метод записи в поток в качестве инициализатора массива */
-	public default void writeAsArrayInitializer(StringifyOutputStream out, StringifyContext context) {
-		writeTo(out, context);
-	}
-	
 	/** Записывает операцию в поток как отдельное выражение */
 	public default void writeAsStatement(StringifyOutputStream out, StringifyContext context) {
 		this.writeFront(out, context);
@@ -72,6 +70,7 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	}
 	
 	
+	/** Можно ли опустить операцию (например, вызоов суперконструктора по умолчанию) */
 	public default boolean canOmit() {
 		return false;
 	}
@@ -84,13 +83,30 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	public void remove();
 	
 	/**
+	 * Отмечает операцию как удалённую из содержащего scope, после чего она
+	 * может быть удалена физически из scope. Не удаляется из списка всех операций, в {@link DecompilationContext}
+	 * т.е. для этой операции так же будет вызываться метод {@link #addImports(x590.jdecompiler.clazz.ClassInfo)}
+	 */
+	public void removeFromScope();
+	
+	/**
 	 * Отмечает операцию как не удалённую, однако если эта операция уже была
 	 * удалена физически из какого-либо списка, то она не восстановится.
 	 */
 	public void unremove();
 	
+	/**
+	 * Отмечает операцию как не удалённую из содержащего scope, однако если эта операция уже была
+	 * удалена физически из какого-либо scope, то она не восстановится.
+	 */
+	public void unremoveFromScope();
+	
+	
 	/** Считается ли операция удалённой */
 	public boolean isRemoved();
+	
+	/** Считается ли операция удалённой из содержащего scope */
+	public boolean isRemovedFromScope();
 	
 	
 	/** Возвращаемый тип операции. Если тип - {@link PrimitiveType.VOID},
@@ -102,6 +118,9 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	public default Type getImplicitType() {
 		return getReturnType();
 	}
+	
+	/** Разрешает записывать инициализатор массива без указания {@code new <type>[]} */
+	public default void allowShortArrayInitializer() {}
 	
 	/** Разрешает опустить явное преобразование */
 	public void allowImplicitCast();
@@ -184,6 +203,21 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	 */
 	public default boolean isTerminable() {
 		return false;
+	}
+	
+	/**
+	 * Гарантирует, что операция является объектом {@code this}.
+	 */
+	public default boolean isThisObject() {
+		return this instanceof ALoadOperation aload && aload.getIndex() == 0;
+	}
+	
+	/**
+	 * Гарантирует, что операция является объектом {@code this}.
+	 * Также проверяет, что операция в нестатическом контексте
+	 */
+	public default boolean isThisObject(MethodModifiers modifiers) {
+		return modifiers.isNotStatic() && isThisObject();
 	}
 	
 	

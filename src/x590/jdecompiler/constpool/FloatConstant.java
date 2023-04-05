@@ -79,12 +79,12 @@ public final class FloatConstant extends SingleConstableValueConstant<Float> {
 			FLOAT_E = (float)Math.E;
 	
 	private static final FieldDescriptor
-			MAX_VALUE_DESCRIPTOR         = new FieldDescriptor(ClassType.FLOAT, "MAX_VALUE", PrimitiveType.FLOAT),
-			MIN_VALUE_DESCRIPTOR         = new FieldDescriptor(ClassType.FLOAT, "MIN_VALUE", PrimitiveType.FLOAT),
-			MIN_NORMAL_DESCRIPTOR        = new FieldDescriptor(ClassType.FLOAT, "MIN_NORMAL", PrimitiveType.FLOAT),
-			POSITIVE_INFINITY_DESCRIPTOR = new FieldDescriptor(ClassType.FLOAT, "POSITIVE_INFINITY", PrimitiveType.FLOAT),
-			NEGATIVE_INFINITY_DESCRIPTOR = new FieldDescriptor(ClassType.FLOAT, "NEGATIVE_INFINITY", PrimitiveType.FLOAT),
-			NaN_DESCRIPTOR               = new FieldDescriptor(ClassType.FLOAT, "NaN", PrimitiveType.FLOAT);
+			MAX_VALUE_DESCRIPTOR         = new FieldDescriptor(PrimitiveType.FLOAT, ClassType.FLOAT, "MAX_VALUE"),
+			MIN_VALUE_DESCRIPTOR         = new FieldDescriptor(PrimitiveType.FLOAT, ClassType.FLOAT, "MIN_VALUE"),
+			MIN_NORMAL_DESCRIPTOR        = new FieldDescriptor(PrimitiveType.FLOAT, ClassType.FLOAT, "MIN_NORMAL"),
+			POSITIVE_INFINITY_DESCRIPTOR = new FieldDescriptor(PrimitiveType.FLOAT, ClassType.FLOAT, "POSITIVE_INFINITY"),
+			NEGATIVE_INFINITY_DESCRIPTOR = new FieldDescriptor(PrimitiveType.FLOAT, ClassType.FLOAT, "NEGATIVE_INFINITY"),
+			NaN_DESCRIPTOR               = new FieldDescriptor(PrimitiveType.FLOAT, ClassType.FLOAT, "NaN");
 	
 	private boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo, @Nullable FieldDescriptor ownerConstant, float value, FieldDescriptor requiredConstant) {
 		return writeConstantIfEquals(out, classinfo, ownerConstant, value, requiredConstant, true);

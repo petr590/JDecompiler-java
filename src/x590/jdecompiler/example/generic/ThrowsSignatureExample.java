@@ -1,4 +1,7 @@
-package x590.jdecompiler.example;
+package x590.jdecompiler.example.generic;
+
+import x590.jdecompiler.example.Example;
+import x590.jdecompiler.example.ExampleTesting;
 
 @Example
 public class ThrowsSignatureExample {

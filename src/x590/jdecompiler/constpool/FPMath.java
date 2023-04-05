@@ -11,6 +11,6 @@ final class FPMath {
 	static final ClassType MATH_CLASS = ClassType.fromClass(Math.class);
 	
 	static final FieldDescriptor
-			PI_DESCRIPTOR = new FieldDescriptor(MATH_CLASS, "PI", PrimitiveType.DOUBLE),
-			E_DESCRIPTOR = new FieldDescriptor(MATH_CLASS, "E", PrimitiveType.DOUBLE);
+			PI_DESCRIPTOR = new FieldDescriptor(PrimitiveType.DOUBLE, MATH_CLASS, "PI"),
+			E_DESCRIPTOR = new FieldDescriptor(PrimitiveType.DOUBLE, MATH_CLASS, "E");
 }

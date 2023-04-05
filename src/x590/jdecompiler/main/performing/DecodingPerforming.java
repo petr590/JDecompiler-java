@@ -48,9 +48,9 @@ public abstract class DecodingPerforming<S extends ExtendedOutputStream<S>> exte
 		return null;
 	}
 	
-	@Override
-	public void doWrite(JavaClass clazz) {
-		if(!separateOutputStream)
+	protected void writeSeparator() {
+		if(!separateOutputStream) {
 			out.resetIndent().print("\n\n----------------------------------------------------------------------------------------------------\n\n");
+		}
 	}
 }

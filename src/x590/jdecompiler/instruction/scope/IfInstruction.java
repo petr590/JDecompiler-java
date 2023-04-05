@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.DisassemblerContext;
 import x590.jdecompiler.context.PreDecompilationContext;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.condition.AndOperation;
 import x590.jdecompiler.operation.condition.CompareOperation;
 import x590.jdecompiler.operation.condition.CompareType;
@@ -41,12 +42,12 @@ public abstract class IfInstruction extends TransitionInstruction {
 
 	
 	@Override
-	public @Nullable Scope toScopeAtTargetPos(DecompilationContext context) {
+	public @Nullable Operation toOperationAtTargetPos(DecompilationContext context) {
 		return null;
 	}
 	
 	@Override
-	public Scope toScope(DecompilationContext context) {
+	public @Nullable Scope toScope(DecompilationContext context) {
 		
 		int endIndex = context.posToIndex(targetPos);
 		Scope currentScope = context.currentScope();

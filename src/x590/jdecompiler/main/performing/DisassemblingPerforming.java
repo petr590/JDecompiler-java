@@ -21,7 +21,8 @@ public class DisassemblingPerforming extends DecodingPerforming<DisassemblingOut
 	
 	@Override
 	public void doWrite(JavaClass clazz) {
-		super.doWrite(clazz);
+		super.writeSeparator();
 		clazz.writeDisassembled(out);
+		super.writeSeparator();
 	}
 }

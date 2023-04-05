@@ -24,7 +24,8 @@ public class DecompilingPerforming extends DecodingPerforming<StringifyOutputStr
 	
 	@Override
 	public void doWrite(JavaClass clazz) {
-		super.doWrite(clazz);
+		super.writeSeparator();
 		clazz.writeTo(out);
+		super.writeSeparator();
 	}
 }

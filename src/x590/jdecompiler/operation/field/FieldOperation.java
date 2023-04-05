@@ -8,6 +8,7 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.field.FieldDescriptor;
 import x590.jdecompiler.field.JavaField;
+import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.OperationWithDescriptor;
 
@@ -21,7 +22,7 @@ public abstract class FieldOperation extends OperationWithDescriptor<FieldDescri
 	
 	private boolean canOmit(ClassInfo classinfo) {
 		
-		if(descriptor.getDeclaringClass().equals(classinfo.getThisType())) {
+		if(!JDecompiler.getConfig().showSynthetic() && descriptor.getDeclaringClass().equals(classinfo.getThisType())) {
 			Optional<JavaField> field = classinfo.findField(descriptor);
 			
 			if(field.isPresent()) {

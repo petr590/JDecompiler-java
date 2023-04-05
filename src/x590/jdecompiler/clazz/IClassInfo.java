@@ -29,6 +29,12 @@ public interface IClassInfo {
 	public @Nullable @Immutable List<ClassType> getInterfaces();
 	
 	
+	public default boolean isRecord() {
+		ClassType superType = getSuperType();
+		return superType != null && superType.equals(ClassType.RECORD);
+	}
+	
+	
 	public default boolean hasField(FieldDescriptor descriptor) {
 		return hasFieldByDescriptor(descriptor::equals);
 	}

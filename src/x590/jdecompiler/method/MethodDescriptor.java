@@ -42,7 +42,9 @@ import x590.util.annotation.Nullable;
 
 public final class MethodDescriptor extends Descriptor implements Importable {
 	
-	public static final int IMPLICIT_ENUM_ARGUMENTS = 2;
+	public static final int
+			IMPLICIT_ENUM_ARGUMENTS = 2,
+			IMPLICIT_NONSTATIC_NESTED_CLASS_ARGUMENTS = 1;
 	
 	private final @Immutable List<Type> arguments;
 	private final Type returnType;
@@ -139,15 +141,21 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	}
 	
 	
-	public MethodDescriptor(ReferenceType declaringClass, String name, Type returnType, Type... arguments) {
+	public MethodDescriptor(Type returnType, ReferenceType declaringClass, String name, Type... arguments) {
 		this(declaringClass, name, List.of(arguments), returnType);
 	}
 	
-	public MethodDescriptor(ReferenceType declaringClass, String name, Type returnType) {
+	public MethodDescriptor(Type returnType, ReferenceType declaringClass, String name) {
 		this(declaringClass, name, Collections.emptyList(), returnType);
 	}
 	
-	public MethodDescriptor(ReferenceType declaringClass, String name, @Immutable List<Type> arguments, Type returnType) {
+	public MethodDescriptor(Type returnType, ReferenceType declaringClass, String name, @Immutable List<Type> arguments) {
+		this(declaringClass, name, arguments, returnType);
+	}
+	
+	/** Порядок аргументов конструктора изменён,
+	 * так как при парсинге дескриптора сначала идёт список аргументов, а потом возвращаемый тип. */
+	private MethodDescriptor(ReferenceType declaringClass, String name, @Immutable List<Type> arguments, Type returnType) {
 		super(declaringClass, name);
 		this.arguments = arguments;
 		this.returnType = returnType;
@@ -185,7 +193,16 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	
 	
 	int getVisibleStartIndex(ClassInfo classinfo) {
-		return classinfo.getModifiers().isEnum() && this.isConstructorOf(classinfo.getThisType()) ? IMPLICIT_ENUM_ARGUMENTS : 0;
+		return isEnumConstructor(classinfo) ? IMPLICIT_ENUM_ARGUMENTS :
+				isImplicitNonstaticNestedClassConstructor(classinfo) ? IMPLICIT_NONSTATIC_NESTED_CLASS_ARGUMENTS : 0;
+	}
+	
+	private boolean isEnumConstructor(ClassInfo classinfo) {
+		return classinfo.getModifiers().isEnum() && this.isConstructorOf(classinfo.getThisType());
+	}
+	
+	private boolean isImplicitNonstaticNestedClassConstructor(ClassInfo classinfo) {
+		return classinfo.getThisType().isNested() && this.isConstructorOf(classinfo.getThisType()) && classinfo.getModifiers().isNotStatic();
 	}
 	
 	
@@ -296,10 +313,12 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	
 	@Override
 	public String toString() {
-		return getDeclaringClass().getName() + "." +
-				(kind == MethodKind.STATIC_INITIALIZER ? "static {}" :
-				(kind == MethodKind.CONSTRUCTOR ? ((ClassType)getDeclaringClass()).getSimpleName() : getName())
-						+ arguments.stream().map(Type::getName).collect(Collectors.joining(", ", "(", ")")));
+		return returnType.getName() + " " +
+				getDeclaringClass().getName() + "." +
+				(kind == MethodKind.STATIC_INITIALIZER ?
+						"static {}" :
+						(kind == MethodKind.CONSTRUCTOR ? ((ClassType)getDeclaringClass()).getSimpleName() : getName())
+								+ arguments.stream().map(Type::getName).collect(Collectors.joining(", ", "(", ")")));
 	}
 	
 	
@@ -323,61 +342,61 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	}
 	
 	
-	public boolean equalsIgnoreClass(String name, Type returnType) {
-		return this.equalsRawIgnoreClass(name, returnType) && argumentsEquals();
+	public boolean equalsIgnoreClass(Type returnType, String name) {
+		return this.equalsRawIgnoreClass(returnType, name) && argumentsEquals();
 	}
 	
-	public boolean equalsIgnoreClass(String name, Type returnType, Type arg1) {
-		return this.equalsRawIgnoreClass(name, returnType) && argumentsEquals(arg1);
+	public boolean equalsIgnoreClass(Type returnType, String name, Type arg1) {
+		return this.equalsRawIgnoreClass(returnType, name) && argumentsEquals(arg1);
 	}
 	
-	public boolean equalsIgnoreClass(String name, Type returnType, Type arg1, Type arg2) {
-		return this.equalsRawIgnoreClass(name, returnType) && argumentsEquals(arg1, arg2);
+	public boolean equalsIgnoreClass(Type returnType, String name, Type arg1, Type arg2) {
+		return this.equalsRawIgnoreClass(returnType, name) && argumentsEquals(arg1, arg2);
 	}
 	
-	public boolean equalsIgnoreClass(String name, Type returnType, Type arg1, Type arg2, Type arg3) {
-		return this.equalsRawIgnoreClass(name, returnType) && argumentsEquals(arg1, arg2, arg3);
+	public boolean equalsIgnoreClass(Type returnType, String name, Type arg1, Type arg2, Type arg3) {
+		return this.equalsRawIgnoreClass(returnType, name) && argumentsEquals(arg1, arg2, arg3);
 	}
 	
-	public boolean equalsIgnoreClass(String name, Type returnType, Type... args) {
-		return this.equalsRawIgnoreClass(name, returnType) && argumentsEquals(args);
+	public boolean equalsIgnoreClass(Type returnType, String name, Type... args) {
+		return this.equalsRawIgnoreClass(returnType, name) && argumentsEquals(args);
 	}
 	
-	public boolean equalsIgnoreClass(String name, Type returnType, int argumentsCount) {
-		return this.equalsRawIgnoreClass(name, returnType) && arguments.size() == argumentsCount;
+	public boolean equalsIgnoreClass(Type returnType, String name, int argumentsCount) {
+		return this.equalsRawIgnoreClass(returnType, name) && arguments.size() == argumentsCount;
 	}
 	
-	private boolean equalsRawIgnoreClass(String name, Type returnType) {
-		return this.getName().equals(name) && this.returnType.equals(returnType);
+	private boolean equalsRawIgnoreClass(Type returnType, String name) {
+		return this.returnType.equals(returnType) && getName().equals(name);
 	}
 	
 	
-	public boolean equals(ClassType declaringClass, String name, Type returnType) {
-		return this.equalsRaw(declaringClass, name, returnType) && argumentsEquals();
+	public boolean equals(Type returnType, ClassType declaringClass, String name) {
+		return this.equalsRaw(returnType, declaringClass, name) && argumentsEquals();
 	}
 	
-	public boolean equals(ClassType declaringClass, String name, Type returnType, Type arg1) {
-		return this.equalsRaw(declaringClass, name, returnType) && argumentsEquals(arg1);
+	public boolean equals(Type returnType, ClassType declaringClass, String name, Type arg1) {
+		return this.equalsRaw(returnType, declaringClass, name) && argumentsEquals(arg1);
 	}
 	
-	public boolean equals(ClassType declaringClass, String name, Type returnType, Type arg1, Type arg2) {
-		return this.equalsRaw(declaringClass, name, returnType) && argumentsEquals(arg1, arg2);
+	public boolean equals(Type returnType, ClassType declaringClass, String name, Type arg1, Type arg2) {
+		return this.equalsRaw(returnType, declaringClass, name) && argumentsEquals(arg1, arg2);
 	}
 	
-	public boolean equals(ClassType declaringClass, String name, Type returnType, Type arg1, Type arg2, Type arg3) {
-		return this.equalsRaw(declaringClass, name, returnType) && argumentsEquals(arg1, arg2, arg3);
+	public boolean equals(Type returnType, ClassType declaringClass, String name, Type arg1, Type arg2, Type arg3) {
+		return this.equalsRaw(returnType, declaringClass, name) && argumentsEquals(arg1, arg2, arg3);
 	}
 	
-	public boolean equals(ClassType declaringClass, String name, Type returnType, Type... args) {
-		return this.equalsRaw(declaringClass, name, returnType) && argumentsEquals(args);
+	public boolean equals(Type returnType, ClassType declaringClass, String name, Type... args) {
+		return this.equalsRaw(returnType, declaringClass, name) && argumentsEquals(args);
 	}
 	
-	public boolean equals(ClassType declaringClass, String name, Type returnType, int argumentsCount) {
-		return this.equalsRaw(declaringClass, name, returnType) && arguments.size() == argumentsCount;
+	public boolean equals(Type returnType, ClassType declaringClass, String name, int argumentsCount) {
+		return this.equalsRaw(returnType, declaringClass, name) && arguments.size() == argumentsCount;
 	}
 	
-	private boolean equalsRaw(ClassType declaringClass, String name, Type returnType) {
-		return this.getDeclaringClass().equals(declaringClass) && this.getName().equals(name) && this.returnType.equals(returnType);
+	private boolean equalsRaw(Type returnType, ClassType declaringClass, String name) {
+		return this.returnType.equals(returnType) && this.getDeclaringClass().equals(declaringClass) && getName().equals(name);
 	}
 
 	

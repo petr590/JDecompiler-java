@@ -45,9 +45,12 @@ public abstract class Scope extends AbstractOperation {
 	private final @Nullable Scope superScope;
 	
 	/** Список локальных переменных */
-	/* private */ public final List<EmptyableVariableWrapper> locals;
+	private final List<EmptyableVariableWrapper> locals;
 	
 	private final Int2IntMap indexTable;
+	
+	private @Nullable String label;
+	private int labelNumber;
 	
 	
 	public Scope(DecompilationContext context, int endIndex) {
@@ -349,11 +352,69 @@ public abstract class Scope extends AbstractOperation {
 	}
 	
 	
-	/** Удаляет все операции с установленным флагом {@link Operation#removed}.
+	/** Удаляет все операции, отмеченные флагом {@link Operation#isRemovedFromScope()} или {@link Operation#canOmit()}.
 	 * При этом очищается {@link #indexTable}, так как индексы могут сместиться */
 	protected void deleteRemovedOperations() {
-		code.removeIf(operation -> operation.isRemoved() || operation.canOmit());
+		code.removeIf(operation -> operation.isRemovedFromScope() || operation.canOmit());
 		indexTable.clear();
+	}
+	
+	
+	/** Можно ли использовать {@literal break} для этого scope */
+	public boolean isBreakable() {
+		return false;
+	}
+	
+	/** Можно ли использовать {@literal continue} для этого scope */
+	public boolean isContinuable() {
+		return false;
+	}
+	
+	
+	public void initLabel() {
+		if(label != null) {
+			return;
+		}
+		
+		label = getLabelBaseName();
+		
+		int count = superScope.getScopesCountWithLabel(label);
+		
+		labelNumber = count == 0 ? count : count + 1;
+	}
+	
+	public void writeLabel(StringifyOutputStream out) {
+		if(label == null)
+			throw new IllegalStateException("Label not initialized");
+		
+		out.write(label);
+		
+		if(labelNumber != 0)
+			out.write(Integer.toString(labelNumber));
+	}
+	
+	protected String getLabelBaseName() {
+		return "L";
+	}
+	
+	private int getScopesCountWithLabel(String labelName) {
+		int count = 0;
+		
+		if(labelName.equals(this.label)) {
+			count++;
+			
+			if(labelNumber == 0)
+				labelNumber = 1;
+		}
+		
+		for(Scope scope : scopes) {
+			count += scope.getScopesCountWithLabel(labelName);
+		}
+		
+		if(superScope != null)
+			return count + superScope.getScopesCountWithLabel(labelName);
+		
+		return count;
 	}
 	
 	

@@ -1,6 +1,7 @@
 package x590.jdecompiler.attribute;
 
 import java.util.List;
+import java.util.Objects;
 
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.StringifyWritable;
@@ -31,6 +32,10 @@ public class PermittedSubclassesAttribute extends Attribute implements Stringify
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-		out.print(" permits ").printAll(subclasses, classinfo, ", ");
+		var thisType = classinfo.getThisType();
+		var enclosingOrThisClass = Objects.requireNonNullElse(thisType.getEnclosingClass(), thisType);
+		
+		if(!subclasses.stream().allMatch(classType -> classType.isNestmateOf(enclosingOrThisClass)))
+			out.print(" permits ").printAll(subclasses, classinfo, ", ");
 	}
 }

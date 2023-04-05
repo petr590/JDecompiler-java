@@ -3,14 +3,17 @@ package x590.jdecompiler.operation;
 import x590.jdecompiler.Descriptor;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.main.JDecompiler;
-import x590.jdecompiler.operation.load.ALoadOperation;
 
 public abstract class OperationWithDescriptor<D extends Descriptor> extends AbstractOperation {
 	
-	public final D descriptor;
+	protected final D descriptor;
 	
 	public OperationWithDescriptor(D descriptor) {
 		this.descriptor = descriptor;
+	}
+	
+	public D getDescriptor() {
+		return descriptor;
 	}
 	
 	protected boolean canOmitClass(StringifyContext context) {
@@ -18,8 +21,7 @@ public abstract class OperationWithDescriptor<D extends Descriptor> extends Abst
 	}
 	
 	protected boolean canOmitObject(StringifyContext context, Operation object) {
-		return JDecompiler.getConfig().canOmitThisAndClass() && context.getModifiers().isNotStatic() &&
-				object instanceof ALoadOperation aload && aload.getIndex() == 0;
+		return JDecompiler.getConfig().canOmitThisAndClass() && object.isThisObject(context.getModifiers());
 	}
 	
 	protected boolean equals(OperationWithDescriptor<D> other) {

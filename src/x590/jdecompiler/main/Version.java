@@ -2,5 +2,5 @@ package x590.jdecompiler.main;
 
 /** Для того, чтобы при коммите автоматически менялась версия программы */
 class Version {
-	static final String VERSION = "0.8.3";
+	static final String VERSION = "0.8.4";
 }

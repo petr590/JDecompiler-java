@@ -8,7 +8,7 @@ public class ArrayInvokeExample {
 	}
 	
 	public Object[] foo() {
-		Object[] arr = new Object[] {};
+		Object[] arr = new Object[0];
 		return arr.clone();
 	}
 }

@@ -118,7 +118,8 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 	
 	@Override
 	public void writeValue(StringifyOutputStream out, StringifyContext context) {
-		value.writeAsArrayInitializer(out, context);
+		value.allowShortArrayInitializer();
+		value.writeTo(out, context);
 	}
 	
 	@Override

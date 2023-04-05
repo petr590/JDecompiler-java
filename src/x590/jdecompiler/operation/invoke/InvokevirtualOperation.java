@@ -24,7 +24,7 @@ public final class InvokevirtualOperation extends InvokeNonstaticOperation {
 	
 	/** Несуществующий дескриптор метода, просто чтобы было */
 	private static final MethodDescriptor DEFAULT_STRING_CONCAT_DESCRIPTOR =
-			new MethodDescriptor(ClassType.STRING_BUILDER, "toString", ClassType.STRING);
+			new MethodDescriptor(ClassType.STRING, ClassType.STRING_BUILDER, "toString");
 	
 	
 	public static Operation operationOf(DecompilationContext context, int descriptorIndex) {
@@ -63,7 +63,7 @@ public final class InvokevirtualOperation extends InvokeNonstaticOperation {
 				return new CastOperation(ClassType.BOOLEAN, PrimitiveType.BOOLEAN, true, context);
 			
 		} else if(JDecompiler.getConfig().decompileStringBuilderAsConcatenation() &&
-				descriptor.equals(ClassType.STRING_BUILDER, "toString", ClassType.STRING)) {
+				descriptor.equals(ClassType.STRING, ClassType.STRING_BUILDER, "toString")) {
 			
 			Operation object = context.popAsNarrowest(ClassType.STRING_BUILDER);
 			
@@ -81,7 +81,7 @@ public final class InvokevirtualOperation extends InvokeNonstaticOperation {
 	
 	@Override
 	public @Nullable LinkedList<Operation> getStringBuilderChain(LinkedList<Operation> operands) {
-		if(descriptor.equals(ClassType.STRING_BUILDER, "append", ClassType.STRING_BUILDER, 1)) {
+		if(descriptor.equals(ClassType.STRING_BUILDER, ClassType.STRING_BUILDER, "append", 1)) {
 			
 			operands.addFirst(getArguments().getFirst());
 			return object.getStringBuilderChain(operands);

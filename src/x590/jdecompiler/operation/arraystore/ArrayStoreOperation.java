@@ -64,8 +64,8 @@ public abstract class ArrayStoreOperation extends ReturnableOperation implements
 	}
 	
 	@Override
-	public void writeAsArrayInitializer(StringifyOutputStream out, StringifyContext context) {
-		value.writeAsArrayInitializer(out, context);
+	public void allowShortArrayInitializer() {
+		value.allowShortArrayInitializer();
 	}
 	
 	

@@ -21,15 +21,6 @@ public final class FieldDescriptor extends Descriptor implements Importable {
 	
 	private final Type type;
 	
-	public FieldDescriptor(ReferenceType declaringClass, String name, Type type) {
-		super(declaringClass, name);
-		this.type = type;
-	}
-	
-	public FieldDescriptor(ReferenceType declaringClass, String name, String descriptor) {
-		this(declaringClass, name, Type.parseType(descriptor));
-	}
-	
 	public FieldDescriptor(FieldrefConstant fieldref) {
 		this(fieldref.getClassConstant().toClassType(), fieldref.getNameAndType());
 	}
@@ -42,8 +33,17 @@ public final class FieldDescriptor extends Descriptor implements Importable {
 		this(declaringClass, pool.getUtf8String(in.readUnsignedShort()), pool.getUtf8String(in.readUnsignedShort()));
 	}
 	
+	public FieldDescriptor(ReferenceType declaringClass, String name, String descriptor) {
+		this(Type.parseType(descriptor), declaringClass, name);
+	}
+	
+	public FieldDescriptor(Type type, ReferenceType declaringClass, String name) {
+		super(declaringClass, name);
+		this.type = type;
+	}
+	
 	public static FieldDescriptor fromReflectField(ReferenceType declaringClass, Field field) {
-		return new FieldDescriptor(declaringClass, field.getName(), Type.fromClass(field.getType()));
+		return new FieldDescriptor(Type.fromClass(field.getType()), declaringClass, field.getName());
 	}
 	
 	
@@ -64,11 +64,11 @@ public final class FieldDescriptor extends Descriptor implements Importable {
 	}
 	
 	public boolean equals(FieldDescriptor other) {
-		return this == other || this.equals(other.getDeclaringClass(), other.getName(), other.type);
+		return this == other || this.equals(other.type, other.getDeclaringClass(), other.getName());
 	}
 	
-	public boolean equals(ReferenceType declaringClass, String name, Type type) {
-		return this.getDeclaringClass().equals(declaringClass) && this.getName().equals(name) && this.type.equals(type);
+	public boolean equals(Type type, ReferenceType declaringClass, String name) {
+		return this.type.equals(type) && getDeclaringClass().equals(declaringClass) && getName().equals(name);
 	}
 	
 	@Override

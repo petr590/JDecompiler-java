@@ -22,6 +22,10 @@ public final class PutInstanceFieldOperation extends PutFieldOperation {
 		init(context);
 	}
 	
+	public Operation getObject() {
+		return object;
+	}
+	
 	// TODO
 	private void init(DecompilationContext context) {
 		if(!canOmit && context.getDescriptor().isConstructor() &&

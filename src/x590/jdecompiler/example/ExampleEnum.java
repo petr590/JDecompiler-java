@@ -2,7 +2,7 @@ package x590.jdecompiler.example;
 
 @Example
 public enum ExampleEnum {
-	A(0, "A"), B(1), C, D(-1, "BD");
+	A(0, "A"), B(1), C, D, E(-1, "BD");
 	
 	private final int value;
 	private final String name;
@@ -29,6 +29,6 @@ public enum ExampleEnum {
 	}
 	
 	public static void main(String[] args) {
-		ExampleTesting.runDecompiler(ExampleEnum.class);
+		ExampleTesting.runDecompiler(ExampleEnum.class, "-A");
 	}
 }

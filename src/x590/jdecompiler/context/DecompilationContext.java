@@ -12,7 +12,10 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
+import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import x590.jdecompiler.Importable;
@@ -42,7 +45,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	private final Queue<Scope> scopesQueue = new LinkedList<>();
 	
 	/** Для определения индекса начала выражения */
-	private final int[] expressionIndexTable;
+	private final Int2IntMap expressionIndexTable;
 	
 	/** Точки "разрыва", через которые мы не можем проводить соединение опрераций (например, инкремент и использование переменной).
 	 * Нужно для корректной декомпиляции циклов и, возможно, других конструкций */
@@ -58,29 +61,29 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	private DecompilationContext(Context otherContext, ClassInfo classinfo, JavaMethod method, List<Instruction> instructions, int maxLocals) {
 		super(otherContext, classinfo, method);
 		
-		var transitionInstructions = new PreDecompilationContext(otherContext, classinfo, method, instructions).getTransitionInstructions();
+		final var transitionInstructions = new PreDecompilationContext(otherContext, classinfo, method, instructions).getTransitionInstructions();
 		
 		
 		this.currentScope = getMethodScope();
 		
-		Set<Operation> operations = new HashSet<>(instructions.size());
+		final Set<Operation> operations = new HashSet<>(instructions.size());
 		this.operations = Collections.unmodifiableSet(operations);
 		this.mutableOperations = operations;
 		
-		ExceptionTable exceptionTable = method.getCodeAttribute().getExceptionTable();
+		final ExceptionTable exceptionTable = method.getCodeAttribute().getExceptionTable();
 		
-		List<TryEntry> tryEntries = exceptionTable.getEntries().stream()
+		final List<TryEntry> tryEntries = exceptionTable.getEntries().stream()
 //				.filter(Predicate.not(TryEntry::isFinally))
 				.collect(Collectors.toList());
 		
-		List<CatchEntry> catchEntries = tryEntries.stream()
+		final List<CatchEntry> catchEntries = tryEntries.stream()
 				.flatMap(tryEntry -> tryEntry.getCatchEntries().stream())
 //				.filter(Predicate.not(CatchEntry::isFinally))
 				.collect(Collectors.toList());
 		
 		final Operation vreturnOperation = VReturnOperation.getInstance();
 		
-		var expressionIndexTable = this.expressionIndexTable = new int[instructions.size()];
+		final var expressionIndexTable = this.expressionIndexTable = new Int2IntArrayMap(instructions.size());
 		int expressionIndex = 0;
 		
 		for(Instruction instruction : instructions) {
@@ -90,7 +93,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 			
 			
 //			Logger.debugf("%d: operation stack: [%s]", index, stack.stream().map(operation -> operation.getClass().getSimpleName() + " " + operation.getReturnType().getName()).collect(Collectors.joining(", ")));
-//			Logger.debugf("%d: scope stack: [%s]", index, StreamSupport.stream(this.getCurrentScopes().spliterator(), false).map(Scope::toString).collect(Collectors.joining(", ")));
+			Logger.debugf("%d: scope stack: [%s]", index, StreamSupport.stream(this.getCurrentScopes().spliterator(), false).map(Scope::toString).collect(Collectors.joining(", ")));
 			
 //			Logger.debugf("%d: locals: [%s]", index,
 //					Stream.concat(Stream.of(method.getMethodScope()), method.getMethodScope().getOperations().stream()
@@ -105,7 +108,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 //			);
 			
 			
-			expressionIndexTable[index] = expressionIndex;
+			expressionIndexTable.put(index, expressionIndex);
 			
 			
 			final int currentPos = currentPos();
@@ -116,11 +119,15 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 			
 			transitionInstructions.getOrDefault(index, PreDecompilationContext.DEFAULT_TRANSITION_INSTRUCTIONS_LIST)
 					.forEach(transitionInstruction -> {
-						Scope scope = transitionInstruction.toScopeAtTargetPos(this);
-						if(scope != null) {
-							operations.add(scope);
-							currentScope.addOperation(scope, this);
-							scopesQueue.add(scope);
+						Operation operation = transitionInstruction.toOperationAtTargetPos(this);
+						
+						if(operation != null) {
+							operations.add(operation);
+							
+							if(operation instanceof Scope scope) {
+								currentScope.addOperation(scope, this);
+								scopesQueue.add(scope);
+							}
 						}
 					});
 			
@@ -131,6 +138,9 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 				operation = instruction.toOperation(this);
 			} catch(DecompilationException | EmptyStackException ex) {
 				throw new DecompilationException(index, ex);
+			} catch(Throwable ex) {
+				System.err.println(ex.getClass().getSimpleName() + " at index " + index);
+				throw ex;
 			}
 			
 			if(operation != null) {
@@ -232,16 +242,6 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 		}
 	}
 	
-	private boolean addScope(Scope scope) {
-		if(startScope(scope)) {
-			scope.superScope().addOperation(scope, this);
-			mutableOperations.add(scope);
-			return true;
-		}
-		
-		return false;
-	}
-	
 	private boolean startScope(Scope scope) {
 		
 		if(scope.isRemoved()) {
@@ -264,6 +264,16 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 			return true;
 		}
 
+		return false;
+	}
+	
+	private boolean addScope(Scope scope) {
+		if(startScope(scope)) {
+			scope.superScope().addOperation(scope, this);
+			mutableOperations.add(scope);
+			return true;
+		}
+		
 		return false;
 	}
 	
@@ -357,11 +367,11 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	
 	
 	public int expressionStartIndexByIndex(int index) {
-		return expressionIndexTable[index];
+		return expressionIndexTable.get(index);
 	}
 	
 	public int currentExpressionStartIndex() {
-		return expressionIndexTable[index];
+		return expressionIndexTable.get(index);
 	}
 	
 	

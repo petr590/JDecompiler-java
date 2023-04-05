@@ -6,6 +6,9 @@ import x590.jdecompiler.attribute.CodeAttribute.ExceptionTable.TryEntry;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.DisassemblerContext;
 import x590.jdecompiler.context.PreDecompilationContext;
+import x590.jdecompiler.operation.BreakOperation;
+import x590.jdecompiler.operation.ContinueOperation;
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.condition.BooleanConstOperation;
 import x590.jdecompiler.scope.CatchScope;
 import x590.jdecompiler.scope.ElseScope;
@@ -13,6 +16,7 @@ import x590.jdecompiler.scope.EmptyInfiniteLoopScope;
 import x590.jdecompiler.scope.IfScope;
 import x590.jdecompiler.scope.LoopScope;
 import x590.jdecompiler.scope.Scope;
+import x590.util.Logger;
 import x590.util.annotation.Nullable;
 
 public class GotoInstruction extends TransitionInstruction {
@@ -23,7 +27,8 @@ public class GotoInstruction extends TransitionInstruction {
 	
 	public enum Role {
 		UNKNOWN, ELSE, CATCH_OVERJUMP,
-		EMPTY_INFINITE_LOOP, INFINITE_LOOP, WHILE_LOOP_PROLOGUE
+		EMPTY_INFINITE_LOOP, INFINITE_LOOP, WHILE_LOOP_PROLOGUE,
+		BREAK, CONTINUE
 	}
 	
 	public GotoInstruction(DisassemblerContext context, int offset) {
@@ -70,8 +75,24 @@ public class GotoInstruction extends TransitionInstruction {
 	
 	
 	@Override
-	public @Nullable Scope toScopeAtTargetPos(DecompilationContext context) {
+	public @Nullable Operation toOperationAtTargetPos(DecompilationContext context) {
 		if(role == Role.INFINITE_LOOP) {
+			boolean hasOtherContinuable = false;
+			int targetIndex = this.targetIndex;
+			
+			for(Scope scope = context.currentScope(); scope != null; scope = scope.superScope()) {
+				Logger.debug("%%%%%%%%%%%%%%%%%%", context.currentIndex(), scope, fromIndex, targetIndex);
+				
+				if(scope.isContinuable()) {
+					if(scope.startIndex() == targetIndex) {
+						role = Role.CONTINUE;
+						return new ContinueOperation(scope, hasOtherContinuable);
+					}
+					
+					hasOtherContinuable = true;
+				}
+			}
+			
 			return new LoopScope(context, targetIndex, fromIndex, BooleanConstOperation.TRUE, true);
 		}
 		
@@ -79,9 +100,11 @@ public class GotoInstruction extends TransitionInstruction {
 	}
 	
 	@Override
-	public Scope toScope(DecompilationContext context) {
+	public Operation toOperation(DecompilationContext context) {
 		
-		context.addBreak(targetIndex - 1);
+		int targetIndexM1 = targetIndex - 1;
+		
+		context.addBreak(targetIndexM1);
 		
 		return switch(role) {
 			
@@ -103,6 +126,20 @@ public class GotoInstruction extends TransitionInstruction {
 			}
 			
 			case ELSE -> {
+				boolean hasOtherBreakable = false;
+				
+				for(Scope scope = context.currentScope(); scope != null; scope = scope.superScope()) {
+					
+					if(scope.isBreakable()) {
+						if(scope.endIndex() == targetIndexM1) {
+							role = Role.BREAK;
+							yield new BreakOperation(scope, hasOtherBreakable);
+						}
+						
+						hasOtherBreakable = true;
+					}
+				}
+				
 				if(!recognizeElse(context, context.currentScope())) {
 					context.warning("Cannot recognize else scope");
 				}
@@ -122,9 +159,7 @@ public class GotoInstruction extends TransitionInstruction {
 			
 			case EMPTY_INFINITE_LOOP -> new EmptyInfiniteLoopScope(context);
 			
-			case CATCH_OVERJUMP, WHILE_LOOP_PROLOGUE -> null;
-			
-			default -> throw new IllegalArgumentException("Unexpected value: " + role);
+			case CATCH_OVERJUMP, WHILE_LOOP_PROLOGUE, BREAK, CONTINUE -> null;
 		};
 		
 		// Old code
@@ -160,6 +195,11 @@ public class GotoInstruction extends TransitionInstruction {
 //		context.addBreak(endIndex - 1);
 //		
 //		return null;
+	}
+	
+	@Override
+	protected @Nullable Scope toScope(DecompilationContext context) {
+		return toOperation(context) instanceof Scope scope ? scope : null;
 	}
 	
 	private boolean recognizeElse(DecompilationContext context, Scope currentScope) {

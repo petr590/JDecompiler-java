@@ -1,5 +1,7 @@
 package x590.jdecompiler.field;
 
+import static x590.jdecompiler.modifiers.Modifiers.*;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -20,7 +22,6 @@ import x590.jdecompiler.io.DisassemblingOutputStream;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.method.JavaMethod;
 import x590.jdecompiler.modifiers.FieldModifiers;
 import x590.jdecompiler.operation.Operation;
@@ -57,6 +58,21 @@ public class JavaField extends JavaClassElement {
 			FieldModifiers modifiers = FieldModifiers.read(in);
 			return modifiers.isEnum() ? new JavaEnumField(in, classinfo, pool, modifiers) : new JavaField(in, classinfo, pool, modifiers);
 		});
+	}
+	
+	
+	public boolean isRecordComponent(ClassInfo classinfo) {
+		return classinfo.isRecord() && modifiers.isNotStatic();
+	}
+	
+	
+	public boolean canStringifyAsRecordComponent(ClassInfo classinfo) {
+		return super.canStringify(classinfo) && isRecordComponent(classinfo);
+	}
+	
+	@Override
+	public boolean canStringify(ClassInfo classinfo) {
+		return super.canStringify(classinfo) && !isRecordComponent(classinfo);
 	}
 	
 	
@@ -176,13 +192,23 @@ public class JavaField extends JavaClassElement {
 		out.println(';');
 	}
 	
+	public void writeAsRecordComponent(StringifyOutputStream out, ClassInfo classinfo) {
+		writeAnnotations(out, classinfo, attributes);
+		
+		out.printIndent().print(recordComponentModifiersToString(), classinfo);
+		descriptor.writeType(out, classinfo, attributes);
+		
+		writeNameAndInitializer(out, classinfo);
+	}
+	
 	public void writeWithoutSemicolon(StringifyOutputStream out, ClassInfo classinfo) {
 		writeAnnotations(out, classinfo, attributes);
 		
 		out.printIndent().print(modifiersToString(), classinfo);
-		descriptor.writeType(out, classinfo, attributes);
 		
-		writeNameAndInitializer(out, classinfo);
+		descriptor.writeType(out, classinfo, attributes);
+		out.write(descriptor.getName());
+		descriptor.getType().writeRightDefinition(out, classinfo);
 	}
 	
 	public void writeNameAndInitializer(StringifyOutputStream out, ClassInfo classinfo) {
@@ -193,10 +219,8 @@ public class JavaField extends JavaClassElement {
 		if(initializer != null) {
 			out.write(" = ");
 			
-			if(descriptor.getType().isArrayType() && JDecompiler.getConfig().shortArrayInitAllowed())
-				initializer.writeAsArrayInitializer(out, method.getStringifyContext());
-			else
-				initializer.writeTo(out, method.getStringifyContext());
+			initializer.allowShortArrayInitializer();
+			initializer.writeTo(out, method.getStringifyContext());
 			
 		} else if(constantValueAttribute != null) {
 			out.write(" = ");
@@ -214,7 +238,10 @@ public class JavaField extends JavaClassElement {
 		
 		var modifiers = this.modifiers;
 		
-		baseModifiersToString(str);
+		accessModifiersToString(modifiers, str);
+		
+		if(modifiers.isStatic()) str.append("static");
+		if(modifiers.isSynthetic()) str.append("/* synthetic */");
 		
 		if(modifiers.isFinal() && modifiers.isVolatile())
 			throw new IllegalModifiersException(this, modifiers, "field cannot be both final and volatile");
@@ -222,6 +249,28 @@ public class JavaField extends JavaClassElement {
 		if(modifiers.isFinal())     str.append("final");
 		if(modifiers.isTransient()) str.append("transient");
 		if(modifiers.isVolatile())  str.append("volatile");
+		
+		return str;
+	}
+	
+	private IWhitespaceStringBuilder recordComponentModifiersToString() {
+		IWhitespaceStringBuilder str = new WhitespaceStringBuilder().printTrailingSpace();
+		
+		var modifiers = this.modifiers;
+		
+		if(modifiers.and(ACC_ACCESS_FLAGS) != ACC_PRIVATE)
+			throw new IllegalModifiersException(this, modifiers, ILLEGAL_ACCESS_MODIFIERS_MESSAGE);
+		
+		if(modifiers.isStatic())
+			throw new IllegalModifiersException(this, modifiers, "record component cannot be static");
+		
+		if(modifiers.isSynthetic()) str.append("/* synthetic */");
+		
+		if(modifiers.isVolatile())
+			throw new IllegalModifiersException(this, modifiers, "record component cannot be volatile");
+		
+		if(modifiers.isTransient())
+			throw new IllegalModifiersException(this, modifiers, "record component cannot be transient");
 		
 		return str;
 	}

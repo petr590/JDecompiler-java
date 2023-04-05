@@ -103,7 +103,12 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 //							varargsArray.inlineVarargs();
 							
 							arguments.removeLast();
-							arguments.addAll(varargsArray.getInitializers());
+							varargsArray.remove();
+							
+							List<Operation> initializers = varargsArray.getInitializers();
+							initializers.forEach(Operation::denyImplicitCast);
+							
+							arguments.addAll(initializers);
 						}
 					}
 					

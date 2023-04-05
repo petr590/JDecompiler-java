@@ -18,7 +18,7 @@ public final class ArrayLengthOperation extends AbstractOperation implements Int
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-		out.print(array, context).print(".length");
+		out.printPrioritied(this, array, context, Associativity.LEFT).print(".length");
 	}
 	
 	@Override

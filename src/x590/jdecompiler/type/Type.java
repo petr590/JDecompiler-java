@@ -220,7 +220,7 @@ public abstract class Type implements
 		
 		throw new IncopatibleTypesException(this, other);
 	}
-
+	
 	/** Преобразует тип к наиболее широкрму типу (используется при присвоении значения переменной)
 	 * @return результат преобразования
 	 * @throws IncopatibleTypesException, если преобразование невозможно */

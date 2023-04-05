@@ -5,18 +5,16 @@ import java.util.List;
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.constpool.MethodHandleConstant;
 import x590.jdecompiler.constpool.MethodHandleConstant.ReferenceKind;
-import x590.jdecompiler.constpool.MethodTypeConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.DecompilationException;
-import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.method.JavaMethod;
 import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.operation.AbstractOperation;
 import x590.jdecompiler.operation.Operation;
-import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.Types;
 import x590.util.annotation.Nullable;
 
 public class LambdaOperation extends AbstractOperation {
@@ -27,7 +25,7 @@ public class LambdaOperation extends AbstractOperation {
 	private final int captured;
 	private final List<Operation> capturedArguments;
 	
-	public LambdaOperation(DecompilationContext context, List<Operation> capturedArguments, MethodHandleConstant methodHandle, MethodTypeConstant methodType) {
+	public LambdaOperation(DecompilationContext context, MethodDescriptor lambdaDescriptor, List<Operation> capturedArguments, MethodHandleConstant methodHandle) {
 		this.descriptor = new MethodDescriptor(methodHandle.getMethodrefConstant());
 		
 		var classinfo = context.getClassinfo();
@@ -42,12 +40,12 @@ public class LambdaOperation extends AbstractOperation {
 					+ " reference kind cannot have " + capturedArguments.size() + " arguments");
 		}
 		
-		this.captured = descriptor.getArgumentsCount() -
-						Type.parseMethodArguments(new ExtendedStringInputStream(methodType.getDescriptor().getString())).size();
+		this.captured = lambdaDescriptor.getArgumentsCount();
 		
 		this.capturedArguments = capturedArguments;
 		
-		assert capturedArguments.size() == captured : capturedArguments.size() + " != " + captured;
+		assert capturedArguments.size() == captured :
+			capturedArguments + ".size() != " + captured;
 	}
 	
 	private @Nullable JavaMethod getMethod(ClassInfo classinfo, MethodDescriptor descriptor) {
@@ -82,7 +80,7 @@ public class LambdaOperation extends AbstractOperation {
 	
 	@Override
 	public Type getReturnType() {
-		return ClassType.OBJECT;
+		return Types.ANY_OBJECT_TYPE;
 	}
 	
 	@Override

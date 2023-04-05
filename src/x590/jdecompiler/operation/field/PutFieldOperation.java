@@ -44,7 +44,7 @@ public abstract class PutFieldOperation extends FieldOperation implements Increm
 	
 	@Override
 	public boolean isLoadOperation(Operation operation) {
-		return operation instanceof GetFieldOperation getFieldOperation && getFieldOperation.descriptor.equals(descriptor);
+		return operation instanceof GetFieldOperation getFieldOperation && getFieldOperation.getDescriptor().equals(descriptor);
 	}
 	
 	@Override

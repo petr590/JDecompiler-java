@@ -1,7 +1,7 @@
 package x590.jdecompiler.attribute;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import x590.jdecompiler.constpool.ClassConstant;
@@ -29,7 +29,7 @@ public class InnerClassesAttribute extends Attribute {
 		super(name, length);
 		
 		int size = in.readUnsignedShort();
-		Map<ClassType, InnerClassEntry> entries = new HashMap<>(size);
+		Map<ClassType, InnerClassEntry> entries = new LinkedHashMap<>(size);
 		
 		for(int i = 0; i < size; i++) {
 			InnerClassEntry entry = new InnerClassEntry(in, pool);

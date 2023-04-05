@@ -106,8 +106,8 @@ public final class IntegerConstant extends ConstableValueConstant<Integer> {
 	
 	
 	private static final FieldDescriptor
-			MAX_VALUE_DESCRIPTOR = new FieldDescriptor(ClassType.INTEGER, "MAX_VALUE", PrimitiveType.INT),
-			MIN_VALUE_DESCRIPTOR = new FieldDescriptor(ClassType.INTEGER, "MIN_VALUE", PrimitiveType.INT);
+			MAX_VALUE_DESCRIPTOR = new FieldDescriptor(PrimitiveType.INT, ClassType.INTEGER, "MAX_VALUE"),
+			MIN_VALUE_DESCRIPTOR = new FieldDescriptor(PrimitiveType.INT, ClassType.INTEGER, "MIN_VALUE");
 	
 	private boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo, @Nullable FieldDescriptor ownerConstant, int value, FieldDescriptor requiredConstant) {
 		return writeConstantIfEquals(out, classinfo, ownerConstant, this.value == value, this.value == -value, requiredConstant);

@@ -20,6 +20,8 @@ public class PreDecompilationContext extends DecompilationAndStringifyContext {
 	static final @Immutable List<TransitionInstruction> DEFAULT_TRANSITION_INSTRUCTIONS_LIST = Collections.emptyList();
 	static final @Immutable List<IfInstruction> IF_INSTRUCTIONS_NULL_LIST = Collections.singletonList(null);
 
+	// --Списки инвертированы по направлению - сначала идут инструкции, встречающиеся позже в байткоде.
+	// --Нужно для корректной работы GotoInstruction
 	private final Int2ObjectMap<List<TransitionInstruction>> transitionInstructions = new Int2ObjectOpenHashMap<>();
 	private final Int2ObjectMap<List<IfInstruction>> ifInstructions = new Int2ObjectOpenHashMap<>();
 	

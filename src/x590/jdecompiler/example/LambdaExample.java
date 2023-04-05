@@ -11,8 +11,16 @@ public class LambdaExample {
 		ExampleTesting.runDecompiler(LambdaExample.class);
 	}
 	
-	public static Supplier<String> stringify(int ret) {
-		return () -> Integer.toString(ret);
+	public static Supplier<ClassLoader> getClassLoader(Module module) {
+		return module::getClassLoader;
+	}
+	
+	public static Supplier<String> stringify(int x) {
+		return () -> Integer.toString(x);
+	}
+	
+	public static Supplier<Object> stringify(Object x) {
+		return x::toString;
 	}
 	
 	public static IntFunction<String> stringifyInt() {

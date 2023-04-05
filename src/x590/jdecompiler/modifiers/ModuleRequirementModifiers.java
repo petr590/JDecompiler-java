@@ -1,16 +1,24 @@
 package x590.jdecompiler.modifiers;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.util.IWhitespaceStringBuilder;
 
 public final class ModuleRequirementModifiers extends ModuleEntryModifiers {
 	
-	public ModuleRequirementModifiers(int value) {
+	private static final Int2ObjectMap<ModuleRequirementModifiers> INSTANCES = new Int2ObjectArrayMap<>();
+	
+	private ModuleRequirementModifiers(int value) {
 		super(value);
 	}
 	
+	public static ModuleRequirementModifiers of(int modifiers) {
+		return INSTANCES.computeIfAbsent(modifiers, ModuleRequirementModifiers::new);
+	}
+	
 	public static ModuleRequirementModifiers read(ExtendedDataInputStream in) {
-		return new ModuleRequirementModifiers(in.readUnsignedShort());
+		return INSTANCES.computeIfAbsent(in.readUnsignedShort(), ModuleRequirementModifiers::new);
 	}
 	
 	

@@ -5,10 +5,10 @@ import x590.jdecompiler.example.ExampleTesting;
 
 @Example
 @SuppressWarnings("unused")
-public class Increment2Example {
+public class IncrementExample2 {
 	
 	public static void main(String[] args) {
-		ExampleTesting.runDecompiler(Increment2Example.class);
+		ExampleTesting.runDecompiler(IncrementExample2.class);
 	}
 	
 	public static void foo() {

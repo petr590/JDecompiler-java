@@ -1,4 +1,7 @@
-package x590.jdecompiler.example;
+package x590.jdecompiler.example.features;
+
+import x590.jdecompiler.example.Example;
+import x590.jdecompiler.example.ExampleTesting;
 
 @Example
 public class OmitExample {

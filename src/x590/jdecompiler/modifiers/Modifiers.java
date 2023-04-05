@@ -38,7 +38,7 @@ public abstract class Modifiers {
 			ACC_SYNTHETIC_OR_BRIDGE = ACC_SYNTHETIC | ACC_BRIDGE;
 	
 	
-	final int value;
+	protected final int value;
 	
 	public Modifiers(int value) {
 		this.value = value;
@@ -90,7 +90,7 @@ public abstract class Modifiers {
 	}
 	
 	
-	IWhitespaceStringBuilder toStringBuilder(boolean forWriting) {
+	protected IWhitespaceStringBuilder toStringBuilder(boolean forWriting) {
 		return new WhitespaceStringBuilder().printTrailingSpace(forWriting)
 				.appendIf(!forWriting && isSynthetic(), "synthetic");
 	}

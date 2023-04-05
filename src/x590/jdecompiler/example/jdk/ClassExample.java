@@ -10,7 +10,7 @@ import x590.jdecompiler.example.Example.DecompilationSource;
 @Example(classes = Class.class, source = DecompilationSource.JDK)
 public class ClassExample {
 	
-	public static void main(String[] args) throws ClassNotFoundException {
+	public static void main(String[] args) /* throws ClassNotFoundException */ {
 //		Class<?> clazz = Class.forName("java.lang.Class$1");
 //		
 //		Logger.debug(clazz.getTypeName());

@@ -7,7 +7,7 @@ import x590.jdecompiler.scope.Scope;
 public class MonitorEnterInstruction extends ScopeInstruction {
 	
 	@Override
-	public Scope toScope(DecompilationContext context) {
+	protected Scope toScope(DecompilationContext context) {
 		return new SynchronizedScope(context);
 	}
 }

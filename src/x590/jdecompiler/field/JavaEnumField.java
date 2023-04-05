@@ -61,8 +61,8 @@ public class JavaEnumField extends JavaField {
 		}
 	}
 	
-	public void writeIndent(StringifyOutputStream out, ClassInfo classinfo) {
-		if(hasArgumentsInEnumInitializer())
+	public void writeIndent(StringifyOutputStream out, ClassInfo classinfo, JavaEnumField nextField) {
+		if(hasArgumentsInEnumInitializer() || nextField.hasArgumentsInEnumInitializer())
 			out.println(',').printIndent();
 		else
 			out.print(", ");

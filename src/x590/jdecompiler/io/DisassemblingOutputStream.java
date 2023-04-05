@@ -77,19 +77,23 @@ public class DisassemblingOutputStream extends ExtendedOutputStream<Disassemblin
 		return printAllUsingFunction(writables, writable -> writable.writeDisassembled(this, param), delimeterWriter);
 	}
 	
-	
+
+	@Deprecated
 	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAll(Collection<? extends W> writables, int startIndex, T param) {
 		return printAll(writables, startIndex, param, ' ');
 	}
-	
+
+	@Deprecated
 	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAll(Collection<? extends W> writables, int startIndex, T param, char delimeter) {
 		return printAll(writables, startIndex, param, writable -> write(delimeter));
 	}
-	
+
+	@Deprecated
 	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAll(Collection<? extends W> writables, int startIndex, T param, String delimeter) {
 		return printAll(writables, startIndex, param, writable -> write(delimeter));
 	}
-	
+
+	@Deprecated
 	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAll(Collection<? extends W> writables, int startIndex, T param, Consumer<? super W> delimeterWriter) {
 		LoopUtil.forEachExcludingLast(writables, writable -> writable.writeDisassembled(this, param), delimeterWriter, startIndex);
 		return this;
@@ -113,19 +117,23 @@ public class DisassemblingOutputStream extends ExtendedOutputStream<Disassemblin
 		return this;
 	}
 	
-	
+
+	@Deprecated
 	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAllUsingFunction(Collection<? extends W> writables, int startIndex, T param) {
 		return printAllUsingFunction(writables, startIndex, param, ' ');
 	}
-	
+
+	@Deprecated
 	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAllUsingFunction(Collection<? extends W> writables, int startIndex, T param, char delimeter) {
 		return printAllUsingFunction(writables, startIndex, param, writable -> write(delimeter));
 	}
-	
+
+	@Deprecated
 	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAllUsingFunction(Collection<? extends W> writables, int startIndex, T param, String delimeter) {
 		return printAllUsingFunction(writables, startIndex, param, writable -> write(delimeter));
 	}
-	
+
+	@Deprecated
 	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAllUsingFunction(Collection<? extends W> writables, int startIndex, T param, Consumer<? super W> delimeterWriter) {
 		LoopUtil.forEachExcludingLast(writables, writable -> writable.writeDisassembled(this, param), delimeterWriter, startIndex);
 		return this;

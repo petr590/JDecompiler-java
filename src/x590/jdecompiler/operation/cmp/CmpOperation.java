@@ -19,7 +19,7 @@ public abstract class CmpOperation extends AbstractOperation implements BooleanO
 	
 	@Override
 	public final void writeTo(StringifyOutputStream out, StringifyContext context) {
-		throw new UnsupportedOperationException("Method writeTo(StringifyOutputStream out, StringifyContext context) must not call on CmpOperation");
+		throw new UnsupportedOperationException("Method writeTo(StringifyOutputStream, StringifyContext) must not be called for CmpOperation");
 	}
 	
 	@Override
