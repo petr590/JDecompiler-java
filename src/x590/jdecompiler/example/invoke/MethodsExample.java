@@ -12,8 +12,8 @@ public class MethodsExample extends SuperclassExample {
 	}
 	
 	{
-		foo(0);
-		bar();
+		classMethod1(0);
+		classMethod2();
 	}
 	
 	static {
@@ -21,13 +21,13 @@ public class MethodsExample extends SuperclassExample {
 	}
 	
 	@Override
-	public void foo(int x) {
-		super.foo(x);
+	public void classMethod1(int x) {
+		super.classMethod1(x);
 	}
 	
 	@Override
-	public int bar() {
-		return super.bar();
+	public int classMethod2() {
+		return super.classMethod2();
 	}
 	
 	public static void gg() {}

@@ -1,22 +1,36 @@
 package x590.jdecompiler.operation.field;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.constpool.FieldrefConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.operation.OperationUtils;
+import x590.util.annotation.Nullable;
 
 public final class PutStaticFieldOperation extends PutFieldOperation {
+
+	private final @Nullable Int2ObjectMap<String> enumTable;
 	
 	public PutStaticFieldOperation(DecompilationContext context, int index) {
 		super(context, index);
+		this.enumTable = OperationUtils.getEnumTable(context, descriptor);
 		init(context);
 	}
 	
 	public PutStaticFieldOperation(DecompilationContext context, FieldrefConstant fieldref) {
 		super(context, fieldref);
+		this.enumTable = OperationUtils.getEnumTable(context, descriptor);
 		init(context);
 	}
+	
+	
+	@Override
+	public @Nullable Int2ObjectMap<String> getEnumTable(DecompilationContext context) {
+		return enumTable;
+	}
+	
 	
 	private void init(DecompilationContext context) {
 		if(!canOmit && context.getDescriptor().isStaticInitializer() &&
@@ -27,6 +41,8 @@ public final class PutStaticFieldOperation extends PutFieldOperation {
 		}
 		
 		super.initIncData(context);
+		
+		getValue().setEnumTable(enumTable);
 	}
 	
 	@Override

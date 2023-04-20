@@ -16,7 +16,7 @@ public class ReferenceTypeTest {
 		assertSame(ClassType.OBJECT, ClassType.fromTypeDescriptor("Ljava/lang/Object"));
 		
 		ClassType child = ClassType.fromDescriptor("net/minecraft/world/level/Block");
-		Type type = new UncertainReferenceType(ClassType.OBJECT, child);
+		Type type = UncertainReferenceType.getInstance(ClassType.OBJECT, child, false);
 		
 		assertEquals(child, type.castToNarrowestNoexcept(child));
 	}

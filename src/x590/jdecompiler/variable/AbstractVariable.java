@@ -3,6 +3,7 @@ package x590.jdecompiler.variable;
 import java.util.ArrayList;
 import java.util.List;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.scope.Scope;
 import x590.jdecompiler.type.Type;
@@ -13,6 +14,7 @@ public abstract class AbstractVariable implements Variable {
 	
 	protected Type type;
 	private Scope enclosingScope;
+	private @Nullable Int2ObjectMap<String> enumMap;
 	
 	// Если тип переменной фиксирован, он не должен меняться в принципе
 	private final boolean typeFixed;
@@ -125,7 +127,7 @@ public abstract class AbstractVariable implements Variable {
 	@Override
 	public void reduceType() {
 		if(!typeFixed) {
-			type = castAssignedOperations(probableType != null && type.isSubtypeOf(probableType) ? probableType : type.reduced(), true);
+			type = castAssignedOperations(probableType != null && type.isSubtypeOf(probableType) ? probableType : type.reduced());
 		}
 	}
 	
@@ -141,7 +143,7 @@ public abstract class AbstractVariable implements Variable {
 		assignedOperations.add(operation);
 	}
 	
-	private Type castAssignedOperations(Type type, boolean widest) {
+	private Type castAssignedOperations(Type type) {
 		
 		if(casting)
 			return type;
@@ -149,13 +151,8 @@ public abstract class AbstractVariable implements Variable {
 		casting = true;
 		
 		for(Operation operation : assignedOperations) {
-			if(widest) {
-				type = type.castToWidest(operation.getReturnType());
-				operation.castReturnTypeToNarrowest(type);
-				
-			} else {
-				type = operation.getReturnTypeAsNarrowest(type);
-			}
+			type = type.castToWidest(operation.getReturnType());
+			operation.castReturnTypeToNarrowest(type);
 		}
 		
 		casting = false;
@@ -168,7 +165,7 @@ public abstract class AbstractVariable implements Variable {
 		if(typeFixed || casting)
 			return type;
 		
-		return castAssignedOperations(widest ? type.castToWidest(newType) : type.castToNarrowest(newType), widest);
+		return castAssignedOperations(widest ? type.castToWidest(newType) : type.castToNarrowest(newType));
 	}
 	
 	@Override
@@ -190,5 +187,15 @@ public abstract class AbstractVariable implements Variable {
 	@Override
 	public void setEnclosingScope(Scope enclosingScope) {
 		this.enclosingScope = enclosingScope;
+	}
+	
+	@Override
+	public @Nullable Int2ObjectMap<String> getEnumTable() {
+		return enumMap;
+	}
+	
+	@Override
+	public void setEnumTable(@Nullable Int2ObjectMap<String> enumTable) {
+		this.enumMap = enumTable;
 	}
 }

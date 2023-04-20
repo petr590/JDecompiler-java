@@ -37,7 +37,7 @@ public class DecompilationCorrectingTesting {
 			
 			testDecompilation(tmpDir, DecompilationTesting.findAllClassNamesInPackage(ExampleTesting.class.getPackageName()));
 			
-			System.out.println(DecompilationTesting.findAllClassNamesInPackage(ExampleTesting.class.getPackageName()));
+//			System.out.println(DecompilationTesting.findAllClassNamesInPackage(ExampleTesting.class.getPackageName()));
 			
 		} catch(IOException | InterruptedException ex) {
 			ex.printStackTrace();
@@ -64,7 +64,7 @@ public class DecompilationCorrectingTesting {
 								.filter(classPath -> classPath.indexOf('$') == -1)
 								.map(classPath -> "src" + separator + classPath + ".java")
 				).toList();
-
+		
 		List<String> javacArguments2 =
 				Stream.concat(
 						Stream.of("javac", "-g:none", "-d", binDirectory2, "-cp", "bin"),
@@ -93,7 +93,7 @@ public class DecompilationCorrectingTesting {
 		
 		ExampleTesting.runDecompiler(false, classFiles1);
 		
-		timer.logElapsed("Decompiling");
+		timer.logElapsed("Decompilation");
 		
 		
 		System.out.println("Compiling second...");

@@ -3,7 +3,6 @@ package x590.jdecompiler.attribute;
 import java.util.List;
 
 import x590.jdecompiler.Importable;
-import x590.jdecompiler.StringifyWritable;
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.constpool.ClassConstant;
 import x590.jdecompiler.constpool.ConstantPool;
@@ -14,6 +13,7 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.modifiers.ModuleEntryModifiers;
 import x590.jdecompiler.modifiers.ModuleModifiers;
 import x590.jdecompiler.modifiers.ModuleRequirementModifiers;
+import x590.jdecompiler.writable.StringifyWritable;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
@@ -109,7 +109,7 @@ public class ModuleAttribute extends Attribute implements StringifyWritable<Clas
 			out.printsp(getDeclaration()).print(modifiers, classinfo).print(packageConstant, classinfo);
 			
 			if(!modules.isEmpty()) {
-				out.printsp(" to").printAll(modules, classinfo);
+				out.printsp(" to").printAll(modules, classinfo, ' ');
 			}
 			
 			out.write(';');

@@ -1,6 +1,5 @@
 package x590.jdecompiler.operation.operator;
 
-import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
@@ -17,11 +16,7 @@ public final class TernaryOperatorOperation extends ReturnableOperation {
 	private final ConditionOperation condition;
 	private final Operation operand1, operand2;
 	
-	public TernaryOperatorOperation(ConditionOperation condition, DecompilationContext context) {
-		this(condition, context, context.pop(), context.pop());
-	}
-	
-	public TernaryOperatorOperation(ConditionOperation condition, DecompilationContext context, Operation operand2, Operation operand1) {
+	public TernaryOperatorOperation(ConditionOperation condition, Operation operand2, Operation operand1) {
 		super(PrimitiveType.VOID);
 		this.condition = condition;
 		this.operand2 = operand2;

@@ -2,12 +2,14 @@ package x590.jdecompiler.scope;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Predicate;
 
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap.Entry;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
@@ -26,6 +28,7 @@ import x590.jdecompiler.variable.UnnamedVariable;
 import x590.jdecompiler.variable.Variable;
 import x590.jdecompiler.variable.VariableWrapper;
 import x590.jdecompiler.variable.EmptyableVariableWrapper;
+import x590.util.IntHolder;
 import x590.util.LoopUtil;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
@@ -46,8 +49,9 @@ public abstract class Scope extends AbstractOperation {
 	
 	/** Список локальных переменных */
 	private final List<EmptyableVariableWrapper> locals;
-	
-	private final Int2IntMap indexTable;
+
+	// key: index, value: index in code
+	/* private */ public final Int2IntMap indexTable;
 	
 	private @Nullable String label;
 	private int labelNumber;
@@ -57,7 +61,7 @@ public abstract class Scope extends AbstractOperation {
 		this(context, context.currentIndex(), endIndex);
 	}
 	
-	public Scope(DecompilationContext context, int endIndex, @Nullable Scope superScope) {
+	public Scope(DecompilationContext context, int endIndex, Scope superScope) {
 		this(context.currentIndex(), endIndex, superScope);
 	}
 	
@@ -65,7 +69,7 @@ public abstract class Scope extends AbstractOperation {
 		this(startIndex, endIndex, context.currentScope());
 	}
 	
-	public Scope(int startIndex, int endIndex, @Nullable Scope superScope) {
+	public Scope(int startIndex, int endIndex, Scope superScope) {
 		this(startIndex, endIndex, superScope, new ArrayList<>(superScope.locals));
 	}
 	
@@ -97,8 +101,29 @@ public abstract class Scope extends AbstractOperation {
 		this.endIndex = endIndex;
 	}
 	
+	/** Расширяет scope до указанного индекса, если возможно */
+	public boolean expandTo(int newEndIndex) {
+		return endIndex == newEndIndex;
+	}
+	
 	public Scope superScope() {
 		return superScope;
+	}
+	
+	
+	@Override
+	public boolean isTerminable() {
+		return isLastOperationTerminable();
+	}
+	
+	@Override
+	public final boolean canInlineInLambda() {
+		return false;
+	}
+	
+	public boolean isLastOperationTerminable() {
+		var code = this.code;
+		return !code.isEmpty() && code.get(code.size() - 1).isTerminable();
 	}
 	
 	
@@ -183,9 +208,9 @@ public abstract class Scope extends AbstractOperation {
 	}
 	
 	/** Выполняет сведение типа для всех переменных и всех локальных переменных в этом и во вложенных scope-ах */
-	protected void reduceTypes() {
+	protected void reduceVariablesTypes() {
 		locals.forEach(EmptyableVariable::reduceType);
-		scopes.forEach(Scope::reduceTypes);
+		scopes.forEach(Scope::reduceVariablesTypes);
 	}
 	
 	/** Объявляет все необъявленные переменные в этом и во вложенных scope-ах */
@@ -237,11 +262,12 @@ public abstract class Scope extends AbstractOperation {
 	
 	
 	public @Nullable Operation getLastOperation() {
+		var code = this.code;
 		return code.isEmpty() ? null : code.get(code.size() - 1);
 	}
 	
 	public void addOperation(Operation operation, DecompilationContext context) {
-		addOperation(operation, context.currentIndex());
+		addOperation(operation, operation.getAddingIndex(context));
 	}
 	
 	public void addOperation(Operation operation, int fromIndex) {
@@ -253,36 +279,64 @@ public abstract class Scope extends AbstractOperation {
 			scopes.add(scope);
 	}
 	
-	public void addOperations(List<Operation> operations, int fromIndex) {
+	public void addOperations(List<? extends Operation> operations, int fromIndex) {
 		for(Operation operation : operations)
 			addOperation(operation, fromIndex);
 	}
 	
-	
-	private static final int NONE_INDEX = -1;
-	
-	protected int getCodeIndexByIndex(int index) {
-		int foundIndex = indexTable.getOrDefault(index, NONE_INDEX);
+	public void addOperationsFrom(Scope other) {
 		
-		if(foundIndex != NONE_INDEX)
-			return foundIndex;
+		List<Operation> operations = other.getOperations();
 		
-		int srcIndex = index;
-		int maxIndex = indexTable.keySet().intStream().max().orElse(0);
-		
-		while(foundIndex == NONE_INDEX && index < maxIndex) {
-			foundIndex = indexTable.getOrDefault(++index, NONE_INDEX);
+		for(int i = 0, size = operations.size(); i < size; i++) {
+			addOperation(operations.get(i), other.getIndexByCodeIndex(i));
 		}
+	}
+	
+	
+	private static final Comparator<Entry> keyComparator = (entry1, entry2) -> entry1.getIntKey() - entry2.getIntKey();
+	
+	/* protected */public int getCodeIndexByIndex(int index) {
+		return indexTable.int2IntEntrySet().stream()
+				.filter(entry -> entry.getIntKey() >= index)
+				.min(keyComparator)
+				.map(Entry::getIntValue)
+				.orElseGet(() ->
+						indexTable.int2IntEntrySet().stream()
+								.max(keyComparator)
+								.map(Entry::getIntValue)
+								.orElse(-1) + 1
+				);
 		
-		if(foundIndex != NONE_INDEX)
-			return foundIndex;
-		
-		throw new NoSuchElementException(Integer.toString(srcIndex));
+//		Old code
+//		int foundIndex = indexTable.getOrDefault(index, NONE_INDEX);
+//		
+//		if(foundIndex != NONE_INDEX)
+//			return foundIndex;
+//		
+//		final int srcIndex = index;
+//		final int maxIndex = indexTable.keySet().intStream().max().orElse(0);
+//		
+//		if(index == maxIndex + 1) {
+//			return indexTable.get(maxIndex) + 1;
+//		}
+//		
+//		while(foundIndex == NONE_INDEX && index < maxIndex) {
+//			foundIndex = indexTable.getOrDefault(++index, NONE_INDEX);
+//		}
+//		
+//		if(foundIndex != NONE_INDEX) {
+//			return foundIndex;
+//		}
+//		
+//		throw new DecompilationException(new NoSuchElementException(Integer.toString(srcIndex)));
 	}
 	
 	protected int getIndexByCodeIndex(int codeIndex) {
-		return indexTable.int2IntEntrySet().stream().filter(entry -> entry.getIntValue() == codeIndex)
-				.findAny().orElseThrow(() -> new NoSuchElementException(Integer.toString(codeIndex))).getIntKey();
+		return indexTable.int2IntEntrySet().stream()
+				.filter(entry -> entry.getIntValue() == codeIndex).findAny()
+				.orElseThrow(() -> new NoSuchElementException(Integer.toString(codeIndex)))
+				.getIntKey();
 	}
 	
 	
@@ -324,7 +378,7 @@ public abstract class Scope extends AbstractOperation {
 		
 		scopes.removeAll(sublistCopy);
 		
-		indexTable.int2IntEntrySet().removeIf(entry -> entry.getIntKey() >= indexInCode);
+		indexTable.int2IntEntrySet().removeIf(entry -> entry.getIntValue() >= indexInCode);
 		
 		return sublistCopy;
 	}
@@ -353,10 +407,28 @@ public abstract class Scope extends AbstractOperation {
 	
 	
 	/** Удаляет все операции, отмеченные флагом {@link Operation#isRemovedFromScope()} или {@link Operation#canOmit()}.
-	 * При этом очищается {@link #indexTable}, так как индексы могут сместиться */
+	 * При этом обновляется {@link #indexTable}, так как индексы могут сместиться */
 	protected void deleteRemovedOperations() {
-		code.removeIf(operation -> operation.isRemovedFromScope() || operation.canOmit());
-		indexTable.clear();
+		IntHolder indexHolder = new IntHolder();
+		
+		code.removeIf(operation -> {
+			
+			if(operation.isRemovedFromScope() || operation.canOmit()) {
+				int indexInCode = indexHolder.get();
+				
+				indexTable.int2IntEntrySet().removeIf(entry -> entry.getIntKey() == indexInCode);
+				
+				indexTable.int2IntEntrySet().stream()
+						.filter(entry -> entry.getIntValue() > indexInCode)
+						.forEach(entry -> entry.setValue(entry.getIntValue() - 1));
+				
+				return true;
+			}
+			
+			indexHolder.preInc();
+			
+			return false;
+		});
 	}
 	
 	
@@ -400,7 +472,7 @@ public abstract class Scope extends AbstractOperation {
 	private int getScopesCountWithLabel(String labelName) {
 		int count = 0;
 		
-		if(labelName.equals(this.label)) {
+		if(labelName.equals(label)) {
 			count++;
 			
 			if(labelNumber == 0)

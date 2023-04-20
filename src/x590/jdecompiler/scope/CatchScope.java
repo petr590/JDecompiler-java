@@ -33,6 +33,12 @@ public class CatchScope extends Scope {
 		}
 	}
 	
+	// Maybe TODO
+	@Override
+	public boolean isTerminable() {
+		return false;
+	}
+	
 	@Override
 	protected boolean canOmitCurlyBrackets() {
 		return false;

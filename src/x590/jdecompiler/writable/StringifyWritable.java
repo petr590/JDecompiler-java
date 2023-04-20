@@ -1,4 +1,4 @@
-package x590.jdecompiler;
+package x590.jdecompiler.writable;
 
 import x590.jdecompiler.io.StringifyOutputStream;
 

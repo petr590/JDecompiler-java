@@ -19,6 +19,11 @@ public final class AThrowOperation extends AbstractOperation implements VoidOper
 	}
 	
 	@Override
+	public boolean canInlineInLambda() {
+		return false;
+	}
+	
+	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		out.print("throw ").print(throwable, context);
 	}

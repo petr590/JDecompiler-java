@@ -7,20 +7,18 @@ public class BridgeMethodExample {
 		ExampleTesting.runDecompiler(BridgeMethodExample.class, "-b");
 	}
 	
-	public class Child extends Parent<Child.Inner> {
+	public class Child extends Parent {
 		
 		@Override
 		public String getState() {
-			return null;
+			return "";
 		}
-		
-		private static class Inner {}
 	}
 	
-	public class Parent<T> {
+	public class Parent {
 		
 		public Object getState() {
-			return null;
+			return new Object();
 		}
 	}
 }

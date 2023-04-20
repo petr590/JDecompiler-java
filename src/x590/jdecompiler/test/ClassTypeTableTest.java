@@ -2,7 +2,7 @@ package x590.jdecompiler.test;
 
 import x590.jdecompiler.type.ClassType;
 
-public class ClassTypeTest {
+public class ClassTypeTableTest {
 	
 	public static void main(String[] args) throws ClassNotFoundException {
 		for(var entry : ClassType.classTypes().entrySet())

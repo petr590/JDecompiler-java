@@ -1,5 +1,6 @@
 package x590.jdecompiler.operation.load;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
@@ -27,6 +28,17 @@ public abstract class LoadOperation extends AbstractOperation {
 	
 	public Variable getVariable() {
 		return variable;
+	}
+	
+	
+	@Override
+	public void setEnumTable(@Nullable Int2ObjectMap<String> enumTable) {
+		variable.setEnumTable(enumTable);
+	}
+	
+	@Override
+	public @Nullable Int2ObjectMap<String> getEnumTable(DecompilationContext context) {
+		return variable.getEnumTable();
 	}
 	
 	
@@ -65,5 +77,10 @@ public abstract class LoadOperation extends AbstractOperation {
 	public boolean equals(Operation other) {
 		return this == other || other instanceof LoadOperation operation &&
 				variable.equals(operation.variable);
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("%s { %s }", getClass().getSimpleName(), variable);
 	}
 }

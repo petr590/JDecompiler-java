@@ -14,7 +14,12 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.modifiers.ClassEntryModifiers;
 import x590.jdecompiler.util.IWhitespaceStringBuilder;
+import x590.jdecompiler.writable.DisassemblingStringifyWritable;
 
+/**
+ * Представляет элемент класса - сам класс или любой из его членов
+ * (поле, метод, вложенный класс)
+ */
 public abstract class JavaClassElement implements DisassemblingStringifyWritable<ClassInfo>, Importable, JavaSerializable {
 	
 	protected static final String ILLEGAL_ACCESS_MODIFIERS_MESSAGE = "illegal access modifiers";

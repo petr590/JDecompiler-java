@@ -14,6 +14,10 @@ public abstract class InvokeNonstaticOperation extends InvokeOperation {
 		this(context, getDescriptor(context, index));
 	}
 	
+	public Operation getObject() {
+		return object;
+	}
+	
 	/** Не переделывать через делегирование конструктору this,
 	 * так как важен порядок: сначала со стека снимаются аргументы, затем объект */
 	public InvokeNonstaticOperation(DecompilationContext context, MethodDescriptor descriptor) {

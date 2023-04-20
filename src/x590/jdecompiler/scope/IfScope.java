@@ -32,11 +32,11 @@ public class IfScope extends ConditionalScope {
 	
 	
 	public void addElse(DecompilationContext context, int endIndex) {
-		if(this.elseScope != null)
+		if(elseScope != null)
 			throw new IllegalArgumentException("Cannot set another elseScope");
 		
-		this.elseScope = new ElseScope(context, endIndex, this);
-		this.superScope().addOperation(elseScope, context);
+		elseScope = new ElseScope(context, endIndex, this);
+		superScope().addOperation(elseScope, context);
 		context.addScopeToQueue(elseScope);
 	}
 	
@@ -45,6 +45,11 @@ public class IfScope extends ConditionalScope {
 		this.prevElseScope = prevElseScope;
 	}
 	
+	
+	@Override
+	public boolean isTerminable() {
+		return false;
+	}
 	
 	boolean canSelfOmitCurlyBrackets() {
 		return super.canOmitCurlyBrackets() && (

@@ -4,18 +4,18 @@ import static x590.jdecompiler.type.ClassType.*;
 import static x590.jdecompiler.type.ArrayType.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import x590.jdecompiler.attribute.BootstrapMethodsAttribute.BootstrapMethod;
 import x590.jdecompiler.constpool.InvokeDynamicConstant;
 import x590.jdecompiler.constpool.MethodHandleConstant;
 import x590.jdecompiler.constpool.MethodHandleConstant.ReferenceKind;
-import x590.jdecompiler.constpool.ReferenceConstant;
+import x590.jdecompiler.constpool.MethodrefConstant;
 import x590.jdecompiler.constpool.StringConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.DisassemblerContext;
 import x590.jdecompiler.exception.DecompilationException;
-import x590.jdecompiler.instruction.InstructionWithIndex;
 import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.StringConstOperation;
@@ -31,7 +31,7 @@ import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.util.IntegerUtil;
 
-public final class InvokedynamicInstruction extends InstructionWithIndex {
+public final class InvokedynamicInstruction extends InvokeInstruction {
 	
 	public InvokedynamicInstruction(DisassemblerContext context, int index, int zeroShort) {
 		super(index);
@@ -56,9 +56,9 @@ public final class InvokedynamicInstruction extends InstructionWithIndex {
 			METHOD_HANDLE_ARRAY = ArrayType.forType(METHOD_HANDLE);
 	
 	private static final MethodDescriptor
-			MAKE_CONCAT_WITH_CONSTANTS_DESCRIPTOR = new MethodDescriptor(CALL_SITE, STRING_CONCAT_FACTORY, MAKE_CONCAT_WITH_CONSTANTS, LOOKUP, STRING, METHOD_TYPE, STRING, OBJECT_ARRAY),
-			LAMBDA_METAFACTORY_DESCRIPTOR         = new MethodDescriptor(CALL_SITE, LAMBDA_METAFACTORY,    "metafactory",              LOOKUP, STRING, METHOD_TYPE, METHOD_TYPE, METHOD_HANDLE, METHOD_TYPE),
-			OBJECT_METHODS_BOOTSTRAP_DESCRIPTOR   = new MethodDescriptor(OBJECT,    OBJECT_METHODS,        "bootstrap",                LOOKUP, STRING, TYPE_DESCRIPTOR, CLASS, STRING, METHOD_HANDLE_ARRAY);
+			MAKE_CONCAT_WITH_CONSTANTS_DESCRIPTOR = MethodDescriptor.of(CALL_SITE, STRING_CONCAT_FACTORY, MAKE_CONCAT_WITH_CONSTANTS, LOOKUP, STRING, METHOD_TYPE, STRING, OBJECT_ARRAY),
+			LAMBDA_METAFACTORY_DESCRIPTOR         = MethodDescriptor.of(CALL_SITE, LAMBDA_METAFACTORY,    "metafactory",              LOOKUP, STRING, METHOD_TYPE, METHOD_TYPE, METHOD_HANDLE, METHOD_TYPE),
+			OBJECT_METHODS_BOOTSTRAP_DESCRIPTOR   = MethodDescriptor.of(OBJECT,    OBJECT_METHODS,        "bootstrap",                LOOKUP, STRING, TYPE_DESCRIPTOR, CLASS, STRING, METHOD_HANDLE_ARRAY);
 	
 //	private static final MethodDescriptor publicLookupDescriptor = new MethodDescriptor(LOOKUP, "publicLookup", LOOKUP);
 	
@@ -77,10 +77,10 @@ public final class InvokedynamicInstruction extends InstructionWithIndex {
 			case PUTSTATIC: return new PutStaticFieldOperation( context, methodHandle.getFieldrefConstant());
 			
 			default: {
-				ReferenceConstant referenceConstant = methodHandle.getReferenceConstant();
+				MethodrefConstant methodrefConstant = methodHandle.getMethodrefConstant();
 				
 				MethodDescriptor lambdaDescriptor =
-						new MethodDescriptor(referenceConstant.getClassConstant(), invokeDynamicConstant.getNameAndType());
+						MethodDescriptor.from(methodrefConstant.getClassConstant(), invokeDynamicConstant.getNameAndType());
 				
 				List<Operation> arguments = new ArrayList<>(lambdaDescriptor.getArgumentsCount());
 				
@@ -88,8 +88,10 @@ public final class InvokedynamicInstruction extends InstructionWithIndex {
 				for(int i = lambdaDescriptor.getArgumentsCount(); i > 0; i--)
 					arguments.add(context.pop());
 				
+				Collections.reverse(arguments);
 				
-				MethodDescriptor invokedynamicDescriptor = new MethodDescriptor(referenceConstant);
+				
+				MethodDescriptor invokedynamicDescriptor = methodrefConstant.toDescriptor();
 				
 				if(methodHandle.getReferenceKind() == ReferenceKind.INVOKESTATIC) {
 					
@@ -112,9 +114,7 @@ public final class InvokedynamicInstruction extends InstructionWithIndex {
 						}
 						
 						// push non-static arguments on stack
-						for(var iter = arguments.listIterator(arguments.size()); iter.hasPrevious();) {
-							context.push(iter.previous());
-						}
+						context.pushAll(arguments);
 						
 						return new ConcatStringsOperation(context, lambdaDescriptor, pattern, staticArguments);
 					}

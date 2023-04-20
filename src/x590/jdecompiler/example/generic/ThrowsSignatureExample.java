@@ -13,8 +13,4 @@ public class ThrowsSignatureExample {
 	public static <T extends Throwable> void foo(T t) throws T {
 		throw t;
 	}
-	
-	public static void bar(Class<?> clazz) throws IllegalArgumentException {
-		
-	}
 }

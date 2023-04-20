@@ -35,7 +35,7 @@ public abstract class ReturnOperation extends AbstractOperation implements VoidO
 		if(context.currentScope().getLastOperation() instanceof IfScope ifScope &&
 				ifScope.getOperationsCount() == 1 && ifScope.getOperationAt(0) instanceof ReturnOperation returnOperation) {
 			
-			operand = new TernaryOperatorOperation(ifScope.getCondition(), context, operand, returnOperation.operand);
+			operand = new TernaryOperatorOperation(ifScope.getCondition(), operand, returnOperation.operand);
 			ifScope.remove();
 		}
 		

@@ -44,4 +44,9 @@ public abstract class ConstOperation<C extends ConstValueConstant> extends Retur
 	public boolean equals(Operation other) {
 		return this == other || other instanceof ConstOperation<?> operation && constant.equals(operation.constant);
 	}
+	
+	@Override
+	public String toString() {
+		return String.format("%s {%s}", getClass().getSimpleName(), constant);
+	}
 }

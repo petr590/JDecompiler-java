@@ -21,7 +21,7 @@ public abstract class OperationWithDescriptor<D extends Descriptor> extends Abst
 	}
 	
 	protected boolean canOmitObject(StringifyContext context, Operation object) {
-		return JDecompiler.getConfig().canOmitThisAndClass() && object.isThisObject(context.getModifiers());
+		return JDecompiler.getConfig().canOmitThisAndClass() && object.isThisObject(context.getMethodModifiers());
 	}
 	
 	protected boolean equals(OperationWithDescriptor<D> other) {

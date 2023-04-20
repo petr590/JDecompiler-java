@@ -64,7 +64,7 @@ public final class AnyObjectType extends Type {
 			return this;
 		
 		if(other.isReferenceType())
-			return new UncertainReferenceType((ReferenceType)other);
+			return UncertainReferenceType.getInstance((ReferenceType)other);
 		
 		if(other.isUncertainReferenceType())
 			return other;
@@ -78,7 +78,7 @@ public final class AnyObjectType extends Type {
 			return this;
 		
 		if(other.isReferenceType())
-			return new UncertainReferenceType(ClassType.OBJECT, (ReferenceType)other);
+			return UncertainReferenceType.getInstance(ClassType.OBJECT, (ReferenceType)other, true);
 		
 		if(other.isUncertainReferenceType())
 			return other;

@@ -58,13 +58,13 @@ public abstract class Modifiers {
 	public boolean isNotSynthetic() {
 		return (value & ACC_SYNTHETIC) == 0;
 	}
-
 	
-	public boolean isAll(int modifiers) {
+	
+	public boolean allOf(int modifiers) {
 		return (value & modifiers) == modifiers;
 	}
-
-	public boolean isAny(int modifiers) {
+	
+	public boolean anyOf(int modifiers) {
 		return (value & modifiers) != 0;
 	}
 	
@@ -95,9 +95,13 @@ public abstract class Modifiers {
 				.appendIf(!forWriting && isSynthetic(), "synthetic");
 	}
 	
+	public String toSimpleString() {
+		return toStringBuilder(false).toString();
+	}
+	
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + '{' + toStringBuilder(false).toString() + '}';
+		return this.getClass().getSimpleName() + " { " + toStringBuilder(false).toString() + " }";
 	}
 	
 	@Override

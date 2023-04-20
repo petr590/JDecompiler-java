@@ -14,4 +14,8 @@ public abstract class OperationInstruction extends AbstractOperation implements 
 	public Operation toOperation(DecompilationContext context) {
 		return this;
 	}
+	
+	// Одинаковые методы из Instruction и Operation требуют перезаписи
+	@Override
+	public void postDecompilation(DecompilationContext context) {}
 }

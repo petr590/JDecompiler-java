@@ -6,11 +6,9 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.DisassemblerContext;
 import x590.jdecompiler.context.PreDecompilationContext;
 import x590.jdecompiler.operation.Operation;
-import x590.jdecompiler.operation.condition.AndOperation;
 import x590.jdecompiler.operation.condition.CompareOperation;
 import x590.jdecompiler.operation.condition.CompareType;
 import x590.jdecompiler.operation.condition.ConditionOperation;
-import x590.jdecompiler.operation.condition.OrOperation;
 import x590.jdecompiler.scope.IfScope;
 import x590.jdecompiler.scope.LoopScope;
 import x590.jdecompiler.scope.Scope;
@@ -49,20 +47,22 @@ public abstract class IfInstruction extends TransitionInstruction {
 	@Override
 	public @Nullable Scope toScope(DecompilationContext context) {
 		
-		int endIndex = context.posToIndex(targetPos);
+		int targetIndex = context.posToIndex(targetPos);
 		Scope currentScope = context.currentScope();
 		ConditionOperation condition = getCondition(context);
 		
+		context.saveStackState(targetIndex);
+		
 		return switch(role) {
 			case IF -> {
-				if(recognizeIfScope(context, currentScope, context.currentExpressionStartIndex(), endIndex, () -> condition.invert())) {
+				if(recognizeIfScope(context, currentScope, context.currentExpressionStartIndex(), targetIndex, () -> condition.invert())) {
 					yield null;
 				}
 				
-				yield new IfScope(context, endIndex, condition);
+				yield new IfScope(context, targetIndex, condition);
 			}
 			
-			case LOOP -> new LoopScope(context, currentScope, endIndex, context.currentIndex(), condition);
+			case LOOP -> new LoopScope(context, currentScope, targetIndex, context.currentIndex() + 1, condition);
 		};
 		
 		
@@ -159,12 +159,12 @@ public abstract class IfInstruction extends TransitionInstruction {
 		if(currentScope instanceof IfScope ifScope) {
 			
 			if(ifScope.endIndex() == endIndex && ifScope.startIndex() == conditionStartIndex) {
-				ifScope.setConditionAndUpdate(new AndOperation(ifScope.getCondition(), conditionGetter.get()), context);
+				ifScope.setConditionAndUpdate(ifScope.getCondition().and(conditionGetter.get()), context);
 				return true;
 				
 			} else if(ifScope.endIndex() == context.currentIndex() + 1) {
 				ifScope.setEndIndex(endIndex);
-				ifScope.setConditionAndUpdate(new OrOperation(ifScope.getCondition().invert(), conditionGetter.get()), context);
+				ifScope.setConditionAndUpdate(ifScope.getCondition().invert().or(conditionGetter.get()), context);
 				return true;
 			}
 		}

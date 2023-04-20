@@ -8,12 +8,13 @@ import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
+import x590.util.annotation.Nullable;
 
 /**
  * Описывает тип массива, включая массив примитивов,
  * многомерные массивы и массивы SpecialType
  */
-public final class ArrayType extends ReferenceType {
+public final class ArrayType extends ReferenceType implements IArrayType {
 	
 	private static final ClassType ARRAY_SUPER_TYPE = ClassType.OBJECT;
 	private static final List<ClassType> ARRAY_INTERFACES = List.of(ClassType.CLONEABLE, ClassType.SERIALIZABLE);
@@ -83,6 +84,14 @@ public final class ArrayType extends ReferenceType {
 	
 	public static ArrayType forType(Type memberType, int nestingLevel) {
 		return new ArrayType(memberType, nestingLevel);
+	}
+	
+	public static @Nullable ArrayType forNullableType(@Nullable Type memberType) {
+		return forNullableType(memberType, 1);
+	}
+	
+	public static @Nullable ArrayType forNullableType(@Nullable Type memberType, int nestingLevel) {
+		return memberType == null ? null : forType(memberType, nestingLevel);
 	}
 	
 	
@@ -156,21 +165,23 @@ public final class ArrayType extends ReferenceType {
 	}
 	
 	
+	@Override
 	public Type getMemberType() {
 		return memberType;
 	}
 	
 	@Override
-	public Type getArrayMemberIfUsingCArrays() {
-		return JDecompiler.getConfig().useCStyleArray() ? memberType : this;
-	}
-	
 	public Type getElementType() {
 		return elementType;
 	}
 	
 	public int getNestingLevel() {
 		return nestingLevel;
+	}
+	
+	@Override
+	public Type getArrayMemberIfUsingCArrays() {
+		return JDecompiler.getConfig().useCStyleArray() ? memberType : this;
 	}
 	
 	

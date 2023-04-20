@@ -11,8 +11,7 @@ public class CastExample {
 		ExampleTesting.runDecompiler(CastExample.class);
 	}
 	
-	public static void foo() {
-		Object obj = null;
-		String str = (String)(CharSequence)obj;
+	public static void foo(Object obj) {
+		String str = (String)obj;
 	}
 }

@@ -8,7 +8,7 @@ import x590.jdecompiler.type.UncertainIntegralType;
 
 import static x590.jdecompiler.type.PrimitiveType.*;
 
-public class TypeTest2 {
+public class TypeTableTest2 {
 	
 	public static void main(String[] args) {
 		test(List.of(BYTE, SHORT, INT, CHAR));

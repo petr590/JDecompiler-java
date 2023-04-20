@@ -10,9 +10,7 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.VariableDefinitionOperation;
 import x590.jdecompiler.operation.IIncOperation;
-import x590.jdecompiler.operation.condition.AndOperation;
 import x590.jdecompiler.operation.condition.ConditionOperation;
-import x590.jdecompiler.operation.condition.OrOperation;
 import x590.jdecompiler.operation.store.StoreOperation;
 
 public class LoopScope extends ConditionalScope {
@@ -54,26 +52,35 @@ public class LoopScope extends ConditionalScope {
 	
 	public void update(DecompilationContext context) {
 		
-		Scope currentScope = superScope();
-		
-		if(currentScope instanceof IfScope ifScope && ifScope.endIndex() == context.currentIndex() + 1) {
-			
-			ifScope.remove();
-			setCondition(new AndOperation(ifScope.getCondition(), getCondition()));
-			
-			currentScope = ifScope.superScope();
-		}
-		
 		List<Operation> operations = this.getOperations();
 		
-		if(operations.size() == 1 && operations.get(0) instanceof LoopScope loopScope && loopScope.startIndex() == startIndex()) {
-			setCondition(new OrOperation(loopScope.getCondition(), getCondition()));
-			setConditionStartIndex(loopScope.conditionStartIndex());
+		if(operations.size() == 1) {
 			
-			loopScope.remove();
-			deleteRemovedOperations();
+			Operation operation = operations.get(0);
 			
-			this.addOperations(loopScope.getOperations(), loopScope.startIndex());
+			if(operation instanceof IfScope ifScope && ifScope.endIndex() == context.currentIndex()) {
+				
+				setCondition(getCondition().and(ifScope.getCondition()));
+				
+				ifScope.removeOnlySelf();
+				deleteRemovedOperations();
+				
+				addOperationsFrom(ifScope);
+				
+				update(context);
+				
+			} else if(operation instanceof LoopScope loopScope && loopScope.startIndex() == startIndex()) {
+				
+				setCondition(loopScope.getCondition().or(getCondition()));
+				setConditionStartIndex(loopScope.conditionStartIndex());
+				
+				loopScope.remove();
+				deleteRemovedOperations();
+				
+				addOperationsFrom(loopScope);
+				
+				update(context);
+			}
 		}
 	}
 	
@@ -138,7 +145,7 @@ public class LoopScope extends ConditionalScope {
 	}
 	
 	@Override
-	public void postDecompilation() {
+	public void postDecompilation(DecompilationContext context) {
 		if(!isPreCondition && getCondition().isAlwaysTrue()) {
 			isPreCondition = true;
 		}
@@ -149,16 +156,15 @@ public class LoopScope extends ConditionalScope {
 					conditionStartIndex() == ifScope.conditionStartIndex() && endIndex() + 1 == ifScope.endIndex()) {
 				
 				ifScope.removeOnlySelf();
-				this.addOperations(ifScope.getOperations(), startIndex());
-				this.setCondition(getCondition().isAlwaysTrue() ?
-						ifScope.getCondition() :
-						new AndOperation(getCondition(), ifScope.getCondition()));
+				deleteRemovedOperations();
+				addOperationsFrom(ifScope);
+				setCondition(getCondition().and(ifScope.getCondition()));
 			}
 			
 			resolveInitializationOperations();
 			resolveIncrementOperations();
+			deleteRemovedOperations();
 			
-			this.deleteRemovedOperations();
 			superScope().deleteRemovedOperations();
 		}
 	}

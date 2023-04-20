@@ -14,11 +14,13 @@ public class SuperclassOmittingExample extends SuperclassExample implements Supe
 
 	@Override
 	public void foo() {
+		super.classMethod1(1);
 		SuperinterfaceExample.super.foo();
 	}
 
 	@Override
-	public int bar() {
-		return SuperinterfaceExample.super.bar();
+	public int classMethod2() {
+		super.classMethod2();
+		return SuperinterfaceExample.super.classMethod2();
 	}
 }

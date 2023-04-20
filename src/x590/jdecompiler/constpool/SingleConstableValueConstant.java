@@ -1,23 +1,28 @@
 package x590.jdecompiler.constpool;
 
+import java.lang.constant.Constable;
+
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.field.JavaField;
 import x590.jdecompiler.type.Type;
-import x590.util.lazyloading.FunctionalLazyLoadingValue;
+import x590.util.annotation.Nullable;
 
 /**
- * Константа только с одним типом.
+ * Константа только с одним возможным типом.
  * Такими константами являются все, кроме {@link IntegerConstant}
  */
-public abstract class SingleConstableValueConstant<T> extends ConstableValueConstant<T> {
+public abstract class SingleConstableValueConstant<T extends Constable> extends ConstableValueConstant<T> {
 	
-	private FunctionalLazyLoadingValue<ClassInfo, JavaField> constantLoader;
+	private @Nullable JavaField constantField;
+	private boolean constantSearchPerformed;
 	
 	@Override
-	protected FunctionalLazyLoadingValue<ClassInfo, JavaField> getConstantLoader(Type type) {
-		if(constantLoader != null)
-			return constantLoader;
+	protected JavaField findConstantField(ClassInfo classinfo, Type type) {
+		if(constantSearchPerformed)
+			return constantField;
 		
-		return constantLoader = newConstantLoader(type);
+		constantSearchPerformed = true;
+		
+		return constantField = super.findConstantField(classinfo, type);
 	}
 }

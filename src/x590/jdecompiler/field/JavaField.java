@@ -22,6 +22,7 @@ import x590.jdecompiler.io.DisassemblingOutputStream;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.method.JavaMethod;
 import x590.jdecompiler.modifiers.FieldModifiers;
 import x590.jdecompiler.operation.Operation;
@@ -44,12 +45,15 @@ public class JavaField extends JavaClassElement {
 	
 	private final Pair<AnnotationsAttribute, AnnotationsAttribute> annotationAttributes;
 	
-	JavaField(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool, FieldModifiers modifiers) {
+	private final boolean isRecordComponent;
+	
+	protected JavaField(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool, FieldModifiers modifiers) {
 		this.modifiers = modifiers;
 		this.descriptor = new FieldDescriptor(classinfo.getThisType(), in, pool);
 		this.attributes = Attributes.read(in, pool, Location.FIELD);
 		this.constantValueAttribute = attributes.getNullable(AttributeType.CONSTANT_VALUE);
 		this.annotationAttributes = new Pair<>(attributes.getNullable(AttributeType.RUNTIME_VISIBLE_ANNOTATIONS), attributes.getNullable(AttributeType.RUNTIME_INVISIBLE_ANNOTATIONS));
+		this.isRecordComponent = classinfo.isRecord() && modifiers.isNotStatic();
 	}
 	
 	
@@ -61,18 +65,18 @@ public class JavaField extends JavaClassElement {
 	}
 	
 	
-	public boolean isRecordComponent(ClassInfo classinfo) {
-		return classinfo.isRecord() && modifiers.isNotStatic();
+	public boolean isRecordComponent() {
+		return isRecordComponent;
 	}
 	
 	
 	public boolean canStringifyAsRecordComponent(ClassInfo classinfo) {
-		return super.canStringify(classinfo) && isRecordComponent(classinfo);
+		return isRecordComponent && super.canStringify(classinfo);
 	}
 	
 	@Override
 	public boolean canStringify(ClassInfo classinfo) {
-		return super.canStringify(classinfo) && !isRecordComponent(classinfo);
+		return !isRecordComponent && super.canStringify(classinfo);
 	}
 	
 	
@@ -100,13 +104,33 @@ public class JavaField extends JavaClassElement {
 			throw new DecompilationException("Cannot set static initializer to the non-static field \"" + descriptor.getName() + "\"");
 		}
 		
-		if(this.initializer == null && constantValueAttribute == null) {
+		if(this.initializer == null && constantValueAttribute == null && !isRecordComponent) {
 			this.initializer = initializer;
 			this.method = context.getMethod();
 			return true;
 		}
 		
 		return false;
+	}
+	
+	
+	public boolean setInstanceInitializer(Operation initializer, DecompilationContext context) {
+		
+		if(modifiers.isStatic()) {
+			throw new DecompilationException("Cannot set instance initializer to static field \"" + descriptor.getName() + "\"");
+		}
+		
+		if(constantValueAttribute != null || isRecordComponent) {
+			return false;
+		}
+		
+		if(this.initializer == null) {
+			this.initializer = initializer;
+			this.method = context.getMethod();
+			return true;
+		}
+		
+		return this.initializer.equals(initializer);
 	}
 	
 	
@@ -121,34 +145,14 @@ public class JavaField extends JavaClassElement {
 	
 	/** @throws IllegalArgumentException если поле не содержит атрибута ConstantValue
 	 * @throws IllegalArgumentException если поле содержит атрибут ConstantValue не того типа */
-	@SuppressWarnings("unchecked")
 	public <C extends ConstValueConstant> C getConstantValueAs(Class<C> constantClass) {
-		ConstValueConstant constant = getConstantValue();
+		@SuppressWarnings("unchecked")
+		C constant = (C)getConstantValue();
 		
 		if(constantClass.isInstance(constant))
-			return (C)constant;
+			return constant;
 		
 		throw new IllegalArgumentException("Field does not contains ConstantValueAttribute of type " + constantClass.getName());
-	}
-	
-	
-	public boolean setInstanceInitializer(Operation initializer, DecompilationContext context) {
-		
-		if(modifiers.isStatic()) {
-			throw new DecompilationException("Cannot set instance initializer to static field \"" + descriptor.getName() + "\"");
-		}
-		
-		if(constantValueAttribute != null) {
-			return false;
-		}
-		
-		if(this.initializer == null) {
-			this.initializer = initializer;
-			this.method = context.getMethod();
-			return true;
-		}
-		
-		return this.initializer.equals(initializer);
 	}
 	
 	
@@ -192,23 +196,13 @@ public class JavaField extends JavaClassElement {
 		out.println(';');
 	}
 	
-	public void writeAsRecordComponent(StringifyOutputStream out, ClassInfo classinfo) {
-		writeAnnotations(out, classinfo, attributes);
-		
-		out.printIndent().print(recordComponentModifiersToString(), classinfo);
-		descriptor.writeType(out, classinfo, attributes);
-		
-		writeNameAndInitializer(out, classinfo);
-	}
-	
 	public void writeWithoutSemicolon(StringifyOutputStream out, ClassInfo classinfo) {
 		writeAnnotations(out, classinfo, attributes);
 		
-		out.printIndent().print(modifiersToString(), classinfo);
-		
+		out.printIndent().print(isRecordComponent ? recordComponentModifiersToString() : modifiersToString(classinfo), classinfo);
 		descriptor.writeType(out, classinfo, attributes);
-		out.write(descriptor.getName());
-		descriptor.getType().writeRightDefinition(out, classinfo);
+		
+		writeNameAndInitializer(out.printsp(), classinfo);
 	}
 	
 	public void writeNameAndInitializer(StringifyOutputStream out, ClassInfo classinfo) {
@@ -233,20 +227,43 @@ public class JavaField extends JavaClassElement {
 		return "field " + descriptor.toString();
 	}
 	
-	private IWhitespaceStringBuilder modifiersToString() {
+	private IWhitespaceStringBuilder modifiersToString(ClassInfo classinfo) {
 		IWhitespaceStringBuilder str = new WhitespaceStringBuilder().printTrailingSpace();
 		
 		var modifiers = this.modifiers;
 		
-		accessModifiersToString(modifiers, str);
+		boolean printImplicitInterfaceModifiers = JDecompiler.getConfig().printImplicitModifiers() || !classinfo.getModifiers().isInterface();
 		
-		if(modifiers.isStatic()) str.append("static");
+		switch(modifiers.and(ACC_ACCESS_FLAGS)) {
+			case ACC_VISIBLE   -> {}
+			case ACC_PRIVATE   -> str.append("private");
+			case ACC_PROTECTED -> str.append("protected");
+			case ACC_PUBLIC    -> {
+				if(printImplicitInterfaceModifiers)
+					str.append("public");
+			}
+			
+			default ->
+				throw new IllegalModifiersException(this, modifiers, ILLEGAL_ACCESS_MODIFIERS_MESSAGE);
+		}
+		
+		if(classinfo.getModifiers().isInterface() &&
+				(modifiers.isNotPublic() || modifiers.isNotStatic() || modifiers.isNotFinal())) {
+			
+			throw new IllegalModifiersException(this, modifiers, "interface field must be public static final");
+		}
+		
+		if(modifiers.isStatic() && printImplicitInterfaceModifiers) str.append("static");
 		if(modifiers.isSynthetic()) str.append("/* synthetic */");
 		
-		if(modifiers.isFinal() && modifiers.isVolatile())
-			throw new IllegalModifiersException(this, modifiers, "field cannot be both final and volatile");
+		if(modifiers.isFinal()) {
+			if(modifiers.isVolatile())
+				throw new IllegalModifiersException(this, modifiers, "field cannot be both final and volatile");
+			
+			if(printImplicitInterfaceModifiers)
+				str.append("final");
+		}
 		
-		if(modifiers.isFinal())     str.append("final");
 		if(modifiers.isTransient()) str.append("transient");
 		if(modifiers.isVolatile())  str.append("volatile");
 		
@@ -277,7 +294,7 @@ public class JavaField extends JavaClassElement {
 	
 	@Override
 	public String toString() {
-		return modifiers + " " + descriptor;
+		return modifiers.toSimpleString() + " " + descriptor;
 	}
 	
 	
@@ -293,7 +310,7 @@ public class JavaField extends JavaClassElement {
 	
 	@Override
 	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
-		out .print(modifiersToString(), classinfo)
+		out .print(modifiersToString(classinfo), classinfo)
 			.print(descriptor, classinfo);
 	}
 	

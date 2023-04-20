@@ -1,15 +1,15 @@
 package x590.jdecompiler.constpool;
 
 import x590.jdecompiler.Importable;
-import x590.jdecompiler.StringifyWritable;
 import x590.jdecompiler.clazz.ClassInfo;
-import x590.jdecompiler.BiStringifyWritable;
 import x590.jdecompiler.exception.TypeSizeMismatchException;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.TypeSize;
+import x590.jdecompiler.writable.BiStringifyWritable;
+import x590.jdecompiler.writable.StringifyWritable;
 
 /**
  * Константа, описывающяя какое-то константное значение - примитив или объект
@@ -25,26 +25,28 @@ public abstract class ConstValueConstant extends Constant
 	}
 	
 	public long longValue() {
-		return intValue();
+		throw new IllegalStateException("Constant " + getConstantName() + " cannot be used as long");
 	}
 	
 	public float floatValue() {
-		return longValue();
+		throw new IllegalStateException("Constant " + getConstantName() + " cannot be used as float");
 	}
 	
 	public double doubleValue() {
-		return floatValue();
+		throw new IllegalStateException("Constant " + getConstantName() + " cannot be used as double");
 	}
 	
 	
 	public abstract Operation toOperation();
 	
 	public final Operation toOperation(TypeSize size) {
-		if(size == this.getType().getSize()) {
-			return this.toOperation();
+		Type type = getType();
+		
+		if(size == type.getSize()) {
+			return toOperation();
 		}
 		
-		throw new TypeSizeMismatchException(size, this.getType().getSize(), this.getType());
+		throw new TypeSizeMismatchException(size, type.getSize(), type);
 	}
 	
 	@Override

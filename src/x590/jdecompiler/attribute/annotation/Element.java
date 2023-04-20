@@ -1,11 +1,11 @@
 package x590.jdecompiler.attribute.annotation;
 
 import x590.jdecompiler.Importable;
-import x590.jdecompiler.StringifyWritable;
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.writable.StringifyWritable;
 
 public final class Element implements StringifyWritable<ClassInfo>, Importable {
 	
@@ -16,6 +16,16 @@ public final class Element implements StringifyWritable<ClassInfo>, Importable {
 		this.name = pool.getUtf8String(in.readUnsignedShort());
 		this.value = ElementValue.read(in, pool);
 	}
+	
+	private Element(String name, ElementValue value) {
+		this.name = name;
+		this.value = value;
+	}
+	
+	public static Element fromUnknownValue(ConstantPool pool, String name, Object value) {
+		return new Element(name, ElementValue.fromUnknownValue(pool, value));
+	}
+	
 	
 	public String getName() {
 		return name;

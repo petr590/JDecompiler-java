@@ -1,5 +1,7 @@
 package x590.jdecompiler.example;
 
+import static java.io.File.separatorChar;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -22,22 +24,68 @@ public class ExampleTesting {
 	
 	public static final String
 			DEFAULT_DIR = "bin",
-			VANILLA_DIR = "vbin",
-			JDK_DIR = "/home/winch/0x590/java/jdk-8-rt";
+			VANILLA_DIR = "vbin";
 	
 	private static final String[] EMPTY_ARGS = {};
-	
-	
-	public static String getClassPath(String dir, Class<?> clazz) {
-		return dir + "/" + clazz.getName().replace('.', '/') + ".class";
-	}
+
 	
 	public static String getClassPath(Class<?> clazz) {
 		return getClassPath(DEFAULT_DIR, clazz);
 	}
 	
+	public static String getClassPath(String className) {
+		return getClassPath(DEFAULT_DIR, className);
+	}
+	
+	public static String getClassPath(String dir, Class<?> clazz) {
+		return getClassPath(dir, clazz.getName());
+	}
+	
+	public static String getClassPath(String dir, String className) {
+		return dir + separatorChar + className.replace('.', separatorChar) + ".class";
+	}
+	
 	private static Function<Class<?>, String> classToClassPath(String dir) {
 		return clazz -> getClassPath(dir, clazz);
+	}
+	
+	
+	private static Example getExampleAnnotation(Class<?> clazz) {
+		Example exampleAnnotation = clazz.getDeclaredAnnotation(Example.class);
+		
+		if(exampleAnnotation == null) {
+			throw new IllegalArgumentException("Class " + clazz.getCanonicalName() + " is not annotated with @Example");
+		}
+		
+		return exampleAnnotation;
+	}
+	
+	public static void runDecompilerForExampleClass(Class<?> clazz) {
+		Example exampleAnnotation = getExampleAnnotation(clazz);
+		
+		runDecompiler(exampleAnnotation.directory(), exampleAnnotation.classes(), exampleAnnotation.args());
+	}
+	
+	public static void runDecompilerForExampleClasses(Class<?>... classes) {
+		
+		List<String> args = new ArrayList<>(classes.length);
+		
+		for(Class<?> clazz : classes) {
+			Example exampleAnnotation = clazz.getDeclaredAnnotation(Example.class);
+			
+			if(exampleAnnotation != null) {
+				
+				String dir = exampleAnnotation.directory();
+				
+				for(Class<?> decompilingClass : exampleAnnotation.classes()) {
+					args.add(getClassPath(dir, decompilingClass));
+				}
+				
+				args.addAll(Arrays.asList(exampleAnnotation.args()));
+			}
+		}
+		
+		runDecompiler(args.toArray(String[]::new));
 	}
 	
 	
@@ -62,17 +110,16 @@ public class ExampleTesting {
 			URL resource = clazz.getResource(getClassSimpleName(clazz) + ".class");
 			
 			if(resource != null) {
+				
 				try(InputStream in = resource.openStream()) {
-					JavaClass javaClass = JavaClass.read(in);
-					
-					javaClasses.add(javaClass);
+					javaClasses.add(JavaClass.read(in));
 					
 				} catch(IOException | DisassemblingException | DecompilationException ex) {
 					ex.printStackTrace();
 				}
 				
 			} else {
-				System.err.println("Cannot find resource for class " + clazz.getName() + ";" + getClassSimpleName(clazz));
+				System.err.println("Cannot find resource for class " + clazz.getName());
 			}
 		}
 		

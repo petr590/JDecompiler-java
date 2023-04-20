@@ -15,10 +15,13 @@ public final class VReturnOperation extends AbstractOperation implements VoidOpe
 	
 	private VReturnOperation() {}
 	
+	/** @return Единственный экземпляр класса */
 	public static VReturnOperation getInstance() {
 		return INSTANCE;
 	}
 	
+	/** Проверяет, что метод переданного {@code context} возвращает {@literal void}
+	 * @return Единственный экземпляр класса*/
 	public static VReturnOperation getInstance(DecompilationContext context) {
 		if(context.getDescriptor().getReturnType() != PrimitiveType.VOID)
 			throw new DecompilationException("The method return type (" + context.getDescriptor().getReturnType() + ")" +

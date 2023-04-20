@@ -9,9 +9,9 @@ public class SuperclassOfSuperclassExample {
 	
 	public boolean flag;
 
-	public void foo(int x) {}
+	public void classMethod1(int x) {}
 
-	public int bar() {
+	public int classMethod2() {
 		return 0;
 	}
 	

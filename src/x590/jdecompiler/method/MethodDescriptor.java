@@ -4,8 +4,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.function.ObjIntConsumer;
@@ -45,6 +47,8 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	public static final int
 			IMPLICIT_ENUM_ARGUMENTS = 2,
 			IMPLICIT_NONSTATIC_NESTED_CLASS_ARGUMENTS = 1;
+	
+	private static final Map<ReferenceType, Map<String, Map<Type, Map<List<Type>, MethodDescriptor>>>> INSTANCES = new HashMap<>();
 	
 	private final @Immutable List<Type> arguments;
 	private final Type returnType;
@@ -112,57 +116,74 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	}
 	
 	
-	public MethodDescriptor(ReferenceConstant referenceConstant) {
-		this(referenceConstant.getClassConstant().toReferenceType(), referenceConstant.getNameAndType());
+	public static MethodDescriptor from(ReferenceConstant referenceConstant) {
+		return from(referenceConstant.getClassConstant().toReferenceType(), referenceConstant.getNameAndType());
 	}
 	
-	public MethodDescriptor(String className, NameAndTypeConstant nameAndType) {
-		this(className, nameAndType.getNameConstant().getString(), nameAndType.getDescriptor().getString());
+	public static MethodDescriptor from(String className, NameAndTypeConstant nameAndType) {
+		return from(className, nameAndType.getNameConstant().getString(), nameAndType.getDescriptor().getString());
 	}
 	
-	public MethodDescriptor(String className, String name, String descriptor) {
-		this(ClassType.fromDescriptor(className), name, descriptor);
-	}
-	
-	public MethodDescriptor(ClassConstant declaringClass, NameAndTypeConstant nameAndType) {
-		this(declaringClass.toClassType(), nameAndType);
-	}
-	
-	public MethodDescriptor(ReferenceType declaringClass, NameAndTypeConstant nameAndType) {
-		this(declaringClass, nameAndType.getNameConstant().getString(), nameAndType.getDescriptor().getString());
-	}
-	
-	public MethodDescriptor(ReferenceType declaringClass, String name, String descriptor) {
-		this(declaringClass, name, new ExtendedStringInputStream(descriptor));
-	}
-	
-	public MethodDescriptor(ReferenceType declaringClass, String name, ExtendedStringInputStream descriptor) {
-		this(declaringClass, name, Type.parseMethodArguments(descriptor), Type.parseReturnType(descriptor));
+	public static MethodDescriptor from(String className, String name, String descriptor) {
+		return from(ClassType.fromDescriptor(className), name, descriptor);
 	}
 	
 	
-	public MethodDescriptor(Type returnType, ReferenceType declaringClass, String name, Type... arguments) {
-		this(declaringClass, name, List.of(arguments), returnType);
+	public static MethodDescriptor from(ClassConstant declaringClass, NameAndTypeConstant nameAndType) {
+		return from(declaringClass.toClassType(), nameAndType);
 	}
 	
-	public MethodDescriptor(Type returnType, ReferenceType declaringClass, String name) {
-		this(declaringClass, name, Collections.emptyList(), returnType);
+	public static MethodDescriptor from(ReferenceType declaringClass, NameAndTypeConstant nameAndType) {
+		return from(declaringClass, nameAndType.getNameConstant().getString(), nameAndType.getDescriptor().getString());
 	}
 	
-	public MethodDescriptor(Type returnType, ReferenceType declaringClass, String name, @Immutable List<Type> arguments) {
-		this(declaringClass, name, arguments, returnType);
+	public static MethodDescriptor from(ReferenceType declaringClass, ExtendedDataInputStream in, ConstantPool pool) {
+		return from(declaringClass, pool.getUtf8String(in.readUnsignedShort()), pool.getUtf8String(in.readUnsignedShort()));
 	}
 	
-	/** Порядок аргументов конструктора изменён,
-	 * так как при парсинге дескриптора сначала идёт список аргументов, а потом возвращаемый тип. */
-	private MethodDescriptor(ReferenceType declaringClass, String name, @Immutable List<Type> arguments, Type returnType) {
+	public static MethodDescriptor from(ReferenceType declaringClass, String name, String descriptor) {
+		return from(declaringClass, name, new ExtendedStringInputStream(descriptor));
+	}
+	
+	public static MethodDescriptor from(ReferenceType declaringClass, String name, ExtendedStringInputStream descriptor) {
+		// При парсинге дескриптора сначала идёт список аргументов, а потом возвращаемый тип
+		List<Type> arguments = Type.parseMethodArguments(descriptor);
+		return of(Type.parseReturnType(descriptor), declaringClass, name, arguments);
+	}
+
+	
+	public static MethodDescriptor of(Type returnType, ReferenceType declaringClass, String name) {
+		return of(returnType, declaringClass, name, Collections.emptyList());
+	}
+	
+	public static MethodDescriptor of(Type returnType, ReferenceType declaringClass, String name, Type... arguments) {
+		return of(returnType, declaringClass, name, List.of(arguments));
+	}
+	
+	public static MethodDescriptor of(Type returnType, ReferenceType declaringClass, String name, @Immutable List<Type> arguments) {
+		return INSTANCES
+				.computeIfAbsent(declaringClass, key -> new HashMap<>())
+				.computeIfAbsent(name, key -> new HashMap<>())
+				.computeIfAbsent(returnType, key -> new HashMap<>())
+				.computeIfAbsent(arguments, key -> new MethodDescriptor(returnType, declaringClass, name, arguments));
+	}
+	
+	public static MethodDescriptor constructor(ReferenceType declaringClass, @Immutable List<Type> arguments) {
+		return INSTANCES
+				.computeIfAbsent(declaringClass, key -> new HashMap<>())
+				.computeIfAbsent("<init>", key -> new HashMap<>())
+				.computeIfAbsent(PrimitiveType.VOID, key -> new HashMap<>())
+				.computeIfAbsent(arguments, key -> new MethodDescriptor(PrimitiveType.VOID, declaringClass, "<init>", MethodKind.CONSTRUCTOR, arguments));
+	}
+	
+	private MethodDescriptor(Type returnType, ReferenceType declaringClass, String name, @Immutable List<Type> arguments) {
 		super(declaringClass, name);
 		this.arguments = arguments;
 		this.returnType = returnType;
 		this.kind = kindForName(name);
 	}
 	
-	private MethodDescriptor(ReferenceType declaringClass, String name, MethodKind kind, @Immutable List<Type> arguments, Type returnType) {
+	private MethodDescriptor(Type returnType, ReferenceType declaringClass, String name, MethodKind kind, @Immutable List<Type> arguments) {
 		super(declaringClass, name);
 		this.arguments = arguments;
 		this.returnType = returnType;
@@ -170,25 +191,16 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	}
 	
 	
-	public MethodDescriptor(ReferenceType declaringClass, ExtendedDataInputStream in, ConstantPool pool) {
-		this(declaringClass, pool.getUtf8String(in.readUnsignedShort()), pool.getUtf8String(in.readUnsignedShort()));
-	}
-	
-	
 	public static MethodDescriptor fromReflectMethod(ReferenceType thisType, Method method) {
-		return new MethodDescriptor(
+		return of(
+				Type.fromClass(method.getReturnType()),
 				thisType, method.getName(),
-				Arrays.stream(method.getParameterTypes()).map(Type::fromClass).toList(),
-				Type.fromClass(method.getReturnType())
+				Arrays.stream(method.getParameterTypes()).map(Type::fromClass).toList()
 		);
 	}
 	
 	public static MethodDescriptor fromReflectConstructor(ReferenceType thisType, Constructor<?> constructor) {
-		return new MethodDescriptor(
-				thisType, "<init>", MethodKind.CONSTRUCTOR,
-				Arrays.stream(constructor.getParameterTypes()).map(Type::fromClass).toList(),
-				PrimitiveType.VOID
-		);
+		return constructor(thisType, Arrays.stream(constructor.getParameterTypes()).map(Type::fromClass).toList());
 	}
 	
 	
@@ -255,11 +267,11 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 		
 		var classinfo = context.getClassinfo();
 		
-		IntHolder varIndex = new IntHolder((context.getModifiers().isNotStatic() ? 1 : 0) + startIndex);
+		IntHolder varIndex = new IntHolder((context.getMethodModifiers().isNotStatic() ? 1 : 0) + startIndex);
 		
 		ParameterAnnotationsAttribute
-				visibleParameterAnnotations = attributes.getOrDefault(AttributeType.RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS, ParameterAnnotationsAttribute.emptyVisible()),
-				invisibleParameterAnnotations = attributes.getOrDefault(AttributeType.RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS, ParameterAnnotationsAttribute.emptyInvisible());
+				visibleParameterAnnotations = attributes.getOrDefaultEmpty(AttributeType.RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS),
+				invisibleParameterAnnotations = attributes.getOrDefaultEmpty(AttributeType.RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS);
 		
 		boolean canOmitTypes = asLambda && visibleParameterAnnotations.isEmpty() && invisibleParameterAnnotations.isEmpty();
 		
@@ -275,7 +287,7 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 		
 		ObjIntConsumer<Type> write;
 		
-		if(context.getModifiers().isVarargs()) {
+		if(context.getMethodModifiers().isVarargs()) {
 			int varargsIndex = arguments.size() - 1;
 			
 			if(arguments.isEmpty() || !arguments.get(varargsIndex).isArrayType())
@@ -326,6 +338,12 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 		return this == other ||
 				getName().equals(other.getName()) &&
 				returnType.equals(other.returnType) &&
+				arguments.equals(other.arguments);
+	}
+	
+	public boolean equalsIgnoreClassAndReturnType(MethodDescriptor other) {
+		return this == other ||
+				getName().equals(other.getName()) &&
 				arguments.equals(other.arguments);
 	}
 	

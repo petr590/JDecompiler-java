@@ -1,10 +1,10 @@
 package x590.jdecompiler.example;
 
 @Example
-public class ClassesExample {
+public class PrimitiveClassesExample {
 	
 	public static void main(String[] args) {
-		ExampleTesting.runDecompiler(ClassesExample.class);
+		ExampleTesting.runDecompiler(PrimitiveClassesExample.class);
 	}
 	
 	public static void foo() {

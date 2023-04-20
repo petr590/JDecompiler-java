@@ -14,7 +14,9 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import x590.jdecompiler.Descriptor;
 import x590.jdecompiler.Importable;
+import x590.jdecompiler.attribute.AttributeType;
 import x590.jdecompiler.attribute.Attributes;
+import x590.jdecompiler.attribute.annotation.Annotation;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.NoSuchFieldException;
@@ -75,17 +77,25 @@ public final class ClassInfo implements IClassInfo {
 		INSTANCES.put(thisType, this);
 	}
 	
-	public static @Nullable IClassInfo findClassInfo(@Nullable ReferenceType thisType) {
-		if(thisType == null) {
+	public static @Nullable ClassInfo findClassInfo(@Nullable ReferenceType type) {
+		return INSTANCES.get(type) instanceof ClassInfo classinfo ? classinfo : null;
+	}
+	
+	public static @Nullable IClassInfo findIClassInfo(@Nullable ReferenceType type, ConstantPool pool) {
+		if(type == null) {
 			return null;
 		}
 		
-		if(INSTANCES.containsKey(thisType))
-			return INSTANCES.get(thisType);
+		if(INSTANCES.containsKey(type))
+			return INSTANCES.get(type);
 		
-		PlainClassInfo classinfo = PlainClassInfo.fromClassType(thisType);
-		INSTANCES.put(thisType, classinfo);
-		return classinfo;
+		PlainClassInfo foundClassinfo = PlainClassInfo.fromClassType(type, pool);
+		INSTANCES.put(type, foundClassinfo);
+		return foundClassinfo;
+	}
+	
+	public @Nullable IClassInfo findIClassInfo(@Nullable ReferenceType type) {
+		return findIClassInfo(type, pool);
 	}
 	
 	
@@ -134,6 +144,12 @@ public final class ClassInfo implements IClassInfo {
 			throw new IllegalStateException("Attributes already setted");
 		
 		this.attributes = attributes;
+	}
+	
+	
+	@Override
+	public Optional<Annotation> findAnnotation(ClassType type) {
+		return attributes.getOrDefaultEmpty(AttributeType.RUNTIME_VISIBLE_ANNOTATIONS).findAnnotation(type);
 	}
 	
 	
@@ -231,11 +247,11 @@ public final class ClassInfo implements IClassInfo {
 		return clazz.getFields();
 	}
 	
-	public @Nullable @Immutable List<JavaField> getConstants() {
+	public @Immutable List<JavaField> getConstants() {
 		return clazz.getConstants();
 	}
 	
-	public @Immutable List<JavaField> getRecordComponents() {
+	public @Nullable @Immutable List<JavaField> getRecordComponents() {
 		return clazz.getRecordComponents();
 	}
 	
@@ -349,7 +365,8 @@ public final class ClassInfo implements IClassInfo {
 	
 	
 	public boolean canOmitClass(Descriptor descriptor) {
-		return JDecompiler.getConfig().canOmitThisAndClass() && descriptor.getDeclaringClass().equals(thisType);
+		return JDecompiler.getConfig().canOmitThisAndClass() &&
+				enteredClasses.contains(descriptor.getDeclaringClass());
 	}
 	
 	

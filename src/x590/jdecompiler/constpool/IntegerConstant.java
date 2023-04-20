@@ -17,7 +17,6 @@ import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.UncertainIntegralType;
 import x590.jdecompiler.util.StringUtil;
 import x590.util.annotation.Nullable;
-import x590.util.lazyloading.FunctionalLazyLoadingValue;
 
 public final class IntegerConstant extends ConstableValueConstant<Integer> {
 	
@@ -60,6 +59,21 @@ public final class IntegerConstant extends ConstableValueConstant<Integer> {
 	}
 	
 	@Override
+	public long longValue() {
+		return value;
+	}
+	
+	@Override
+	public float floatValue() {
+		return value;
+	}
+	
+	@Override
+	public double doubleValue() {
+		return value;
+	}
+	
+	@Override
 	public Type getType() {
 		return type;
 	}
@@ -80,26 +94,22 @@ public final class IntegerConstant extends ConstableValueConstant<Integer> {
 	}
 	
 	
-	private final Map<Type, FunctionalLazyLoadingValue<ClassInfo, JavaField>> constantLoaders = new HashMap<>(5, 1);
+	private final Map<Type, JavaField> constantFields = new HashMap<>(5, 1F);
 	
 	@Override
-	protected @Nullable FunctionalLazyLoadingValue<ClassInfo, JavaField> getConstantLoader(Type type) {
-		if(constantLoaders.containsKey(type))
-			return constantLoaders.get(type);
-		
-		var constantLoader = newConstantLoader(type);
-		constantLoaders.put(type, constantLoader);
-		return constantLoader;
+	protected JavaField findConstantField(ClassInfo classinfo, Type type) {
+		return constantFields.computeIfAbsent(type, tp -> super.findConstantField(classinfo, tp));
 	}
 	
-	
-	private boolean valueEquals(int value) {
-		return this.value == value || this.value == -value;
-	}
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		if(canUseConstants() && (valueEquals(Integer.MAX_VALUE) || valueEquals(Integer.MIN_VALUE))) {
+		if(canUseConstants() &&
+				 // -Integer.MIN_VALUE == Integer.MIN_VALUE, поэтому проверки на -Integer.MIN_VALUE здесь нет
+				(value ==  Integer.MAX_VALUE ||
+				 value ==  Integer.MIN_VALUE ||
+				 value == -Integer.MAX_VALUE)) {
+			
 			classinfo.addImport(ClassType.INTEGER);
 		}
 	}

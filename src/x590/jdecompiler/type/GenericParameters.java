@@ -7,11 +7,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import x590.jdecompiler.Importable;
-import x590.jdecompiler.SameDisassemblingStringifyWritable;
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.exception.InvalidSignatureException;
 import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.io.ExtendedStringInputStream;
+import x590.jdecompiler.writable.SameDisassemblingStringifyWritable;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nonnull;
 import x590.util.annotation.Nullable;

@@ -2,8 +2,8 @@ package x590.jdecompiler.operation;
 
 import java.util.LinkedList;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import x590.jdecompiler.Importable;
-import x590.jdecompiler.StringifyWritable;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.field.FieldDescriptor;
@@ -16,6 +16,7 @@ import x590.jdecompiler.type.GeneralCastingKind;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.writable.StringifyWritable;
 import x590.util.annotation.Nullable;
 import x590.util.annotation.RemoveIfNotUsed;
 
@@ -131,6 +132,11 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	/** Нужно для {@link ConstOperation} */
 	@RemoveIfNotUsed
 	public default void setOwnerConstant(FieldDescriptor ownerConstant) {}
+
+	
+	public default int getAddingIndex(DecompilationContext context) {
+		return context.currentIndex();
+	}
 	
 	
 	public default boolean implicitCastAllowed() {
@@ -138,9 +144,9 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	}
 	
 	
-	public <T extends Type> T getReturnTypeAsNarrowest(T type);
+	public Type getReturnTypeAsNarrowest(Type type);
 	
-	public <T extends Type> T getReturnTypeAsWidest(T type);
+	public Type getReturnTypeAsWidest(Type type);
 	
 	public void castReturnTypeToNarrowest(Type type);
 	
@@ -197,12 +203,18 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 		return false;
 	}
 	
-	
 	/**
 	 * Операции, код после которых не выполняется, такие как throw и return
 	 */
 	public default boolean isTerminable() {
 		return false;
+	}
+	
+	/**
+	 * Можно ли написать лямбду без фигурных скобок
+	 */
+	public default boolean canInlineInLambda() {
+		return true;
 	}
 	
 	/**
@@ -222,6 +234,21 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	
 	
 	/**
+	 * @return Таблицу enum значений, необходимых для правильной работы {@literal switch}
+	 * или {@literal null}, если операция не содержит таблицу.
+	 */
+	public default @Nullable Int2ObjectMap<String> getEnumTable(DecompilationContext context) {
+		return null;
+	}
+	
+	/**
+	 * Задаёт таблицу enum значений, необходимых для правильной работы {@literal switch},
+	 * если операция поддержвает это
+	 */
+	public default void setEnumTable(@Nullable Int2ObjectMap<String> enumTable) {}
+	
+	
+	/**
 	 * Проверяет, что операция является цепью вызовом {@code StringBuilder#append(...)}
 	 * или {@code new StringBuilder(...)}. Если это так, добавляет операнд в список операндов.
 	 * @return Список операндов, если цепь вызовов полностью распознана, иначе {@literal null}
@@ -231,7 +258,16 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	}
 	
 	
-	public default void postDecompilation() {}
+	/**
+	 * Выполняется после основной декомпиляции кода
+	 */
+	public default void postDecompilation(DecompilationContext context) {}
+	
+	
+	/**
+	 * Выполняется после декомпиляции всех методов в классе
+	 */
+	public default void afterDecompilation(DecompilationContext context) {}
 	
 	
 	/** Приоритет операции, используется для правильной расстановки скобок */

@@ -7,8 +7,8 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import x590.jdecompiler.Writable;
 import x590.jdecompiler.main.JDecompiler;
+import x590.jdecompiler.writable.Writable;
 import x590.util.LoopUtil;
 import x590.util.annotation.Nullable;
 import x590.util.function.TriConsumer;
@@ -239,10 +239,6 @@ public abstract class ExtendedOutputStream<Self extends ExtendedOutputStream<Sel
 	}
 	
 	
-	public <T, W extends Writable<T>> Self printAllObjects(Collection<? extends W> writables, T param) {
-		return printAllObjects(writables, param, ' ');
-	}
-	
 	public <T, W extends Writable<T>> Self printAllObjects(Collection<? extends W> writables, T param, char delimeter) {
 		return printAllObjects(writables, param, writable -> write(delimeter));
 	}
@@ -255,32 +251,20 @@ public abstract class ExtendedOutputStream<Self extends ExtendedOutputStream<Sel
 		return printAllObjectsUsingFunction(writables, writable -> write(writable, param), delimeterWriter);
 	}
 	
-
-	@Deprecated
-	public <T, W extends Writable<T>> Self printAllObjects(Collection<? extends W> writables, int startIndex, T param) {
-		return printAllObjects(writables, startIndex, param, ' ');
-	}
-
-	@Deprecated
+	
 	public <T, W extends Writable<T>> Self printAllObjects(Collection<? extends W> writables, int startIndex, T param, char delimeter) {
 		return printAllObjects(writables, startIndex, param, writable -> write(delimeter));
 	}
-
-	@Deprecated
+	
 	public <T, W extends Writable<T>> Self printAllObjects(Collection<? extends W> writables, int startIndex, T param, String delimeter) {
 		return printAllObjects(writables, startIndex, param, writable -> write(delimeter));
 	}
-
-	@Deprecated
+	
 	public <T, W extends Writable<T>> Self printAllObjects(Collection<? extends W> writables, int startIndex, T param, Consumer<? super W> delimeterWriter) {
 		LoopUtil.forEachExcludingLast(writables, writable -> write(writable, param), delimeterWriter, startIndex);
 		return self();
 	}
 	
-	
-	public <T, W extends Writable<T>> Self printAllObjectsUsingFunction(Collection<? extends W> writables, Consumer<? super W> writer) {
-		return printAllObjectsUsingFunction(writables, writer, ' ');
-	}
 	
 	public <T, W extends Writable<T>> Self printAllObjectsUsingFunction(Collection<? extends W> writables, Consumer<? super W> writer, char delimeter) {
 		return printAllObjectsUsingFunction(writables, writer, writable -> write(delimeter));
@@ -295,23 +279,15 @@ public abstract class ExtendedOutputStream<Self extends ExtendedOutputStream<Sel
 		return self();
 	}
 	
-
-	@Deprecated
-	public <T, W extends Writable<T>> Self printAllObjectsUsingFunction(Collection<? extends W> writables, int startIndex, T param) {
-		return printAllObjectsUsingFunction(writables, startIndex, param, ' ');
-	}
-
-	@Deprecated
+	
 	public <T, W extends Writable<T>> Self printAllObjectsUsingFunction(Collection<? extends W> writables, int startIndex, T param, char delimeter) {
 		return printAllObjectsUsingFunction(writables, startIndex, param, writable -> write(delimeter));
 	}
-
-	@Deprecated
+	
 	public <T, W extends Writable<T>> Self printAllObjectsUsingFunction(Collection<? extends W> writables, int startIndex, T param, String delimeter) {
 		return printAllObjectsUsingFunction(writables, startIndex, param, writable -> write(delimeter));
 	}
-
-	@Deprecated
+	
 	public <T, W extends Writable<T>> Self printAllObjectsUsingFunction(Collection<? extends W> writables, int startIndex, T param, Consumer<? super W> delimeterWriter) {
 		LoopUtil.forEachExcludingLast(writables, writable -> write(writable, param), delimeterWriter, startIndex);
 		return self();

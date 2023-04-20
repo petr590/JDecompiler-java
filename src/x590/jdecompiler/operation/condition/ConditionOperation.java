@@ -23,4 +23,14 @@ public abstract class ConditionOperation extends AbstractOperation implements Bo
 	public boolean equals(ConditionOperation other) {
 		return inverted == other.inverted;
 	}
+	
+	public ConditionOperation and(ConditionOperation condition) {
+		return  this.isAlwaysTrue() ? condition :
+				condition.isAlwaysTrue() ? this :
+						new AndOperation(this, condition);
+	}
+	
+	public ConditionOperation or(ConditionOperation condition) {
+		return new OrOperation(this, condition);
+	}
 }

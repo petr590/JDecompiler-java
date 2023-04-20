@@ -10,13 +10,23 @@ import x590.jdecompiler.example.ExampleTesting;
 public abstract class AnnotationsExample {
 
 	@InvisibleAnnotationExample(@VisibleAnnotationExample(value = 2, array = @IntAnnotationExample(10)))
+	@RepeatableAnnotationExampleContainer({
+		@RepeatableAnnotationExample(1),
+		@RepeatableAnnotationExample(2)
+	})
 	public static void main(String[] args) {
 		ExampleTesting.runDecompiler(AnnotationsExample.class);
 	}
 	
 	
 	@MethodAnnotationExample
-	public abstract @TypeUseAnnotationExample int foo(@ParameterAnnotationExample int value);
+	public abstract @TypeUseAnnotationExample int foo(
+			@RepeatableAnnotationExampleContainer({
+				@RepeatableAnnotationExample(1),
+				@RepeatableAnnotationExample(2)
+			})
+			@ParameterAnnotationExample
+			int value);
 	
 	@MethodAnnotationExample
 	public static List<@TypeUseAnnotationExample String> bar(@ParameterAnnotationExample int size) {

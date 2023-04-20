@@ -31,7 +31,7 @@ public abstract class DecompilationAndStringifyContext extends Context {
 		return method.getDescriptor();
 	}
 	
-	public MethodModifiers getModifiers() {
+	public MethodModifiers getMethodModifiers() {
 		return method.getModifiers();
 	}
 	

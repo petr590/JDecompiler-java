@@ -42,6 +42,11 @@ public final class FloatConstant extends SingleConstableValueConstant<Float> {
 	}
 	
 	@Override
+	public double doubleValue() {
+		return value;
+	}
+	
+	@Override
 	public Type getType() {
 		return PrimitiveType.FLOAT;
 	}

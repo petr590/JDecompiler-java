@@ -3,11 +3,11 @@ package x590.jdecompiler.example.scope;
 import x590.jdecompiler.example.Example;
 import x590.jdecompiler.example.ExampleTesting;
 
-@Example
+@Example(directory = ExampleTesting.VANILLA_DIR)
 public class LoopExample {
 	
 	public static void main(String[] args) {
-		ExampleTesting.runDecompiler("vbin", LoopExample.class);
+		ExampleTesting.runDecompiler(ExampleTesting.VANILLA_DIR, LoopExample.class);
 	}
 	
 	public static void doWhileLoop(int i) {
@@ -23,7 +23,7 @@ public class LoopExample {
 	}
 	
 	public static void emptyInfiniteLoop(int i) {
-		while(true) {}
+		while(true);
 	}
 	
 	public static void whileLoop(int i) {
@@ -95,6 +95,12 @@ public class LoopExample {
 	public static void whileLoopWithContinue(int i, int j, int k) {
 		while(j != 0) {
 			if(i <= -1)
+				continue;
+			
+			if(j <= 0)
+				continue;
+			
+			if(k <= 1)
 				continue;
 			
 			System.out.println(i++ + " " + j--);

@@ -1,5 +1,6 @@
 package x590.jdecompiler.variable;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import x590.jdecompiler.attribute.LocalVariableTableAttribute.LocalVariableEntry;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.scope.Scope;
@@ -55,6 +56,11 @@ public interface Variable extends EmptyableVariable {
 	public Scope getEnclosingScope();
 	
 	public void setEnclosingScope(Scope enclosingScope);
+	
+	
+	public @Nullable Int2ObjectMap<String> getEnumTable();
+	
+	public void setEnumTable(@Nullable Int2ObjectMap<String> enumTable);
 	
 	
 	@Override

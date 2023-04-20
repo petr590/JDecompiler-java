@@ -24,7 +24,7 @@ public final class InvokevirtualOperation extends InvokeNonstaticOperation {
 	
 	/** Несуществующий дескриптор метода, просто чтобы было */
 	private static final MethodDescriptor DEFAULT_STRING_CONCAT_DESCRIPTOR =
-			new MethodDescriptor(ClassType.STRING, ClassType.STRING_BUILDER, "toString");
+			MethodDescriptor.of(ClassType.STRING, ClassType.STRING_BUILDER, "toString");
 	
 	
 	public static Operation operationOf(DecompilationContext context, int descriptorIndex) {

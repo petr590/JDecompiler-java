@@ -41,6 +41,16 @@ public final class LongConstant extends SingleConstableValueConstant<Long> {
 	}
 	
 	@Override
+	public float floatValue() {
+		return value;
+	}
+	
+	@Override
+	public double doubleValue() {
+		return value;
+	}
+	
+	@Override
 	protected boolean holdsTwo() {
 		return true;
 	}
@@ -61,13 +71,12 @@ public final class LongConstant extends SingleConstableValueConstant<Long> {
 	}
 	
 	
-	private boolean valueEquals(long value) {
-		return this.value == value || this.value == -value;
-	}
-	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		if(canUseConstants() && (valueEquals(Long.MAX_VALUE) || valueEquals(Long.MIN_VALUE))) {
+		if(canUseConstants() && // -Long.MIN_VALUE == Long.MIN_VALUE, поэтому проверки на -Long.MIN_VALUE здесь нет
+				(value ==  Long.MAX_VALUE ||
+				 value ==  Long.MIN_VALUE ||
+				 value == -Long.MAX_VALUE)) {
 			classinfo.addImport(ClassType.LONG);
 		}
 	}

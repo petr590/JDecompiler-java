@@ -32,7 +32,7 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 	private final @Nullable JavaClass nestedClass;
 	
 	private SuperState getSuperState(DecompilationContext context) {
-		if(object.isThisObject(context.getModifiers())) {
+		if(object.isThisObject(context.getMethodModifiers())) {
 			
 			ReferenceType clazz = descriptor.getDeclaringClass();
 			
@@ -114,7 +114,7 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 	@Override
 	public @Nullable LinkedList<Operation> getStringBuilderChain(LinkedList<Operation> operands) {
 		if(descriptor.isConstructor() &&
-				descriptor.getDeclaringClass().equals(ClassType.STRING_BUILDER)) {
+			descriptor.getDeclaringClass().equals(ClassType.STRING_BUILDER)) {
 			
 			if(descriptor.argumentsEmpty()) {
 				return operands;

@@ -1,6 +1,7 @@
 package x590.jdecompiler.scope;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
@@ -10,59 +11,142 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntComparators;
 import it.unimi.dsi.fastutil.ints.IntList;
 import x590.jdecompiler.clazz.Version;
-import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.constpool.IntegerConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
+import x590.jdecompiler.operation.OperationUtils;
 import x590.jdecompiler.type.PrimitiveType;
-import x590.util.BooleanHolder;
-import x590.util.LoopUtil;
+import x590.util.annotation.Nullable;
 
 public class SwitchScope extends Scope {
+
+	private Operation value;
 	
 	private final int defaultIndex;
+	
+	/** key: index, value: case values */
 	private final Int2ObjectMap<List<IntegerConstant>> indexTable;
-	private final Operation value;
 	
-	private void addIndexToTable(ConstantPool pool, int index, IntegerConstant value) {
-		
-		List<IntegerConstant> list = indexTable.get(index);
-		
-		if(list == null) {
-			indexTable.put(index, list = new ArrayList<>());
-		}
-		
-		list.add(value);
-	}
+	/** Содержит индексы в обратном порядке */
+	private IntList indexes;
 	
+	private List<CaseScope> cases;
+	
+	private boolean expanded;
+	
+	private @Nullable Int2ObjectMap<String> enumTable;
+	
+	/** offsetTable: key: case value, value: offset */
 	public SwitchScope(DecompilationContext context, int defaultIndex, Int2IntMap offsetTable) {
 		super(context, defaultIndex);
 		
-		var pool = context.pool;
+		this.value = context.popAsNarrowest(PrimitiveType.INT);
 		
 		this.defaultIndex = defaultIndex;
 		
 		this.indexTable = new Int2ObjectOpenHashMap<>(offsetTable.size());
 		
+		
+		var pool = context.pool;
+		
 		for(var entry : offsetTable.int2IntEntrySet()) {
-			addIndexToTable(pool, context.posToIndex(entry.getIntValue() + context.currentPos()), pool.findOrCreateConstant(entry.getIntKey()));
+			indexTable.computeIfAbsent(
+						context.posToIndex(entry.getIntValue() + context.currentPos()),
+						key -> new ArrayList<>()
+				).add(pool.findOrCreateConstant(entry.getIntKey()));
 		}
 		
 		
-		this.value = context.popAsNarrowest(PrimitiveType.INT);
-		
 		this.indexes = new IntArrayList(indexTable.keySet());
-		indexes.sort(IntComparators.OPPOSITE_COMPARATOR);
 		
-		setEndIndex(indexes.isEmpty() ? defaultIndex : Math.max(defaultIndex, indexes.getInt(0)));
+		if(!indexTable.containsKey(defaultIndex))
+			indexes.add(defaultIndex);
+		
+		indexes.sort(IntComparators.OPPOSITE_COMPARATOR); // Сортировка от большего к меньшему
+		
+		setEndIndex(indexes.isEmpty() ? defaultIndex : defaultIndex > indexes.getInt(0) ? defaultIndex : superScope().endIndex());
+	}
+	
+	
+	/** Расширяет {@literal switch} до указанного индекса.
+	 * @return {@literal true}, если расширение удалось или {@literal switch} уже расширен до этого индекса,
+	 * {@literal false} в противном случае. */
+	@Override
+	public boolean expandTo(int newEndIndex) {
+		if(!expanded) {
+			if(newEndIndex <= superScope().endIndex()) {
+				setEndIndex(newEndIndex);
+				return true;
+			}
+			
+			return false;
+		}
+		
+		return endIndex() == newEndIndex;
+	}
+	
+	@Override
+	public void finalizeScope(DecompilationContext context) {
+		
+		List<CaseScope> cases = this.cases = new ArrayList<>(indexes.size());
+		
+		int prevIndex = endIndex();
+		boolean defaultCaseUsed = false;
+		
+		boolean isLastCase = true;
+		
+		for(var iter = indexes.iterator(); iter.hasNext();) {
+			
+			int index = iter.nextInt();
+			
+			boolean useDefaultCase = false;
+			
+			if(!defaultCaseUsed && index == defaultIndex) {
+				useDefaultCase = defaultCaseUsed = true;
+			}
+			
+			List<IntegerConstant> constants = indexTable.getOrDefault(index, Collections.emptyList());
+			List<Operation> caseOperations = pullOperationsFromIndex(index);
+			
+			// Проверка на пустой defult case, стоящий в конце switch
+			if(!isLastCase || !useDefaultCase || !constants.isEmpty() || !caseOperations.isEmpty()) {
+				cases.add(0, new CaseScope(index, prevIndex, this, constants,
+						useDefaultCase, isLastCase, caseOperations));
+				
+				isLastCase = false;
+			}
+			
+			prevIndex = index;
+		}
+		
+//		assert this.isEmpty();
+		
+		for(CaseScope caseScope : cases)
+			addOperation(caseScope, caseScope.startIndex());
+		
+		
+		if(context.getClassinfo().getVersion().majorVersion >= Version.JAVA_12 &&
+				cases.stream().allMatch(CaseScope::canUseNewSwitch)) {
+			
+			cases.forEach(CaseScope::useNewSwitch);
+			cases.forEach(Scope::deleteRemovedOperations);
+		}
+		
+		super.finalizeScope(context);
 	}
 	
 	
 	@Override
 	public boolean isBreakable() {
 		return true;
+	}
+	
+	@Override
+	public boolean isTerminable() {
+		return  cases.stream().anyMatch(CaseScope::usesDefaultCase) &&
+				cases.stream().allMatch(CaseScope::isTerminable);
 	}
 	
 	
@@ -72,74 +156,26 @@ public class SwitchScope extends Scope {
 	}
 	
 	
-	private IntList indexes;
+	@Override
+	public @Nullable Int2ObjectMap<String> getEnumTable(DecompilationContext context) {
+		return enumTable;
+	}
+	
 	
 	@Override
-	protected void writeBody(StringifyOutputStream out, StringifyContext context) {
+	public void setEnumTable(@Nullable Int2ObjectMap<String> enumTable) {
+		this.enumTable = enumTable;
+		cases.forEach(caseScope -> caseScope.setEnumTable(enumTable));
+	}
+	
+	
+	@Override
+	public void afterDecompilation(DecompilationContext context) {
+		Operation enumValue = OperationUtils.getEnumValueInSwitch(context, value, this::setEnumTable);
 		
-		var indexTable = this.indexTable;
-		var indexes = this.indexes;
-		var classinfo = context.getClassinfo();
-		
-		boolean canUseNewSwitch = classinfo.getVersion().majorVersion >= Version.JAVA_12 &&
-				!indexTable.containsKey(defaultIndex);
-		
-		var defaultCaseWrote = new BooleanHolder();
-		
-		var type = this.value.getReturnType();
-		
-		out.increaseIndent(2);
-		
-		LoopUtil.forEachPair(getOperations(),
-				(operation, index) -> {
-					index = getIndexByCodeIndex(index);
-					
-					if(canUseNewSwitch && !defaultCaseWrote.get() && index >= defaultIndex) {
-						out.reduceIndent().println().printIndent().print("default -> ").increaseIndent();
-						defaultCaseWrote.set(true);
-						
-					} else {
-						int lastIndexIndex = indexes.size() - 1;
-						
-						if(lastIndexIndex > 0) {
-							int lastIndex = indexes.getInt(lastIndexIndex);
-							
-							if(index >= lastIndex) {
-								indexes.removeInt(lastIndexIndex);
-								
-								List<IntegerConstant> constants = indexTable.get(lastIndex);
-								
-								out.reduceIndent().println().printIndent();
-								
-								if(canUseNewSwitch) {
-									out.print("case ").printAllUsingFunction(constants, constant -> constant.writeTo(out, classinfo, type), ", ").print(" -> ");
-									
-								} else {
-									out.printAllUsingFunction(constants, constant -> out.print("case ").print(constant, classinfo, type).print(':'));
-									
-									if(defaultCaseWrote.isFalse() && index >= defaultIndex) {
-										if(!constants.isEmpty())
-											out.printsp();
-										
-										out.write("default:");
-										
-										defaultCaseWrote.set(true);
-									}
-								}
-								
-								out.increaseIndent();
-								
-							}
-						}
-					}
-					
-					operation.writeAsStatement(out, context);
-				},
-				
-				(operation1, operation2) -> operation1.writeSeparator(out, context, operation2)
-			);
-		
-		out.reduceIndent(2);
+		if(enumValue != null) {
+			this.value = enumValue;
+		}
 	}
 	
 	

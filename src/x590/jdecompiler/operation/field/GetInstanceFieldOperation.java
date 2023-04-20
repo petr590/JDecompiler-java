@@ -30,7 +30,7 @@ public final class GetInstanceFieldOperation extends GetFieldOperation {
 			out.printPrioritied(this, object, context, Associativity.LEFT).print('.');
 		}
 		
-		super.writeTo(out, context);
+		super.writeName(out, context);
 	}
 	
 	@Override

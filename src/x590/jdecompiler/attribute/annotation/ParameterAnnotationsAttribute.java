@@ -4,13 +4,13 @@ import java.util.Collections;
 import java.util.List;
 
 import x590.jdecompiler.Importable;
-import x590.jdecompiler.StringifyWritable;
 import x590.jdecompiler.attribute.Attribute;
 import x590.jdecompiler.attribute.AttributeNames;
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.writable.StringifyWritable;
 import x590.util.annotation.Immutable;
 
 public class ParameterAnnotationsAttribute extends Attribute {
@@ -18,10 +18,10 @@ public class ParameterAnnotationsAttribute extends Attribute {
 	private final @Immutable List<ParameterAnnotations> parametersAnnotations;
 	
 	public ParameterAnnotationsAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
-		this(name, length, in.readImmutableList(() -> new ParameterAnnotations(in, pool)));
+		this(name, length, in.readImmutableList(in.readUnsignedByte(), () -> new ParameterAnnotations(in, pool)));
 	}
 	
-	public ParameterAnnotationsAttribute(String name, int length, @Immutable List<ParameterAnnotations> parametersAnnotations) {
+	private ParameterAnnotationsAttribute(String name, int length, @Immutable List<ParameterAnnotations> parametersAnnotations) {
 		super(name, length);
 		this.parametersAnnotations = parametersAnnotations;
 	}
@@ -47,7 +47,7 @@ public class ParameterAnnotationsAttribute extends Attribute {
 				VISIBLE = new EmptyParameterAnnotationsAttribute(AttributeNames.RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS),
 				INVISIBLE = new EmptyParameterAnnotationsAttribute(AttributeNames.RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS);
 		
-		public EmptyParameterAnnotationsAttribute(String name) {
+		private EmptyParameterAnnotationsAttribute(String name) {
 			super(name, 0, Collections.emptyList());
 		}
 		
@@ -77,7 +77,12 @@ public class ParameterAnnotationsAttribute extends Attribute {
 		private final @Immutable List<Annotation> annotations;
 		
 		public ParameterAnnotations(ExtendedDataInputStream in, ConstantPool pool) {
-			this.annotations = in.readImmutableList(() -> new Annotation(in, pool));
+			this.annotations = Annotation.readAnnotations(in, pool);
+		}
+		
+		@Override
+		public void addImports(ClassInfo classinfo) {
+			classinfo.addImportsFor(annotations);
 		}
 		
 		@Override

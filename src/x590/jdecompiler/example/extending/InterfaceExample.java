@@ -8,13 +8,15 @@ import x590.jdecompiler.example.ExampleTesting;
 @Example
 public interface InterfaceExample extends Serializable {
 	
-	void foo1();
+	int VALUE = 10;
 	
-	default void foo2() {
-		foo3();
+	void interfaceMethod1();
+	
+	default void interfaceMethod2() {
+		interfaceMethod3();
 	}
 	
-	private void foo3() {}
+	private void interfaceMethod3() {}
 	
 	static void main(String[] args) {
 		ExampleTesting.runDecompiler(InterfaceExample.class, "--no-print-implicit-modifiers");

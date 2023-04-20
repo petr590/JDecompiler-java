@@ -1,5 +1,6 @@
 package x590.jdecompiler.variable;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.scope.Scope;
 import x590.jdecompiler.type.Type;
@@ -102,7 +103,7 @@ public class WrappedVariable implements VariableWrapper {
 	
 	@Override
 	public void castTypeToWidest(Type newType) {
-		variable.nonEmpty().castTypeToNarrowest(newType);
+		variable.nonEmpty().castTypeToWidest(newType);
 	}
 	
 	@Override
@@ -113,6 +114,16 @@ public class WrappedVariable implements VariableWrapper {
 	@Override
 	public void setEnclosingScope(Scope enclosingScope) {
 		variable.nonEmpty().setEnclosingScope(enclosingScope);
+	}
+	
+	@Override
+	public @Nullable Int2ObjectMap<String> getEnumTable() {
+		return variable.getEnumTable();
+	}
+	
+	@Override
+	public void setEnumTable(@Nullable Int2ObjectMap<String> enumMap) {
+		variable.setEnumTable(enumMap);
 	}
 	
 	@Override

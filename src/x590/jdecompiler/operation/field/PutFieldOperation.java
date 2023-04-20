@@ -37,7 +37,7 @@ public abstract class PutFieldOperation extends FieldOperation implements Increm
 	}
 	
 	// Мы должны вызвать этот код только после popObject, поэтому он вызывается в дочернем инициализаторе
-	void initIncData(DecompilationContext context) {
+	protected void initIncData(DecompilationContext context) {
 		this.incData = IncrementableOperation.super.init(context, value, descriptor.getType());
 	}
 	
@@ -56,11 +56,6 @@ public abstract class PutFieldOperation extends FieldOperation implements Increm
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		writeTo(out, context, returnType, incData);
-	}
-	
-	@Override
-	public void writeName(StringifyOutputStream out, StringifyContext context) {
-		out.write(descriptor.getName());
 	}
 	
 	@Override

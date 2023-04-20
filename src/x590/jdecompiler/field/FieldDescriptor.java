@@ -84,7 +84,6 @@ public final class FieldDescriptor extends Descriptor implements Importable {
 		}
 		
 		(signature != null ? signature.type : getType()).writeLeftDefinition(out, classinfo);
-		out.printsp();
 	}
 	
 	@Override

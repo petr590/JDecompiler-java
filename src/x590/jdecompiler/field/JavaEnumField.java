@@ -13,7 +13,7 @@ import static x590.jdecompiler.modifiers.Modifiers.*;
 
 import x590.jdecompiler.clazz.ClassInfo;
 
-public class JavaEnumField extends JavaField {
+public final class JavaEnumField extends JavaField {
 	
 	protected JavaEnumField(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool, FieldModifiers modifiers) {
 		super(in, classinfo, pool, modifiers);

@@ -6,6 +6,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import x590.jdecompiler.attribute.annotation.Annotation;
+import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.field.FieldDescriptor;
 import x590.jdecompiler.field.FieldInfo;
 import x590.jdecompiler.method.MethodDescriptor;
@@ -24,8 +26,9 @@ public final class PlainClassInfo implements IClassInfo {
 	private final @Nullable @Immutable List<ClassType> interfaces;
 	private final @Immutable List<FieldInfo> fieldInfos;
 	private final @Immutable List<MethodInfo> methodInfos;
+	private final @Immutable List<Annotation> annotations;
 	
-	private PlainClassInfo(ReferenceType thisType, Class<?> clazz) {
+	private PlainClassInfo(ReferenceType thisType, Class<?> clazz, ConstantPool pool) {
 		this.modifiers = ClassModifiers.of(clazz.getModifiers());
 		this.thisType = thisType;
 		this.superType = thisType.getSuperType();
@@ -41,11 +44,14 @@ public final class PlainClassInfo implements IClassInfo {
 				Arrays.stream(clazz.getDeclaredConstructors())
 					.map(constructor -> MethodInfo.fromReflectConstructor(thisType, constructor))
 			).toList();
+		
+		this.annotations = Arrays.stream(clazz.getDeclaredAnnotations())
+				.map(annotation -> Annotation.fromReflectAnnotation(pool, annotation)).toList();
 	}
 	
-	static @Nullable PlainClassInfo fromClassType(ReferenceType thisType) {
+	static @Nullable PlainClassInfo fromClassType(ReferenceType thisType, ConstantPool pool) {
 		Class<?> clazz = thisType.getClassInstance();
-		return clazz != null ? new PlainClassInfo(thisType, clazz) : null;
+		return clazz != null ? new PlainClassInfo(thisType, clazz, pool) : null;
 	}
 	
 	@Override
@@ -70,21 +76,27 @@ public final class PlainClassInfo implements IClassInfo {
 	
 	@Override
 	public boolean hasFieldByDescriptor(Predicate<FieldDescriptor> predicate) {
-		return fieldInfos.stream().anyMatch(fieldInfo -> predicate.test(fieldInfo.descriptor()));
+		return fieldInfos.stream().anyMatch(fieldInfo -> predicate.test(fieldInfo.getDescriptor()));
 	}
 	
 	@Override
 	public boolean hasMethodByDescriptor(Predicate<MethodDescriptor> predicate) {
-		return methodInfos.stream().anyMatch(methodInfo -> predicate.test(methodInfo.descriptor()));
+		return methodInfos.stream().anyMatch(methodInfo -> predicate.test(methodInfo.getDescriptor()));
 	}
 	
 	@Override
 	public Optional<FieldInfo> findFieldInfo(FieldDescriptor descriptor) {
-		return fieldInfos.stream().filter(fieldInfo -> fieldInfo.descriptor().equals(descriptor)).findAny();
+		return fieldInfos.stream().filter(fieldInfo -> fieldInfo.getDescriptor().equals(descriptor)).findAny();
 	}
 	
 	@Override
 	public Optional<MethodInfo> findMethodInfo(MethodDescriptor descriptor) {
-		return methodInfos.stream().filter(methodInfo -> methodInfo.descriptor().equals(descriptor)).findAny();
+		return methodInfos.stream().filter(methodInfo -> methodInfo.getDescriptor().equals(descriptor)).findAny();
+	}
+	
+	
+	@Override
+	public Optional<Annotation> findAnnotation(ClassType type) {
+		return annotations.stream().filter(annotation -> annotation.getType().equals(type)).findAny();
 	}
 }

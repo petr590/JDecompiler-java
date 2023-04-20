@@ -90,6 +90,10 @@ public final class Attributes implements JavaSerializable, Importable {
 		return (A)attributeByName.getOrDefault(type.getName(), defaultValue);
 	}
 	
+	public <A extends Attribute> A getOrDefaultEmpty(EmptyableAttributeType<A> type) {
+		return getOrDefault(type, type.getEmptyAttribute());
+	}
+	
 	public <A extends Attribute, T extends Throwable> A getOrThrow(AttributeType<A> type, T throwable) throws T {
 		return getOrThrow(type, () -> throwable);
 	}

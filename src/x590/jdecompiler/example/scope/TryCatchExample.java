@@ -13,6 +13,16 @@ public class TryCatchExample {
 	
 	public void foo() {}
 	
+	@SuppressWarnings("finally")
+	public void emptyCatch() {
+		try {
+			System.out.println();
+		} finally {
+			System.out.println();
+			return;
+		}
+	}
+	
 	public void method1() {
 //		try {
 //			int x = 1;

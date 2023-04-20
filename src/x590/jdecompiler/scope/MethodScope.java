@@ -56,7 +56,7 @@ public class MethodScope extends Scope {
 		
 		// public static void main(String[] args)
 		if(localVariableTable == null &&
-				modifiers.isAll(ACC_PUBLIC | ACC_STATIC) &&
+				modifiers.allOf(ACC_PUBLIC | ACC_STATIC) &&
 				descriptor.equalsIgnoreClass(PrimitiveType.VOID, "main", ArrayType.STRING_ARRAY)) {
 			
 			addVariable(new NamedVariable("args", this, ArrayType.STRING_ARRAY, true).defined());
@@ -94,8 +94,8 @@ public class MethodScope extends Scope {
 	
 	/** Меняет область видимости на public */
 	@Override
-	public void reduceTypes() {
-		super.reduceTypes();
+	public void reduceVariablesTypes() {
+		super.reduceVariablesTypes();
 	}
 	
 	/** Меняет область видимости на public */
@@ -129,14 +129,16 @@ public class MethodScope extends Scope {
 		if(operations.isEmpty()) {
 			out.write(" {}");
 			
-		} else if(operations.size() == 1 && !operations.get(0).isScope()) {
+		} else if(operations.size() == 1) {
 			Operation first = operations.get(0);
 			
-			out.printsp().print(first instanceof ReturnOperation returnOperation ? returnOperation.getOperand() : first, context);
-			
-		} else {
-			this.writeTo(out, context);
+			if(first.canInlineInLambda()) {
+				out.printsp().print(first instanceof ReturnOperation returnOperation ? returnOperation.getOperand() : first, context);
+				return;
+			}
 		}
+		
+		this.writeTo(out, context);
 	}
 	
 	public boolean writeAsLambdaNewArray(StringifyOutputStream out, StringifyContext context) {

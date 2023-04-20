@@ -2,12 +2,11 @@ package x590.jdecompiler.instruction.invoke;
 
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.DisassemblerContext;
-import x590.jdecompiler.instruction.InstructionWithIndex;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.invoke.InvokeinterfaceOperation;
 import x590.util.IntegerUtil;
 
-public final class InvokeinterfaceInstruction extends InstructionWithIndex {
+public final class InvokeinterfaceInstruction extends InvokeInstruction {
 	
 	public InvokeinterfaceInstruction(DisassemblerContext context, int index, int count, int zeroByte) {
 		super(index);

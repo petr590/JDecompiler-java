@@ -29,6 +29,6 @@ public enum ExampleEnum {
 	}
 	
 	public static void main(String[] args) {
-		ExampleTesting.runDecompiler(ExampleEnum.class, "-A");
+		ExampleTesting.runDecompiler(ExampleEnum.class);
 	}
 }

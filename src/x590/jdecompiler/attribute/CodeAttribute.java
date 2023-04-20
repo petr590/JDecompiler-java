@@ -71,6 +71,10 @@ public class CodeAttribute extends Attribute {
 		return attributes;
 	}
 	
+	public static EmptyCodeAttribute empty() {
+		return EmptyCodeAttribute.INSTANCE;
+	}
+	
 	public boolean isEmpty() {
 		return false;
 	}

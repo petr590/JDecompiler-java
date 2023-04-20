@@ -53,17 +53,15 @@ public abstract class AbstractOperation implements Operation {
 	protected void setImplicitCast(boolean implicitCast) {}
 	
 	@Override
-	public final <T extends Type> T getReturnTypeAsNarrowest(T type) {
-		@SuppressWarnings("unchecked")
-		T newType = (T)getReturnType().castToNarrowest(type);
+	public final Type getReturnTypeAsNarrowest(Type type) {
+		Type newType = getReturnType().castToNarrowest(type);
 		onCastReturnType(newType);
 		return newType;
 	}
 	
 	@Override
-	public final <T extends Type> T getReturnTypeAsWidest(T type) {
-		@SuppressWarnings("unchecked")
-		T newType = (T)getReturnType().castToWidest(type);
+	public final Type getReturnTypeAsWidest(Type type) {
+		Type newType = getReturnType().castToWidest(type);
 		onCastReturnType(newType);
 		return newType;
 	}
@@ -81,7 +79,7 @@ public abstract class AbstractOperation implements Operation {
 	
 	@Override
 	public final Type getReturnTypeAsGeneralNarrowest(Operation other, GeneralCastingKind kind) {
-		Type generalType = this.getReturnType().castToGeneral(other.getReturnType(), kind);
+		Type generalType = getReturnType().castToGeneral(other.getReturnType(), kind);
 		this.castReturnTypeToNarrowest(generalType);
 		other.castReturnTypeToNarrowest(generalType);
 		return generalType;
@@ -110,5 +108,10 @@ public abstract class AbstractOperation implements Operation {
 	@Override
 	public boolean equals(Object other) {
 		return this == other || other instanceof Operation operation && this.equals(operation);
+	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName();
 	}
 }

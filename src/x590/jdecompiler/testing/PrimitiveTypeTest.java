@@ -34,6 +34,8 @@ public class PrimitiveTypeTest {
 		assertEquals(SHORT_INT,      type.castToWidest(SHORT));
 		assertEquals(INT_CHAR,       type.castToWidest(CHAR));
 		assertEquals(UNCERTAIN_INT,  type.castToWidest(INT));
+		
+		assertEquals(SHORT, SHORT.castToWidest(BYTE));
 	}
 	
 	@Test

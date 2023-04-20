@@ -10,6 +10,7 @@ import x590.jdecompiler.operation.array.NewArrayOperation;
 import x590.jdecompiler.operation.constant.IConstOperation;
 import x590.jdecompiler.operation.arrayload.ArrayLoadOperation;
 import x590.jdecompiler.type.ArrayType;
+import x590.jdecompiler.type.IArrayType;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 
@@ -24,12 +25,14 @@ public abstract class ArrayStoreOperation extends ReturnableOperation implements
 		this.index = context.popAsNarrowest(PrimitiveType.INT);
 		this.array = context.pop();
 		
-		Type elementType = array.getReturnTypeAsNarrowest(requiredType).getElementType();
+		Type elementType = ((IArrayType)array.getReturnTypeAsNarrowest(requiredType)).getElementType();
 		
 		value.castReturnTypeToNarrowest(elementType);
 		
-		if(array instanceof NewArrayOperation newArray && index instanceof IConstOperation iconst
-				&& newArray.addToInitializer(value, iconst)) {
+		if(array instanceof NewArrayOperation newArray &&
+			index instanceof IConstOperation iconst &&
+			newArray.addToInitializer(value, iconst)) {
+			
 			this.remove();
 		}
 		

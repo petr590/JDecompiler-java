@@ -5,8 +5,8 @@ import java.util.Collection;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import x590.jdecompiler.DisassemblingWritable;
-import x590.jdecompiler.Writable;
+import x590.jdecompiler.writable.DisassemblingWritable;
+import x590.jdecompiler.writable.Writable;
 import x590.util.LoopUtil;
 import x590.util.annotation.Nullable;
 import x590.util.function.TriConsumer;
@@ -61,10 +61,6 @@ public class DisassemblingOutputStream extends ExtendedOutputStream<Disassemblin
 	}
 	
 	
-	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAll(Collection<? extends W> writables, T param) {
-		return printAll(writables, param, ' ');
-	}
-	
 	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAll(Collection<? extends W> writables, T param, char delimeter) {
 		return printAll(writables, param, writable -> write(delimeter));
 	}
@@ -77,32 +73,20 @@ public class DisassemblingOutputStream extends ExtendedOutputStream<Disassemblin
 		return printAllUsingFunction(writables, writable -> writable.writeDisassembled(this, param), delimeterWriter);
 	}
 	
-
-	@Deprecated
-	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAll(Collection<? extends W> writables, int startIndex, T param) {
-		return printAll(writables, startIndex, param, ' ');
-	}
-
-	@Deprecated
+	
 	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAll(Collection<? extends W> writables, int startIndex, T param, char delimeter) {
 		return printAll(writables, startIndex, param, writable -> write(delimeter));
 	}
-
-	@Deprecated
+	
 	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAll(Collection<? extends W> writables, int startIndex, T param, String delimeter) {
 		return printAll(writables, startIndex, param, writable -> write(delimeter));
 	}
-
-	@Deprecated
+	
 	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAll(Collection<? extends W> writables, int startIndex, T param, Consumer<? super W> delimeterWriter) {
 		LoopUtil.forEachExcludingLast(writables, writable -> writable.writeDisassembled(this, param), delimeterWriter, startIndex);
 		return this;
 	}
 	
-	
-	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAllUsingFunction(Collection<? extends W> writables, Consumer<? super W> writer) {
-		return printAllUsingFunction(writables, writer, ' ');
-	}
 	
 	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAllUsingFunction(Collection<? extends W> writables, Consumer<? super W> writer, char delimeter) {
 		return printAllUsingFunction(writables, writer, writable -> write(delimeter));
@@ -117,23 +101,15 @@ public class DisassemblingOutputStream extends ExtendedOutputStream<Disassemblin
 		return this;
 	}
 	
-
-	@Deprecated
-	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAllUsingFunction(Collection<? extends W> writables, int startIndex, T param) {
-		return printAllUsingFunction(writables, startIndex, param, ' ');
-	}
-
-	@Deprecated
+	
 	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAllUsingFunction(Collection<? extends W> writables, int startIndex, T param, char delimeter) {
 		return printAllUsingFunction(writables, startIndex, param, writable -> write(delimeter));
 	}
-
-	@Deprecated
+	
 	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAllUsingFunction(Collection<? extends W> writables, int startIndex, T param, String delimeter) {
 		return printAllUsingFunction(writables, startIndex, param, writable -> write(delimeter));
 	}
-
-	@Deprecated
+	
 	public <T, W extends DisassemblingWritable<T>> DisassemblingOutputStream printAllUsingFunction(Collection<? extends W> writables, int startIndex, T param, Consumer<? super W> delimeterWriter) {
 		LoopUtil.forEachExcludingLast(writables, writable -> writable.writeDisassembled(this, param), delimeterWriter, startIndex);
 		return this;

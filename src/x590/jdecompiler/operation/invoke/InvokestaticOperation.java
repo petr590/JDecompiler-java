@@ -1,16 +1,22 @@
 package x590.jdecompiler.operation.invoke;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.field.FieldInfo;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.operation.CastOperation;
 import x590.jdecompiler.operation.Operation;
+import x590.jdecompiler.operation.OperationUtils;
 import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.PrimitiveType;
+import x590.util.annotation.Nullable;
 
 public final class InvokestaticOperation extends InvokeOperation {
+	
+	private @Nullable Int2ObjectMap<String> enumTable = FieldInfo.UNDEFINED_ENUM_TABLE;
 	
 	public InvokestaticOperation(DecompilationContext context, MethodDescriptor descriptor) {
 		super(context, descriptor);
@@ -75,6 +81,18 @@ public final class InvokestaticOperation extends InvokeOperation {
 		super.addImports(classinfo);
 		classinfo.addImport(descriptor.getDeclaringClass());
 	}
+	
+	
+	@Override
+	public @Nullable Int2ObjectMap<String> getEnumTable(DecompilationContext context) {
+		return OperationUtils.initEnumTable(context, descriptor, enumTable, this::setEnumTable);
+	}
+	
+	@Override
+	public void setEnumTable(Int2ObjectMap<String> enumTable) {
+		this.enumTable = enumTable;
+	}
+	
 	
 	@Override
 	public boolean equals(Operation other) {

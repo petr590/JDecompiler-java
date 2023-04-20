@@ -5,12 +5,12 @@ import java.util.Collection;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import x590.jdecompiler.StringifyWritable;
-import x590.jdecompiler.Writable;
-import x590.jdecompiler.BiStringifyWritable;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.Operation.Associativity;
+import x590.jdecompiler.writable.BiStringifyWritable;
+import x590.jdecompiler.writable.StringifyWritable;
+import x590.jdecompiler.writable.Writable;
 import x590.util.LoopUtil;
 import x590.util.annotation.Nullable;
 import x590.util.function.TriConsumer;
@@ -65,10 +65,6 @@ public class StringifyOutputStream extends ExtendedOutputStream<StringifyOutputS
 	}
 	
 	
-	public <T, W extends StringifyWritable<T>> StringifyOutputStream printAll(Collection<? extends W> writables, T param) {
-		return printAll(writables, param, ' ');
-	}
-	
 	public <T, W extends StringifyWritable<T>> StringifyOutputStream printAll(Collection<? extends W> writables, T param, char delimeter) {
 		return printAll(writables, param, writable -> write(delimeter));
 	}
@@ -81,32 +77,20 @@ public class StringifyOutputStream extends ExtendedOutputStream<StringifyOutputS
 		return printAllUsingFunction(writables, writable -> writable.writeTo(this, param), delimeterWriter);
 	}
 	
-
-	@Deprecated
-	public <T, W extends StringifyWritable<T>> StringifyOutputStream printAll(Collection<? extends W> writables, int startIndex, T param) {
-		return printAll(writables, startIndex, param, ' ');
-	}
-
-	@Deprecated
+	
 	public <T, W extends StringifyWritable<T>> StringifyOutputStream printAll(Collection<? extends W> writables, int startIndex, T param, char delimeter) {
 		return printAll(writables, startIndex, param, writable -> write(delimeter));
 	}
-
-	@Deprecated
+	
 	public <T, W extends StringifyWritable<T>> StringifyOutputStream printAll(Collection<? extends W> writables, int startIndex, T param, String delimeter) {
 		return printAll(writables, startIndex, param, writable -> write(delimeter));
 	}
 	
-	@Deprecated
 	public <T, W extends StringifyWritable<T>> StringifyOutputStream printAll(Collection<? extends W> writables, int startIndex, T param, Consumer<? super W> delimeterWriter) {
 		LoopUtil.forEachExcludingLast(writables, writable -> writable.writeTo(this, param), delimeterWriter, startIndex);
 		return this;
 	}
 	
-	
-	public <T, W extends StringifyWritable<T>> StringifyOutputStream printAllUsingFunction(Collection<? extends W> writables, Consumer<? super W> writer) {
-		return printAllUsingFunction(writables, writer, ' ');
-	}
 	
 	public <T, W extends StringifyWritable<T>> StringifyOutputStream printAllUsingFunction(Collection<? extends W> writables, Consumer<? super W> writer, char delimeter) {
 		return printAllUsingFunction(writables, writer, writable -> write(delimeter));
@@ -121,23 +105,15 @@ public class StringifyOutputStream extends ExtendedOutputStream<StringifyOutputS
 		return this;
 	}
 	
-
-	@Deprecated
-	public <T, W extends StringifyWritable<T>> StringifyOutputStream printAllUsingFunction(Collection<? extends W> writables, int startIndex, T param) {
-		return printAllUsingFunction(writables, startIndex, param, ' ');
-	}
-
-	@Deprecated
+	
 	public <T, W extends StringifyWritable<T>> StringifyOutputStream printAllUsingFunction(Collection<? extends W> writables, int startIndex, T param, char delimeter) {
 		return printAllUsingFunction(writables, startIndex, param, writable -> write(delimeter));
 	}
-
-	@Deprecated
+	
 	public <T, W extends StringifyWritable<T>> StringifyOutputStream printAllUsingFunction(Collection<? extends W> writables, int startIndex, T param, String delimeter) {
 		return printAllUsingFunction(writables, startIndex, param, writable -> write(delimeter));
 	}
-
-	@Deprecated
+	
 	public <T, W extends StringifyWritable<T>> StringifyOutputStream printAllUsingFunction(Collection<? extends W> writables, int startIndex, T param, Consumer<? super W> delimeterWriter) {
 		LoopUtil.forEachExcludingLast(writables, writable -> writable.writeTo(this, param), delimeterWriter, startIndex);
 		return this;

@@ -7,12 +7,7 @@ public class InstanceofExample {
 		ExampleTesting.runDecompiler(InstanceofExample.class);
 	}
 	
-	public void foo() {
-		CharSequence seq = bar();
+	public void foo(CharSequence seq) {
 		System.out.println(seq instanceof String);
-	}
-	
-	public CharSequence bar() {
-		return "";
 	}
 }

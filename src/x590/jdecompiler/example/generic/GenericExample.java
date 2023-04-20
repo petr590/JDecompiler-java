@@ -20,6 +20,6 @@ public abstract class GenericExample<T> extends SuperGenericExample<T>
 	
 	@SafeVarargs
 	public static <U extends Object & CharSequence & Serializable> U foo(List<? extends U> eu, List<? super U> su, U... u) {
-		return null;
+		return eu.get(0);
 	}
 }

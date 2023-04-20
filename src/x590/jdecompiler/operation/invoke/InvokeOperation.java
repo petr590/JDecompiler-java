@@ -5,8 +5,8 @@ import java.util.Deque;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.clazz.IClassInfo;
+import x590.jdecompiler.constpool.MethodrefConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.DecompilationException;
@@ -45,7 +45,7 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 	}
 	
 	protected static MethodDescriptor getDescriptor(DecompilationContext context, int index) {
-		return new MethodDescriptor(context.pool.get(index));
+		return context.pool.<MethodrefConstant>get(index).toDescriptor();
 	}
 	
 	public Deque<Operation> getArguments() {
@@ -77,13 +77,13 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 		this.arguments = popArguments(context);
 		
 		
-		IClassInfo otherClassinfo = ClassInfo.findClassInfo(descriptor.getDeclaringClass());
+		IClassInfo otherClassinfo = context.getClassinfo().findIClassInfo(descriptor.getDeclaringClass());
 		
 		if(otherClassinfo != null) {
 			
 			var foundMethodInfo = otherClassinfo.findMethodInfo(descriptor);
 			
-			if(foundMethodInfo.isPresent() && foundMethodInfo.get().modifiers().isVarargs()) {
+			if(foundMethodInfo.isPresent() && foundMethodInfo.get().getModifiers().isVarargs()) {
 			
 				List<Type> argTypes = descriptor.getArguments();
 				
@@ -171,6 +171,13 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 	@Override
 	public boolean requiresLocalContext() {
 		return arguments.stream().anyMatch(Operation::requiresLocalContext);
+	}
+	
+	
+	@Override
+	public String toString() {
+		return String.format("%s [ descriptor = %s, arguments = %s ]",
+				this.getClass().getSimpleName(), descriptor, arguments);
 	}
 	
 	protected boolean equals(InvokeOperation other) {

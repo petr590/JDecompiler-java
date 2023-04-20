@@ -3,6 +3,7 @@ package x590.jdecompiler.attribute;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import x590.jdecompiler.constpool.ClassConstant;
 import x590.jdecompiler.constpool.ConstantPool;
@@ -54,6 +55,12 @@ public class InnerClassesAttribute extends Attribute {
 	
 	public @Nullable InnerClassEntry find(ClassType innerType) {
 		return entries.get(innerType);
+	}
+	
+	
+	public Stream<InnerClassEntry> getEntryStreamWithOuterType(ClassType outerType) {
+		return entries.values().stream()
+				.filter(entry -> entry.hasOuterType() && entry.getOuterType().equals(outerType));
 	}
 	
 	

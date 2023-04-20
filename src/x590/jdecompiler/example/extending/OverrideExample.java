@@ -6,7 +6,9 @@ import x590.jdecompiler.example.SuperclassExample;
 import x590.jdecompiler.example.SuperclassOfSuperclassExample;
 
 @Example
-public abstract class OverrideExample extends SuperclassExample {
+public abstract class OverrideExample extends SuperclassExample implements InterfaceExample {
+	
+	private static final long serialVersionUID = 1L;
 	
 	public static void main(String[] args) {
 		ExampleTesting.runDecompiler(new Class[] { SuperclassOfSuperclassExample.class, OverrideExample.class }, "-x=never");
@@ -19,10 +21,13 @@ public abstract class OverrideExample extends SuperclassExample {
 	}
 	
 	@Override
-	public abstract void foo(int x);
+	public void interfaceMethod1() {}
 	
 	@Override
-	public abstract int bar();
+	public abstract void classMethod1(int x);
+	
+	@Override
+	public abstract int classMethod2();
 	
 	@Override
 	public String toString() {

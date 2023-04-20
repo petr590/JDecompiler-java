@@ -19,11 +19,13 @@ public final class Main {
 		
 		JDecompiler.init(args);
 		
-		List<JavaClass> classes = new ArrayList<>(JDecompiler.getInstance().getFiles().size());
+		JDecompiler jdecompiler = JDecompiler.getInstance();
 		
-		Performing<?> performing = JDecompiler.getInstance().getPerforming();
+		List<JavaClass> classes = new ArrayList<>(jdecompiler.getFiles().size());
 		
-		for(String file : JDecompiler.getInstance().getFiles()) {
+		Performing<?> performing = jdecompiler.getPerforming();
+		
+		for(String file : jdecompiler.getFiles()) {
 			JavaClass clazz = performing.readSafe(file);
 			if(clazz != null)
 				classes.add(clazz);
@@ -33,6 +35,7 @@ public final class Main {
 			performing.setup();
 		} catch(IOException | UncheckedIOException ex) {
 			ex.printStackTrace();
+			System.exit(1);
 		}
 		
 		for(JavaClass clazz : classes) {
@@ -45,13 +48,13 @@ public final class Main {
 				} catch(Exception ex) {
 					// Если исключение возникло при выводе файла в консоль,
 					// надо, чтобы стектрейс начинался с новой строки.
-					System.out.println();
+					System.err.println();
 					ex.printStackTrace();
 				}
 				
 			} else {
 				if(clazz.getModifiers().isSynthetic()) {
-					System.out.println("Ignored synthetic class " + clazz);
+					System.out.println("Ignored " + clazz);
 				}
 			}
 		}
@@ -66,6 +69,7 @@ public final class Main {
 			performing.close();
 		} catch(IOException | UncheckedIOException ex) {
 			ex.printStackTrace();
+			System.exit(1);
 		}
 	}
 }

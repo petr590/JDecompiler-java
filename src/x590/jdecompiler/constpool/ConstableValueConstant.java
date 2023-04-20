@@ -1,51 +1,92 @@
 package x590.jdecompiler.constpool;
 
+import java.lang.constant.Constable;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+import x590.jdecompiler.attribute.AttributeType;
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.field.FieldDescriptor;
 import x590.jdecompiler.field.JavaField;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.type.CastStatus;
+import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
 import x590.util.annotation.Nullable;
-import x590.util.lazyloading.FunctionalLazyLoadingValue;
 
 /**
  * Константа, которая встраивается компилятором.
  * Это все примитивы и String
  */
-public abstract class ConstableValueConstant<T> extends ConstValueConstant implements ICachedConstant<T> {
+public abstract class ConstableValueConstant<T extends Constable>
+		extends ConstValueConstant implements ICachedConstant<T> {
 	
-	protected FunctionalLazyLoadingValue<ClassInfo, x590.jdecompiler.field.JavaField> newConstantLoader(Type type) {
-		return new FunctionalLazyLoadingValue<>(
-				classinfo -> {
-					var groupedConstants = classinfo.getConstants().stream()
-							.collect(Collectors.groupingBy(field -> constantUsageStatus(field, type)));
-					
-					Optional<Integer> foundMinStatus = groupedConstants.keySet().stream().min(Integer::compare);
-					
-					if(foundMinStatus.isEmpty())
-						return null;
-					
-					Integer minStatus = foundMinStatus.get();
-					
-					if(minStatus >= CastStatus.NONE)
-						return null;
-					
-					
-					List<JavaField> constants = groupedConstants.get(minStatus);
-					
-					return constants.size() == 1 ? constants.get(0) : null;
-				}
-			);
+	protected @Nullable JavaField findConstantField(ClassInfo classinfo, Type type) {
+		return findConstant(type, classinfo, this::findConstantInEnclosingAndNestedClasses);
 	}
 	
 	
-	protected abstract @Nullable FunctionalLazyLoadingValue<ClassInfo, JavaField> getConstantLoader(Type type);
+	private @Nullable JavaField findConstant(Type type, ClassType classType, BiFunction<Type, ClassInfo, JavaField> nextFinder) {
+		ClassInfo innerClassinfo = ClassInfo.findClassInfo(classType);
+		return innerClassinfo != null ? findConstant(type, innerClassinfo, nextFinder) : null;
+	}
+	
+	private @Nullable JavaField findConstant(Type type, ClassInfo classinfo, BiFunction<Type, ClassInfo, JavaField> nextFinder) {
+		var groupedConstants = classinfo.getConstants().stream()
+				.collect(Collectors.groupingBy(field -> constantUsageStatus(field, type)));
+		
+		Optional<Integer> foundMinStatus = groupedConstants.keySet().stream().min(Integer::compare);
+		
+		if(foundMinStatus.isEmpty())
+			return nextFinder.apply(type, classinfo);
+		
+		Integer minStatus = foundMinStatus.get();
+		
+		if(CastStatus.isNone(minStatus))
+			return nextFinder.apply(type, classinfo);
+		
+		
+		List<JavaField> constants = groupedConstants.get(minStatus);
+		
+		return constants.size() == 1 ? constants.get(0) : nextFinder.apply(type, classinfo);
+	}
+	
+	
+	private @Nullable JavaField findConstantInEnclosingAndNestedClasses(Type type, ClassInfo classinfo) {
+		var constant = findConstantInEnclosingClasses(type, classinfo);
+		return constant != null ? constant : findConstantInNestedClasses(type, classinfo);
+	}
+	
+	
+	private @Nullable JavaField findConstantInEnclosingClasses(Type type, ClassInfo classinfo) {
+		
+		for(ClassType enclosingClass = classinfo.getThisType().getEnclosingClass();
+				enclosingClass != null; enclosingClass = enclosingClass.getEnclosingClass()) {
+			
+			JavaField constant = findConstant(type, enclosingClass, this::findConstantInEnclosingClasses);
+			if(constant != null)
+				return constant;
+		}
+		
+		return null;
+	}
+	
+	private @Nullable JavaField findConstantInNestedClasses(Type type, ClassInfo classinfo) {
+		
+		for(var iter = classinfo.getAttributes().getOrDefaultEmpty(AttributeType.INNER_CLASSES)
+					.getEntryStreamWithOuterType(classinfo.getThisType()).iterator();
+				iter.hasNext(); ) {
+			
+			JavaField constant = findConstant(type, iter.next().getInnerType(), this::findConstantInNestedClasses);
+			if(constant != null)
+				return constant;
+		}
+		
+		return null;
+	}
 	
 	protected Type getWidestType() {
 		return getType();
@@ -60,15 +101,14 @@ public abstract class ConstableValueConstant<T> extends ConstValueConstant imple
 	@Override
 	public final void writeTo(StringifyOutputStream out, ClassInfo classinfo, Type type) {
 		writeTo(out, classinfo, type, false);
-		
 	}
 	
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo, Type type, boolean implicit) {
 		
-		var constantLoader = getConstantLoader(type);
+		var constantField = findConstantField(classinfo, type);
 		
-		if(constantLoader != null && constantLoader.isNonNullValue(classinfo)) {
-			writeField(out, classinfo, constantLoader.getRequired().getDescriptor());
+		if(constantField != null) {
+			writeField(out, classinfo, constantField.getDescriptor());
 			
 		} else {
 			this.writeValue(out, classinfo, type, implicit, null);

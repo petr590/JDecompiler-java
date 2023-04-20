@@ -1,7 +1,9 @@
 package x590.jdecompiler.context;
 
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.EmptyStackException;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -12,10 +14,11 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import x590.jdecompiler.Importable;
@@ -34,10 +37,13 @@ import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.TypeSize;
 import x590.util.Logger;
 import x590.util.annotation.Immutable;
+import x590.util.annotation.Nullable;
 
 public class DecompilationContext extends DecompilationAndStringifyContext implements Importable {
 	
 	private final OperationStack stack = new OperationStack();
+	private final Int2ObjectMap<Deque<Operation>> stackStates = new Int2ObjectArrayMap<>();
+	
 	private final @Immutable Set<Operation> operations;
 	private final Set<Operation> mutableOperations;
 	private Scope currentScope;
@@ -47,7 +53,8 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	/** Для определения индекса начала выражения */
 	private final Int2IntMap expressionIndexTable;
 	
-	/** Точки "разрыва", через которые мы не можем проводить соединение опрераций (например, инкремент и использование переменной).
+	/** Точки "разрыва", через которые мы не можем проводить соединение опрераций
+	 * (например, инкремент и использование переменной).
 	 * Нужно для корректной декомпиляции циклов и, возможно, других конструкций */
 	private final IntSet breaks = new IntArraySet();
 	
@@ -88,12 +95,24 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 		
 		for(Instruction instruction : instructions) {
 			
+			final int index = this.index;
+			final int currentPos = currentPos();
+			
+			{
+				final var state = stackStates.get(index);
+				
+				if(state != null) {
+					stackStates.put(index, new ArrayDeque<>(stack.getContent()));
+					stack.setState(state);
+				}
+			}
+			
 			finalizeScopes(index);
 			startScopes(index);
 			
 			
 //			Logger.debugf("%d: operation stack: [%s]", index, stack.stream().map(operation -> operation.getClass().getSimpleName() + " " + operation.getReturnType().getName()).collect(Collectors.joining(", ")));
-			Logger.debugf("%d: scope stack: [%s]", index, StreamSupport.stream(this.getCurrentScopes().spliterator(), false).map(Scope::toString).collect(Collectors.joining(", ")));
+//			Logger.debugf("%d: scope stack: [%s]", index, StreamSupport.stream(this.getCurrentScopes().spliterator(), false).map(Scope::toString).collect(Collectors.joining(", ")));
 			
 //			Logger.debugf("%d: locals: [%s]", index,
 //					Stream.concat(Stream.of(method.getMethodScope()), method.getMethodScope().getOperations().stream()
@@ -110,8 +129,6 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 			
 			expressionIndexTable.put(index, expressionIndex);
 			
-			
-			final int currentPos = currentPos();
 			
 			tryEntries.removeIf(entry -> entry.getStartPos() == currentPos && addScope(entry.createScope(this)));
 			catchEntries.removeIf(entry -> entry.getStartPos() == currentPos && addScope(entry.createScope(this)));
@@ -154,7 +171,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 				if(operation.getReturnType() == PrimitiveType.VOID) {
 					expressionIndex = index;
 					
-					if(operation != vreturnOperation) {
+					if(operation != vreturnOperation || currentScope != getMethodScope()) {
 						currentScope.addOperation(operation, this);
 						
 						if(operation instanceof Scope scope) {
@@ -171,7 +188,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 				}
 			}
 			
-			index++;
+			this.index++;
 		}
 		
 		checkScopesBounds(index);
@@ -187,15 +204,21 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 		});
 		
 		deleteRemovedOperations();
-		operations.forEach(Operation::reduceType);
 		
-		getMethodScope().reduceTypes();
+		operations.forEach(Operation::reduceType);
+		getMethodScope().reduceVariablesTypes();
 		getMethodScope().defineVariables();
 		
-		operations.forEach(Operation::postDecompilation);
-		
-		// Если мы удаляем операции при вызове Operation#postDecompilation, то мы получаем ConcurrentModificationException.
-		// Приходится удалять их после вызова Operation#postDecompilation 
+		postDecompilation();
+	}
+	
+	private void postDecompilation() {
+		operations.forEach(operation -> operation.postDecompilation(this));
+		deleteRemovedOperations();
+	}
+	
+	public void afterDecompilation() {
+		operations.forEach(operation -> operation.afterDecompilation(this));
 		deleteRemovedOperations();
 	}
 	
@@ -337,7 +360,7 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	
 	public void pushAll(Collection<Operation> operations) {
 		stack.pushAll(operations);
-		this.mutableOperations.addAll(operations);
+		mutableOperations.addAll(operations);
 	}
 	
 	public boolean stackEmpty() {
@@ -354,6 +377,17 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	
 	public void onNextOperationDecompiling(Consumer<Operation> nextOperationHandler) {
 		this.nextOperationHandler = nextOperationHandler;
+	}
+	
+	
+	// XXX
+	public void saveStackState(int index) {
+		if(index > this.index)
+			stackStates.computeIfAbsent(index, key -> new ArrayDeque<>(stack.getContent()));
+	}
+	
+	public @Nullable Deque<Operation> getStackState(int index) {
+		return stackStates.get(index);
 	}
 	
 	

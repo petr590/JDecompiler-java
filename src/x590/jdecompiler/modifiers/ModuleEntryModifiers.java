@@ -2,11 +2,11 @@ package x590.jdecompiler.modifiers;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import x590.jdecompiler.StringifyWritable;
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.util.IWhitespaceStringBuilder;
+import x590.jdecompiler.writable.StringifyWritable;
 
 public class ModuleEntryModifiers extends Modifiers implements StringifyWritable<ClassInfo> {
 	

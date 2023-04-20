@@ -42,6 +42,13 @@ public abstract class ConditionalScope extends Scope {
 		return conditionStartIndex;
 	}
 	
+	
+	@Override
+	public int getAddingIndex(DecompilationContext context) {
+		return conditionStartIndex + 1;
+	}
+	
+	
 	@Override
 	public String toString() {
 		return String.format("%s {%d, %d - %d}",

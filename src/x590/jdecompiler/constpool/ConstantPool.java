@@ -1,5 +1,6 @@
 package x590.jdecompiler.constpool;
 
+import java.lang.constant.Constable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +18,7 @@ import x590.util.annotation.Nullable;
 public final class ConstantPool implements JavaSerializable {
 	
 	private final List<Constant> data;
-	private final Map<Object, ICachedConstant<?>> constants = new HashMap<>();
+	private final Map<Constable, ICachedConstant<?>> constants = new HashMap<>();
 	
 	private ConstantPool(ExtendedDataInputStream in) {
 		var length = in.readUnsignedShort();
@@ -155,7 +156,7 @@ public final class ConstantPool implements JavaSerializable {
 		}
 	}
 	
-	private <T, C extends ICachedConstant<T>> C findOrCreateConstant(T value, Function<T, C> creator) {
+	private <T extends Constable, C extends ICachedConstant<T>> C findOrCreateConstant(T value, Function<T, C> creator) {
 		
 		@SuppressWarnings("unchecked")		
 		C constant = (C)constants.get(value);
@@ -182,6 +183,10 @@ public final class ConstantPool implements JavaSerializable {
 	
 	public DoubleConstant findOrCreateConstant(double value) {
 		return findOrCreateConstant(value, DoubleConstant::new);
+	}
+	
+	public IntegerConstant findOrCreateConstant(boolean value) {
+		return findOrCreateConstant(value ? 1 : 0);
 	}
 	
 	public StringConstant findOrCreateConstant(String value) {

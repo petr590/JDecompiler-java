@@ -1,13 +1,16 @@
 package x590.jdecompiler.type;
 
+import java.util.function.Function;
+
 import x590.jdecompiler.clazz.ClassInfo;
+import x590.jdecompiler.exception.IllegalTypeException;
 import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.util.annotation.Nullable;
 
 /**
  * Когда ссылочный тип неизвестен точно
  */
-public final class UncertainReferenceType extends Type {
+public final class UncertainReferenceType extends Type implements IArrayType {
 	
 	/** Наиболее широкий тип */
 	private final ReferenceType widestType;
@@ -18,21 +21,51 @@ public final class UncertainReferenceType extends Type {
 	
 	private final String encodedName;
 	
-	public UncertainReferenceType(ReferenceType widestType, @Nullable ReferenceType narrowestType) {
+	private UncertainReferenceType(ReferenceType widestType, @Nullable ReferenceType narrowestType) {
 		this.widestType = widestType;
 		this.narrowestType = narrowestType;
 		this.encodedName = "UncertainClassType:" + widestType.getClassEncodedName() +
 				(narrowestType == null ? "" : ":" + narrowestType.getClassEncodedName());
 	}
 	
-	public UncertainReferenceType(ReferenceType widestType) {
+	private UncertainReferenceType(ReferenceType widestType) {
 		this(widestType, null);
 	}
 	
 	
-	public Type getInstance(ReferenceType widestType, @Nullable ReferenceType narrowestType) {
-		return narrowestType != null && widestType.equals(narrowestType) ? widestType :
-			new UncertainReferenceType(widestType, narrowestType);
+	public static Type getInstance(ReferenceType widestType) {
+		return new UncertainReferenceType(widestType);
+	}
+	
+	public static Type getInstance(ReferenceType widestType, @Nullable ReferenceType narrowestType, boolean widest) {
+		if(narrowestType != null) {
+			if(widestType.equals(narrowestType))
+				return widestType;
+			
+			if(widestType instanceof ArrayType widestArray && narrowestType instanceof ArrayType narrowestArray) {
+				
+				Type widestMember, narrowestMember;
+				int nestingLevel = widestArray.getNestingLevel();
+				
+				if(widestArray.getNestingLevel() == narrowestArray.getNestingLevel()) {
+					widestMember    = widestArray.getMemberType();
+					narrowestMember = narrowestArray.getMemberType();
+				} else {
+					widestMember    = widestArray.getElementType();
+					narrowestMember = narrowestArray.getElementType();
+					nestingLevel = 1;
+				}
+				
+				if(widestMember.isReferenceType() && narrowestMember.isReferenceType())
+					return ArrayType.forType(getInstance((ReferenceType)widestMember, (ReferenceType)narrowestMember, widest), nestingLevel);
+				
+				return ArrayType.forNullableType(widest ?
+						widestMember.castToWidestNoexcept(narrowestMember) :
+						widestMember.castToNarrowestNoexcept(narrowestMember), nestingLevel);
+			}
+		}
+		
+		return new UncertainReferenceType(widestType, narrowestType);
 	}
 	
 	
@@ -79,9 +112,49 @@ public final class UncertainReferenceType extends Type {
 		return TypeSize.WORD;
 	}
 	
+	
+	@Override
+	public Type getMemberType() {
+		return getIArrayType(IArrayType::getMemberType).getMemberType();
+	}
+	
+	@Override
+	public Type getElementType() {
+		return getIArrayType(IArrayType::getElementType).getElementType();
+	}
+	
+	private IArrayType getIArrayType(Function<IArrayType, Type> getter) {
+		if(narrowestType == null) {
+			if(widestType instanceof IArrayType arrayWidestType) {
+				return arrayWidestType;
+			} else {
+				throw new IllegalTypeException(this + " is not an array");
+			}
+		}
+		
+		if(narrowestType instanceof IArrayType arrayNarrowestType &&
+			widestType instanceof IArrayType arrayWidestType) {
+			
+			Type narrowestElement = getter.apply(arrayNarrowestType);
+			Type widestElement = getter.apply(arrayWidestType);
+			
+			if(narrowestElement instanceof ReferenceType narrowestReferenceElement &&
+				widestElement instanceof ReferenceType widestReferenceElement) {
+			
+				return new UncertainReferenceType(widestReferenceElement, narrowestReferenceElement);
+			} else {
+				throw new IllegalTypeException(this + " is not reference type");
+			}
+			
+		} else {
+			throw new IllegalTypeException(this + " is not an array");
+		}
+	}
+	
+	
 	@Override
 	protected boolean canCastTo(Type other) {
-		return false;
+		return castImpl(other, false) != null;
 	}
 	
 	
@@ -93,8 +166,8 @@ public final class UncertainReferenceType extends Type {
 			
 			if(referenceType.isSubclassOf(widestType) && (narrowestType == null || narrowestType.isSubclassOf(referenceType))) {
 				return widest ?
-						getInstance(widestType, referenceType) :
-						getInstance(referenceType, narrowestType);
+						getInstance(widestType, referenceType, widest) :
+						getInstance(referenceType, narrowestType, widest);
 			}
 			
 			if(widest ?
@@ -112,7 +185,7 @@ public final class UncertainReferenceType extends Type {
 				ReferenceType widestType = chooseNarrwestFrom(this.widestType, uncertainType.widestType);
 				
 				if(widestType != null) {
-					return getInstance(widestType, chooseWidestFrom(this.narrowestType, uncertainType.widestType));
+					return getInstance(widestType, chooseWidestFrom(this.narrowestType, uncertainType.widestType), widest);
 				}
 			}
 		}

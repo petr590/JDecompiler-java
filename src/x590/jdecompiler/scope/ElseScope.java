@@ -3,7 +3,6 @@ package x590.jdecompiler.scope;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.operator.TernaryOperatorOperation;
 import x590.util.annotation.Nullable;
 
@@ -20,12 +19,7 @@ public class ElseScope extends Scope {
 	
 	@Override
 	public boolean isTerminable() {
-		Operation
-				lastOperation = this.getLastOperation(),
-				ifLastOperation = ifScope.getLastOperation();
-		
-		return lastOperation != null && ifLastOperation != null &&
-				lastOperation.isTerminable() && ifLastOperation.isTerminable();
+		return this.isLastOperationTerminable() && ifScope.isLastOperationTerminable();
 	}
 	
 	
@@ -77,10 +71,14 @@ public class ElseScope extends Scope {
 	public void finalizeScope(DecompilationContext context) {
 		super.finalizeScope(context);
 		
-		if(ifScope.isEmpty() && this.isEmpty() && context.stackSize() >= 2) {
-			context.push(new TernaryOperatorOperation(ifScope.getCondition(), context));
+		var stackState = context.getStackState(endIndex());
+		
+		if(ifScope.isEmpty() && this.isEmpty() && !stackState.isEmpty() && !context.stackEmpty()) {
+			
+			context.push(new TernaryOperatorOperation(ifScope.getCondition(), stackState.pop(), context.pop()));
 			this.remove();
 			ifScope.remove();
+			
 		} else {
 			int operationsCount = getOperationsCount();
 			

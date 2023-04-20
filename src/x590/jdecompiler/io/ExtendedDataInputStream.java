@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.IntFunction;
+import java.util.function.ObjIntConsumer;
 import java.util.function.Supplier;
 
 import x590.util.annotation.Immutable;
@@ -201,19 +202,6 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 		return array;
 	}
 	
-	public <T> ArrayList<T> readArrayList(Supplier<T> elementSupplier) {
-		return readArrayList(readUnsignedShort(), elementSupplier);
-	}
-	
-	public <T> ArrayList<T> readArrayList(int length, Supplier<T> elementSupplier) {
-		ArrayList<T> list = new ArrayList<>(length);
-		
-		for(int i = 0; i < length; i++)
-			list.add(elementSupplier.get());
-		
-		return list;
-	}
-	
 	
 	public <T> @Immutable List<T> readImmutableList(Supplier<T> elementSupplier) {
 		return Collections.unmodifiableList(readArrayList(elementSupplier));
@@ -221,5 +209,37 @@ public class ExtendedDataInputStream extends UncheckedInputStream implements Dat
 	
 	public <T> @Immutable List<T> readImmutableList(int length, Supplier<T> elementSupplier) {
 		return Collections.unmodifiableList(readArrayList(length, elementSupplier));
+	}
+
+	
+	public <T> @Immutable List<T> readImmutableList(ObjIntConsumer<? super List<T>> elementSetter) {
+		return Collections.unmodifiableList(readArrayList(elementSetter));
+	}
+	
+	public <T> @Immutable List<T> readImmutableList(int length, ObjIntConsumer<? super List<T>> elementSetter) {
+		return Collections.unmodifiableList(readArrayList(length, elementSetter));
+	}
+	
+	
+	public <T> ArrayList<T> readArrayList(Supplier<T> elementSupplier) {
+		return readArrayList(readUnsignedShort(), elementSupplier);
+	}
+	
+	public <T> ArrayList<T> readArrayList(int length, Supplier<T> elementSupplier) {
+		return readArrayList(length, (list, i) -> list.add(elementSupplier.get()));
+	}
+	
+	
+	public <T> ArrayList<T> readArrayList(ObjIntConsumer<? super List<T>> elementSetter) {
+		return readArrayList(readUnsignedShort(), elementSetter);
+	}
+	
+	public <T> ArrayList<T> readArrayList(int length, ObjIntConsumer<? super List<T>> elementSetter) {
+		ArrayList<T> list = new ArrayList<>(length);
+		
+		for(int i = 0; i < length; i++)
+			elementSetter.accept(list, i);
+		
+		return list;
 	}
 }

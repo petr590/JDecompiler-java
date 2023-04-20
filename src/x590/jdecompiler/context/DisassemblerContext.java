@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import it.unimi.dsi.fastutil.ints.Int2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import x590.jdecompiler.exception.InstructionFormatException;
 import x590.jdecompiler.exception.InvalidOpcodeException;
 import x590.jdecompiler.constpool.ConstantPool;
@@ -296,7 +296,7 @@ public class DisassemblerContext extends Context {
 				if(high < low)
 					throw new InstructionFormatException("tableswitch: high < low (low = " + low + ", high = " + high + ")");
 				
-				Int2IntMap offsetTable = new Int2IntOpenHashMap(high - low);
+				Int2IntMap offsetTable = new Int2IntLinkedOpenHashMap(high - low);
 				
 				for(int value = low; value <= high; ++value) {
 					offsetTable.put(value, readInt());
@@ -311,7 +311,7 @@ public class DisassemblerContext extends Context {
 				int defaultOffset = readInt();
 				int cases = readInt();
 				
-				Int2IntMap offsetTable = new Int2IntOpenHashMap(cases);
+				Int2IntMap offsetTable = new Int2IntLinkedOpenHashMap(cases);
 				
 				for(; cases != 0; --cases) {
 					offsetTable.put(readInt(), readInt());

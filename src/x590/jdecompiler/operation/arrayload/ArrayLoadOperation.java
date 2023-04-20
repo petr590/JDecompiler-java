@@ -6,6 +6,7 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.AbstractOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.ArrayType;
+import x590.jdecompiler.type.IArrayType;
 import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 
@@ -18,7 +19,7 @@ public abstract class ArrayLoadOperation extends AbstractOperation {
 		this.index = context.popAsNarrowest(PrimitiveType.INT);
 		this.array = context.pop();
 		
-		this.elementType = array.getReturnTypeAsNarrowest(requiredType).getElementType();
+		this.elementType = ((IArrayType)array.getReturnTypeAsNarrowest(requiredType)).getElementType();
 	}
 	
 	public Operation getArray() {

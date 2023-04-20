@@ -6,15 +6,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
-import x590.jdecompiler.BiStringifyWritable;
 import x590.jdecompiler.Importable;
-import x590.jdecompiler.SameDisassemblingStringifyWritable;
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.exception.IncopatibleTypesException;
 import x590.jdecompiler.exception.InvalidMethodDescriptorException;
 import x590.jdecompiler.exception.InvalidTypeNameException;
 import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.writable.BiStringifyWritable;
+import x590.jdecompiler.writable.SameDisassemblingStringifyWritable;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nonnull;
 import x590.util.annotation.Nullable;

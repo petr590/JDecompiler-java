@@ -4,7 +4,7 @@ import x590.jdecompiler.operation.Priority;
 
 public final class OrOperation extends BinaryConditionOperation {
 	
-	public OrOperation(ConditionOperation operand1, ConditionOperation operand2) {
+	OrOperation(ConditionOperation operand1, ConditionOperation operand2) {
 		super(operand1, operand2);
 	}
 	

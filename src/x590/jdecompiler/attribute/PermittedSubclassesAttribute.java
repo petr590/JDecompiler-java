@@ -4,12 +4,12 @@ import java.util.List;
 import java.util.Objects;
 
 import x590.jdecompiler.Importable;
-import x590.jdecompiler.StringifyWritable;
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.ClassType;
+import x590.jdecompiler.writable.StringifyWritable;
 import x590.util.annotation.Immutable;
 
 public class PermittedSubclassesAttribute extends Attribute implements StringifyWritable<ClassInfo>, Importable {

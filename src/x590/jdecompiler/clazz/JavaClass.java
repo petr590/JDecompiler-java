@@ -150,7 +150,7 @@ public final class JavaClass extends JavaClassElement {
 				null;
 		
 		this.recordComponents = isRecord() ?
-				fields.stream().filter(field -> field.isRecordComponent(classinfo) && field.canStringifyAsRecordComponent(classinfo)).toList() :
+				fields.stream().filter(field -> field.canStringifyAsRecordComponent(classinfo)).toList() :
 				null;
 		
 		this.attributes = Attributes.read(in, pool, Location.CLASS);
@@ -158,7 +158,7 @@ public final class JavaClass extends JavaClassElement {
 		
 		if(thisType.isNested()) {
 			
-			InnerClassEntry innerClass = attributes.getOrDefault(AttributeType.INNER_CLASSES, InnerClassesAttribute.empty())
+			InnerClassEntry innerClass = attributes.getOrDefaultEmpty(AttributeType.INNER_CLASSES)
 					.find(thisType);
 			
 			if(innerClass != null) {
@@ -336,6 +336,7 @@ public final class JavaClass extends JavaClassElement {
 		stageHolder.nextStage(DecompilationStage.DISASSEMBLED, DecompilationStage.DECOMPILED);
 		
 		methods.forEach(method -> method.decompile(classinfo, pool));
+		methods.forEach(JavaMethod::afterDecompilation);
 		
 		if(enumConstants != null)
 			enumConstants.forEach(enumConstant -> enumConstant.checkHasEnumInitializer(classinfo));
@@ -344,8 +345,7 @@ public final class JavaClass extends JavaClassElement {
 		InnerClassesAttribute innerClassesAttribute = attributes.getNullable(AttributeType.INNER_CLASSES);
 		
 		if(innerClassesAttribute != null) {
-			innerClasses = innerClassesAttribute.getEntries().values().stream()
-					.filter(entry -> entry.hasOuterType() && entry.getOuterType().equals(thisType))
+			innerClasses = innerClassesAttribute.getEntryStreamWithOuterType(thisType)
 					.map(entry -> find(entry.getInnerType()))
 					.filter(innerClass -> innerClass != null).toList();
 			
@@ -388,7 +388,7 @@ public final class JavaClass extends JavaClassElement {
 	
 	@Override
 	public String toString() {
-		return modifiers + " " + thisType + " extends " + superType.getName() +
+		return modifiers.toSimpleString() + " " + thisType + " extends " + superType.getName() +
 				(interfaces.isEmpty() ? "" :
 					interfaces.stream().map(Type::getName).collect(Collectors.joining(", ", " implements ", "")));
 	}
@@ -415,7 +415,7 @@ public final class JavaClass extends JavaClassElement {
 		}
 		
 		InnerClassEntry innerClass =
-				attributes.getOrDefault(AttributeType.INNER_CLASSES, InnerClassesAttribute.empty()).find(thisType);
+				attributes.getOrDefaultEmpty(AttributeType.INNER_CLASSES).find(thisType);
 		
 		return innerClass == null || !CLASSES.containsKey(
 				Objects.requireNonNullElse(innerClass.getOuterType(), thisType.getEnclosingClass())
@@ -519,7 +519,7 @@ public final class JavaClass extends JavaClassElement {
 		
 		if(isRecord()) {
 			out .print('(')
-				.printAllUsingFunction(recordComponents, field -> field.writeAsRecordComponent(out, classinfo), ", ")
+				.printAllUsingFunction(recordComponents, field -> field.writeWithoutSemicolon(out, classinfo), ", ")
 				.print(')');
 		}
 		
@@ -727,8 +727,8 @@ public final class JavaClass extends JavaClassElement {
 				.printAll(interfaces, classinfo, ", ");
 		
 		out .print(" {")
-			.printAll(fields, classinfo)
-			.printAll(methods, classinfo)
+			.printAll(fields, classinfo, "")
+			.printAll(methods, classinfo, "")
 			.print('}');
 	}
 	

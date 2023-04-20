@@ -12,6 +12,7 @@ public class LambdaExample {
 	}
 	
 	public static Supplier<ClassLoader> getClassLoader(Module module) {
+		System.out.println((Supplier<ClassLoader>)module::getClassLoader);
 		return module::getClassLoader;
 	}
 	
@@ -55,6 +56,22 @@ public class LambdaExample {
 	public static BiIntFunction<String[][]> newStrMatrix() {
 		return (n, m) -> new String[n][m];
 	}
+	
+	
+	public static Runnable bar(Object x, boolean z) {
+		return () -> {
+			if(z) {
+				System.out.println(x);
+			}
+		};
+	}
+	
+	public static Runnable throwThat(RuntimeException ex) {
+		return () -> {
+			throw ex;
+		};
+	}
+	
 	
 	public static String toString(Class<?> clazz) {
 		return clazz.getCanonicalName();

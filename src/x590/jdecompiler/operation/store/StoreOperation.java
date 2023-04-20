@@ -4,17 +4,19 @@ import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.operation.PossibleExceptionStoreOperation;
 import x590.jdecompiler.operation.IncrementableOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.OperationWithVariable;
 import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.operation.VariableDefinitionOperation;
-import x590.jdecompiler.operation.load.ExceptionLoadOperation;
 import x590.jdecompiler.operation.load.LoadOperation;
-import x590.jdecompiler.scope.CatchScope;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.variable.Variable;
+import x590.util.annotation.Nullable;
 
-public abstract class StoreOperation extends OperationWithVariable implements IncrementableOperation, VariableDefinitionOperation {
+public abstract class StoreOperation extends OperationWithVariable
+		implements IncrementableOperation, VariableDefinitionOperation, PossibleExceptionStoreOperation {
 	
 	private final int index;
 	private final Operation value;
@@ -30,18 +32,11 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 		
 		value.allowImplicitCast();
 		
-		if(requiredType.isAnyReferenceType() && value instanceof ExceptionLoadOperation &&
-				context.currentScope() instanceof CatchScope catchScope && context.currentIndex() == catchScope.startIndex() + 1) {
-			
-			this.variable = catchScope.defineNewVariable(index, value.getReturnType(), context.currentIndex());
-			variable.addPossibleName("ex");
-			
-			this.remove();
-			
-		} else {
-			this.variable = context.currentScope().getVariableOrDefine(index, context.currentIndex(), requiredType);
-			variable.addPossibleName(value.getPossibleVariableName());
-		}
+		var variable = this.variable = removeIfExceptionLoadOperation(context, value) ?
+				context.currentScope().defineNewVariable(index, value.getReturnType(), context.currentIndex()) :
+				context.currentScope().getVariableOrDefine(index, context.currentIndex(), requiredType);
+		
+		variable.addPossibleName(value.getPossibleVariableName());
 		
 		variable.castTypeToWidest(value.getReturnTypeAsNarrowest(requiredType));
 		variable.addAssignedOperation(value);
@@ -51,6 +46,11 @@ public abstract class StoreOperation extends OperationWithVariable implements In
 		this.incData = init(context, value, variable.getType());
 	}
 	
+	
+	@Override
+	public @Nullable Variable getStoringVariable() {
+		return null;
+	}
 	
 	public int getIndex() {
 		return index;

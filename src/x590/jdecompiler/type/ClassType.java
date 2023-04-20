@@ -546,12 +546,12 @@ public class ClassType extends ReferenceType {
 	}
 	
 	
-	/** package-info or module-info */
+	/** package-info или module-info */
 	public boolean isSpecialClassType() {
 		return kind.isSpecial();
 	}
 	
-	/** neither package-info nor module-info */
+	/** Ни package-info, ни module-info */
 	public boolean isPlainClassType() {
 		return kind.isPlain();
 	}

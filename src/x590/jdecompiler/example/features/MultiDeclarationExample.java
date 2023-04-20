@@ -12,7 +12,10 @@ public class MultiDeclarationExample {
 	// Must not be inlined
 	public static int x2 = 0, y2 = 0, z2 = 0;
 	
+	// Must be inlined with --c-style-array
+	public static int x3[], y3, z3[][];
+	
 	public static void main(String[] args) {
-		ExampleTesting.runDecompiler(MultiDeclarationExample.class);
+		ExampleTesting.runDecompiler(MultiDeclarationExample.class, "--c-style-array");
 	}
 }

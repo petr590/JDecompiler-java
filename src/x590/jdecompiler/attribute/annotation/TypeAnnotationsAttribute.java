@@ -7,7 +7,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import x590.jdecompiler.Importable;
-import x590.jdecompiler.StringifyWritable;
 import x590.jdecompiler.attribute.Attribute;
 import x590.jdecompiler.attribute.AttributeNames;
 import x590.jdecompiler.attribute.Attributes.Location;
@@ -16,6 +15,7 @@ import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DisassemblingException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.writable.StringifyWritable;
 import x590.util.IntegerUtil;
 import x590.util.annotation.Immutable;
 
@@ -142,7 +142,7 @@ public class TypeAnnotationsAttribute extends Attribute {
 			
 			this.path = new AnnotationPath(in, pool);
 			
-			this.annotation = new Annotation(in, pool);
+			this.annotation = Annotation.read(in, pool);
 		}
 		
 		private static DisassemblingException newInvalidTargetTypeException(int tag) {

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+import x590.jdecompiler.attribute.annotation.Annotation;
 import x590.jdecompiler.field.FieldDescriptor;
 import x590.jdecompiler.field.FieldInfo;
 import x590.jdecompiler.method.MethodDescriptor;
@@ -51,4 +52,7 @@ public interface IClassInfo {
 	public Optional<FieldInfo> findFieldInfo(FieldDescriptor descriptor);
 	
 	public Optional<MethodInfo> findMethodInfo(MethodDescriptor descriptor);
+	
+	
+	public Optional<Annotation> findAnnotation(ClassType type);
 }

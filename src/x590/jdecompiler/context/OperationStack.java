@@ -2,6 +2,7 @@ package x590.jdecompiler.context;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.EmptyStackException;
 import java.util.NoSuchElementException;
@@ -12,6 +13,7 @@ import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.TypeSize;
+import x590.util.annotation.Immutable;
 
 public class OperationStack {
 	
@@ -159,5 +161,14 @@ public class OperationStack {
 	@Override
 	public int hashCode() {
 		return stack.hashCode();
+	}
+	
+	public @Immutable Collection<Operation> getContent() {
+		return Collections.unmodifiableCollection(stack);
+	}
+	
+	public void setState(Deque<Operation> state) {
+		stack.clear();
+		stack.addAll(state);
 	}
 }

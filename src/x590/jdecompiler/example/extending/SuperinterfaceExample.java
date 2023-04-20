@@ -7,7 +7,7 @@ public interface SuperinterfaceExample {
 
 	public default void foo() {}
 
-	public default int bar() {
+	public default int classMethod2() {
 		return 1;
 	}
 }

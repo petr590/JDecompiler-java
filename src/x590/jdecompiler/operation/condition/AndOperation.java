@@ -4,7 +4,7 @@ import x590.jdecompiler.operation.Priority;
 
 public final class AndOperation extends BinaryConditionOperation {
 	
-	public AndOperation(ConditionOperation operand1, ConditionOperation operand2) {
+	AndOperation(ConditionOperation operand1, ConditionOperation operand2) {
 		super(operand1, operand2);
 	}
 	
