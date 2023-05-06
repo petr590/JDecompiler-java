@@ -1,10 +1,10 @@
-package x590.jdecompiler.type;
+package x590.jdecompiler.type.reference.generic;
 
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.io.ExtendedOutputStream;
 
 /** Дженерик, не ограниченный ни сверху, ни снизу */
-public final class AnyGenericType extends GenericType {
+public final class AnyGenericType extends IndefiniteGenericType {
 	
 	public static final AnyGenericType INSTANCE = new AnyGenericType();
 	
@@ -12,12 +12,7 @@ public final class AnyGenericType extends GenericType {
 	
 	@Override
 	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
-		out.write("?");
-	}
-	
-	@Override
-	public String toString() {
-		return "AnyGenericType";
+		out.write('?');
 	}
 	
 	@Override
@@ -27,6 +22,11 @@ public final class AnyGenericType extends GenericType {
 	
 	@Override
 	public String getName() {
+		return "?";
+	}
+	
+	@Override
+	public String toString() {
 		return "?";
 	}
 }

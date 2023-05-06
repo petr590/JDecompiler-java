@@ -1,9 +1,10 @@
-package x590.jdecompiler.type;
+package x590.jdecompiler.type.reference;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,11 +15,17 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import x590.jdecompiler.clazz.ClassInfo;
+import x590.jdecompiler.clazz.IClassInfo;
 import x590.jdecompiler.constpool.ClassConstant;
 import x590.jdecompiler.exception.InvalidClassNameException;
 import x590.jdecompiler.exception.InvalidTypeNameException;
 import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.io.ExtendedStringInputStream;
+import x590.jdecompiler.type.CastStatus;
+import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.generic.GenericDeclarationType;
+import x590.jdecompiler.type.reference.generic.GenericParameters;
 import x590.jdecompiler.util.StringUtil;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
@@ -28,7 +35,7 @@ import static x590.jdecompiler.io.ExtendedStringInputStream.EOF_CHAR;
 /**
  * Описывает тип java класса, самого обычного класса
  */
-public class ClassType extends ReferenceType {
+public class ClassType extends RealReferenceType {
 	
 	/**
 	 * Определяет, какой это класс: обычный, вложенный, анонимный, package-info, module-info
@@ -162,7 +169,28 @@ public class ClassType extends ReferenceType {
 	
 	
 	public static ClassType fromClass(Class<?> clazz) {
-		return getOrCreateClassType(encodedNameForClass(clazz), encodedName -> new ClassType(encodedName, clazz));
+		return getOrCreateClassType(encodedNameForClass(clazz),
+				classEncodedName -> new ClassType(classEncodedName, clazz));
+	}
+	
+	public static ClassType fromClassWithSignature(Class<?> clazz, ReferenceType... signatureTypes) {
+		return fromClassWithSignature(clazz, GenericParameters.of(signatureTypes));
+	}
+	
+	public static ClassType fromClassWithSignature(Class<?> clazz, List<ReferenceType> signatureTypes) {
+		return fromClassWithSignature(clazz, GenericParameters.of(signatureTypes));
+	}
+	
+	public static ClassType fromClassWithSignature(Class<?> clazz, GenericParameters<ReferenceType> signature) {
+		
+		return getOrCreateClassType(signature.getEncodedNameFor(encodedNameForClass(clazz)),
+				classEncodedName -> new ClassType(classEncodedName, clazz, signature));
+	}
+	
+	public static Type fromParameterizedType(ParameterizedType parameterizedType, IClassInfo classinfo) {
+		return fromClassWithSignature((Class<?>)parameterizedType.getRawType(),
+				Arrays.stream(parameterizedType.getActualTypeArguments())
+					.map(parameter -> ReferenceType.fromReflectType(parameter, classinfo)).toList());
 	}
 	
 	
@@ -173,7 +201,7 @@ public class ClassType extends ReferenceType {
 	
 	/** Принимает строку без префикса 'L', т.е. в виде "java/lang/Object;" */
 	public static ClassType fromDescriptor(String classEncodedName) {
-		return getOrCreateClassType(classEncodedName, encodedName -> new ClassType(encodedName));
+		return getOrCreateClassType(classEncodedName, clazzEncodedName -> new ClassType(clazzEncodedName));
 	}
 	
 	/** Принимает строку с префиксом 'L', т.е. в виде "Ljava/lang/Object;" */
@@ -191,6 +219,14 @@ public class ClassType extends ReferenceType {
 	
 	public static ClassType fromNullableDescriptor(@Nullable String classEncodedName, ClassType defaultValue) {
 		return classEncodedName != null ? fromDescriptor(classEncodedName) : defaultValue;
+	}
+	
+	
+	private static ClassType of(ClassType rawType, GenericParameters<ReferenceType> signature) {
+		return getOrCreateClassType(
+				signature.getEncodedNameFor(rawType.classEncodedName),
+				encodedName -> new ClassType(encodedName, rawType, signature)
+		);
 	}
 	
 	
@@ -242,6 +278,7 @@ public class ClassType extends ReferenceType {
 			encodedName,
 			classEncodedName,
 			name,
+			binaryName,
 			simpleName,
 			fullSimpleName,
 			packageName;
@@ -250,7 +287,7 @@ public class ClassType extends ReferenceType {
 	
 	private final @Nullable ClassType enclosingClass;
 	
-	private final @Nullable GenericParameters<ReferenceType> signature;
+	private final GenericParameters<ReferenceType> signature;
 	private final ClassType rawType;
 	
 	private final ClassKind kind;
@@ -259,12 +296,19 @@ public class ClassType extends ReferenceType {
 	private static final Pattern
 			NAME_NUM_PATTERN = Pattern.compile("\\$(\\d+)");
 	
+
 	ClassType(String classEncodedName, Class<?> clazz) {
+		this(classEncodedName, clazz, GenericParameters.empty());
+	}
+	
+	/** Создаёт экземпляр ClassType с указанным именем, экземпляром {@link java.lang.Class} и сигнатурой */
+	ClassType(String classEncodedName, Class<?> clazz, @Nullable @Immutable GenericParameters<ReferenceType> signature) {
 		super(clazz);
 		
+		this.encodedName = 'L' + classEncodedName + ';';
 		this.classEncodedName = classEncodedName;
-		this.encodedName = clazz.descriptorString();
-		this.name = clazz.getName().replaceAll("\\$(?!\\d)", ".");
+		this.name = clazz.getCanonicalName();
+		this.binaryName = clazz.getName();
 		
 		this.packageName = clazz.getPackageName();
 		
@@ -298,30 +342,52 @@ public class ClassType extends ReferenceType {
 			this.kind = classEncodedName.endsWith("/package-info") ? ClassKind.PACKAGE_INFO :
 						classEncodedName.equals("module-info") ? ClassKind.MODULE_INFO : ClassKind.PLAIN;
 		}
+
+		this.signature = signature;
 		
-		this.signature = null;
-		this.rawType = this;
+		this.rawType = signature.isEmpty() ? this : ClassType.fromClass(clazz);
 	}
 	
 	
+	/** Создаёт класс с указанным названием и сигнатурой.
+	 * Остальные свойства копирует из rawType */
+	private ClassType(String classEncodedName, ClassType rawType, GenericParameters<ReferenceType> signature) {
+		this.encodedName = 'L' + classEncodedName + ';';
+		this.classEncodedName = classEncodedName;
+		
+		this.name = rawType.name;
+		this.binaryName = rawType.binaryName;
+		this.simpleName = rawType.simpleName;
+		this.fullSimpleName = rawType.fullSimpleName;
+		this.packageName = rawType.packageName;
+		this.kind = rawType.kind;
+		this.enclosingClass = rawType.enclosingClass;
+		
+		this.signature = signature;
+		this.rawType = rawType;
+	}
+	
+	
+	/** Декодирующий конструктор */
 	private ClassType(String encodedName) {
 		this(new ExtendedStringInputStream(encodedName));
 	}
 	
-	
+	/** Декодирующий конструктор */
 	private ClassType(ExtendedStringInputStream in) {
 		
 		in.mark();
 		
 		StringBuilder
 				classEncodedNameBuilder = new StringBuilder(),
+				binaryNameBuilder = new StringBuilder(),
 				nameBuilder = new StringBuilder();
 		
 		int nameStartPos = 0,
 			packageEndPos = 0,
 			enclosingClassNameEndPos = 0;
 		
-		GenericParameters<ReferenceType> signature = null;
+		GenericParameters<ReferenceType> signature = GenericParameters.empty();
 		ClassType rawType = null;
 		
 		// Некоторые названия классов (такие как package-info и module-info)
@@ -333,6 +399,7 @@ public class ClassType extends ReferenceType {
 			
 			if(prevCh == '$') {
 				nameBuilder.append(Character.isLetter((char)ch) ? '.' : '$');
+				binaryNameBuilder.append('$');
 			}
 			
 			switch(ch) {
@@ -340,6 +407,7 @@ public class ClassType extends ReferenceType {
 					packageEndPos = i;
 					nameStartPos = i + 1;
 					nameBuilder.append('.');
+					binaryNameBuilder.append('.');
 					classEncodedNameBuilder.append('/');
 					
 					// Если мы встречали тире раньше, значит, название класса невалидное
@@ -364,9 +432,7 @@ public class ClassType extends ReferenceType {
 					signature = parseSignature(in.prev());
 					rawType = ClassType.fromDescriptor(classEncodedNameBuilder.toString());
 					
-					classEncodedNameBuilder.append('<');
-					signature.getTypes().forEach(parameter -> classEncodedNameBuilder.append(parameter.getEncodedName()));
-					classEncodedNameBuilder.append('>');
+					signature.writeToStringBuilder(classEncodedNameBuilder);
 					
 					
 					switch(in.read()) {
@@ -401,8 +467,11 @@ public class ClassType extends ReferenceType {
 					 }
 			}
 			
-			classEncodedNameBuilder.append((char)ch);
-			nameBuilder.append((char)ch);
+			char chr = (char)ch;
+			
+			classEncodedNameBuilder.append(chr);
+			nameBuilder.append(chr);
+			binaryNameBuilder.append(chr);
 		}
 		
 		String classEncodedName = classEncodedNameBuilder.toString();
@@ -410,6 +479,7 @@ public class ClassType extends ReferenceType {
 		this.classEncodedName = classEncodedName;
 		this.encodedName = 'L' + classEncodedName + ';';
 		this.name = nameBuilder.toString();
+		this.binaryName = binaryNameBuilder.toString();
 		
 		String simpleName = nameBuilder.substring(nameStartPos);
 		this.packageName = nameBuilder.substring(0, packageEndPos);
@@ -456,10 +526,12 @@ public class ClassType extends ReferenceType {
 	}
 	
 	
+	
 	@Override
 	public String toString() {
-		return "class " + (signature == null ? name : name + signature.toString());
+		return "class " + (signature.isEmpty() ? name : name + signature.toString());
 	}
+	
 	
 	@Override
 	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
@@ -467,12 +539,12 @@ public class ClassType extends ReferenceType {
 		assert name != null && !name.isEmpty();
 		out.write(name);
 		
-		if(signature != null) {
+		if(!signature.isEmpty()) {
 			out.printObject(signature, classinfo);
 		}	
 	}
 	
-	/** @return Закодированное имя класса с префиксом 'L' и без постфиксом ';'<br>
+	/** @return Закодированное имя класса с префиксом 'L' и с постфиксом ';'<br>
 	 * Пример: "Ljava/lang/Object;" */
 	@Override
 	public String getEncodedName() {
@@ -486,21 +558,29 @@ public class ClassType extends ReferenceType {
 		return classEncodedName;
 	}
 	
-	/** @return Полное имя класса<br>
-	 * Пример: для класса "java/lang/Character$Subset" вернёт "java.lang.Character.Subset" */
+	/** @return Полное имя класса без параметров типа<br>
+	 * Пример: для класса "java/util/Map$Entry<Ljava/lang/Object;Ljava/lang/Object;>"
+	 * вернёт "java.util.Map.Entry" */
 	@Override
 	public String getName() {
 		return name;
 	}
 	
-	/** @return Имя класса без пакета и внешних классов<br>
-	 * Пример: для класса "java/lang/Character$Subset" вернёт "Subset" */
+	@Override
+	public String getBinaryName() {
+		return binaryName;
+	}
+	
+	/** @return Имя класса без пакета, внешних классов и параметров типа<br>
+	 * Пример: для класса "java/util/Map$Entry<Ljava/lang/Object;Ljava/lang/Object;>"
+	 * вернёт "Entry" */
 	public String getSimpleName() {
 		return simpleName;
 	}
 	
-	/** @return Имя класса без пакета, но включая имена внешних класстов<br>
-	 * Пример: для класса "java/lang/Character$Subset" вернёт "Character.Subset" */
+	/** @return Имя класса без пакета и параметров типа, но включая имена внешних класстов<br>
+	 * Пример: для класса "java/util/Map$Entry<Ljava/lang/Object;Ljava/lang/Object;>"
+	 * вернёт "Map.Entry" */
 	public String getFullSimpleName() {
 		return fullSimpleName;
 	}
@@ -530,7 +610,7 @@ public class ClassType extends ReferenceType {
 		return enclosingClass == null ? this : enclosingClass.getTopLevelClass();
 	}
 	
-	public @Nullable GenericParameters<ReferenceType> getSignature() {
+	public GenericParameters<ReferenceType> getSignature() {
 		return signature;
 	}
 	
@@ -542,7 +622,20 @@ public class ClassType extends ReferenceType {
 	
 	@Override
 	public boolean isGenericType() {
-		return signature != null;
+		return !signature.isEmpty();
+	}
+	
+	
+	@Override
+	public boolean isDefinitely(int modifiers) {
+		var clazz = getClassInstance();
+		return clazz != null && (clazz.getModifiers() & modifiers) != 0;
+	}
+	
+	@Override
+	public boolean isDefinitelyNot(int modifiers) {
+		var clazz = getClassInstance();
+		return clazz != null && (clazz.getModifiers() & modifiers) == 0;
 	}
 	
 	
@@ -611,8 +704,7 @@ public class ClassType extends ReferenceType {
 	}
 	
 	public void addImportsForSignature(ClassInfo classinfo) {
-		if(signature != null)
-			signature.addImports(classinfo);
+		signature.addImports(classinfo);
 	}
 	
 	
@@ -623,9 +715,38 @@ public class ClassType extends ReferenceType {
 	}
 	
 	@Override
-	protected boolean canCastTo(Type other) {
-		return other.isClassType();
+	protected boolean canCastToNarrowest(Type other) {
+		return other instanceof ReferenceType referenceType && this.mayBeSubclassOf(referenceType);
 	}
+	
+	
+	@Override
+	public ReferenceType toDefiniteGeneric(IClassInfo classinfo, GenericParameters<GenericDeclarationType> methodParameters) {
+		final var signature = this.signature;
+		
+		if(signature.isEmpty())
+			return this;
+		
+		var parameters = signature.getTypes();
+		List<ReferenceType> definiteGenericParameters = null;
+		
+		for(int i = 0, size = parameters.size(); i < size; i++) {
+			ReferenceType parameter = parameters.get(i);
+			
+			var definiteGenericParameter = parameter.toDefiniteGeneric(classinfo, methodParameters);
+			
+			if(definiteGenericParameter != parameter) {
+				if(definiteGenericParameters == null) {
+					definiteGenericParameters = new ArrayList<>(parameters);
+				}
+				
+				definiteGenericParameters.set(i, definiteGenericParameter);
+			}
+		}
+		
+		return definiteGenericParameters == null ? this : ClassType.of(rawType, GenericParameters.of(definiteGenericParameters));
+	}
+	
 	
 	@Override
 	public boolean equalsIgnoreSignature(Type other) {

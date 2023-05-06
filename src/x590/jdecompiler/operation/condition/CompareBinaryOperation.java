@@ -21,13 +21,13 @@ public final class CompareBinaryOperation extends CompareOperation {
 		operand1.castReturnTypeToNarrowest(requiredType);
 		operand2.castReturnTypeToNarrowest(requiredType);
 		
-		if(!compareType.isEqualsCompareType) {
+		if(!compareType.isEqualsCompareType()) {
 			operand1.allowImplicitCast();
 			operand2.allowImplicitCast();
 		}
 		
 		Type generalType = operand1.getReturnType().castToGeneral(operand2.getReturnType(),
-				compareType.isEqualsCompareType ? GeneralCastingKind.EQUALS_COMPARASION : GeneralCastingKind.COMPARASION);
+				compareType.isEqualsCompareType() ? GeneralCastingKind.EQUALS_COMPARASION : GeneralCastingKind.COMPARASION);
 		
 		operand1.castReturnTypeToNarrowest(generalType);
 		operand2.castReturnTypeToNarrowest(generalType);
@@ -53,7 +53,9 @@ public final class CompareBinaryOperation extends CompareOperation {
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-		out.printPrioritied(this, operand1, context, Associativity.LEFT).printsp().print(compareType.getOperator(inverted)).printsp().printPrioritied(this, operand2, context, Associativity.RIGHT);
+		out.printPrioritied(this, operand1, context, Associativity.LEFT).printsp()
+			.print(getCompareType().getOperator(inverted)).printsp()
+			.printPrioritied(this, operand2, context, Associativity.RIGHT);
 	}
 	
 	@Override

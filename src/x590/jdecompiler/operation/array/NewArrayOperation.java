@@ -14,9 +14,9 @@ import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.IConstOperation;
 import x590.jdecompiler.operation.constant.ZeroConstOperation;
 import x590.jdecompiler.operationinstruction.constant.AConstNullOperationInstruction;
-import x590.jdecompiler.type.ArrayType;
-import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.ArrayType;
 import x590.util.annotation.Immutable;
 
 public class NewArrayOperation extends AbstractOperation {

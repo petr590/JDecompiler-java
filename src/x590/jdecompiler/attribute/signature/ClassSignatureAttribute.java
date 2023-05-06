@@ -8,34 +8,44 @@ import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.ExtendedStringInputStream;
-import x590.jdecompiler.type.ClassType;
-import x590.jdecompiler.type.GenericParameterType;
-import x590.jdecompiler.type.GenericParameters;
 import x590.jdecompiler.type.Type;
-import x590.util.annotation.Nullable;
+import x590.jdecompiler.type.reference.ClassType;
+import x590.jdecompiler.type.reference.generic.GenericDeclarationType;
+import x590.jdecompiler.type.reference.generic.GenericParameters;
+import x590.util.annotation.Immutable;
 
 public final class ClassSignatureAttribute extends SignatureAttribute {
 	
-	public final @Nullable GenericParameters<GenericParameterType> parameters;
-	public final ClassType superType;
-	public final List<ClassType> interfaces;
+	private final GenericParameters<GenericDeclarationType> parameters;
+	private final ClassType superType;
+	private final @Immutable List<ClassType> interfaces;
 	
 	public ClassSignatureAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
 		super(name, length);
 		
 		ExtendedStringInputStream signatureIn = new ExtendedStringInputStream(pool.getUtf8String(in.readUnsignedShort()));
 		
-		this.parameters = Type.parseNullableGenericParameters(signatureIn);
+		this.parameters = Type.parseEmptyableGenericParameters(signatureIn);
 		this.superType = ClassType.readAsType(signatureIn);
 		this.interfaces = Stream.generate(() -> signatureIn.isAvailable() ? ClassType.readAsType(signatureIn) : null)
 				.takeWhile(type -> type != null).toList();
 	}
 	
+	public GenericParameters<GenericDeclarationType> getParameters() {
+		return parameters;
+	}
+	
+	public ClassType getSuperType() {
+		return superType;
+	}
+	
+	public @Immutable List<ClassType> getInterfaces() {
+		return interfaces;
+	}
+	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		if(parameters != null)
-			parameters.addImports(classinfo);
-		
+		parameters.addImports(classinfo);
 		superType.addImports(classinfo);
 		classinfo.addImportsFor(interfaces);
 	}

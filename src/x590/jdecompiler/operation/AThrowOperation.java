@@ -3,7 +3,7 @@ package x590.jdecompiler.operation;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.type.ClassType;
+import x590.jdecompiler.type.reference.ClassType;
 
 public final class AThrowOperation extends AbstractOperation implements VoidOperation {
 	
@@ -25,7 +25,7 @@ public final class AThrowOperation extends AbstractOperation implements VoidOper
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-		out.print("throw ").print(throwable, context);
+		out.printsp("throw").print(throwable, context);
 	}
 	
 	@Override

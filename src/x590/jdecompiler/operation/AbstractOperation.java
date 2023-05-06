@@ -3,6 +3,7 @@ package x590.jdecompiler.operation;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.scope.Scope;
+import x590.jdecompiler.type.CastingKind;
 import x590.jdecompiler.type.GeneralCastingKind;
 import x590.jdecompiler.type.Type;
 
@@ -54,26 +55,34 @@ public abstract class AbstractOperation implements Operation {
 	
 	@Override
 	public final Type getReturnTypeAsNarrowest(Type type) {
-		Type newType = getReturnType().castToNarrowest(type);
-		onCastReturnType(newType);
-		return newType;
+		return getReturnTypeAs(type, CastingKind.NARROWEST);
 	}
 	
 	@Override
 	public final Type getReturnTypeAsWidest(Type type) {
-		Type newType = getReturnType().castToWidest(type);
-		onCastReturnType(newType);
+		return getReturnTypeAs(type, CastingKind.WIDEST);
+	}
+	
+	@Override
+	public final Type getReturnTypeAs(Type type, CastingKind casting) {
+		Type newType = getReturnType().castTo(type, casting);
+		onCastReturnType(newType, casting);
 		return newType;
 	}
 	
 	@Override
 	public final void castReturnTypeToNarrowest(Type type) {
-		onCastReturnType(getReturnType().castToNarrowest(type));
+		castReturnTypeTo(type, CastingKind.NARROWEST);
 	}
 	
 	@Override
 	public final void castReturnTypeToWidest(Type type) {
-		onCastReturnType(getReturnType().castToWidest(type));
+		castReturnTypeTo(type, CastingKind.WIDEST);
+	}
+	
+	@Override
+	public final void castReturnTypeTo(Type type, CastingKind casting) {
+		onCastReturnType(getReturnType().castTo(type, casting), casting);
 	}
 	
 	
@@ -86,7 +95,7 @@ public abstract class AbstractOperation implements Operation {
 	}
 	
 	
-	protected void onCastReturnType(Type type) {}
+	protected void onCastReturnType(Type type, CastingKind casting) {}
 	
 	/** Гарантирует, что операция является scope-ом */
 	@Override

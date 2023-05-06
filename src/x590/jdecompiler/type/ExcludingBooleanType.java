@@ -2,6 +2,7 @@ package x590.jdecompiler.type;
 
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.io.ExtendedOutputStream;
+import x590.jdecompiler.type.primitive.PrimitiveType;
 
 public final class ExcludingBooleanType extends Type {
 	
@@ -40,12 +41,12 @@ public final class ExcludingBooleanType extends Type {
 	}
 	
 	@Override
-	protected boolean canCastTo(Type other) {
+	protected boolean canCastToNarrowest(Type other) {
 		return other != PrimitiveType.BOOLEAN;
 	}
 	
 	@Override
-	protected Type castToNarrowestImpl(Type other) {
+	protected Type castImpl(Type other, CastingKind kind) {
 		if(other instanceof UncertainIntegralType intergalType) {
 			return !intergalType.includeBoolean() ?
 					intergalType :
@@ -56,17 +57,12 @@ public final class ExcludingBooleanType extends Type {
 	}
 	
 	@Override
-	protected Type castToWidestImpl(Type other) {
-		return castToNarrowestImpl(other);
+	protected Type reversedCastImpl(Type other, CastingKind kind) {
+		return castImpl(other, kind);
 	}
 	
 	@Override
-	protected Type reversedCastToNarrowestImpl(Type other) {
-		return castToNarrowestImpl(other);
-	}
-	
-	@Override
-	protected Type reversedCastToWidestImpl(Type other) {
-		return castToNarrowestImpl(other);
+	public BasicType reduced() {
+		return PrimitiveType.INT;
 	}
 }

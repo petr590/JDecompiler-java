@@ -9,7 +9,7 @@ import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DisassemblingException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.type.ReferenceType;
+import x590.jdecompiler.type.reference.ReferenceType;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
@@ -67,7 +67,7 @@ public class ExceptionsAttribute extends Attribute {
 		List<ReferenceType> exceptions;
 		
 		if(signature != null) {
-			var signatureExceptionTypes = signature.exceptionTypes;
+			var signatureExceptionTypes = signature.getExceptionTypes();
 			exceptions = signatureExceptionTypes.isEmpty() ? this.exceptionTypes : signatureExceptionTypes;
 		} else {
 			exceptions = this.exceptionTypes;

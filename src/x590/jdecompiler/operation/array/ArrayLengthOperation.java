@@ -6,7 +6,7 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.AbstractOperation;
 import x590.jdecompiler.operation.IntOperation;
 import x590.jdecompiler.operation.Operation;
-import x590.jdecompiler.type.ArrayType;
+import x590.jdecompiler.type.reference.ArrayType;
 
 public final class ArrayLengthOperation extends AbstractOperation implements IntOperation {
 	

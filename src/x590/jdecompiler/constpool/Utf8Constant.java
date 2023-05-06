@@ -36,7 +36,7 @@ public final class Utf8Constant extends Constant implements ICachedConstant<Stri
 			
 			if((ch & 0xE0) == 0xC0) {
 				ch = (ch & 0x1F) << 6 | (in.readByte() & 0x3F);
-				i++;
+				i += 1;
 				
 			} else if((ch & 0xF0) == 0xE0) {
 				

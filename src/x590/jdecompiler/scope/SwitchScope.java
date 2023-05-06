@@ -17,7 +17,7 @@ import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.OperationUtils;
-import x590.jdecompiler.type.PrimitiveType;
+import x590.jdecompiler.type.primitive.PrimitiveType;
 import x590.util.annotation.Nullable;
 
 public class SwitchScope extends Scope {

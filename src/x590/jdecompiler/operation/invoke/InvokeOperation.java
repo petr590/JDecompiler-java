@@ -5,6 +5,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.clazz.IClassInfo;
 import x590.jdecompiler.constpool.MethodrefConstant;
 import x590.jdecompiler.context.DecompilationContext;
@@ -15,9 +16,9 @@ import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.OperationWithDescriptor;
 import x590.jdecompiler.operation.array.NewArrayOperation;
-import x590.jdecompiler.type.ClassType;
-import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.reference.ClassType;
+import x590.jdecompiler.type.reference.ReferenceType;
 import x590.jdecompiler.util.StringUtil;
 import x590.util.annotation.Nullable;
 
@@ -34,8 +35,8 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 			Type argType = argTypes.get(--i);
 			Operation argument = context.popAsNarrowest(argType);
 			
-			if(argType.isReferenceType() && !argType.equals(ClassType.OBJECT)) {
-				argument = argument.castIfNull((ReferenceType)argType);
+			if(argType instanceof ReferenceType referenceType && !argType.equals(ClassType.OBJECT)) {
+				argument = argument.castIfNull(referenceType);
 			}
 			
 			arguments.addFirst(argument);
@@ -45,7 +46,18 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 	}
 	
 	protected static MethodDescriptor getDescriptor(DecompilationContext context, int index) {
-		return context.pool.<MethodrefConstant>get(index).toDescriptor();
+		MethodDescriptor descriptor = context.pool.<MethodrefConstant>get(index).toDescriptor();
+		
+		var iclassinfo = ClassInfo.findIClassInfo(descriptor.getDeclaringClass(), context.pool);
+		if(iclassinfo != null) {
+			var foundMethodInfo = iclassinfo.findMethodInfo(descriptor);
+			
+			if(foundMethodInfo.isPresent()) {
+				return foundMethodInfo.get().getGenericDescriptor();
+			}
+		}
+		
+		return descriptor;
 	}
 	
 	public Deque<Operation> getArguments() {

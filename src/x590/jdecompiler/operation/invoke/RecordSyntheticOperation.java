@@ -4,9 +4,9 @@ import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.ReturnableOperation;
-import x590.jdecompiler.type.ClassType;
-import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.ClassType;
 
 public final class RecordSyntheticOperation extends ReturnableOperation {
 	

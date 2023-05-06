@@ -5,10 +5,11 @@ import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.AbstractOperation;
 import x590.jdecompiler.operation.Operation;
-import x590.jdecompiler.type.ArrayType;
-import x590.jdecompiler.type.IArrayType;
-import x590.jdecompiler.type.PrimitiveType;
+import x590.jdecompiler.type.CastingKind;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.ArrayType;
+import x590.jdecompiler.type.reference.IArrayType;
 
 public abstract class ArrayLoadOperation extends AbstractOperation {
 	
@@ -38,6 +39,11 @@ public abstract class ArrayLoadOperation extends AbstractOperation {
 	@Override
 	public Type getReturnType() {
 		return elementType;
+	}
+	
+	@Override
+	protected void onCastReturnType(Type type, CastingKind kind) {
+		array.castReturnTypeTo(ArrayType.forType(type), kind);
 	}
 	
 	@Override

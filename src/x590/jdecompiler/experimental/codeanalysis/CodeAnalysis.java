@@ -18,7 +18,7 @@ import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.method.JavaMethod;
 import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.testing.DecompilationTesting;
-import x590.jdecompiler.type.ClassType;
+import x590.jdecompiler.type.reference.ClassType;
 import x590.util.Logger;
 
 public class CodeAnalysis {

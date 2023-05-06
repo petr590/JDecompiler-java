@@ -1,9 +1,11 @@
 package x590.jdecompiler.type;
 
 import x590.jdecompiler.io.ExtendedOutputStream;
+import x590.jdecompiler.type.primitive.IntegralType;
+import x590.jdecompiler.type.primitive.PrimitiveType;
 import x590.jdecompiler.util.WhitespaceStringBuilder;
 
-import static x590.jdecompiler.type.PrimitiveType.CHAR_CAPACITY;
+import static x590.jdecompiler.type.primitive.PrimitiveType.CHAR_CAPACITY;
 
 import x590.jdecompiler.clazz.ClassInfo;
 
@@ -121,7 +123,7 @@ public final class UncertainIntegralType extends Type {
 	
 	@Override
 	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
-		out.printObject(highPrimitiveType, classinfo);
+		out.printObject(reduced(), classinfo);
 	}
 	
 	@Override
@@ -167,7 +169,7 @@ public final class UncertainIntegralType extends Type {
 	}
 	
 	@Override
-	protected boolean canCastTo(Type other) {
+	protected boolean canCastToNarrowest(Type other) {
 		if(this == other || (other == PrimitiveType.BOOLEAN && includeBoolean) || other == highPrimitiveType) {
 			return true;
 		}
@@ -255,24 +257,13 @@ public final class UncertainIntegralType extends Type {
 	
 	
 	@Override
-	protected Type castToNarrowestImpl(Type other) {
-		return castImpl0(this, other, false);
+	protected Type castImpl(Type other, CastingKind kind) {
+		return castImpl0(this, other, kind.toBoolean());
 	}
 	
 	@Override
-	protected Type castToWidestImpl(Type other) {
-		return castImpl0(this, other, true);
-	}
-	
-	
-	@Override
-	protected Type reversedCastToNarrowestImpl(Type other) {
-		return reversedCastImpl0(this, other, false);
-	}
-	
-	@Override
-	protected Type reversedCastToWidestImpl(Type other) {
-		return reversedCastImpl0(this, other, true);
+	protected Type reversedCastImpl(Type other, CastingKind kind) {
+		return reversedCastImpl0(this, other, kind.toBoolean());
 	}
 	
 	@Override
@@ -283,7 +274,7 @@ public final class UncertainIntegralType extends Type {
 	
 	/** Возвращает верхнюю границу типа или boolean, если установлен флаг {@link #includeBoolean()} */
 	@Override
-	public Type reduced() {
+	public BasicType reduced() {
 		return includeBoolean ? PrimitiveType.BOOLEAN : highPrimitiveType;
 	}
 }

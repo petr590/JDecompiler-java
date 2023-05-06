@@ -1,12 +1,19 @@
-package x590.jdecompiler.type;
+package x590.jdecompiler.type.reference.generic;
 
 import x590.jdecompiler.io.ExtendedStringInputStream;
+import x590.jdecompiler.type.reference.ReferenceType;
+import x590.util.annotation.Nullable;
 
 /** Дженерик, ограниченный сверху */
 public final class ExtendingGenericType extends BoundedGenericType {
 	
 	public ExtendingGenericType(ExtendedStringInputStream in) {
 		super(in);
+	}
+	
+	@Override
+	public @Nullable ReferenceType getSuperType() {
+		return getType();
 	}
 	
 	@Override
@@ -21,6 +28,6 @@ public final class ExtendingGenericType extends BoundedGenericType {
 	
 	@Override
 	public String toString() {
-		return "ExtendingGenericType(" + getType().toString() + ")";
+		return "? extends " + getType().toString();
 	}
 }

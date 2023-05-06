@@ -19,26 +19,28 @@ import x590.jdecompiler.operation.array.NewArrayOperation;
 import x590.jdecompiler.operation.load.ILoadOperation;
 import x590.jdecompiler.operation.returning.AReturnOperation;
 import x590.jdecompiler.operation.returning.ReturnOperation;
-import x590.jdecompiler.type.ArrayType;
-import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.TypeSize;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.ArrayType;
 import x590.jdecompiler.variable.NamedVariable;
 import x590.jdecompiler.variable.UnnamedVariable;
 import x590.jdecompiler.variable.Variable;
 import x590.jdecompiler.variable.VariableWrapper;
+import x590.util.annotation.Nullable;
 import x590.util.function.ObjIntFunction;
-import x590.util.lazyloading.LazyLoadingValue;
+import x590.util.lazyloading.ObjectSupplierLazyLoading;
 
 public class MethodScope extends Scope {
 	
-	private static final LazyLoadingValue<MethodScope> EMPTY_SCOPE = new LazyLoadingValue<>(MethodScope::new);
+	private static final ObjectSupplierLazyLoading<MethodScope> EMPTY_SCOPE = new ObjectSupplierLazyLoading<>(MethodScope::new);
+	private final ObjectSupplierLazyLoading<NewArrayOperation> lambdaNewArray = new ObjectSupplierLazyLoading<>(this::getLambdaNewArray);
 	
 	private MethodScope() {
 		super(0, 0, null, Collections.emptyList());
 	}
 	
-	private MethodScope(ClassInfo classinfo, MethodDescriptor descriptor, MethodModifiers modifiers, CodeAttribute codeAttribute, int endIndex, int maxLocals) {
+	private MethodScope(ClassInfo classinfo, MethodDescriptor genericDescriptor, MethodModifiers modifiers, CodeAttribute codeAttribute, int endIndex, int maxLocals) {
 		super(0, endIndex, null, new ArrayList<>(maxLocals));
 		
 		int i = 0;
@@ -57,7 +59,7 @@ public class MethodScope extends Scope {
 		// public static void main(String[] args)
 		if(localVariableTable == null &&
 				modifiers.allOf(ACC_PUBLIC | ACC_STATIC) &&
-				descriptor.equalsIgnoreClass(PrimitiveType.VOID, "main", ArrayType.STRING_ARRAY)) {
+				genericDescriptor.equalsIgnoreClass(PrimitiveType.VOID, "main", ArrayType.STRING_ARRAY)) {
 			
 			addVariable(new NamedVariable("args", this, ArrayType.STRING_ARRAY, true).defined());
 			
@@ -70,7 +72,7 @@ public class MethodScope extends Scope {
 					(argType, index) -> new UnnamedVariable(this, argType, true);
 			
 			
-			for(Type argType : descriptor.getArguments()) {
+			for(Type argType : genericDescriptor.getArguments()) {
 				addVariable(variableCreator.apply(argType, i).defined());
 				
 				if(argType.getSize() == TypeSize.LONG) {
@@ -88,8 +90,8 @@ public class MethodScope extends Scope {
 	}
 	
 	
-	public static MethodScope of(ClassInfo classinfo, MethodDescriptor descriptor, MethodModifiers modifiers, CodeAttribute codeAttribute, int endIndex, int maxLocals) {
-		return endIndex == 0 && maxLocals == 0 ? EMPTY_SCOPE.get() : new MethodScope(classinfo, descriptor, modifiers, codeAttribute, endIndex, maxLocals);
+	public static MethodScope of(ClassInfo classinfo, MethodDescriptor genericDescriptor, MethodModifiers modifiers, CodeAttribute codeAttribute, int endIndex, int maxLocals) {
+		return endIndex == 0 && maxLocals == 0 ? EMPTY_SCOPE.get() : new MethodScope(classinfo, genericDescriptor, modifiers, codeAttribute, endIndex, maxLocals);
 	}
 	
 	/** Меняет область видимости на public */
@@ -123,6 +125,26 @@ public class MethodScope extends Scope {
 	}
 	
 	
+	private @Nullable NewArrayOperation getLambdaNewArray() {
+		List<Operation> operations = getOperations();
+		
+		if(operations.size() == 1 &&
+				operations.get(0) instanceof AReturnOperation areturn &&
+				areturn.getOperand() instanceof NewArrayOperation newArray) {
+			
+			List<Operation> lengths = newArray.getLengths();
+			
+			if(lengths.size() == 1 && lengths.get(0) instanceof ILoadOperation iload &&
+					iload.getVariable() == getDefinedVariable(0)) {
+				
+				return newArray;
+			}
+		}
+		
+		return null;
+	}
+	
+	
 	public void writeAsLabmda(StringifyOutputStream out, StringifyContext context) {
 		List<Operation> operations = getOperations();
 		
@@ -141,21 +163,18 @@ public class MethodScope extends Scope {
 		this.writeTo(out, context);
 	}
 	
-	public boolean writeAsLambdaNewArray(StringifyOutputStream out, StringifyContext context) {
-		List<Operation> operations = getOperations();
+	
+	public boolean isLambdaNewArray() {
+		return lambdaNewArray.get() != null;
+	}
+	
+	
+	public boolean tryWriteAsLambdaNewArray(StringifyOutputStream out, StringifyContext context) {
+		var newArrayOperation = lambdaNewArray.get();
 		
-		if(operations.size() == 1 &&
-				operations.get(0) instanceof AReturnOperation areturn &&
-				areturn.getOperand() instanceof NewArrayOperation newArray) {
-			
-			List<Operation> lengths = newArray.getLengths();
-			
-			if(lengths.size() == 1 && lengths.get(0) instanceof ILoadOperation iload &&
-					iload.getVariable() == getDefinedVariable(0)) {
-				
-				out.print(newArray.getReturnType(), context.getClassinfo()).print("::new");
-				return true;
-			}
+		if(newArrayOperation != null) {
+			out.print(newArrayOperation.getReturnType(), context.getClassinfo()).print("::new");
+			return true;
 		}
 		
 		return false;

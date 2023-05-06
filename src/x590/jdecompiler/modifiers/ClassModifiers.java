@@ -78,7 +78,7 @@ public final class ClassModifiers extends ClassEntryModifiers {
 				.appendIf(isAbstract() && isNotInterface(), "abstract")
 				.appendIf(isStrictfp(), "strictfp")
 				.appendIf(isInterface() && isNotAnnotation(), "interface")
-				.appendIf(isAnnotation(), forWriting ? "@interface" : "annotation")
+				.appendIf(isAnnotation(), "@interface")
 				.appendIf(isEnum(), "enum")
 				.appendIf(isModule(), "module");
 	}

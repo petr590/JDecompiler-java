@@ -25,6 +25,6 @@ public class ArraysExample {
 			x = new int[1];
 		}
 		
-		System.out.print(x[0] + x.length);
+		System.out.println(x[0] + x.length);
 	}
 }

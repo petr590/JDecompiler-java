@@ -35,6 +35,7 @@ public class JavaField extends JavaClassElement {
 	
 	private final FieldModifiers modifiers;
 	private final FieldDescriptor descriptor;
+	private final FieldDescriptor genericDescriptor;
 	private final Attributes attributes;
 	
 	private @Nullable FieldInfo fieldInfo;
@@ -49,8 +50,18 @@ public class JavaField extends JavaClassElement {
 	
 	protected JavaField(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool, FieldModifiers modifiers) {
 		this.modifiers = modifiers;
-		this.descriptor = new FieldDescriptor(classinfo.getThisType(), in, pool);
+		this.descriptor = FieldDescriptor.from(classinfo.getThisType(), in, pool);
 		this.attributes = Attributes.read(in, pool, Location.FIELD);
+		
+		var signature = attributes.getNullable(AttributeType.FIELD_SIGNATURE);
+		
+		if(signature != null) {
+			signature.checkType(descriptor);
+			this.genericDescriptor = signature.createGenericDescriptor(classinfo, descriptor);
+		} else {
+			this.genericDescriptor = descriptor;
+		}
+		
 		this.constantValueAttribute = attributes.getNullable(AttributeType.CONSTANT_VALUE);
 		this.annotationAttributes = new Pair<>(attributes.getNullable(AttributeType.RUNTIME_VISIBLE_ANNOTATIONS), attributes.getNullable(AttributeType.RUNTIME_INVISIBLE_ANNOTATIONS));
 		this.isRecordComponent = classinfo.isRecord() && modifiers.isNotStatic();
@@ -94,7 +105,7 @@ public class JavaField extends JavaClassElement {
 	}
 	
 	public FieldInfo getFieldInfo() {
-		return fieldInfo == null ? fieldInfo = new FieldInfo(descriptor, modifiers) : fieldInfo;
+		return fieldInfo == null ? fieldInfo = new FieldInfo(descriptor, genericDescriptor, modifiers) : fieldInfo;
 	}
 	
 	
@@ -200,7 +211,7 @@ public class JavaField extends JavaClassElement {
 		writeAnnotations(out, classinfo, attributes);
 		
 		out.printIndent().print(isRecordComponent ? recordComponentModifiersToString() : modifiersToString(classinfo), classinfo);
-		descriptor.writeType(out, classinfo, attributes);
+		genericDescriptor.writeType(out, classinfo);
 		
 		writeNameAndInitializer(out.printsp(), classinfo);
 	}

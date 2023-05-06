@@ -12,7 +12,7 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.OperationWithDescriptor;
-import x590.jdecompiler.type.ClassType;
+import x590.jdecompiler.type.reference.ClassType;
 
 public abstract class FieldOperation extends OperationWithDescriptor<FieldDescriptor> {
 	
@@ -37,7 +37,7 @@ public abstract class FieldOperation extends OperationWithDescriptor<FieldDescri
 	}
 	
 	public FieldOperation(DecompilationContext context, FieldrefConstant fieldref) {
-		super(new FieldDescriptor(fieldref));
+		super(FieldDescriptor.from(fieldref));
 		
 		this.canOmit = canOmit(context.getClassinfo());
 	}
@@ -65,7 +65,7 @@ public abstract class FieldOperation extends OperationWithDescriptor<FieldDescri
 	}
 	
 	protected Operation popObject(DecompilationContext context) {
-		Operation object = context.popAsNarrowest(descriptor.getDeclaringClass()).castIfNull(descriptor.getDeclaringClass());
+		Operation object = context.popAsNarrowest(descriptor.getDeclaringClass()).castIfNecessary(descriptor.getDeclaringClass());
 		
 		this.isEnclosingThis = isEnclosingThis(context, object);
 		

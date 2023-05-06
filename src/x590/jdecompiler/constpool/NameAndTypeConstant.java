@@ -28,7 +28,7 @@ public final class NameAndTypeConstant extends Constant {
 	}
 	
 	@Override
-	void init(ConstantPool pool) {
+	protected void init(ConstantPool pool) {
 		name = pool.get(nameIndex);
 		descriptor = pool.get(descriptorIndex);
 	}

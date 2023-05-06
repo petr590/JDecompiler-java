@@ -11,13 +11,15 @@ public final class InvokeinterfaceInstruction extends InvokeInstruction {
 	public InvokeinterfaceInstruction(DisassemblerContext context, int index, int count, int zeroByte) {
 		super(index);
 		
-		if(count == 0)
+		if(count == 0) {
 			context.warning("illegal format of instruction invokeinterface at pos 0x" + IntegerUtil.hex(context.currentPos()) +
 					": by specification, third byte must not be zero");
+		}
 		
-		if(zeroByte != 0)
+		if(zeroByte != 0) {
 			context.warning("illegal format of instruction invokeinterface at pos 0x" + IntegerUtil.hex(context.currentPos()) +
 					": by specification, fourth byte must be zero");
+		}
 	}
 	
 	@Override

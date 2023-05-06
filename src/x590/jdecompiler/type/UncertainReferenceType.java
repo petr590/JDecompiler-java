@@ -5,6 +5,9 @@ import java.util.function.Function;
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.exception.IllegalTypeException;
 import x590.jdecompiler.io.ExtendedOutputStream;
+import x590.jdecompiler.type.reference.ArrayType;
+import x590.jdecompiler.type.reference.IArrayType;
+import x590.jdecompiler.type.reference.ReferenceType;
 import x590.util.annotation.Nullable;
 
 /**
@@ -24,8 +27,8 @@ public final class UncertainReferenceType extends Type implements IArrayType {
 	private UncertainReferenceType(ReferenceType widestType, @Nullable ReferenceType narrowestType) {
 		this.widestType = widestType;
 		this.narrowestType = narrowestType;
-		this.encodedName = "UncertainClassType:" + widestType.getClassEncodedName() +
-				(narrowestType == null ? "" : ":" + narrowestType.getClassEncodedName());
+		this.encodedName = "UncertainClassType:" + widestType.getEncodedName() +
+				(narrowestType == null ? "" : ":" + narrowestType.getEncodedName());
 	}
 	
 	private UncertainReferenceType(ReferenceType widestType) {
@@ -37,17 +40,20 @@ public final class UncertainReferenceType extends Type implements IArrayType {
 		return new UncertainReferenceType(widestType);
 	}
 	
-	public static Type getInstance(ReferenceType widestType, @Nullable ReferenceType narrowestType, boolean widest) {
+	public static Type getInstance(ReferenceType widestType, @Nullable ReferenceType narrowestType, CastingKind kind) {
 		if(narrowestType != null) {
-			if(widestType.equals(narrowestType))
-				return widestType;
+			if(widestType.equalsIgnoreSignature(narrowestType))
+				return narrowestType;
+			
+			if(widestType.isDefinitelySubclassOf(narrowestType))
+				return null;
 			
 			if(widestType instanceof ArrayType widestArray && narrowestType instanceof ArrayType narrowestArray) {
 				
 				Type widestMember, narrowestMember;
 				int nestingLevel = widestArray.getNestingLevel();
 				
-				if(widestArray.getNestingLevel() == narrowestArray.getNestingLevel()) {
+				if(nestingLevel == narrowestArray.getNestingLevel()) {
 					widestMember    = widestArray.getMemberType();
 					narrowestMember = narrowestArray.getMemberType();
 				} else {
@@ -57,11 +63,9 @@ public final class UncertainReferenceType extends Type implements IArrayType {
 				}
 				
 				if(widestMember.isReferenceType() && narrowestMember.isReferenceType())
-					return ArrayType.forType(getInstance((ReferenceType)widestMember, (ReferenceType)narrowestMember, widest), nestingLevel);
+					return ArrayType.forType(getInstance((ReferenceType)widestMember, (ReferenceType)narrowestMember, kind), nestingLevel);
 				
-				return ArrayType.forNullableType(widest ?
-						widestMember.castToWidestNoexcept(narrowestMember) :
-						widestMember.castToNarrowestNoexcept(narrowestMember), nestingLevel);
+				return ArrayType.forNullableType(widestMember.castNoexcept(narrowestMember, kind), nestingLevel);
 			}
 		}
 		
@@ -69,13 +73,22 @@ public final class UncertainReferenceType extends Type implements IArrayType {
 	}
 	
 	
-	private ReferenceType getNotNullType() {
+	public @Nullable ReferenceType getNarrowestType() {
+		return narrowestType;
+	}
+	
+	public ReferenceType getWidestType() {
+		return widestType;
+	}
+	
+	
+	private ReferenceType getNonNullType() {
 		return narrowestType == null ? widestType : narrowestType;
 	}
 	
 	@Override
 	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
-		out.printlnObject(getNotNullType(), classinfo);
+		out.printObject(getNonNullType(), classinfo);
 	}
 	
 	@Override
@@ -92,12 +105,12 @@ public final class UncertainReferenceType extends Type implements IArrayType {
 	
 	@Override
 	public String getName() {
-		return getNotNullType().getName();
+		return getNonNullType().getName();
 	}
 	
 	@Override
 	public String getNameForVariable() {
-		return getNotNullType().getNameForVariable();
+		return getNonNullType().getNameForVariable();
 	}
 	
 	
@@ -153,26 +166,27 @@ public final class UncertainReferenceType extends Type implements IArrayType {
 	
 	
 	@Override
-	protected boolean canCastTo(Type other) {
-		return castImpl(other, false) != null;
+	protected boolean canCastToNarrowest(Type other) {
+		return castImpl(other, CastingKind.NARROWEST) != null;
 	}
 	
 	
-	private Type castImpl(Type other, boolean widest) {
+	@Override
+	protected Type castImpl(Type other, CastingKind kind) {
 		if(this.equals(other))
 			return this;
 		
 		if(other instanceof ReferenceType referenceType) {
 			
-			if(referenceType.isSubclassOf(widestType) && (narrowestType == null || narrowestType.isSubclassOf(referenceType))) {
-				return widest ?
-						getInstance(widestType, referenceType, widest) :
-						getInstance(referenceType, narrowestType, widest);
+			if(referenceType.isDefinitelySubclassOf(widestType) && (narrowestType == null || narrowestType.isDefinitelySubclassOf(referenceType))) {
+				return kind.isNarrowest() ?
+						getInstance(referenceType, narrowestType, kind) :
+						getInstance(widestType, referenceType, kind);
 			}
 			
-			if(widest ?
-				referenceType.isSubclassOf(narrowestType) :
-				widestType.isSubclassOf(referenceType)) {
+			if(kind.isNarrowest() ?
+				widestType.isDefinitelySubclassOf(referenceType) :
+				referenceType.isDefinitelySubclassOf(narrowestType)) {
 				
 				return this;
 			}
@@ -181,11 +195,18 @@ public final class UncertainReferenceType extends Type implements IArrayType {
 		}
 		
 		if(other instanceof UncertainReferenceType uncertainType) {
-			if(!widest) {
-				ReferenceType widestType = chooseNarrwestFrom(this.widestType, uncertainType.widestType);
+			if(kind.isNarrowest()) {
+				ReferenceType widestType = chooseNarrowestFrom(this.widestType, uncertainType.widestType);
 				
 				if(widestType != null) {
-					return getInstance(widestType, chooseWidestFrom(this.narrowestType, uncertainType.widestType), widest);
+					return getInstance(widestType, this.narrowestType, kind);
+				}
+				
+			} else {
+				ReferenceType narrowestType = chooseWidestFrom(this.narrowestType, uncertainType.narrowestType);
+				
+				if(narrowestType != null) {
+					return getInstance(this.widestType, narrowestType, kind);
 				}
 			}
 		}
@@ -193,27 +214,32 @@ public final class UncertainReferenceType extends Type implements IArrayType {
 		return null;
 	}
 	
-	private static @Nullable ReferenceType chooseNarrwestFrom(ReferenceType type1, ReferenceType type2) {
-		return  type1.isSubclassOf(type2) ? type1 :
-				type2.isSubclassOf(type1) ? type2 : null;
+	private static @Nullable ReferenceType chooseNarrowestFrom(ReferenceType type1, ReferenceType type2) {
+		return  type1.isDefinitelySubclassOf(type2) ? type1 :
+				type2.isDefinitelySubclassOf(type1) ? type2 : null;
 	}
 	
-	private static @Nullable ReferenceType chooseWidestFrom(@Nullable ReferenceType type1, @Nullable ReferenceType type2) {
+	private static @Nullable ReferenceType chooseWidestFrom(ReferenceType type1, ReferenceType type2) {
+		return  type1.isDefinitelySubclassOf(type2) ? type2 :
+				type2.isDefinitelySubclassOf(type1) ? type1 : null;
+	}
+	
+	private static @Nullable ReferenceType chooseNarrowestFromNullable(@Nullable ReferenceType type1, @Nullable ReferenceType type2) {
 		return  type1 == null ? type2 :
 				type2 == null ? type1 :
-				type1.isSubclassOf(type2) ? type1 :
-				type2.isSubclassOf(type1) ? type2 : null;
+				chooseNarrowestFrom(type1, type2);
 	}
 	
-	private Type reversedCastImpl(Type other, boolean widest) {
+	@Override
+	protected Type reversedCastImpl(Type other, CastingKind kind) {
 		if(this.equals(other))
 			return this;
 		
 		if(other instanceof ReferenceType referenceType) {
 			
-			if(widest ?
-				widestType.isSubclassOf(referenceType) || narrowestType != null && referenceType.isSubclassOf(narrowestType) :
-				referenceType.isSubclassOf(widestType)) {
+			if(kind.isNarrowest() ?
+				referenceType.isDefinitelySubclassOf(widestType) :
+				widestType.isDefinitelySubclassOf(referenceType) || narrowestType != null && referenceType.isDefinitelySubclassOf(narrowestType)) {
 				
 				return referenceType;
 			}
@@ -225,31 +251,11 @@ public final class UncertainReferenceType extends Type implements IArrayType {
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		getNotNullType().addImports(classinfo);
+		getNonNullType().addImports(classinfo);
 	}
 	
 	@Override
-	protected Type castToNarrowestImpl(Type other) {
-		return castImpl(other, false);
-	}
-	
-	@Override
-	protected Type castToWidestImpl(Type other) {
-		return castImpl(other, true);
-	}
-	
-	@Override
-	protected Type reversedCastToNarrowestImpl(Type other) {
-		return reversedCastImpl(other, false);
-	}
-	
-	@Override
-	protected Type reversedCastToWidestImpl(Type other) {
-		return reversedCastImpl(other, true);
-	}
-	
-	@Override
-	public Type reduced() {
-		return narrowestType != null ? narrowestType : widestType;
+	public BasicType reduced() {
+		return getNonNullType().reduced();
 	}
 }

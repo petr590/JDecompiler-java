@@ -18,16 +18,22 @@ import x590.util.annotation.Immutable;
 public class OperationStack {
 	
 	private final Deque<Operation> stack;
+	private final @Immutable Collection<? extends Operation> content;
 	
-	private Predicate<Operation> nextPushHandler;
+	private Predicate<? super Operation> nextPushHandler;
 	
 	
 	public OperationStack() {
-		this.stack = new ArrayDeque<>();
+		this(new ArrayDeque<>());
 	}
 	
 	public OperationStack(int initalCapacity) {
-		this.stack = new ArrayDeque<>(initalCapacity);
+		this(new ArrayDeque<>(initalCapacity));
+	}
+
+	private OperationStack(Deque<Operation> stack) {
+		this.stack = stack;
+		this.content = Collections.unmodifiableCollection(stack);
 	}
 	
 	
@@ -53,7 +59,7 @@ public class OperationStack {
 		return operation;
 	}
 	
-	public void pushAll(Collection<Operation> operations) {
+	public void pushAll(Collection<? extends Operation> operations) {
 		for(Operation operation : operations) {
 			push(operation);
 		}
@@ -141,10 +147,13 @@ public class OperationStack {
 	}
 	
 	
-	public void onNextPush(Predicate<Operation> nextPushHandler) {
+	/** Назначает обработчик на следующий вызов метода {@link #push(Operation)}.
+	 * Операция попадёт на стек только если обработчик вернёт {@literal true}. */
+	public void onNextPush(Predicate<? super Operation> nextPushHandler) {
 		this.nextPushHandler = nextPushHandler;
 	}
 	
+	/** Сбрасывает обработчик на следующий вызов метода {@link #push(Operation)}. */
 	public void clearNextPushHandler() {
 		this.nextPushHandler = null;
 	}
@@ -163,11 +172,14 @@ public class OperationStack {
 		return stack.hashCode();
 	}
 	
-	public @Immutable Collection<Operation> getContent() {
-		return Collections.unmodifiableCollection(stack);
+	/** @return Неизменяемую коллекцию, которая содержит все элементы стека.
+	 * @apiNote Коллекцию нельзя изменить напрямую, но при изменении стека коллекция также меняется */
+	public @Immutable Collection<? extends Operation> getContent() {
+		return content;
 	}
 	
-	public void setState(Deque<Operation> state) {
+	/** Устанавливает переданное состояние стека */
+	public void setState(Collection<? extends Operation> state) {
 		stack.clear();
 		stack.addAll(state);
 	}

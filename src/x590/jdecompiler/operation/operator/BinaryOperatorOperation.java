@@ -4,6 +4,7 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
+import x590.jdecompiler.type.CastingKind;
 import x590.jdecompiler.type.GeneralCastingKind;
 import x590.jdecompiler.type.Type;
 
@@ -53,19 +54,20 @@ public abstract class BinaryOperatorOperation extends OperatorOperation {
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-		out.printPrioritied(this, operand1, context, Associativity.LEFT).printsp().print(getOperator())
-				.printsp().printPrioritied(this, operand2, context, Associativity.RIGHT);
+		out.printPrioritied(this, operand1, context, Associativity.LEFT)
+			.printsp().print(getOperator()).printsp()
+			.printPrioritied(this, operand2, context, Associativity.RIGHT);
 	}
 	
 	@Override
-	public void onCastReturnType(Type newType) {
-		super.onCastReturnType(newType);
-		operand1.castReturnTypeToNarrowest(newType);
-		operand2.castReturnTypeToNarrowest(newType);
+	public void onCastReturnType(Type newType, CastingKind kind) {
+		super.onCastReturnType(newType, kind);
+		operand1.castReturnTypeTo(newType, kind);
+		operand2.castReturnTypeTo(newType, kind);
 	}
 	
-	protected void superOnCastReturnType(Type newType) {
-		super.onCastReturnType(newType);
+	protected void superOnCastReturnType(Type newType, CastingKind kind) {
+		super.onCastReturnType(newType, kind);
 	}
 	
 	@Override

@@ -7,8 +7,8 @@ import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.MethodHandleConstOperation;
-import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.reference.ClassType;
 
 public final class MethodHandleConstant extends ConstValueConstant {
 	
@@ -25,7 +25,8 @@ public final class MethodHandleConstant extends ConstValueConstant {
 		
 		private static final ReferenceKind[] VALUES = values();
 		
-		private final int index, argumentsForLambdaReference;
+		private final int index;
+		private final int argumentsForLambdaReference;
 		private final String name;
 		
 		private ReferenceKind(int index) {
@@ -70,7 +71,7 @@ public final class MethodHandleConstant extends ConstValueConstant {
 	}
 	
 	@Override
-	void init(ConstantPool pool) {
+	protected void init(ConstantPool pool) {
 		reference = pool.get(referenceIndex);
 	}
 	

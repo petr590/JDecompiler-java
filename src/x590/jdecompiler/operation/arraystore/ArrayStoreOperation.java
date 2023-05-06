@@ -9,10 +9,11 @@ import x590.jdecompiler.operation.ReturnableOperation;
 import x590.jdecompiler.operation.array.NewArrayOperation;
 import x590.jdecompiler.operation.constant.IConstOperation;
 import x590.jdecompiler.operation.arrayload.ArrayLoadOperation;
-import x590.jdecompiler.type.ArrayType;
-import x590.jdecompiler.type.IArrayType;
-import x590.jdecompiler.type.PrimitiveType;
+import x590.jdecompiler.type.CastingKind;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.ArrayType;
+import x590.jdecompiler.type.reference.IArrayType;
 
 public abstract class ArrayStoreOperation extends ReturnableOperation implements IncrementableOperation {
 	
@@ -27,7 +28,7 @@ public abstract class ArrayStoreOperation extends ReturnableOperation implements
 		
 		Type elementType = ((IArrayType)array.getReturnTypeAsNarrowest(requiredType)).getElementType();
 		
-		value.castReturnTypeToNarrowest(elementType);
+		array.castReturnTypeToWidest(ArrayType.forType(value.getReturnTypeAsNarrowest(elementType)));
 		
 		if(array instanceof NewArrayOperation newArray &&
 			index instanceof IConstOperation iconst &&
@@ -49,6 +50,11 @@ public abstract class ArrayStoreOperation extends ReturnableOperation implements
 	
 	public Operation getValue() {
 		return value;
+	}
+	
+	@Override
+	protected void onCastReturnType(Type type, CastingKind kind) {
+		array.castReturnTypeTo(ArrayType.forType(type), kind);
 	}
 	
 	@Override

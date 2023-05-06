@@ -10,14 +10,14 @@ public class TernaryOperatorExample {
 		ExampleTesting.runDecompiler(TernaryOperatorExample.class);
 	}
 	
-	public static boolean x = true;
+	public static boolean x = true, y;
 	
 	public static int foo() {
-		return x ? 1 : 0;
+		return x ? 1 : y ? 0 : -1;
 	}
 	
 	public static boolean bar() {
-		return !!x; // Декомпилирует точно так же! Я даже не предусматривал это в коде.
+		return !!x;
 	}
 	
 	public static boolean baz1(int x) {
@@ -30,7 +30,7 @@ public class TernaryOperatorExample {
 	}
 	
 	public static boolean baz2(int x) {
-		return x == 10 && x == 20;
+		return x == 10 || x == 20;
 	}
 	
 	

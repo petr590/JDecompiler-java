@@ -17,6 +17,7 @@ import x590.jdecompiler.Importable;
 import x590.jdecompiler.attribute.AttributeType;
 import x590.jdecompiler.attribute.Attributes;
 import x590.jdecompiler.attribute.annotation.Annotation;
+import x590.jdecompiler.attribute.signature.ClassSignatureAttribute;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.NoSuchFieldException;
@@ -30,9 +31,12 @@ import x590.jdecompiler.method.JavaMethod;
 import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.method.MethodInfo;
 import x590.jdecompiler.modifiers.ClassModifiers;
-import x590.jdecompiler.type.ClassType;
-import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.reference.ClassType;
+import x590.jdecompiler.type.reference.RealReferenceType;
+import x590.jdecompiler.type.reference.ReferenceType;
+import x590.jdecompiler.type.reference.generic.GenericDeclarationType;
+import x590.jdecompiler.type.reference.generic.GenericParameters;
 import x590.util.BooleanHolder;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
@@ -81,7 +85,7 @@ public final class ClassInfo implements IClassInfo {
 		return INSTANCES.get(type) instanceof ClassInfo classinfo ? classinfo : null;
 	}
 	
-	public static @Nullable IClassInfo findIClassInfo(@Nullable ReferenceType type, ConstantPool pool) {
+	public static @Nullable IClassInfo findIClassInfo(@Nullable RealReferenceType type, ConstantPool pool) {
 		if(type == null) {
 			return null;
 		}
@@ -94,7 +98,7 @@ public final class ClassInfo implements IClassInfo {
 		return foundClassinfo;
 	}
 	
-	public @Nullable IClassInfo findIClassInfo(@Nullable ReferenceType type) {
+	public @Nullable IClassInfo findIClassInfo(@Nullable RealReferenceType type) {
 		return findIClassInfo(type, pool);
 	}
 	
@@ -144,6 +148,13 @@ public final class ClassInfo implements IClassInfo {
 			throw new IllegalStateException("Attributes already setted");
 		
 		this.attributes = attributes;
+	}
+	
+	
+	@Override
+	public GenericParameters<GenericDeclarationType> getSignatureParameters() {
+		return clazz.getSignature().map(ClassSignatureAttribute::getParameters)
+				.orElse(GenericParameters.empty());
 	}
 	
 	

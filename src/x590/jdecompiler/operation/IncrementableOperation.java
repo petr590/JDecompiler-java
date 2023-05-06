@@ -6,9 +6,9 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.invoke.ConcatStringsOperation;
 import x590.jdecompiler.operation.operator.BinaryOperatorOperation;
 import x590.jdecompiler.operation.operator.XorOperatorOperation;
-import x590.jdecompiler.type.ClassType;
-import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.ClassType;
 
 public interface IncrementableOperation extends Operation {
 	

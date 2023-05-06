@@ -1,6 +1,6 @@
 package x590.jdecompiler.attribute;
 
-public class DeprecatedAttribute extends EmptyAttribute {
+public final class DeprecatedAttribute extends EmptyAttribute {
 	
 	private static final DeprecatedAttribute INSTANCE = new DeprecatedAttribute();
 	

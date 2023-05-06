@@ -4,8 +4,9 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.operation.CastOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.Priority;
-import x590.jdecompiler.type.PrimitiveType;
+import x590.jdecompiler.type.CastingKind;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.primitive.PrimitiveType;
 
 public abstract class ShiftOperatorOperation extends BinaryOperatorOperation {
 	
@@ -28,8 +29,8 @@ public abstract class ShiftOperatorOperation extends BinaryOperatorOperation {
 	}
 	
 	@Override
-	public void onCastReturnType(Type newType) {
-		superOnCastReturnType(newType);
-		operand1().castReturnTypeToNarrowest(newType);
+	public void onCastReturnType(Type newType, CastingKind kind) {
+		superOnCastReturnType(newType, kind);
+		operand1().castReturnTypeTo(newType, kind);
 	}
 }

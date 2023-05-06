@@ -5,9 +5,9 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.CastOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operationinstruction.OperationInstruction;
-import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.Types;
+import x590.jdecompiler.type.reference.ReferenceType;
 
 public final class AConstNullOperationInstruction extends OperationInstruction {
 	
@@ -24,6 +24,11 @@ public final class AConstNullOperationInstruction extends OperationInstruction {
 	@Override
 	public Type getReturnType() {
 		return Types.ANY_OBJECT_TYPE;
+	}
+	
+	@Override
+	public Operation castIfNecessary(ReferenceType clazz) {
+		return castIfNull(clazz);
 	}
 	
 	@Override

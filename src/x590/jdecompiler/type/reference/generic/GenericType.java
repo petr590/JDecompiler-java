@@ -1,15 +1,13 @@
-package x590.jdecompiler.type;
+package x590.jdecompiler.type.reference.generic;
+
+import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.reference.ReferenceType;
 
 /** Описывает дженерик, ограниченный только сверху или снизу или вообще не ограниченный */
 public abstract class GenericType extends ReferenceType {
 	
 	@Override
-	public String getNameForVariable() {
-		throw new UnsupportedOperationException("Seriously? Variable of unknown generic type?");
-	}
-	
-	@Override
-	protected boolean canCastTo(Type other) {
+	protected boolean canCastToNarrowest(Type other) {
 		return other.isReferenceType();
 	}
 	

@@ -1,20 +1,27 @@
-package x590.jdecompiler.type;
+package x590.jdecompiler.type.reference.generic;
 
+import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import x590.jdecompiler.clazz.ClassInfo;
+import x590.jdecompiler.clazz.IClassInfo;
 import x590.jdecompiler.exception.InvalidSignatureException;
 import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.io.ExtendedStringInputStream;
+import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.reference.ClassType;
+import x590.jdecompiler.type.reference.ReferenceType;
 import x590.util.annotation.Immutable;
+import x590.util.annotation.Nullable;
 
 /** Описывает объявление дженерика. Хранит имя и супертип */
-public final class GenericParameterType extends ReferenceType {
+public final class GenericDeclarationType extends ReferenceType {
 	
-	private final String encodedName, name;
+	private final String encodedName, simpleEncodedName, name;
 	private final @Immutable List<ReferenceType> types;
 	
 	private static String parseName(ExtendedStringInputStream in, StringBuilder encodedNameBuilder) {
@@ -53,14 +60,48 @@ public final class GenericParameterType extends ReferenceType {
 		return Collections.unmodifiableList(types);
 	}
 	
-	public GenericParameterType(ExtendedStringInputStream in) {
+	public GenericDeclarationType(ExtendedStringInputStream in) {
 		StringBuilder encodedNameBuilder = new StringBuilder();
 		
 		this.name = parseName(in, encodedNameBuilder);
 		this.types = parseTypes(in, encodedNameBuilder);
 		
+		this.simpleEncodedName = 'T' + name + ';';
 		this.encodedName = encodedNameBuilder.toString();
 	}
+	
+	public GenericDeclarationType(String name, @Immutable List<ReferenceType> types) {
+		this.name = name;
+		this.types = types;
+
+		this.simpleEncodedName = 'T' + name + ';';
+		this.encodedName = name + ':' + types.stream().map(Type::getEncodedName).collect(Collectors.joining("::"));
+	}
+	
+	
+	public static GenericDeclarationType fromTypeVariable(TypeVariable<?> reflectType, IClassInfo classinfo) {
+		return new GenericDeclarationType(reflectType.getTypeName(),
+				Arrays.stream(reflectType.getBounds())
+					.map(bound -> ReferenceType.fromReflectType(reflectType, classinfo)).toList());
+	}
+	
+	
+	@Override
+	public @Nullable ReferenceType getSuperType() {
+		return null;
+	}
+	
+	@Override
+	public @Immutable List<? extends ReferenceType> getInterfaces() {
+		return types;
+	}
+	
+	
+	@Override
+	public ReferenceType toDefiniteGeneric(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
+		return DefiniteGenericType.fromDeclaration(this);
+	}
+	
 	
 	@Override
 	public String toString() {
@@ -87,18 +128,23 @@ public final class GenericParameterType extends ReferenceType {
 		return encodedName;
 	}
 	
+	public String getSimpleEncodedName() {
+		return simpleEncodedName;
+	}
+	
 	@Override
 	public String getName() {
 		return name;
 	}
 	
+	
 	@Override
 	public String getNameForVariable() {
-		throw new UnsupportedOperationException("Variable cannot have generic parameter type");
+		throw new UnsupportedOperationException("Variable cannot have generic declaration type");
 	}
 	
 	@Override
-	protected boolean canCastTo(Type other) {
+	protected boolean canCastToNarrowest(Type other) {
 		return other.isReferenceType();
 	}
 }

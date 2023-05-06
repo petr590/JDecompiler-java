@@ -1,6 +1,6 @@
 package x590.jdecompiler.attribute;
 
-public class SyntheticAttribute extends EmptyAttribute {
+public final class SyntheticAttribute extends EmptyAttribute {
 	
 	private static final SyntheticAttribute INSTANCE = new SyntheticAttribute();
 	

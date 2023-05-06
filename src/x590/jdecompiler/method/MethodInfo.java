@@ -5,26 +5,29 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 
 import x590.jdecompiler.MemberInfo;
+import x590.jdecompiler.clazz.IClassInfo;
 import x590.jdecompiler.modifiers.MethodModifiers;
-import x590.jdecompiler.type.ReferenceType;
+import x590.jdecompiler.type.reference.RealReferenceType;
 
 public final class MethodInfo extends MemberInfo<MethodDescriptor, MethodModifiers> {
 	
-	public MethodInfo(MethodDescriptor descriptor, MethodModifiers modifiers) {
-		super(descriptor, modifiers);
+	public MethodInfo(MethodDescriptor descriptor, MethodDescriptor genericDescriptor, MethodModifiers modifiers) {
+		super(descriptor, genericDescriptor, modifiers);
 	}
 	
 	
-	public static MethodInfo fromReflectMethod(ReferenceType declaringClass, Method method) {
+	public static MethodInfo fromReflectMethod(RealReferenceType declaringClass, Method method, IClassInfo classinfo) {
 		return new MethodInfo(
 				MethodDescriptor.fromReflectMethod(declaringClass, method),
+				MethodDescriptor.fromReflectMethodGeneric(declaringClass, method, classinfo),
 				MethodModifiers.of(method.getModifiers())
 		);
 	}
 	
-	public static MethodInfo fromReflectConstructor(ReferenceType declaringClass, Constructor<?> constructor) {
+	public static MethodInfo fromReflectConstructor(RealReferenceType declaringClass, Constructor<?> constructor, IClassInfo classinfo) {
 		return new MethodInfo(
 				MethodDescriptor.fromReflectConstructor(declaringClass, constructor),
+				MethodDescriptor.fromReflectConstructorGeneric(declaringClass, constructor, classinfo),
 				MethodModifiers.of(constructor.getModifiers())
 		);
 	}

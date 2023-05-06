@@ -1,4 +1,7 @@
-package x590.jdecompiler.type;
+package x590.jdecompiler.type.primitive;
+
+import x590.jdecompiler.type.TypeSize;
+import x590.jdecompiler.type.reference.ClassType;
 
 public final class BooleanType extends PrimitiveType {
 	

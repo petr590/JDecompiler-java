@@ -2,6 +2,8 @@ package x590.jdecompiler.type;
 
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.io.ExtendedOutputStream;
+import x590.jdecompiler.type.reference.ClassType;
+import x590.jdecompiler.type.reference.ReferenceType;
 
 public final class AnyObjectType extends Type {
 	
@@ -54,17 +56,19 @@ public final class AnyObjectType extends Type {
 	}
 	
 	@Override
-	protected boolean canCastTo(Type other) {
+	protected boolean canCastToNarrowest(Type other) {
 		return this == other || other.isReferenceType();
 	}
 	
 	@Override
-	protected Type castToNarrowestImpl(Type other) {
+	protected Type castImpl(Type other, CastingKind kind) {
 		if(this == other)
 			return this;
 		
 		if(other.isReferenceType())
-			return UncertainReferenceType.getInstance((ReferenceType)other);
+			return kind.isNarrowest() ?
+					UncertainReferenceType.getInstance((ReferenceType)other) :
+					UncertainReferenceType.getInstance(ClassType.OBJECT, (ReferenceType)other, kind);
 		
 		if(other.isUncertainReferenceType())
 			return other;
@@ -73,26 +77,12 @@ public final class AnyObjectType extends Type {
 	}
 	
 	@Override
-	protected Type castToWidestImpl(Type other) {
-		if(this == other)
-			return this;
-		
-		if(other.isReferenceType())
-			return UncertainReferenceType.getInstance(ClassType.OBJECT, (ReferenceType)other, true);
-		
-		if(other.isUncertainReferenceType())
-			return other;
-		
-		return null;
-	}
-	
-	@Override
-	protected Type reversedCastToNarrowestImpl(Type other) {
+	protected Type reversedCastImpl(Type other, CastingKind kind) {
 		return this == other || other.isAnyReferenceType() ? other : null;
 	}
 	
 	@Override
-	protected Type reversedCastToWidestImpl(Type other) {
-		return this == other || other.isAnyReferenceType() ? other : null;
+	public BasicType reduced() {
+		return ClassType.OBJECT;
 	}
 }

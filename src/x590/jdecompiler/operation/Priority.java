@@ -1,5 +1,8 @@
 package x590.jdecompiler.operation;
 
+/**
+ * Хранит приоритеты операций
+ */
 public final class Priority {
 	
 	private Priority() {}

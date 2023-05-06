@@ -13,8 +13,8 @@ import x590.jdecompiler.field.JavaField;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.type.CastStatus;
-import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.reference.ClassType;
 import x590.util.annotation.Nullable;
 
 /**

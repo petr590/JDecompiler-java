@@ -1,7 +1,7 @@
 package x590.jdecompiler.operation.array;
 
 import x590.jdecompiler.context.DecompilationContext;
-import x590.jdecompiler.type.ArrayType;
+import x590.jdecompiler.type.reference.ArrayType;
 
 public final class ANewArrayOperation extends NewArrayOperation {
 	

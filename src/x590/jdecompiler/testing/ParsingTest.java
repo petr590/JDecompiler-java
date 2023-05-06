@@ -2,9 +2,9 @@ package x590.jdecompiler.testing;
 
 import org.junit.Test;
 
-import x590.jdecompiler.type.ClassType;
-import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.ClassType;
 
 import static org.junit.Assert.*;
 

@@ -1,5 +1,7 @@
 package x590.jdecompiler.operation;
 
+import static x590.jdecompiler.operation.Priority.*;
+
 import java.util.LinkedList;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -12,10 +14,11 @@ import x590.jdecompiler.modifiers.MethodModifiers;
 import x590.jdecompiler.operation.constant.ConstOperation;
 import x590.jdecompiler.operation.load.ALoadOperation;
 import x590.jdecompiler.operationinstruction.constant.AConstNullOperationInstruction;
+import x590.jdecompiler.type.CastingKind;
 import x590.jdecompiler.type.GeneralCastingKind;
-import x590.jdecompiler.type.PrimitiveType;
-import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.ReferenceType;
 import x590.jdecompiler.writable.StringifyWritable;
 import x590.util.annotation.Nullable;
 import x590.util.annotation.RemoveIfNotUsed;
@@ -37,8 +40,10 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 		LEFT, RIGHT;
 		
 		public static Associativity byPriority(int priority) {
-			return  priority == Priority.ASSIGNMENT || priority == Priority.TERNARY_OPERATOR ||
-					priority == Priority.CAST || priority == Priority.UNARY ? RIGHT : LEFT;
+			return switch(priority) {
+				case ASSIGNMENT, TERNARY_OPERATOR, CAST, UNARY -> RIGHT;
+				default -> LEFT;
+			};
 		}
 	}
 	
@@ -64,7 +69,7 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 		out.write(';');
 	}
 	
-	/** Вывод между операцииями (вызывается для всех, кроме последней) */
+	/** Вывод между операцииями (вызывается для всех операций в scope, кроме последней) */
 	public default void writeSeparator(StringifyOutputStream out, StringifyContext context, Operation nextOperation) {
 		if(nextOperation.isScope())
 			out.println();
@@ -147,10 +152,14 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	public Type getReturnTypeAsNarrowest(Type type);
 	
 	public Type getReturnTypeAsWidest(Type type);
+
+	public Type getReturnTypeAs(Type type, CastingKind kind);
 	
 	public void castReturnTypeToNarrowest(Type type);
 	
 	public void castReturnTypeToWidest(Type type);
+	
+	public void castReturnTypeTo(Type type, CastingKind kind);
 	
 	
 	public Type getReturnTypeAsGeneralNarrowest(Operation other, GeneralCastingKind kind);
@@ -159,9 +168,16 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	/** Сведение типа */
 	public default void reduceType() {}
 	
-	/** Делает преобразование для константы {@literal null},
-	 * так как мы не можем обратиться к полю или методу напрямую через {@literal null}.
-	 * @param clazz - тип, к которому преобразуется {@literal null}
+	/** Делает приведение типа для таких выражений, как {@literal null} или лямбда,
+	 * так как мы не можем обратиться к полю или методу напрямую без приведения.
+	 * @param clazz - тип, к которому преобразуется выражение */
+	public default Operation castIfNecessary(ReferenceType clazz) {
+		return this;
+	}
+	
+	/** Делает приведение типа для выражения {@literal null},
+	 * так как мы не можем обратиться к полю или методу напрямую без приведения.
+	 * @param clazz - тип, к которому преобразуется выражение
 	 * @see AConstNullOperationInstruction */
 	public default Operation castIfNull(ReferenceType clazz) {
 		return this;

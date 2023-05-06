@@ -1,8 +1,8 @@
 package x590.jdecompiler.main;
 
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import x590.argparser.ArgsNamespace;
@@ -13,7 +13,7 @@ import x590.argparser.option.StringOption;
 import x590.jdecompiler.main.performing.AbstractPerforming.PerformingType;
 import x590.util.ObjectHolder;
 
-public class Config {
+public final class Config {
 	
 	public enum UsagePolicy {
 		ALWAYS, AUTO, NEVER;
@@ -202,8 +202,8 @@ public class Config {
 				.parse(args);
 	}
 	
-	private static Consumer<Boolean> not(BooleanConsumer consumer) {
-		return value -> consumer.accept(!value);
+	private static BooleanConsumer not(BooleanConsumer consumer) {
+		return value -> consumer.accept(value ^ true);
 	}
 	
 	public boolean writeToConsole() {
@@ -333,6 +333,15 @@ public class Config {
 			
 			return config;
 		}
+		
+		
+		public Builder withArguments(String... args) {
+			args = Arrays.copyOf(args, args.length + 1);
+			args[args.length - 1] = "";
+			parseArguments(args, ObjectHolder.voidHolder(), this);
+			return this;
+		}
+		
 		
 		public Builder writeToConsole(boolean writeToConsole) {
 			config.writeToConsole = writeToConsole;

@@ -1,6 +1,6 @@
 package x590.jdecompiler.test;
 
-import x590.jdecompiler.type.ClassType;
+import x590.jdecompiler.type.reference.ClassType;
 
 public class ClassTypeTableTest {
 	

@@ -6,6 +6,7 @@ import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.AbstractOperation;
 import x590.jdecompiler.operation.Operation;
+import x590.jdecompiler.type.CastingKind;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.variable.Variable;
 import x590.util.annotation.Nullable;
@@ -53,8 +54,8 @@ public abstract class LoadOperation extends AbstractOperation {
 	}
 	
 	@Override
-	public void onCastReturnType(Type newType) {
-		variable.castTypeToNarrowest(newType);
+	public void onCastReturnType(Type newType, CastingKind casting) {
+		variable.castTypeTo(newType, casting);
 	}
 	
 	@Override

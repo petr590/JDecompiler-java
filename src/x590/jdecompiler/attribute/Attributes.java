@@ -48,8 +48,9 @@ public final class Attributes implements JavaSerializable, Importable {
 		List<Attribute> attributes = in.readArrayList(length, () -> {
 			Attribute attribute = Attribute.read(in, pool, location);
 			
-			if(attributeByName.put(attribute.getName(), attribute) != null)
+			if(attributeByName.put(attribute.getName(), attribute) != null) {
 				Logger.warning("Found two attributes with the same name \"" + attribute.getName() + "\"");
+			}
 			
 			return attribute;
 		});

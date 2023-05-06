@@ -8,13 +8,13 @@ public enum TypeSize {
 	WORD(1), // boolean, byte, short, char, int, float, Object
 	LONG(2); // long, double
 	
-	private final int occupiedSlots;
+	private final int slotsOccupied;
 	
-	private TypeSize(int occupiedSlots) {
-		this.occupiedSlots = occupiedSlots;
+	private TypeSize(int slotsOccupied) {
+		this.slotsOccupied = slotsOccupied;
 	}
 	
 	public int slotsOccupied() {
-		return occupiedSlots;
+		return slotsOccupied;
 	}
 }

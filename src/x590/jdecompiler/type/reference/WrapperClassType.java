@@ -1,7 +1,10 @@
-package x590.jdecompiler.type;
+package x590.jdecompiler.type.reference;
 
 import java.util.function.BiFunction;
 
+import x590.jdecompiler.type.GeneralCastingKind;
+import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.primitive.PrimitiveType;
 import x590.util.annotation.Nullable;
 import x590.util.function.TriFunction;
 

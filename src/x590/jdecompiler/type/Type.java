@@ -1,5 +1,6 @@
 package x590.jdecompiler.type;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -8,15 +9,28 @@ import java.util.function.Function;
 
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.clazz.ClassInfo;
+import x590.jdecompiler.clazz.IClassInfo;
 import x590.jdecompiler.exception.IncopatibleTypesException;
 import x590.jdecompiler.exception.InvalidMethodDescriptorException;
 import x590.jdecompiler.exception.InvalidTypeNameException;
 import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.type.primitive.IntegralType;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.ArrayType;
+import x590.jdecompiler.type.reference.ClassType;
+import x590.jdecompiler.type.reference.RealReferenceType;
+import x590.jdecompiler.type.reference.ReferenceType;
+import x590.jdecompiler.type.reference.SuperGenericType;
+import x590.jdecompiler.type.reference.WrapperClassType;
+import x590.jdecompiler.type.reference.generic.AnyGenericType;
+import x590.jdecompiler.type.reference.generic.ExtendingGenericType;
+import x590.jdecompiler.type.reference.generic.GenericDeclarationType;
+import x590.jdecompiler.type.reference.generic.GenericParameters;
+import x590.jdecompiler.type.reference.generic.SignatureParameterType;
 import x590.jdecompiler.writable.BiStringifyWritable;
 import x590.jdecompiler.writable.SameDisassemblingStringifyWritable;
 import x590.util.annotation.Immutable;
-import x590.util.annotation.Nonnull;
 import x590.util.annotation.Nullable;
 
 /**
@@ -65,6 +79,12 @@ public abstract class Type implements
 	
 	/** @return Имя типа: "java.lang.Object", "int" */
 	public abstract String getName();
+	
+	/** @return Имя скомпилированного типа без сигнатуры.
+	 * Например, для типа "java/util/Map$Entry" вернёт "java.util.Map$Entry" */
+	public String getBinaryName() {
+		return getName();
+	}
 	
 	/** Имя для переменной. Например, все переменные типа int называются "n".
 	 * Если таких переменных больше одной, то к названиям добавляется номер. */
@@ -160,30 +180,50 @@ public abstract class Type implements
 	}
 	
 	
-	protected abstract boolean canCastTo(Type other);
+	protected abstract boolean canCastToNarrowest(Type other);
 	
 	
 	/** Реализация метода преобразования к наиболее узкому типу.
 	 * @return результат преобразования или {@literal null}, если преобразование невозможно */
-	protected abstract Type castToNarrowestImpl(Type other);
+	@Deprecated(forRemoval = true)
+	protected Type castToNarrowestImpl(Type other) {
+		return castImpl(other, CastingKind.NARROWEST);
+	}
 	
 	/** Реализация метода преобразования к наиболее широкому типу.
 	 * @return результат преобразования или {@literal null}, если преобразование невозможно */
-	protected abstract Type castToWidestImpl(Type other);
+	@Deprecated(forRemoval = true)
+	protected Type castToWidestImpl(Type other) {
+		return castImpl(other, CastingKind.WIDEST);
+	}
+	
+	/** Реализация метода преобразования.
+	 * @return результат преобразования или {@literal null}, если преобразование невозможно */
+	protected abstract Type castImpl(Type other, CastingKind kind);
 	
 	/** Реализация метода преобразования к наиболее узкому типу.
 	 * Вызывается, если метод {@link #castToNarrowestImpl(Type)} вернул {@literal null}.
 	 * @return результат преобразования или {@literal null}, если преобразование невозможно.
 	 * Реализация по умолчанию возвращает {@literal null} */
+	@Deprecated(forRemoval = true)
 	protected Type reversedCastToNarrowestImpl(Type other) {
-		return null;
+		return reversedCastImpl(other, CastingKind.NARROWEST);
 	}
 	
 	/** Реализация метода преобразования к наиболее широкому типу.
 	 * Вызывается, если метод {@link #castToWidestImpl(Type)} вернул {@literal null}.
 	 * @return результат преобразования или {@literal null}, если преобразование невозможно.
 	 * Реализация по умолчанию возвращает {@literal null} */
+	@Deprecated(forRemoval = true)
 	protected Type reversedCastToWidestImpl(Type other) {
+		return reversedCastImpl(other, CastingKind.WIDEST);
+	}
+	
+	/** Реализация метода преобразования к наиболее узкому типу.
+	 * Вызывается, если метод {@link #castImpl(Type, CastingKind)} вернул {@literal null}.
+	 * @return результат преобразования или {@literal null}, если преобразование невозможно.
+	 * Реализация по умолчанию возвращает {@literal null} */
+	protected Type reversedCastImpl(Type other, CastingKind kind) {
 		return null;
 	}
 	
@@ -191,22 +231,23 @@ public abstract class Type implements
 	/** Преобразует тип к наиболее узкому типу.
 	 * @return результат преобразования или {@literal null}, если преобразование невозможно */
 	public final @Nullable Type castToNarrowestNoexcept(Type other) {
-		Type type = castToNarrowestImpl(other);
-		
-		if(type != null) return type;
-		
-		return other.reversedCastToNarrowestImpl(this);
+		return castNoexcept(other, CastingKind.NARROWEST);
 	}
 	
 	
 	/** Преобразует тип к наиболее широкому типу.
 	 * @return результат преобразования или {@literal null}, если преобразование невозможно */
 	public final @Nullable Type castToWidestNoexcept(Type other) {
-		Type type = castToWidestImpl(other);
+		return castNoexcept(other, CastingKind.WIDEST);
+	}
+	
+	
+	public final @Nullable Type castNoexcept(Type other, CastingKind kind) {
+		Type type = castImpl(other, kind);
 		
 		if(type != null) return type;
 		
-		return other.reversedCastToWidestImpl(this);
+		return other.reversedCastImpl(this, kind);
 	}
 	
 	
@@ -214,18 +255,19 @@ public abstract class Type implements
 	 * @return результат преобразования
 	 * @throws IncopatibleTypesException, если преобразование невозможно */
 	public final Type castToNarrowest(Type other) {
-		Type type = castToNarrowestNoexcept(other);
-		
-		if(type != null) return type;
-		
-		throw new IncopatibleTypesException(this, other);
+		return castTo(other, CastingKind.NARROWEST);
 	}
 	
-	/** Преобразует тип к наиболее широкрму типу (используется при присвоении значения переменной)
+	/** Преобразует тип к наиболее широкому типу (используется при присвоении значения переменной)
 	 * @return результат преобразования
 	 * @throws IncopatibleTypesException, если преобразование невозможно */
 	public final Type castToWidest(Type other) {
-		Type type = castToWidestNoexcept(other);
+		return castTo(other, CastingKind.WIDEST);
+	}
+	
+	
+	public final Type castTo(Type other, CastingKind kind) {
+		Type type = castNoexcept(other, kind);
 		
 		if(type != null) return type;
 		
@@ -277,7 +319,12 @@ public abstract class Type implements
 	
 	
 	/** Выполняет сведение типа. */
-	public Type reduced() {
+	public abstract BasicType reduced();
+	
+	
+	/** Заменяет все неопределённые generic параметры на определённые
+	 * и возвращает получившийся тип */
+	public Type toDefiniteGeneric(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
 		return this;
 	}
 	
@@ -321,7 +368,7 @@ public abstract class Type implements
 	 * (для компилятора, т.е. мы можем конвертировать int в long в коде, но не можем сделать это на уровне байткода).
 	 * Чем меньше статус, тем выше приоритет. Если статус больше или равен {@link CastStatus.NONE}, значит преобразование невозможно */
 	public int implicitCastStatus(Type other) {
-		return this == other ? CastStatus.SAME : this.canCastTo(other) ? CastStatus.EXTEND : CastStatus.NONE;
+		return this == other ? CastStatus.SAME : this.canCastToNarrowest(other) ? CastStatus.EXTEND : CastStatus.NONE;
 	}
 	
 	
@@ -348,6 +395,19 @@ public abstract class Type implements
 	}
 	
 	
+	public static Type fromReflectType(java.lang.reflect.Type reflectType, IClassInfo classinfo) {
+		if(reflectType instanceof Class<?> clazz) {
+			return fromClass(clazz);
+		}
+		
+		if(reflectType instanceof ParameterizedType parameterizedType) {
+			return ClassType.fromParameterizedType(parameterizedType, classinfo);
+		}
+		
+		return classinfo.findOrCreateGenericType(reflectType.getTypeName());
+	}
+	
+	
 	/** @see #parseType(ExtendedStringInputStream) */
 	public static BasicType parseType(String str) {
 		return parseType(new ExtendedStringInputStream(str));
@@ -366,7 +426,7 @@ public abstract class Type implements
 			case 'Z': in.incPos(); return PrimitiveType.BOOLEAN;
 			case 'L': return ClassType.read(in.next());
 			case '[': return ArrayType.read(in);
-			case 'T': return new SignatureParameterType(in.next());
+			case 'T': return SignatureParameterType.read(in.next());
 			default:
 				throw new InvalidTypeNameException(in, in.distanceToMark());
 		}
@@ -416,7 +476,7 @@ public abstract class Type implements
 	
 	
 	/** Парсит тип массива или класса (без префикса 'L') */
-	public static ReferenceType parseReferenceType(String encodedName) {
+	public static RealReferenceType parseRealReferenceType(String encodedName) {
 		return encodedName.charAt(0) == '[' ?
 				ArrayType.fromDescriptor(encodedName) :
 				ClassType.fromDescriptor(encodedName);
@@ -428,7 +488,7 @@ public abstract class Type implements
 		switch(in.get()) {
 			case 'L': return ClassType.read(in.next());
 			case '[': return ArrayType.read(in);
-			case 'T': return new SignatureParameterType(in.next());
+			case 'T': return SignatureParameterType.read(in.next());
 			default:
 				throw new InvalidTypeNameException(in, in.distanceToMark());
 		}
@@ -450,15 +510,15 @@ public abstract class Type implements
 			};
 	
 	
-	public static @Nonnull GenericParameters<ReferenceType> parseSignature(ExtendedStringInputStream in) {
-		return GenericParameters.readNonnull(in, signatureParameterGetter);
+	public static GenericParameters<ReferenceType> parseSignature(ExtendedStringInputStream in) {
+		return GenericParameters.readNonempty(in, signatureParameterGetter);
 	}
 	
-	public static @Nullable GenericParameters<ReferenceType> parseNullableSignature(ExtendedStringInputStream in) {
-		return GenericParameters.readNullable(in, signatureParameterGetter);
+	public static GenericParameters<ReferenceType> parseEmptyableSignature(ExtendedStringInputStream in) {
+		return GenericParameters.readEmptyable(in, signatureParameterGetter);
 	}
 	
-	public static @Nullable GenericParameters<GenericParameterType> parseNullableGenericParameters(ExtendedStringInputStream in) {
-		return GenericParameters.readNullable(in, GenericParameterType::new);
+	public static GenericParameters<GenericDeclarationType> parseEmptyableGenericParameters(ExtendedStringInputStream in) {
+		return GenericParameters.readEmptyable(in, GenericDeclarationType::new);
 	}
 }

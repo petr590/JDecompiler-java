@@ -1,6 +1,12 @@
-package x590.jdecompiler.type;
+package x590.jdecompiler.type.primitive;
 
 import x590.jdecompiler.io.ExtendedOutputStream;
+import x590.jdecompiler.type.BasicType;
+import x590.jdecompiler.type.GeneralCastingKind;
+import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.UncertainIntegralType;
+import x590.jdecompiler.type.reference.ClassType;
+import x590.jdecompiler.type.reference.WrapperClassType;
 import x590.util.annotation.Nullable;
 
 import static x590.jdecompiler.type.UncertainIntegralType.INCLUDE_BOOLEAN;
@@ -70,7 +76,7 @@ public abstract class PrimitiveType extends BasicType {
 	}
 	
 	@Override
-	protected boolean canCastTo(Type other) {
+	protected boolean canCastToNarrowest(Type other) {
 		return this == other;
 	}
 	
@@ -80,7 +86,7 @@ public abstract class PrimitiveType extends BasicType {
 	
 	@Override
 	protected Type castToNarrowestImpl(Type other) {
-		return this.canCastTo(other) ? this : null;
+		return this.canCastToNarrowest(other) ? this : null;
 	}
 	
 	@Override

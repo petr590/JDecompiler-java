@@ -8,7 +8,7 @@ import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.load.ExceptionLoadOperation;
-import x590.jdecompiler.type.ClassType;
+import x590.jdecompiler.type.reference.ClassType;
 import x590.util.annotation.Immutable;
 
 public class CatchScope extends Scope {

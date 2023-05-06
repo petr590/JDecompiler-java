@@ -1,4 +1,7 @@
-package x590.jdecompiler.type;
+package x590.jdecompiler.type.primitive;
+
+import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.TypeSize;
 
 /**
  * Целочисленный знаковый тип, который занимает 4 байта в стеке
@@ -16,12 +19,12 @@ public abstract class IntegralType extends PrimitiveType {
 		return TypeSize.WORD;
 	}
 	
-	/** Фактический размер типа данных */
+	/** Размер примитива в байтах */
 	public abstract int getCapacity();
 	
 	
 	@Override
-	protected boolean canCastTo(Type other) {
+	protected boolean canCastToNarrowest(Type other) {
 		return this == other ||
 				other instanceof IntegralType integralType && integralType.getCapacity() >= this.getCapacity();
 	}

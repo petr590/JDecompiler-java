@@ -1,8 +1,8 @@
 package x590.jdecompiler.constpool;
 
 import x590.jdecompiler.field.FieldDescriptor;
-import x590.jdecompiler.type.ClassType;
-import x590.jdecompiler.type.PrimitiveType;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.ClassType;
 
 final class FPMath {
 	
@@ -11,6 +11,6 @@ final class FPMath {
 	static final ClassType MATH_CLASS = ClassType.fromClass(Math.class);
 	
 	static final FieldDescriptor
-			PI_DESCRIPTOR = new FieldDescriptor(PrimitiveType.DOUBLE, MATH_CLASS, "PI"),
-			E_DESCRIPTOR = new FieldDescriptor(PrimitiveType.DOUBLE, MATH_CLASS, "E");
+			PI_DESCRIPTOR = FieldDescriptor.of(PrimitiveType.DOUBLE, MATH_CLASS, "PI"),
+			E_DESCRIPTOR  = FieldDescriptor.of(PrimitiveType.DOUBLE, MATH_CLASS, "E");
 }

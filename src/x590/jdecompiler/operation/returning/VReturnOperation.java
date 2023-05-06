@@ -7,7 +7,7 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.AbstractOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.VoidOperation;
-import x590.jdecompiler.type.PrimitiveType;
+import x590.jdecompiler.type.primitive.PrimitiveType;
 
 public final class VReturnOperation extends AbstractOperation implements VoidOperation {
 	
@@ -20,11 +20,12 @@ public final class VReturnOperation extends AbstractOperation implements VoidOpe
 		return INSTANCE;
 	}
 	
-	/** Проверяет, что метод переданного {@code context} возвращает {@literal void}
-	 * @return Единственный экземпляр класса*/
+	/** Проверяет, что метод переданного {@code context} возвращает {@literal void}.
+	 * @throws {@link DecompilationException}, если метод возвращает <b>не {@literal void}</b>.
+	 * @return Единственный экземпляр класса */
 	public static VReturnOperation getInstance(DecompilationContext context) {
-		if(context.getDescriptor().getReturnType() != PrimitiveType.VOID)
-			throw new DecompilationException("The method return type (" + context.getDescriptor().getReturnType() + ")" +
+		if(context.getGenericDescriptor().getReturnType() != PrimitiveType.VOID)
+			throw new DecompilationException("The method return type (" + context.getGenericDescriptor().getReturnType() + ")" +
 					" does not match type of the `return` instruction");
 		
 		return INSTANCE;

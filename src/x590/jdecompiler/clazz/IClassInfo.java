@@ -10,8 +10,12 @@ import x590.jdecompiler.field.FieldInfo;
 import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.method.MethodInfo;
 import x590.jdecompiler.modifiers.ClassModifiers;
-import x590.jdecompiler.type.ClassType;
-import x590.jdecompiler.type.ReferenceType;
+import x590.jdecompiler.type.reference.ClassType;
+import x590.jdecompiler.type.reference.RealReferenceType;
+import x590.jdecompiler.type.reference.ReferenceType;
+import x590.jdecompiler.type.reference.generic.GenericDeclarationType;
+import x590.jdecompiler.type.reference.generic.GenericParameters;
+import x590.jdecompiler.type.reference.generic.SignatureParameterType;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
@@ -23,11 +27,13 @@ public interface IClassInfo {
 	
 	public ClassModifiers getModifiers();
 	
-	public ReferenceType getThisType();
+	public RealReferenceType getThisType();
 	
 	public @Nullable ClassType getSuperType();
 	
-	public @Nullable @Immutable List<ClassType> getInterfaces();
+	public @Nullable @Immutable List<? extends ClassType> getInterfaces();
+	
+	public GenericParameters<GenericDeclarationType> getSignatureParameters();
 	
 	
 	public default boolean isRecord() {
@@ -49,10 +55,20 @@ public interface IClassInfo {
 	public boolean hasMethodByDescriptor(Predicate<MethodDescriptor> predicate);
 	
 	
-	public Optional<FieldInfo> findFieldInfo(FieldDescriptor descriptor);
+	public Optional<? extends FieldInfo> findFieldInfo(FieldDescriptor descriptor);
 	
-	public Optional<MethodInfo> findMethodInfo(MethodDescriptor descriptor);
+	public Optional<? extends MethodInfo> findMethodInfo(MethodDescriptor descriptor);
 	
 	
-	public Optional<Annotation> findAnnotation(ClassType type);
+	public Optional<? extends Annotation> findAnnotation(ClassType type);
+	
+	
+	public default Optional<? extends GenericDeclarationType> findGenericType(String name) {
+		return getSignatureParameters().findGenericType(name);
+	}
+	
+	public default ReferenceType findOrCreateGenericType(String name) {
+		return findGenericType(name).map(type -> type.toDefiniteGeneric(this, GenericParameters.empty()))
+				.orElseGet(() -> SignatureParameterType.of(name));
+	}
 }

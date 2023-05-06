@@ -8,9 +8,9 @@ import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.LConstOperation;
-import x590.jdecompiler.type.ClassType;
-import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.ClassType;
 import x590.jdecompiler.util.StringUtil;
 import x590.util.annotation.Nullable;
 
@@ -83,10 +83,12 @@ public final class LongConstant extends SingleConstableValueConstant<Long> {
 	
 	
 	private static final FieldDescriptor
-			MAX_VALUE_DESCRIPTOR = new FieldDescriptor(PrimitiveType.LONG, ClassType.LONG, "MAX_VALUE"),
-			MIN_VALUE_DESCRIPTOR = new FieldDescriptor(PrimitiveType.LONG, ClassType.LONG, "MIN_VALUE");
+			MAX_VALUE_DESCRIPTOR = FieldDescriptor.of(PrimitiveType.LONG, ClassType.LONG, "MAX_VALUE"),
+			MIN_VALUE_DESCRIPTOR = FieldDescriptor.of(PrimitiveType.LONG, ClassType.LONG, "MIN_VALUE");
 	
-	private boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo, @Nullable FieldDescriptor ownerConstant, long value, FieldDescriptor requiredConstant) {
+	private boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo, @Nullable FieldDescriptor ownerConstant,
+			long value, FieldDescriptor requiredConstant) {
+		
 		return writeConstantIfEquals(out, classinfo, ownerConstant, this.value == value, this.value == -value, requiredConstant);
 	}
 	

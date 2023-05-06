@@ -8,17 +8,18 @@ import java.util.Objects;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import x590.jdecompiler.MemberInfo;
+import x590.jdecompiler.clazz.IClassInfo;
 import x590.jdecompiler.modifiers.FieldModifiers;
-import x590.jdecompiler.type.ArrayType;
-import x590.jdecompiler.type.ReferenceType;
+import x590.jdecompiler.type.reference.ArrayType;
+import x590.jdecompiler.type.reference.RealReferenceType;
 import x590.util.annotation.Nullable;
 
 public final class FieldInfo extends MemberInfo<FieldDescriptor, FieldModifiers> {
 	
 	public static final Int2ObjectMap<String> UNDEFINED_ENUM_TABLE = new Int2ObjectArrayMap<>();
 	
-	public FieldInfo(FieldDescriptor descriptor, FieldModifiers modifiers) {
-		super(descriptor, modifiers);
+	public FieldInfo(FieldDescriptor descriptor, FieldDescriptor genericDescriptor, FieldModifiers modifiers) {
+		super(descriptor, genericDescriptor, modifiers);
 		setEnumTable(getEnumTable(descriptor, modifiers));
 	}
 	
@@ -34,9 +35,10 @@ public final class FieldInfo extends MemberInfo<FieldDescriptor, FieldModifiers>
 	}
 	
 	
-	public static FieldInfo fromReflectField(ReferenceType declaringClass, Field field) {
+	public static FieldInfo fromReflectField(RealReferenceType declaringClass, Field field, IClassInfo classinfo) {
 		return new FieldInfo(
 				FieldDescriptor.fromReflectField(declaringClass, field),
+				FieldDescriptor.fromReflectFieldGeneric(declaringClass, field, classinfo),
 				FieldModifiers.of(field.getModifiers())
 		);
 	}

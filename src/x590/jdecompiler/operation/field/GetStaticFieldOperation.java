@@ -10,8 +10,8 @@ import x590.jdecompiler.field.FieldInfo;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.OperationUtils;
-import x590.jdecompiler.type.ClassType;
-import x590.jdecompiler.type.WrapperClassType;
+import x590.jdecompiler.type.reference.ClassType;
+import x590.jdecompiler.type.reference.WrapperClassType;
 import x590.util.annotation.Nullable;
 
 public final class GetStaticFieldOperation extends GetFieldOperation {

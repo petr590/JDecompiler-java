@@ -11,6 +11,7 @@ import x590.jdecompiler.operation.OperationWithVariable;
 import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.operation.VariableDefinitionOperation;
 import x590.jdecompiler.operation.load.LoadOperation;
+import x590.jdecompiler.type.CastingKind;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.variable.Variable;
 import x590.util.annotation.Nullable;
@@ -123,8 +124,8 @@ public abstract class StoreOperation extends OperationWithVariable
 	}
 	
 	@Override
-	public void onCastReturnType(Type newType) {
-		variable.castTypeToWidest(newType);
+	public void onCastReturnType(Type newType, CastingKind kind) {
+		variable.castTypeTo(newType, kind);
 	}
 	
 	@Override

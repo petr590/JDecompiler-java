@@ -32,17 +32,29 @@ import x590.jdecompiler.method.JavaMethod;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.returning.VReturnOperation;
 import x590.jdecompiler.scope.Scope;
-import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.TypeSize;
+import x590.jdecompiler.type.primitive.PrimitiveType;
 import x590.util.Logger;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
-public class DecompilationContext extends DecompilationAndStringifyContext implements Importable {
+public final class DecompilationContext extends DecompilationAndStringifyContext implements Importable {
 	
+	/** Текущий стек метода */
 	private final OperationStack stack = new OperationStack();
-	private final Int2ObjectMap<Deque<Operation>> stackStates = new Int2ObjectArrayMap<>();
+	
+	/** Сохранённые состояния стека по индексам. На один индекс может быть несколько состояний.
+	 * {@code Deque<Deque<Operation>>} - список состояний стека на определённом индексе,
+	 * {@code Deque<Operation>} - отдельное состояние стека */
+	private final Int2ObjectMap<Deque<Deque<Operation>>> stackStates = new Int2ObjectArrayMap<>();
+	
+	/** Был ли стек обновлён на текущем индексе (т.е. был ли вызван метод {@link #updateStackState()}).
+	 * Этот флаг нужен, чтобы не было двойного вызова {@link #updateStackState()} при декомпиляции
+	 * тернарного оператора. */
+	private boolean stackStateUpdated;
+	
+	private static final Deque<Deque<Operation>> EMPTY_STACK_STATES = new ArrayDeque<>();
 	
 	private final @Immutable Set<Operation> operations;
 	private final Set<Operation> mutableOperations;
@@ -98,20 +110,14 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 			final int index = this.index;
 			final int currentPos = currentPos();
 			
-			{
-				final var state = stackStates.get(index);
-				
-				if(state != null) {
-					stackStates.put(index, new ArrayDeque<>(stack.getContent()));
-					stack.setState(state);
-				}
-			}
+			stackStateUpdated = false;
+			updateStackState();
 			
 			finalizeScopes(index);
 			startScopes(index);
 			
 			
-//			Logger.debugf("%d: operation stack: [%s]", index, stack.stream().map(operation -> operation.getClass().getSimpleName() + " " + operation.getReturnType().getName()).collect(Collectors.joining(", ")));
+			Logger.debugf("%d: operation stack: [%s]", index, stack.stream().map(operation -> operation.getClass().getSimpleName() + " " + operation.getReturnType().getName()).collect(Collectors.joining(", ")));
 //			Logger.debugf("%d: scope stack: [%s]", index, StreamSupport.stream(this.getCurrentScopes().spliterator(), false).map(Scope::toString).collect(Collectors.joining(", ")));
 			
 //			Logger.debugf("%d: locals: [%s]", index,
@@ -380,14 +386,54 @@ public class DecompilationContext extends DecompilationAndStringifyContext imple
 	}
 	
 	
-	// XXX
-	public void saveStackState(int index) {
-		if(index > this.index)
-			stackStates.computeIfAbsent(index, key -> new ArrayDeque<>(stack.getContent()));
+	/**
+	 * Обновляет стек: берёт последнее состояние стека из {@link #stackStates}
+	 * и делает его текущим состоянием стека. Также берёт старое состояние стека
+	 * и добавляет в начало списка в {@link #stackStates}.<br>
+	 * Пример:<br>
+	 * было:   state1, [state2, state3]<br>
+	 * станет: state3, [state1, state2]
+	 */
+	public void updateStackState() {
+		if(!stackStateUpdated) {
+			final var index = this.index;
+			final var state = stackStates.getOrDefault(index, EMPTY_STACK_STATES).pollLast();
+			
+			if(state != null) {
+				getOrCreateStackStates(index).addFirst(new ArrayDeque<>(stack.getContent()));
+				stack.setState(state);
+			}
+			
+			stackStateUpdated = true;
+		}
 	}
 	
+	/** Сбрасывает флаг {@link #stackStateUpdated} */
+	public void resetStackStateUpdated() {
+		stackStateUpdated = false;
+	}
+	
+	/** Сохраняет по индексу текущее состояние стека */
+	public void saveStackState(int index) {
+		if(index >= this.index) {
+			getOrCreateStackStates(index).addLast(new ArrayDeque<>(stack.getContent()));
+		}
+	}
+	
+	private Deque<Deque<Operation>> getOrCreateStackStates(int index) {
+		return stackStates.computeIfAbsent(index, key -> new ArrayDeque<>());
+	}
+	
+	
+	/** @return Первое состояние стека по индексу или {@literal null}, если его нет */
 	public @Nullable Deque<Operation> getStackState(int index) {
-		return stackStates.get(index);
+		return stackStates.getOrDefault(index, EMPTY_STACK_STATES).peekFirst();
+	}
+	
+	/** Удаляет из списка первое состояние стека по индексу.
+	 * @return Удалённое состояние стека или {@literal null}, если удалять нечего. */
+	public @Nullable Deque<Operation> pollStackState(int index) {
+		return stackStates.getOrDefault(index, EMPTY_STACK_STATES).pollFirst();
 	}
 	
 	

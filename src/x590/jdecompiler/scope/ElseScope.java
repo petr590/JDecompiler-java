@@ -71,13 +71,19 @@ public class ElseScope extends Scope {
 	public void finalizeScope(DecompilationContext context) {
 		super.finalizeScope(context);
 		
-		var stackState = context.getStackState(endIndex());
+		context.updateStackState();
 		
-		if(ifScope.isEmpty() && this.isEmpty() && !stackState.isEmpty() && !context.stackEmpty()) {
-			
-			context.push(new TernaryOperatorOperation(ifScope.getCondition(), stackState.pop(), context.pop()));
+		final int endIndex = endIndex();
+		final var stackState = context.getStackState(endIndex);
+		
+		if(stackState != null && ifScope.isEmpty() && this.isEmpty() && !stackState.isEmpty() && !context.stackEmpty()) {
+
+			context.push(new TernaryOperatorOperation(ifScope.getCondition(), context.pop(), stackState.pop()));
 			this.remove();
 			ifScope.remove();
+			
+			context.pollStackState(endIndex);
+			context.resetStackStateUpdated();
 			
 		} else {
 			int operationsCount = getOperationsCount();

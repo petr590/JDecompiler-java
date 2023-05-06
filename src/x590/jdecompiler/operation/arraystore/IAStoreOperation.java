@@ -5,7 +5,7 @@ import x590.jdecompiler.operation.OperationUtils;
 import x590.jdecompiler.operation.constant.IConstOperation;
 import x590.jdecompiler.operation.field.GetStaticFieldOperation;
 import x590.jdecompiler.operation.invoke.InvokevirtualOperation;
-import x590.jdecompiler.type.ArrayType;
+import x590.jdecompiler.type.reference.ArrayType;
 
 public final class IAStoreOperation extends ArrayStoreOperation {
 	

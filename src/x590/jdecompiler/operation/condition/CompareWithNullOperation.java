@@ -15,7 +15,9 @@ public final class CompareWithNullOperation extends CompareUnaryOperation {
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-		out.printPrioritied(this, operand, context, Associativity.LEFT).printsp().print(compareType.getOperator(inverted)).print(" null");
+		out.printPrioritied(this, operand, context, Associativity.LEFT).printsp()
+			.print(getCompareType().getOperator(inverted)).printsp()
+			.print("null");
 	}
 	
 	@Override

@@ -5,7 +5,7 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.Type;
-import x590.jdecompiler.type.WrapperClassType;
+import x590.jdecompiler.type.reference.WrapperClassType;
 
 public class CastOperation extends AbstractOperation {
 	

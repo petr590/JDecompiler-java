@@ -9,9 +9,9 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.operation.constant.DConstOperation;
-import x590.jdecompiler.type.ClassType;
-import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.ClassType;
 import x590.jdecompiler.util.StringUtil;
 import x590.util.annotation.Nullable;
 
@@ -80,18 +80,22 @@ public final class DoubleConstant extends SingleConstableValueConstant<Double> {
 	
 	
 	private static final FieldDescriptor
-			MAX_VALUE_DESCRIPTOR         = new FieldDescriptor(PrimitiveType.DOUBLE, ClassType.DOUBLE, "MAX_VALUE"),
-			MIN_VALUE_DESCRIPTOR         = new FieldDescriptor(PrimitiveType.DOUBLE, ClassType.DOUBLE, "MIN_VALUE"),
-			MIN_NORMAL_DESCRIPTOR        = new FieldDescriptor(PrimitiveType.DOUBLE, ClassType.DOUBLE, "MIN_NORMAL"),
-			POSITIVE_INFINITY_DESCRIPTOR = new FieldDescriptor(PrimitiveType.DOUBLE, ClassType.DOUBLE, "POSITIVE_INFINITY"),
-			NEGATIVE_INFINITY_DESCRIPTOR = new FieldDescriptor(PrimitiveType.DOUBLE, ClassType.DOUBLE, "NEGATIVE_INFINITY"),
-			NaN_DESCRIPTOR               = new FieldDescriptor(PrimitiveType.DOUBLE, ClassType.DOUBLE, "NaN");
+			MAX_VALUE_DESCRIPTOR         = FieldDescriptor.of(PrimitiveType.DOUBLE, ClassType.DOUBLE, "MAX_VALUE"),
+			MIN_VALUE_DESCRIPTOR         = FieldDescriptor.of(PrimitiveType.DOUBLE, ClassType.DOUBLE, "MIN_VALUE"),
+			MIN_NORMAL_DESCRIPTOR        = FieldDescriptor.of(PrimitiveType.DOUBLE, ClassType.DOUBLE, "MIN_NORMAL"),
+			POSITIVE_INFINITY_DESCRIPTOR = FieldDescriptor.of(PrimitiveType.DOUBLE, ClassType.DOUBLE, "POSITIVE_INFINITY"),
+			NEGATIVE_INFINITY_DESCRIPTOR = FieldDescriptor.of(PrimitiveType.DOUBLE, ClassType.DOUBLE, "NEGATIVE_INFINITY"),
+			NAN_DESCRIPTOR               = FieldDescriptor.of(PrimitiveType.DOUBLE, ClassType.DOUBLE, "NaN");
 	
-	private boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo, @Nullable FieldDescriptor ownerConstant, double value, FieldDescriptor requiredConstant) {
+	private boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo, @Nullable FieldDescriptor ownerConstant,
+			double value, FieldDescriptor requiredConstant) {
+		
 		return writeConstantIfEquals(out, classinfo, ownerConstant, value, requiredConstant, true);
 	}
-
-	private boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo, @Nullable FieldDescriptor ownerConstant, double value, FieldDescriptor requiredConstant, boolean canNegate) {
+	
+	private boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo, @Nullable FieldDescriptor ownerConstant,
+			double value, FieldDescriptor requiredConstant, boolean canNegate) {
+		
 		return writeConstantIfEquals(out, classinfo, ownerConstant, this.value == value, canNegate && this.value == -value, requiredConstant);
 	}
 	
@@ -104,7 +108,7 @@ public final class DoubleConstant extends SingleConstableValueConstant<Double> {
 			!writeConstantIfEquals(out, classinfo, ownerConstant, Double.MIN_NORMAL, MIN_NORMAL_DESCRIPTOR) &&
 			!writeConstantIfEquals(out, classinfo, ownerConstant, Double.POSITIVE_INFINITY, POSITIVE_INFINITY_DESCRIPTOR, false) &&
 			!writeConstantIfEquals(out, classinfo, ownerConstant, Double.NEGATIVE_INFINITY, NEGATIVE_INFINITY_DESCRIPTOR, false) &&
-			!writeConstantIfEquals(out, classinfo, ownerConstant, Double.isNaN(value), NaN_DESCRIPTOR) &&
+			!writeConstantIfEquals(out, classinfo, ownerConstant, Double.isNaN(value), NAN_DESCRIPTOR) &&
 			!writeConstantIfEquals(out, classinfo, ownerConstant, Math.PI, FPMath.PI_DESCRIPTOR) &&
 			!writeConstantIfEquals(out, classinfo, ownerConstant, Math.E, FPMath.E_DESCRIPTOR)
 		) {

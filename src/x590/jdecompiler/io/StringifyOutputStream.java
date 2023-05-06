@@ -157,13 +157,13 @@ public class StringifyOutputStream extends ExtendedOutputStream<StringifyOutputS
 	
 	
 	
-	public StringifyOutputStream printPrioritied(Operation thisOperation, Operation otherOperation, StringifyContext param, Associativity associativity) {
-		thisOperation.writePrioritied(this, otherOperation, param, associativity);
+	public StringifyOutputStream printPrioritied(Operation thisOperation, Operation otherOperation, StringifyContext context, Associativity associativity) {
+		thisOperation.writePrioritied(this, otherOperation, context, associativity);
 		return this;
 	}
 	
-	public StringifyOutputStream printPrioritied(Operation thisOperation, Operation otherOperation, StringifyContext param, int thisPriority, Associativity associativity) {
-		thisOperation.writePrioritied(this, otherOperation, param, thisPriority, associativity);
+	public StringifyOutputStream printPrioritied(Operation thisOperation, Operation otherOperation, StringifyContext context, int thisPriority, Associativity associativity) {
+		thisOperation.writePrioritied(this, otherOperation, context, thisPriority, associativity);
 		return this;
 	}
 }

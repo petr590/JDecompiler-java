@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -42,8 +43,8 @@ import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.method.JavaMethod;
 import x590.jdecompiler.modifiers.ClassModifiers;
 import x590.jdecompiler.operation.invoke.InvokespecialOperation;
-import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.reference.ClassType;
 import x590.jdecompiler.util.WhitespaceStringBuilder;
 import x590.jdecompiler.util.IWhitespaceStringBuilder;
 import x590.util.LoopUtil;
@@ -82,7 +83,7 @@ public final class JavaClass extends JavaClassElement {
 	private @Immutable List<JavaClass> innerClasses;
 	
 	private final Attributes attributes;
-	private final @Nullable ClassSignatureAttribute signature;
+	private final Optional<ClassSignatureAttribute> signature;
 	
 	private final String sourceFileName;
 	private final @Nullable String directory;
@@ -104,7 +105,7 @@ public final class JavaClass extends JavaClassElement {
 			}
 		}
 		
-		return signature != null ? signature.superType : superType;
+		return signature.isPresent() ? signature.get().getSuperType() : superType;
 	}
 	
 	
@@ -112,7 +113,7 @@ public final class JavaClass extends JavaClassElement {
 	
 	private @Immutable List<? extends Type> getVisibleInterfaces() {
 		
-		var interfaces = signature != null ? signature.interfaces : this.interfaces;
+		var interfaces = signature.isPresent() ? signature.get().getInterfaces() : this.interfaces;
 		
 		if(!thisType.isAnonymous()) {
 			
@@ -158,13 +159,14 @@ public final class JavaClass extends JavaClassElement {
 		
 		if(thisType.isNested()) {
 			
-			InnerClassEntry innerClass = attributes.getOrDefaultEmpty(AttributeType.INNER_CLASSES)
-					.find(thisType);
+			InnerClassEntry innerClass = attributes.getOrDefaultEmpty(AttributeType.INNER_CLASSES).find(thisType);
 			
 			if(innerClass != null) {
 				ClassModifiers innerClassModifiers = innerClass.getModifiers();
 				
-				if(innerClassModifiers.and(~(ACC_ACCESS_FLAGS | ACC_STATIC | ACC_SUPER)) != (modifiers.and(~(ACC_ACCESS_FLAGS | ACC_STATIC | ACC_SUPER)))) {
+				if(innerClassModifiers.and(~(ACC_ACCESS_FLAGS | ACC_STATIC | ACC_SUPER)) !=
+							 modifiers.and(~(ACC_ACCESS_FLAGS | ACC_STATIC | ACC_SUPER))) {
+					
 					DecompilationContext.logWarning("modifiers of class " + thisType.getName()
 							+ " are not matching to the modifiers in \"" + AttributeNames.INNER_CLASSES + "\" attribute:"
 							+ modifiers.toHexWithPrefix() + ", " + innerClassModifiers.toHexWithPrefix());
@@ -178,9 +180,9 @@ public final class JavaClass extends JavaClassElement {
 		this.modifiers = modifiers;
 		
 		
-		this.signature = attributes.getNullable(AttributeType.CLASS_SIGNATURE);
-		if(signature != null)
-			signature.checkTypes(superType, interfaces);
+		this.signature = Optional.ofNullable(attributes.getNullable(AttributeType.CLASS_SIGNATURE));
+		if(signature.isPresent())
+			signature.get().checkTypes(superType, interfaces);
 		
 		this.visibleSuperType = getVisibleSuperType();
 		this.visibleInterfaces = getVisibleInterfaces();
@@ -316,6 +318,10 @@ public final class JavaClass extends JavaClassElement {
 	
 	public Attributes getAttributes() {
 		return attributes;
+	}
+	
+	public Optional<ClassSignatureAttribute> getSignature() {
+		return signature;
 	}
 	
 	public String getSourceFileName() {
@@ -513,8 +519,8 @@ public final class JavaClass extends JavaClassElement {
 		
 		out.printIndent().print(modifiersToString(classinfo), classinfo).print(thisType.getSimpleName());
 		
-		if(signature != null) {
-			out.printIfNotNull(signature.parameters, classinfo);
+		if(signature.isPresent()) {
+			out.printIfNotNull(signature.get().getParameters(), classinfo);
 		}
 		
 		if(isRecord()) {

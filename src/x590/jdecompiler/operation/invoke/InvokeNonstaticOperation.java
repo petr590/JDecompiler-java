@@ -22,18 +22,18 @@ public abstract class InvokeNonstaticOperation extends InvokeOperation {
 	 * так как важен порядок: сначала со стека снимаются аргументы, затем объект */
 	public InvokeNonstaticOperation(DecompilationContext context, MethodDescriptor descriptor) {
 		super(context, descriptor);
-		this.object = context.popAsNarrowest(descriptor.getDeclaringClass()).castIfNull(descriptor.getDeclaringClass());
+		this.object = context.popAsNarrowest(descriptor.getDeclaringClass()).castIfNecessary(descriptor.getDeclaringClass());
 	}
 	
 	/** Только для случаев, когда у метода нет аргументов или когда объект не на стеке */
 	public InvokeNonstaticOperation(DecompilationContext context, MethodDescriptor descriptor, Operation object) {
 		super(context, descriptor);
-		this.object = object.castIfNull(descriptor.getDeclaringClass());
+		this.object = object.castIfNecessary(descriptor.getDeclaringClass());
 	}
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-		if(writeObject(out, context)) {
+		if(tryWriteObject(out, context)) {
 			out.write('.');
 		}
 		
@@ -41,7 +41,7 @@ public abstract class InvokeNonstaticOperation extends InvokeOperation {
 	}
 	
 	/** Возвращает {@literal true}, если объект записан */
-	protected boolean writeObject(StringifyOutputStream out, StringifyContext context) {
+	protected boolean tryWriteObject(StringifyOutputStream out, StringifyContext context) {
 		if(!canOmitObject(context, object)) {
 			out.printPrioritied(this, object, context, Associativity.LEFT);
 			return true;

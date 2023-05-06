@@ -7,8 +7,8 @@ import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.operation.CastOperation;
 import x590.jdecompiler.operation.Operation;
-import x590.jdecompiler.type.ClassType;
-import x590.jdecompiler.type.PrimitiveType;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.ClassType;
 import x590.util.annotation.Nullable;
 
 public final class InvokevirtualOperation extends InvokeNonstaticOperation {

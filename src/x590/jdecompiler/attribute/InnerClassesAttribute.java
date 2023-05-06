@@ -10,7 +10,7 @@ import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.exception.DisassemblingException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.modifiers.ClassModifiers;
-import x590.jdecompiler.type.ClassType;
+import x590.jdecompiler.type.reference.ClassType;
 import x590.util.Util;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;

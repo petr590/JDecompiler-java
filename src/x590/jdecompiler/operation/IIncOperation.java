@@ -4,7 +4,7 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.load.LoadOperation;
-import x590.jdecompiler.type.PrimitiveType;
+import x590.jdecompiler.type.primitive.PrimitiveType;
 
 public final class IIncOperation extends OperationWithVariable {
 	

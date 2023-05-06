@@ -1,5 +1,6 @@
 package x590.jdecompiler.operation.condition;
 
+import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.Types;
@@ -30,11 +31,15 @@ public class CompareType {
 	private final String binaryOperator;
 	private CompareType invertedType;
 	
-	public final boolean isEqualsCompareType;
+	private final boolean isEqualsCompareType;
 	
 	private CompareType(String binaryOperator) {
 		this.binaryOperator = binaryOperator;
 		this.isEqualsCompareType = this instanceof EqualsCompareType;
+	}
+	
+	public boolean isEqualsCompareType() {
+		return isEqualsCompareType;
 	}
 	
 	public String getOperator(boolean inverted) {
@@ -54,11 +59,17 @@ public class CompareType {
 	}
 	
 	
+	@Override
+	public String toString() {
+		return "CompareType(\"" + binaryOperator + "\")";
+	}
+	
+	
 	public static final class EqualsCompareType extends CompareType {
 		
 		private final String unaryOperator;
 		
-		public EqualsCompareType(String binaryOperator, String unaryOperator) {
+		private EqualsCompareType(String binaryOperator, String unaryOperator) {
 			super(binaryOperator);
 			this.unaryOperator = unaryOperator;
 		}
@@ -75,6 +86,16 @@ public class CompareType {
 		@Override
 		public int getPriority() {
 			return Priority.EQUALS_COMPARASION;
+		}
+		
+		public int getUnaryPriority(boolean inverted, Operation operand) {
+			return (this == EQUALS) ^ inverted ? Priority.LOGICAL_NOT : operand.getPriority();
+		}
+		
+		
+		@Override
+		public String toString() {
+			return "EqualsCompareType(\"" + getOperator(false) + "\", \"" + unaryOperator + "\")";
 		}
 	}
 }

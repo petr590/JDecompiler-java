@@ -4,7 +4,7 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.DisassemblerContext;
 import x590.jdecompiler.operation.condition.CompareBinaryOperation;
 import x590.jdecompiler.operation.condition.ConditionOperation;
-import x590.jdecompiler.type.PrimitiveType;
+import x590.jdecompiler.type.primitive.PrimitiveType;
 
 public abstract class IfICmpInstruction extends IfInstruction {
 	

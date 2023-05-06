@@ -30,7 +30,7 @@ public abstract class ReferenceConstant extends Constant {
 	
 	
 	@Override
-	void init(ConstantPool pool) {
+	protected void init(ConstantPool pool) {
 		clazz = pool.get(classIndex);
 		nameAndType = pool.get(nameAndTypeIndex);
 	}

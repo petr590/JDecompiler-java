@@ -13,18 +13,23 @@ import x590.util.annotation.Nullable;
  */
 public abstract class MemberInfo<D extends Descriptor, M extends ClassEntryModifiers> {
 	
-	private final D descriptor;
+	private final D descriptor, genericDescriptor;
 	private final M modifiers;
 	private @Nullable Int2ObjectMap<String> enumTable;
 	
-	public MemberInfo(D descriptor, M modifiers) {
+	public MemberInfo(D descriptor, D genericDescriptor, M modifiers) {
 		this.descriptor = descriptor;
+		this.genericDescriptor = genericDescriptor;
 		this.modifiers = modifiers;
 	}
 	
 	
 	public D getDescriptor() {
 		return descriptor;
+	}
+	
+	public D getGenericDescriptor() {
+		return genericDescriptor;
 	}
 	
 	public M getModifiers() {

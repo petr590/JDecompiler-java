@@ -12,10 +12,13 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.method.JavaMethod;
 import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.operation.AbstractOperation;
+import x590.jdecompiler.operation.CastOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.OperationUtils;
+import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.Types;
+import x590.jdecompiler.type.reference.ReferenceType;
 import x590.util.annotation.Nullable;
 
 public class LambdaOperation extends AbstractOperation {
@@ -56,6 +59,18 @@ public class LambdaOperation extends AbstractOperation {
 		return classinfo.findMethod(descriptor).filter(method -> method.getModifiers().isSynthetic()).orElse(null);
 	}
 	
+	
+	@Override
+	public Operation castIfNecessary(ReferenceType clazz) {
+		return new CastOperation(Types.ANY_OBJECT_TYPE, clazz, false, this);
+	}
+	
+	
+	@Override
+	public int getPriority() {
+		return method != null ? method.getLambdaPriority() : Priority.DEFAULT_PRIORITY;
+	}
+	
 	@Override
 	public void addImports(ClassInfo classinfo) {
 		if(method != null) {
@@ -73,7 +88,7 @@ public class LambdaOperation extends AbstractOperation {
 			
 		} else {
 			if(!capturedArguments.isEmpty()) {
-				out.print(capturedArguments.get(0), context);
+				out.printPrioritied(this, capturedArguments.get(0).castIfNecessary(descriptor.getDeclaringClass()), context, Associativity.LEFT);
 			} else {
 				out.print(descriptor.getDeclaringClass(), context.getClassinfo());
 			}

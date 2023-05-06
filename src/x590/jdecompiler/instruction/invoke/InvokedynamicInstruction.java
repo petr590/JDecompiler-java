@@ -1,7 +1,7 @@
 package x590.jdecompiler.instruction.invoke;
 
-import static x590.jdecompiler.type.ClassType.*;
-import static x590.jdecompiler.type.ArrayType.*;
+import static x590.jdecompiler.type.reference.ArrayType.*;
+import static x590.jdecompiler.type.reference.ClassType.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,9 +26,9 @@ import x590.jdecompiler.operation.field.PutStaticFieldOperation;
 import x590.jdecompiler.operation.invoke.ConcatStringsOperation;
 import x590.jdecompiler.operation.invoke.LambdaOperation;
 import x590.jdecompiler.operation.invoke.RecordSyntheticOperation;
-import x590.jdecompiler.type.ArrayType;
-import x590.jdecompiler.type.ClassType;
-import x590.jdecompiler.type.PrimitiveType;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.ArrayType;
+import x590.jdecompiler.type.reference.ClassType;
 import x590.util.IntegerUtil;
 
 public final class InvokedynamicInstruction extends InvokeInstruction {
@@ -36,9 +36,10 @@ public final class InvokedynamicInstruction extends InvokeInstruction {
 	public InvokedynamicInstruction(DisassemblerContext context, int index, int zeroShort) {
 		super(index);
 		
-		if(zeroShort != 0)
+		if(zeroShort != 0) {
 			context.warning("illegal format of instruction invokedynamic at pos 0x" + IntegerUtil.hex(context.currentPos()) +
 					": by specification, third and fourth bytes must be zero");
+		}
 	}
 
 	

@@ -4,8 +4,8 @@ import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Types;
+import x590.jdecompiler.type.reference.ReferenceType;
 
 public final class InstanceofOperation extends AbstractOperation implements BooleanOperation {
 	

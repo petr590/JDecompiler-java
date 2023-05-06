@@ -21,7 +21,9 @@ import x590.util.annotation.Nullable;
 
 public class GotoInstruction extends TransitionInstruction {
 	
-	private int fromIndex = NONE_INDEX, targetIndex = NONE_INDEX;
+	private int
+			fromIndex = NONE_INDEX,
+			targetIndex = NONE_INDEX;
 	
 	private Role role;
 	
@@ -105,11 +107,10 @@ public class GotoInstruction extends TransitionInstruction {
 	@Override
 	public Operation toOperation(DecompilationContext context) {
 		
+		int targetIndex = this.targetIndex;
+		
 		context.saveStackState(targetIndex);
-		
-		int targetIndexM1 = targetIndex - 1;
-		
-		context.addBreak(targetIndexM1);
+		context.addBreak(targetIndex - 1);
 		
 		return switch(role) {
 			
@@ -150,7 +151,6 @@ public class GotoInstruction extends TransitionInstruction {
 			case CONTINUE -> {
 				
 				boolean hasOtherContinuable = false;
-				int targetIndex = this.targetIndex;
 				
 				for(Scope scope = context.currentScope(); scope != null; scope = scope.superScope()) {
 					

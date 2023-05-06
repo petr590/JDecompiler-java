@@ -102,7 +102,7 @@ public class ExampleTesting {
 	}
 	
 	public static void runDecompilerForJdk(Class<?>[] classes, String... otherArgs) {
-		JDecompiler.init(PerformingType.DECOMPILE, Config.newBuilder().build());
+		JDecompiler.init(PerformingType.DECOMPILE, Config.newBuilder().withArguments(otherArgs).build());
 		
 		List<JavaClass> javaClasses = new ArrayList<>(classes.length);
 		

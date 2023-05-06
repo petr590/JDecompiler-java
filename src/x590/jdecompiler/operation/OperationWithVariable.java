@@ -1,6 +1,6 @@
 package x590.jdecompiler.operation;
 
-import x590.jdecompiler.type.PrimitiveType;
+import x590.jdecompiler.type.primitive.PrimitiveType;
 import x590.jdecompiler.variable.Variable;
 
 public abstract class OperationWithVariable extends ReturnableOperation {

@@ -1,4 +1,6 @@
-package x590.jdecompiler.type;
+package x590.jdecompiler.type.primitive;
+
+import x590.jdecompiler.type.reference.ClassType;
 
 public final class IntType extends IntegralType {
 	

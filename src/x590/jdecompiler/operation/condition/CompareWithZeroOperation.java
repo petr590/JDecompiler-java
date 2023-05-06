@@ -3,9 +3,8 @@ package x590.jdecompiler.operation.condition;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
-import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.operation.condition.CompareType.EqualsCompareType;
-import x590.jdecompiler.type.PrimitiveType;
+import x590.jdecompiler.type.primitive.PrimitiveType;
 
 public final class CompareWithZeroOperation extends CompareUnaryOperation {
 	
@@ -16,20 +15,27 @@ public final class CompareWithZeroOperation extends CompareUnaryOperation {
 	}
 	
 	private boolean isBooleanType() {
-		return compareType.isEqualsCompareType && operand.getReturnType().isSubtypeOf(PrimitiveType.BOOLEAN);
+		return getCompareType().isEqualsCompareType() && operand.getReturnType().isSubtypeOf(PrimitiveType.BOOLEAN);
 	}
 	
 	@Override
 	public int getPriority() {
-		return isBooleanType() ? Priority.BIT_NOT : super.getPriority();
+		return isBooleanType() ? getEqualsCompareType().getUnaryPriority(inverted, operand) : super.getPriority();
 	}
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		if(isBooleanType()) // write `!bool` instead of `bool == false`
-			out.print(((EqualsCompareType)compareType).getUnaryOperator(inverted)).printPrioritied(this, operand, context, Associativity.RIGHT);
+			out .print(getEqualsCompareType().getUnaryOperator(inverted))
+				.printPrioritied(this, operand, context, Associativity.LEFT);
 		else
-			out.printPrioritied(this, operand, context, Associativity.LEFT).printsp().print(compareType.getOperator(inverted)).print(" 0");
+			out .printPrioritied(this, operand, context, Associativity.LEFT)
+				.printsp().print(getCompareType().getOperator(inverted)).printsp()
+				.print('0');
+	}
+	
+	private EqualsCompareType getEqualsCompareType() {
+		return (EqualsCompareType)getCompareType();
 	}
 	
 	@Override

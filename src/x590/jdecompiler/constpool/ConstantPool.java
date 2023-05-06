@@ -41,8 +41,8 @@ public final class ConstantPool implements JavaSerializable {
 			if(constant != null) {
 				constant.init(this);
 				
-				if(constant instanceof ICachedConstant<?> constableValueConstant) {
-					constants.put(constableValueConstant.getValueAsObject(), constableValueConstant);
+				if(constant instanceof ICachedConstant<?> cachedConstant) {
+					constants.put(cachedConstant.getValueAsObject(), cachedConstant);
 				}
 			}
 		}

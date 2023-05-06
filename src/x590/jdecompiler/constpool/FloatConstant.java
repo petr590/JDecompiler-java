@@ -9,9 +9,9 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.operation.constant.FConstOperation;
-import x590.jdecompiler.type.ClassType;
-import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.ClassType;
 import x590.jdecompiler.util.StringUtil;
 import x590.util.annotation.Nullable;
 
@@ -84,18 +84,22 @@ public final class FloatConstant extends SingleConstableValueConstant<Float> {
 			FLOAT_E = (float)Math.E;
 	
 	private static final FieldDescriptor
-			MAX_VALUE_DESCRIPTOR         = new FieldDescriptor(PrimitiveType.FLOAT, ClassType.FLOAT, "MAX_VALUE"),
-			MIN_VALUE_DESCRIPTOR         = new FieldDescriptor(PrimitiveType.FLOAT, ClassType.FLOAT, "MIN_VALUE"),
-			MIN_NORMAL_DESCRIPTOR        = new FieldDescriptor(PrimitiveType.FLOAT, ClassType.FLOAT, "MIN_NORMAL"),
-			POSITIVE_INFINITY_DESCRIPTOR = new FieldDescriptor(PrimitiveType.FLOAT, ClassType.FLOAT, "POSITIVE_INFINITY"),
-			NEGATIVE_INFINITY_DESCRIPTOR = new FieldDescriptor(PrimitiveType.FLOAT, ClassType.FLOAT, "NEGATIVE_INFINITY"),
-			NaN_DESCRIPTOR               = new FieldDescriptor(PrimitiveType.FLOAT, ClassType.FLOAT, "NaN");
+			MAX_VALUE_DESCRIPTOR         = FieldDescriptor.of(PrimitiveType.FLOAT, ClassType.FLOAT, "MAX_VALUE"),
+			MIN_VALUE_DESCRIPTOR         = FieldDescriptor.of(PrimitiveType.FLOAT, ClassType.FLOAT, "MIN_VALUE"),
+			MIN_NORMAL_DESCRIPTOR        = FieldDescriptor.of(PrimitiveType.FLOAT, ClassType.FLOAT, "MIN_NORMAL"),
+			POSITIVE_INFINITY_DESCRIPTOR = FieldDescriptor.of(PrimitiveType.FLOAT, ClassType.FLOAT, "POSITIVE_INFINITY"),
+			NEGATIVE_INFINITY_DESCRIPTOR = FieldDescriptor.of(PrimitiveType.FLOAT, ClassType.FLOAT, "NEGATIVE_INFINITY"),
+			NAN_DESCRIPTOR               = FieldDescriptor.of(PrimitiveType.FLOAT, ClassType.FLOAT, "NaN");
 	
-	private boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo, @Nullable FieldDescriptor ownerConstant, float value, FieldDescriptor requiredConstant) {
+	private boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo, @Nullable FieldDescriptor ownerConstant,
+			float value, FieldDescriptor requiredConstant) {
+		
 		return writeConstantIfEquals(out, classinfo, ownerConstant, value, requiredConstant, true);
 	}
 
-	private boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo, @Nullable FieldDescriptor ownerConstant, float value, FieldDescriptor requiredConstant, boolean canNegate) {
+	private boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo, @Nullable FieldDescriptor ownerConstant,
+			float value, FieldDescriptor requiredConstant, boolean canNegate) {
+		
 		return writeConstantIfEquals(out, classinfo, ownerConstant, this.value == value, canNegate && this.value == -value, requiredConstant);
 	}
 	
@@ -108,7 +112,7 @@ public final class FloatConstant extends SingleConstableValueConstant<Float> {
 			!writeConstantIfEquals(out, classinfo, ownerConstant, Float.MIN_NORMAL, MIN_NORMAL_DESCRIPTOR) &&
 			!writeConstantIfEquals(out, classinfo, ownerConstant, Float.POSITIVE_INFINITY, POSITIVE_INFINITY_DESCRIPTOR, false) &&
 			!writeConstantIfEquals(out, classinfo, ownerConstant, Float.NEGATIVE_INFINITY, NEGATIVE_INFINITY_DESCRIPTOR, false) &&
-			!writeConstantIfEquals(out, classinfo, ownerConstant, Float.isNaN(value), NaN_DESCRIPTOR) &&
+			!writeConstantIfEquals(out, classinfo, ownerConstant, Float.isNaN(value), NAN_DESCRIPTOR) &&
 			!writeConstantIfEquals(out, classinfo, ownerConstant, value == FLOAT_PI, value == -FLOAT_PI, FPMath.PI_DESCRIPTOR, "(float)") &&
 			!writeConstantIfEquals(out, classinfo, ownerConstant, value == FLOAT_E, value == -FLOAT_E, FPMath.E_DESCRIPTOR, "(float)")
 		) {

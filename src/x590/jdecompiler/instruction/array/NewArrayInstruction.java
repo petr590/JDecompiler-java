@@ -5,7 +5,7 @@ import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.instruction.Instruction;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.array.NewArrayOperation;
-import x590.jdecompiler.type.ArrayType;
+import x590.jdecompiler.type.reference.ArrayType;
 import x590.util.IntegerUtil;
 
 public class NewArrayInstruction implements Instruction {

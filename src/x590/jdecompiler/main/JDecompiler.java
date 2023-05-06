@@ -10,7 +10,7 @@ import x590.jdecompiler.main.performing.AbstractPerforming.PerformingType;
 import x590.util.ObjectHolder;
 import x590.util.annotation.Immutable;
 
-public class JDecompiler {
+public final class JDecompiler {
 	
 	private static boolean isDebug;
 	
@@ -22,11 +22,11 @@ public class JDecompiler {
 		return isDebug;
 	}
 	
-	private static JDecompiler INSTANCE;
+	private static JDecompiler instance;
 	
 	public static JDecompiler getInstance() {
-		if(INSTANCE != null)
-			return INSTANCE;
+		if(instance != null)
+			return instance;
 		
 		throw new IllegalStateException("JDecompiler yet not initialized");
 	}
@@ -43,18 +43,18 @@ public class JDecompiler {
 	private final Config config;
 	
 	
-	public static void init(String[] args) {
-		if(INSTANCE != null)
+	public static void init(String... args) {
+		if(instance != null)
 			throw new IllegalStateException("JDecompiler already initialized");
 		
-		INSTANCE = new JDecompiler(args);
+		instance = new JDecompiler(args);
 	}
 	
 	public static void init(@Immutable List<String> files, PerformingType performingType, Config config) {
-		if(INSTANCE != null)
+		if(instance != null)
 			throw new IllegalStateException("JDecompiler already initialized");
 		
-		INSTANCE = new JDecompiler(files, performingType, config);
+		instance = new JDecompiler(files, performingType, config);
 	}
 	
 	public static void init(PerformingType performingType, Config config) {
@@ -62,14 +62,14 @@ public class JDecompiler {
 	}
 	
 	
-	private JDecompiler(String[] args) {
+	private JDecompiler(String... args) {
 		
 		ObjectHolder<PerformingType> performingTypeHolder = new ObjectHolder<>(PerformingType.DECOMPILE);
 		
 		Builder builder = Config.newBuilder();
 		
 		ArgsNamespace arguments = Config.parseArguments(args, performingTypeHolder, builder);
-
+		
 		this.files = Collections.unmodifiableList(arguments.getAll("files"));
 		this.performingType = performingTypeHolder.get();
 		this.config = builder.build();

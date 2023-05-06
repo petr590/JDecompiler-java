@@ -17,10 +17,14 @@ public abstract class CompareOperation extends ConditionOperation {
 	}
 	
 	
-	public CompareType compareType;
+	private final CompareType compareType;
 	
 	public CompareOperation(CompareType compareType) {
 		this.compareType = compareType;
+	}
+	
+	public CompareType getCompareType() {
+		return compareType;
 	}
 	
 	@Override

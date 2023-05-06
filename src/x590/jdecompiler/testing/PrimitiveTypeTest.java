@@ -1,16 +1,16 @@
 package x590.jdecompiler.testing;
 
 import x590.jdecompiler.exception.IncopatibleTypesException;
-import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.GeneralCastingKind;
-import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.UncertainIntegralType;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.ClassType;
 
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-import static x590.jdecompiler.type.PrimitiveType.*;
+import static x590.jdecompiler.type.primitive.PrimitiveType.*;
 
 public class PrimitiveTypeTest {
 	

@@ -1,11 +1,12 @@
-package x590.jdecompiler.type;
+package x590.jdecompiler.type.reference.generic;
 
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.io.ExtendedStringInputStream;
+import x590.jdecompiler.type.reference.ReferenceType;
 
 /** Дженерик, ограниченный сверху или снизу */
-public abstract class BoundedGenericType extends GenericType {
+public abstract class BoundedGenericType extends IndefiniteGenericType {
 	
 	private final ReferenceType type;
 	private final String encodedName, name;

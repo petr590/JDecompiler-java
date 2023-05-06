@@ -11,10 +11,10 @@ import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.IConstOperation;
-import x590.jdecompiler.type.ClassType;
-import x590.jdecompiler.type.PrimitiveType;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.UncertainIntegralType;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.ClassType;
 import x590.jdecompiler.util.StringUtil;
 import x590.util.annotation.Nullable;
 
@@ -116,10 +116,12 @@ public final class IntegerConstant extends ConstableValueConstant<Integer> {
 	
 	
 	private static final FieldDescriptor
-			MAX_VALUE_DESCRIPTOR = new FieldDescriptor(PrimitiveType.INT, ClassType.INTEGER, "MAX_VALUE"),
-			MIN_VALUE_DESCRIPTOR = new FieldDescriptor(PrimitiveType.INT, ClassType.INTEGER, "MIN_VALUE");
+			MAX_VALUE_DESCRIPTOR = FieldDescriptor.of(PrimitiveType.INT, ClassType.INTEGER, "MAX_VALUE"),
+			MIN_VALUE_DESCRIPTOR = FieldDescriptor.of(PrimitiveType.INT, ClassType.INTEGER, "MIN_VALUE");
 	
-	private boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo, @Nullable FieldDescriptor ownerConstant, int value, FieldDescriptor requiredConstant) {
+	private boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo, @Nullable FieldDescriptor ownerConstant,
+			int value, FieldDescriptor requiredConstant) {
+		
 		return writeConstantIfEquals(out, classinfo, ownerConstant, this.value == value, this.value == -value, requiredConstant);
 	}
 	

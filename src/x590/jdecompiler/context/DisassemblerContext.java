@@ -23,7 +23,7 @@ import x590.util.Logger;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
-public class DisassemblerContext extends Context {
+public final class DisassemblerContext extends Context {
 	
 	public static final byte[] EMPTY_DATA = {};
 	

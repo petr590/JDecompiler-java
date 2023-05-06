@@ -9,7 +9,7 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.PossibleExceptionStoreOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.ReturnableOperation;
-import x590.jdecompiler.type.ClassType;
+import x590.jdecompiler.type.reference.ClassType;
 import x590.jdecompiler.variable.Variable;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;

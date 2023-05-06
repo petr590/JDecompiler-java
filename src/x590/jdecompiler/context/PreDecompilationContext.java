@@ -16,7 +16,7 @@ import x590.util.Logger;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
-public class PreDecompilationContext extends DecompilationAndStringifyContext {
+public final class PreDecompilationContext extends DecompilationAndStringifyContext {
 	
 	static final @Immutable List<TransitionInstruction> DEFAULT_TRANSITION_INSTRUCTIONS_LIST = Collections.emptyList();
 	static final @Immutable List<?> SINGLE_LIST = Collections.singletonList(null);

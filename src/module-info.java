@@ -11,6 +11,10 @@ module jdecompiler {
 	exports x590.jdecompiler.main.performing;
 	
 	exports x590.jdecompiler.type;
+	exports x590.jdecompiler.type.primitive;
+	exports x590.jdecompiler.type.reference;
+	exports x590.jdecompiler.type.reference.generic;
+	
 	exports x590.jdecompiler.clazz;
 	exports x590.jdecompiler.field;
 	exports x590.jdecompiler.method;

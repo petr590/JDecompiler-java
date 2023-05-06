@@ -2,6 +2,7 @@ package x590.jdecompiler.operation;
 
 import java.util.Objects;
 
+import x590.jdecompiler.type.CastingKind;
 import x590.jdecompiler.type.Type;
 
 public abstract class ReturnableOperation extends AbstractOperation {
@@ -18,7 +19,7 @@ public abstract class ReturnableOperation extends AbstractOperation {
 	}
 	
 	@Override
-	public void onCastReturnType(Type newType) {
+	protected void onCastReturnType(Type newType, CastingKind casting) {
 		this.returnType = Objects.requireNonNull(newType);
 	}
 	

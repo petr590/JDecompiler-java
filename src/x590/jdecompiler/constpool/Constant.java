@@ -53,7 +53,10 @@ public abstract class Constant implements JavaSerializable {
 		};
 	}
 	
-	void init(ConstantPool pool) {}
+	/** Вызывается после инициализации константы */
+	protected void init(ConstantPool pool) {
+		// По умолчанию ничего не делает
+	}
 	
 	/** LongConstant и DoubleConstant, они исторически занимают две позиции в пуле */
 	protected boolean holdsTwo() {

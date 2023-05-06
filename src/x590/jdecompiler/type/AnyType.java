@@ -2,6 +2,8 @@ package x590.jdecompiler.type;
 
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.io.ExtendedOutputStream;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.ClassType;
 
 public final class AnyType extends Type {
 	
@@ -42,27 +44,23 @@ public final class AnyType extends Type {
 	
 	
 	@Override
-	protected boolean canCastTo(Type other) {
+	protected boolean canCastToNarrowest(Type other) {
 		return true;
 	}
 	
 	@Override
-	protected Type castToNarrowestImpl(Type other) {
-		return other;
+	protected Type castImpl(Type other, CastingKind kind) {
+		return kind.isNarrowest() ? other :
+				other instanceof PrimitiveType primitiveType ? primitiveType.toUncertainIntegralType() : other;
 	}
 	
 	@Override
-	protected Type castToWidestImpl(Type other) {
-		return other instanceof PrimitiveType primitiveType ? primitiveType.toUncertainIntegralType() : other;
+	protected Type reversedCastImpl(Type other, CastingKind kind) {
+		return castImpl(other, kind);
 	}
 	
 	@Override
-	protected Type reversedCastToNarrowestImpl(Type other) {
-		return castToNarrowestImpl(other);
-	}
-	
-	@Override
-	protected Type reversedCastToWidestImpl(Type other) {
-		return castToWidestImpl(other);
+	public BasicType reduced() {
+		return ClassType.OBJECT;
 	}
 }

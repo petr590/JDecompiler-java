@@ -8,8 +8,8 @@ import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.StringConstOperation;
-import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.reference.ClassType;
 import x590.jdecompiler.util.StringUtil;
 import x590.util.annotation.Nullable;
 
@@ -28,7 +28,7 @@ public final class StringConstant extends SingleConstableValueConstant<String> {
 	}
 	
 	@Override
-	void init(ConstantPool pool) {
+	protected void init(ConstantPool pool) {
 		value = pool.get(index);
 	}
 	

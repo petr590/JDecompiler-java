@@ -4,8 +4,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import x590.jdecompiler.scope.Scope;
-import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.reference.ClassType;
 import x590.util.annotation.Nullable;
 
 public class UnnamedVariable extends AbstractVariable {

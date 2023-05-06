@@ -12,9 +12,9 @@ import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.operation.NewOperation;
 import x590.jdecompiler.operation.Operation;
-import x590.jdecompiler.type.ClassType;
-import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.reference.ClassType;
+import x590.jdecompiler.type.reference.ReferenceType;
 import x590.util.annotation.Nullable;
 
 public final class InvokespecialOperation extends InvokeNonstaticOperation {
@@ -153,7 +153,7 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 				nestedClass.writeAsNewAnonymousObject(out, context, this);
 				
 			} else {
-				writeObject(out, context);
+				tryWriteObject(out, context);
 				writeArguments(out, context);
 			}
 			
@@ -175,7 +175,7 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 	}
 	
 	@Override
-	protected boolean writeObject(StringifyOutputStream out, StringifyContext context) {
+	protected boolean tryWriteObject(StringifyOutputStream out, StringifyContext context) {
 		
 		return switch(superState) {
 			
@@ -189,7 +189,7 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 				yield true;
 			}
 			
-			case NONE -> super.writeObject(out, context);
+			case NONE -> super.tryWriteObject(out, context);
 		};
 	}
 	

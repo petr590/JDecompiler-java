@@ -6,8 +6,8 @@ import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.constant.MethodTypeConstOperation;
-import x590.jdecompiler.type.ClassType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.reference.ClassType;
 
 public final class MethodTypeConstant extends ConstValueConstant {
 	
@@ -24,7 +24,7 @@ public final class MethodTypeConstant extends ConstValueConstant {
 	}
 	
 	@Override
-	void init(ConstantPool pool) {
+	protected void init(ConstantPool pool) {
 		descriptor = pool.get(descriptorIndex);
 	}
 	

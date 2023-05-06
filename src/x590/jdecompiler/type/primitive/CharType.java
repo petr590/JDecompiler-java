@@ -1,4 +1,8 @@
-package x590.jdecompiler.type;
+package x590.jdecompiler.type.primitive;
+
+import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.TypeSize;
+import x590.jdecompiler.type.reference.ClassType;
 
 public final class CharType extends PrimitiveType {
 	
@@ -24,12 +28,12 @@ public final class CharType extends PrimitiveType {
 	}
 	
 	@Override
-	protected boolean canCastTo(Type other) {
+	protected boolean canCastToNarrowest(Type other) {
 		return this == other || other instanceof IntegralType integralType && integralType.getCapacity() > CHAR_CAPACITY;
 	}
 	
 	@Override
 	public boolean isImplicitSubtypeOf(Type other) {
-		return canCastTo(other) || other.isLongOrFloatOrDouble();
+		return canCastToNarrowest(other) || other.isLongOrFloatOrDouble();
 	}
 }

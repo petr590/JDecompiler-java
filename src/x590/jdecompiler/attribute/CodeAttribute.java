@@ -15,7 +15,7 @@ import x590.jdecompiler.scope.CatchScope;
 import x590.jdecompiler.scope.FinallyScope;
 import x590.jdecompiler.scope.Scope;
 import x590.jdecompiler.scope.TryScope;
-import x590.jdecompiler.type.ClassType;
+import x590.jdecompiler.type.reference.ClassType;
 import x590.util.LoopUtil;
 import x590.util.Util;
 import x590.util.annotation.Immutable;

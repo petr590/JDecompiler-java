@@ -1,4 +1,6 @@
-package x590.jdecompiler.type;
+package x590.jdecompiler.type.reference;
+
+import x590.jdecompiler.type.Type;
 
 public interface IArrayType {
 	

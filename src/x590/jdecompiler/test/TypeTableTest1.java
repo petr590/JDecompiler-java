@@ -1,12 +1,12 @@
 package x590.jdecompiler.test;
 
+import static x590.jdecompiler.type.primitive.PrimitiveType.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.UncertainIntegralType;
-
-import static x590.jdecompiler.type.PrimitiveType.*;
 
 public class TypeTableTest1 {
 	

@@ -20,9 +20,9 @@ public class SwitchEnumExample {
 	public static void main(String[] args) {
 		ExampleTesting.runDecompiler(
 //				ExampleTesting.VANILLA_DIR,
-				SwitchEnumExample.class
+				SwitchEnumExample.class,
 //				"vbin/x590/jdecompiler/example/scope/SwitchEnumExample$1.class",
-//				"-A"
+				"-A"
 		);
 	}
 	

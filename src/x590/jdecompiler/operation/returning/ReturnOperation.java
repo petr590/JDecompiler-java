@@ -24,7 +24,7 @@ public abstract class ReturnOperation extends AbstractOperation implements VoidO
 	
 	public ReturnOperation(Predicate<Type> predicate, DecompilationContext context) {
 		
-		Type methodReturnType = context.getDescriptor().getReturnType();
+		Type methodReturnType = context.getGenericDescriptor().getReturnType();
 		
 		if(!predicate.test(methodReturnType))
 			throw new DecompilationException("The method return type (" + methodReturnType + ")" +
@@ -35,7 +35,7 @@ public abstract class ReturnOperation extends AbstractOperation implements VoidO
 		if(context.currentScope().getLastOperation() instanceof IfScope ifScope &&
 				ifScope.getOperationsCount() == 1 && ifScope.getOperationAt(0) instanceof ReturnOperation returnOperation) {
 			
-			operand = new TernaryOperatorOperation(ifScope.getCondition(), operand, returnOperation.operand);
+			operand = new TernaryOperatorOperation(ifScope.getCondition(), returnOperation.operand, operand);
 			ifScope.remove();
 		}
 		

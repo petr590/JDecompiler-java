@@ -3,6 +3,7 @@ package x590.jdecompiler.variable;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.scope.Scope;
+import x590.jdecompiler.type.CastingKind;
 import x590.jdecompiler.type.Type;
 import x590.util.annotation.Nullable;
 
@@ -104,6 +105,11 @@ public class WrappedVariable implements VariableWrapper {
 	@Override
 	public void castTypeToWidest(Type newType) {
 		variable.nonEmpty().castTypeToWidest(newType);
+	}
+	
+	@Override
+	public void castTypeTo(Type newType, CastingKind kind) {
+		variable.nonEmpty().castTypeTo(newType, kind);
 	}
 	
 	@Override

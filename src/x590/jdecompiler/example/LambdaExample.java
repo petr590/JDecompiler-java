@@ -72,6 +72,31 @@ public class LambdaExample {
 		};
 	}
 	
+	public static String invokeLambda(boolean x) {
+		return ((Supplier<String>)(() -> x ? "true" : "false")).get();
+	}
+	
+	public static Supplier<String> lambdaForLambda(boolean x) {
+		return ((Supplier<String>)(() -> x ? "true" : "false"))::get;
+	}
+	
+	public static Supplier<String> lambdaInTernary(boolean x) {
+		return x ? () -> "true" : () -> "false";
+	}
+	
+	public static Supplier<String> lambdaInTernary2(boolean x) {
+		return x ? Boolean.TRUE::toString : Boolean.FALSE::toString;
+	}
+	
+	public static IntFunction<Object[]> lambdaInTernary3(boolean x) {
+		return x ? String[]::new : Object[]::new;
+	}
+	
+	public static Supplier<String> lambdaNative() {
+		return LambdaExample::getString;
+	}
+	
+	private static final synchronized native String getString();
 	
 	public static String toString(Class<?> clazz) {
 		return clazz.getCanonicalName();
@@ -79,7 +104,7 @@ public class LambdaExample {
 	
 	
 	@FunctionalInterface
-	public static interface BiIntFunction<T> {
+	public interface BiIntFunction<T> {
 		T accept(int a, int b);
 	}
 }

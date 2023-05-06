@@ -6,8 +6,8 @@ import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.field.FieldDescriptor;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.ExtendedStringInputStream;
-import x590.jdecompiler.type.ReferenceType;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.reference.ReferenceType;
 
 public final class FieldSignatureAttribute extends SignatureAttribute {
 	
@@ -20,15 +20,21 @@ public final class FieldSignatureAttribute extends SignatureAttribute {
 		this.type = Type.parseSignatureParameter(signatureIn);
 	}
 	
+	@Override
+	public void addImports(ClassInfo classinfo) {
+		type.addImports(classinfo);
+	}
+	
+	
 	public void checkType(FieldDescriptor descriptor) {
 		if(!type.equalsIgnoreSignature(descriptor.getType()))
 			throw new DecompilationException("Field signature doesn't matches the field type: " + type + " and " + descriptor.getType());
 	}
 	
-	@Override
-	public void addImports(ClassInfo classinfo) {
-		type.addImports(classinfo);
+	public FieldDescriptor createGenericDescriptor(ClassInfo classinfo, FieldDescriptor descriptor) {
+		return FieldDescriptor.of(type, descriptor.getDeclaringClass(), descriptor.getName());
 	}
+	
 	
 	@Override
 	public boolean equals(Object other) {

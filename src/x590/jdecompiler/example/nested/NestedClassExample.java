@@ -1,5 +1,8 @@
 package x590.jdecompiler.example.nested;
 
+import java.util.Collections;
+import java.util.Map;
+
 import x590.jdecompiler.example.Example;
 import x590.jdecompiler.example.ExampleTesting;
 
@@ -12,22 +15,22 @@ public class NestedClassExample {
 	
 	public class NonstaticInner {
 		public NonstaticInner() {
-			this(-1);
+			this(Collections.emptyMap());
 		}
 		
-		public NonstaticInner(int x) {}
+		public NonstaticInner(Map<String, Integer> m) {}
 	}
 	
 	public class NonstaticInnerChild extends NonstaticInner {
 		public NonstaticInnerChild() {}
-		public NonstaticInnerChild(int x) {
-			super(x);
+		public NonstaticInnerChild(Map<String, Integer> m) {
+			super(m);
 		}
 	}
 	
 	public static class StaticInner {
 		public StaticInner() {}
-		public StaticInner(int x) {}
+		public StaticInner(Map<String, Integer> m) {}
 	}
 	
 	public enum InnerEnum {

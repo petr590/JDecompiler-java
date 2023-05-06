@@ -6,6 +6,7 @@ import java.util.List;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.scope.Scope;
+import x590.jdecompiler.type.CastingKind;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.Types;
 import x590.util.annotation.Nullable;
@@ -160,22 +161,27 @@ public abstract class AbstractVariable implements Variable {
 		return type;
 	}
 	
-	private Type castAssignedOperations(Type type, Type newType, boolean widest) {
+	private Type castAssignedOperations(Type type, Type newType, CastingKind kind) {
 		
-		if(typeFixed || casting)
+		if(typeFixed)
 			return type;
 		
-		return castAssignedOperations(widest ? type.castToWidest(newType) : type.castToNarrowest(newType));
+		return castAssignedOperations(type.castTo(newType, kind));
 	}
 	
 	@Override
 	public void castTypeToNarrowest(Type newType) {
-		type = castAssignedOperations(type, newType, false);
+		type = castAssignedOperations(type, newType, CastingKind.NARROWEST);
 	}
 	
 	@Override
 	public void castTypeToWidest(Type newType) {
-		type = castAssignedOperations(type, newType, true);
+		type = castAssignedOperations(type, newType, CastingKind.WIDEST);
+	}
+	
+	@Override
+	public void castTypeTo(Type newType, CastingKind kind) {
+		type = castAssignedOperations(type, newType, kind);
 	}
 	
 	

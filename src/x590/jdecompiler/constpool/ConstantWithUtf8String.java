@@ -12,7 +12,7 @@ abstract class ConstantWithUtf8String extends Constant {
 	}
 	
 	@Override
-	void init(ConstantPool pool) {
+	protected void init(ConstantPool pool) {
 		this.value = pool.getUtf8String(valueIndex);
 	}
 	
