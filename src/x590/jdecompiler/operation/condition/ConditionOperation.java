@@ -20,6 +20,10 @@ public abstract class ConditionOperation extends AbstractOperation implements Bo
 		return false;
 	}
 	
+	public boolean isAlwaysFalse() {
+		return false;
+	}
+	
 	public boolean equals(ConditionOperation other) {
 		return inverted == other.inverted;
 	}
@@ -27,10 +31,12 @@ public abstract class ConditionOperation extends AbstractOperation implements Bo
 	public ConditionOperation and(ConditionOperation condition) {
 		return  this.isAlwaysTrue() ? condition :
 				condition.isAlwaysTrue() ? this :
-						new AndOperation(this, condition);
+				new AndOperation(this, condition);
 	}
 	
 	public ConditionOperation or(ConditionOperation condition) {
-		return new OrOperation(this, condition);
+		return  this.isAlwaysFalse() ? condition :
+				condition.isAlwaysFalse() ? this :
+				new OrOperation(this, condition);
 	}
 }

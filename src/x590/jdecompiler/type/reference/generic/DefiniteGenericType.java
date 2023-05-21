@@ -1,6 +1,7 @@
 package x590.jdecompiler.type.reference.generic;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import x590.jdecompiler.clazz.ClassInfo;
@@ -17,25 +18,33 @@ public class DefiniteGenericType extends GenericType {
 	private final ReferenceType superType;
 	private final @Immutable List<? extends ReferenceType> interfaces;
 	
-	public DefiniteGenericType(String encodedName, String name, ReferenceType superType, @Immutable List<? extends ReferenceType> interfaces) {
+	private DefiniteGenericType(String encodedName, String name, ReferenceType superType, @Immutable List<? extends ReferenceType> interfaces) {
 		this.encodedName = encodedName;
 		this.name        = name;
 		this.superType   = superType;
 		this.interfaces  = interfaces;
 	}
 	
-	public DefiniteGenericType(GenericDeclarationType genericDeclaration) {
+	private DefiniteGenericType(GenericDeclarationType genericDeclaration) {
 		this.encodedName = genericDeclaration.getSimpleEncodedName();
 		this.name        = genericDeclaration.getName();
 		this.superType   = genericDeclaration.getSuperType();
 		this.interfaces  = genericDeclaration.getInterfaces();
 	}
 	
+	/* package-visible */ static ReferenceType of(String encodedName, String name, ReferenceType superType, @Immutable List<? extends ReferenceType> interfaces) {
+		return new DefiniteGenericType(encodedName, name, superType, interfaces);
+	}
+	
+	public static ReferenceType of(String name, ReferenceType superType, @Immutable List<? extends ReferenceType> interfaces) {
+		return new DefiniteGenericType('T' + name + ';', name, superType, interfaces);
+	}
+	
 	public static ReferenceType fromDeclaration(GenericDeclarationType genericDeclaration) {
 		return new DefiniteGenericType(genericDeclaration);
 	}
 	
-	public static ReferenceType fromNullableDeclaration(@Nullable GenericDeclarationType genericDeclaration) {
+	public static @Nullable ReferenceType fromNullableDeclaration(@Nullable GenericDeclarationType genericDeclaration) {
 		return genericDeclaration == null ? null : new DefiniteGenericType(genericDeclaration);
 	}
 	
@@ -50,6 +59,13 @@ public class DefiniteGenericType extends GenericType {
 		return interfaces;
 	}
 	
+	
+	@Override
+	public ReferenceType replaceAllTypes(@Immutable Map<GenericDeclarationType, ReferenceType> replaceTable) {
+		return replaceTable.entrySet().stream()
+				.filter(entry -> entry.getKey().getName().equals(name))
+				.findAny().map(Map.Entry::getValue).orElse(this);
+	}
 	
 	@Override
 	public void writeTo(ExtendedOutputStream<?> out, ClassInfo param) {

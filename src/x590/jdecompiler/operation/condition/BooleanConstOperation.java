@@ -10,8 +10,8 @@ public final class BooleanConstOperation extends ConditionOperation {
 			TRUE = new BooleanConstOperation(true),
 			FALSE = new BooleanConstOperation(false);
 	
-	private BooleanConstOperation(boolean inverted) {
-		this.inverted = inverted;
+	private BooleanConstOperation(boolean value) {
+		this.inverted = value;
 	}
 	
 	@Override
@@ -27,6 +27,11 @@ public final class BooleanConstOperation extends ConditionOperation {
 	@Override
 	public boolean isAlwaysTrue() {
 		return inverted;
+	}
+	
+	@Override
+	public boolean isAlwaysFalse() {
+		return inverted ^ true;
 	}
 	
 	@Override

@@ -1,7 +1,5 @@
 package x590.jdecompiler.variable;
 
-import x590.util.annotation.Nullable;
-
 /**
  * Крч, переменная может быть empty, а может и нет.
  */
@@ -18,14 +16,11 @@ public interface EmptyableVariable {
 	/** Возвращает {@literal this}, если переменная не пустая, иначе кидает исключение */
 	public Variable nonEmpty();
 	
-	/** Проверяет, определено ли имя переменной */
-	public boolean hasName();
-	
 	/** Определяет имя переменной */
 	public void assignName();
 	
 	/** Возвращает имя переменной или {@literal null}, если имя ещё не определено */
-	public @Nullable String getName();
+//	public @Nullable String getName();
 	
 	/** Сведение типа переменной. При сведении типа мы определяем конечный тип переменной */
 	public void reduceType();

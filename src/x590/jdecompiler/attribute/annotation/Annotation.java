@@ -36,17 +36,15 @@ public final class Annotation implements StringifyWritable<ClassInfo>, Importabl
 		this.elements = elements;
 	}
 	
-	public static Annotation fromReflectAnnotation(ConstantPool pool,
-			java.lang.annotation.Annotation reflectAnnotation) {
+	public static Annotation fromReflectAnnotation(java.lang.annotation.Annotation reflectAnnotation) {
 		
 		return new Annotation(
 				ClassType.fromClass(reflectAnnotation.annotationType()),
-				elementsFromReflectAnnotation(pool, reflectAnnotation)
+				elementsFromReflectAnnotation(reflectAnnotation)
 		);
 	}
 	
-	private static @Immutable List<Element> elementsFromReflectAnnotation(ConstantPool pool,
-			java.lang.annotation.Annotation reflectAnnotation) {
+	private static @Immutable List<Element> elementsFromReflectAnnotation(java.lang.annotation.Annotation reflectAnnotation) {
 		
 		List<Element> elements = new ArrayList<>();
 		
@@ -57,7 +55,7 @@ public final class Annotation implements StringifyWritable<ClassInfo>, Importabl
 					Object value = method.invoke(reflectAnnotation);
 					
 					if(value != null) {
-						elements.add(Element.fromUnknownValue(pool, method.getName(), value));
+						elements.add(Element.fromUnknownValue(method.getName(), value));
 					}
 					
 				} catch(IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
@@ -98,8 +96,8 @@ public final class Annotation implements StringifyWritable<ClassInfo>, Importabl
 							
 							var foundClassinfo = ClassInfo.findIClassInfo(repeatedAnnotations.get(0).getAnnotation().getType(), pool);
 							
-							if(foundClassinfo != null) {
-								var foundRepeatableAnnotation = foundClassinfo.findAnnotation(REPEATABLE);
+							if(foundClassinfo.isPresent()) {
+								var foundRepeatableAnnotation = foundClassinfo.get().findAnnotation(REPEATABLE);
 								
 								if(foundRepeatableAnnotation.isPresent()) {
 									var foundValue = foundRepeatableAnnotation.get().findValue("value");

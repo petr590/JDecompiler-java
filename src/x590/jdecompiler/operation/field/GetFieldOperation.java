@@ -16,11 +16,11 @@ public abstract class GetFieldOperation extends FieldOperation {
 	
 	@Override
 	public Type getReturnType() {
-		return descriptor.getType();
+		return getGenericDescriptor().getType();
 	}
 	
 	@Override
 	public String getPossibleVariableName() {
-		return descriptor.getName();
+		return getDescriptor().getName();
 	}
 }

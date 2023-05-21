@@ -3,9 +3,9 @@ package x590.jdecompiler.operation.invoke;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
-import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.clazz.IClassInfo;
 import x590.jdecompiler.constpool.MethodrefConstant;
 import x590.jdecompiler.context.DecompilationContext;
@@ -13,9 +13,10 @@ import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.method.MethodDescriptor;
+import x590.jdecompiler.method.MethodInfo;
 import x590.jdecompiler.operation.Operation;
+import x590.jdecompiler.operation.OperationUtils;
 import x590.jdecompiler.operation.OperationWithDescriptor;
-import x590.jdecompiler.operation.array.NewArrayOperation;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.reference.ClassType;
 import x590.jdecompiler.type.reference.ReferenceType;
@@ -27,7 +28,7 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 	private final Deque<Operation> arguments;
 	
 	private Deque<Operation> popArguments(DecompilationContext context) {
-		List<Type> argTypes = descriptor.getArguments();
+		List<Type> argTypes = getDescriptor().getArguments();
 		
 		Deque<Operation> arguments = new ArrayDeque<>(argTypes.size());
 		
@@ -47,15 +48,6 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 	
 	protected static MethodDescriptor getDescriptor(DecompilationContext context, int index) {
 		MethodDescriptor descriptor = context.pool.<MethodrefConstant>get(index).toDescriptor();
-		
-		var iclassinfo = ClassInfo.findIClassInfo(descriptor.getDeclaringClass(), context.pool);
-		if(iclassinfo != null) {
-			var foundMethodInfo = iclassinfo.findMethodInfo(descriptor);
-			
-			if(foundMethodInfo.isPresent()) {
-				return foundMethodInfo.get().getGenericDescriptor();
-			}
-		}
 		
 		return descriptor;
 	}
@@ -89,47 +81,24 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 		this.arguments = popArguments(context);
 		
 		
-		IClassInfo otherClassinfo = context.getClassinfo().findIClassInfo(descriptor.getDeclaringClass());
+		var otherClassinfo = context.getClassinfo().findIClassInfo(descriptor.getDeclaringClass());
 		
-		if(otherClassinfo != null) {
+		if(otherClassinfo.isPresent()) {
 			
-			var foundMethodInfo = otherClassinfo.findMethodInfo(descriptor);
+			var foundMethodInfo = otherClassinfo.get().findMethodInfo(descriptor);
 			
-			if(foundMethodInfo.isPresent() && foundMethodInfo.get().getModifiers().isVarargs()) {
-			
-				List<Type> argTypes = descriptor.getArguments();
-				
-				if(!argTypes.isEmpty() && argTypes.get(argTypes.size() - 1).isArrayType()) {
-					
-					Operation lastOperation = arguments.getLast();
-					
-					if(lastOperation instanceof NewArrayOperation varargsArray && varargsArray.canInitAsList()) {
-						var name = descriptor.getName();
-						var argumentsCount = arguments.size() - 1 + varargsArray.getLength();
-						
-						if(!otherClassinfo.hasMethodByDescriptor(
-								methodDescriptor ->
-										!methodDescriptor.equals(descriptor) && methodDescriptor.getName().equals(name) &&
-										methodDescriptor.getArguments().size() == argumentsCount)
-						) {
-//							varargsArray.inlineVarargs();
-							
-							arguments.removeLast();
-							varargsArray.remove();
-							
-							List<Operation> initializers = varargsArray.getInitializers();
-							initializers.forEach(Operation::denyImplicitCast);
-							
-							arguments.addAll(initializers);
-						}
-					}
-					
-				} else {
-					context.warning("Varargs method " + descriptor + " must have an array as the last argument");
-				}
+			if(foundMethodInfo.isPresent()) {
+				OperationUtils.tryInlineVarargs(context, descriptor, arguments, otherClassinfo.get(), foundMethodInfo.get());
 			}
 		}
 	}
+	
+	
+	@Override
+	protected Optional<? extends MethodInfo> findMemberInfo(IClassInfo classinfo, MethodDescriptor descriptor) {
+		return classinfo.findMethodInfoInThisAndSuperClasses(descriptor);
+	}
+	
 	
 	protected boolean canInvokeConstructor() {
 		return false;
@@ -139,8 +108,9 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 	
 	@Override
 	public Type getReturnType() {
-		return descriptor.getReturnType();
+		return getGenericDescriptor().getReturnType();
 	}
+	
 	
 	private static final Pattern
 			GETTER_PATTERN = Pattern.compile("get([A-Z].*)"),
@@ -149,7 +119,7 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 	
 	@Override
 	public @Nullable String getPossibleVariableName() {
-		String name = descriptor.getName();
+		String name = getDescriptor().getName();
 		
 		var matcher = GETTER_PATTERN.matcher(name);
 		if(matcher.matches()) {
@@ -168,7 +138,8 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 	@Override
 	protected boolean canOmitObject(StringifyContext context, Operation object) {
 		// Не опускать this для вызовов методов, название которых начинается с equals
-		return super.canOmitObject(context, object) && !PATTERN_FOR_NOT_OMIT_THIS.matcher(descriptor.getName()).matches();
+		return super.canOmitObject(context, object) &&
+				!PATTERN_FOR_NOT_OMIT_THIS.matcher(getDescriptor().getName()).matches();
 	}
 	
 	
@@ -189,7 +160,7 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 	@Override
 	public String toString() {
 		return String.format("%s [ descriptor = %s, arguments = %s ]",
-				this.getClass().getSimpleName(), descriptor, arguments);
+				this.getClass().getSimpleName(), getDescriptor(), arguments);
 	}
 	
 	protected boolean equals(InvokeOperation other) {

@@ -17,8 +17,9 @@ import x590.util.annotation.Nullable;
 
 public final class ConstantPool implements JavaSerializable {
 	
+	private static final Map<Constable, ICachedConstant<?>> CONSTANTS = new HashMap<>();
+	
 	private final List<Constant> data;
-	private final Map<Constable, ICachedConstant<?>> constants = new HashMap<>();
 	
 	private ConstantPool(ExtendedDataInputStream in) {
 		var length = in.readUnsignedShort();
@@ -42,7 +43,7 @@ public final class ConstantPool implements JavaSerializable {
 				constant.init(this);
 				
 				if(constant instanceof ICachedConstant<?> cachedConstant) {
-					constants.put(cachedConstant.getValueAsObject(), cachedConstant);
+					CONSTANTS.putIfAbsent(cachedConstant.getValueAsObject(), cachedConstant);
 				}
 			}
 		}
@@ -156,44 +157,36 @@ public final class ConstantPool implements JavaSerializable {
 		}
 	}
 	
-	private <T extends Constable, C extends ICachedConstant<T>> C findOrCreateConstant(T value, Function<T, C> creator) {
-		
-		@SuppressWarnings("unchecked")		
-		C constant = (C)constants.get(value);
-		
-		if(constant != null)
-			return constant;
-		
-		constant = creator.apply(value);
-		constants.put(value, constant);
-		return constant;
+	@SuppressWarnings("unchecked")
+	private static <T extends Constable, C extends ICachedConstant<T>> C findOrCreateConstant(T value, Function<? super T, C> creator) {
+		return ((Map<T, C>)CONSTANTS).computeIfAbsent(value, creator);
 	}
 	
-	public IntegerConstant findOrCreateConstant(int value) {
+	public static IntegerConstant findOrCreateConstant(int value) {
 		return findOrCreateConstant(value, IntegerConstant::new);
 	}
 	
-	public LongConstant findOrCreateConstant(long value) {
+	public static LongConstant findOrCreateConstant(long value) {
 		return findOrCreateConstant(value, LongConstant::new);
 	}
 	
-	public FloatConstant findOrCreateConstant(float value) {
+	public static FloatConstant findOrCreateConstant(float value) {
 		return findOrCreateConstant(value, FloatConstant::new);
 	}
 	
-	public DoubleConstant findOrCreateConstant(double value) {
+	public static DoubleConstant findOrCreateConstant(double value) {
 		return findOrCreateConstant(value, DoubleConstant::new);
 	}
 	
-	public IntegerConstant findOrCreateConstant(boolean value) {
+	public static IntegerConstant findOrCreateConstant(boolean value) {
 		return findOrCreateConstant(value ? 1 : 0);
 	}
 	
-	public StringConstant findOrCreateConstant(String value) {
+	public static StringConstant findOrCreateConstant(String value) {
 		return findOrCreateConstant(value, string -> new StringConstant(findOrCreateUtf8Constant(string)));
 	}
 	
-	public Utf8Constant findOrCreateUtf8Constant(String value) {
+	public static Utf8Constant findOrCreateUtf8Constant(String value) {
 		return findOrCreateConstant(value, Utf8Constant::new);
 	}
 }

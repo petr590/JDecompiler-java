@@ -73,7 +73,18 @@ public abstract class AbstractVariable implements Variable {
 			EmptyableVariable otherVar = enclosingScope.getVariableWithName(name);
 			
 			if(!otherVar.isEmpty()) {
-				otherVar.nonEmpty().setName(nextName(name, 1));
+				
+				int lastIndex = name.length() - 1;
+				
+				if(lastIndex > 0 && name.charAt(lastIndex) == '1' && !Character.isDigit(name.charAt(lastIndex - 1)) &&
+						type.getNameForVariable().equals(name.substring(0, lastIndex))) {
+					
+					name = type.getNameForVariable();
+					
+				} else {
+					otherVar.nonEmpty().setName(nextName(name, 1));
+				}
+				
 			} else {
 				otherVar = enclosingScope.getVariableWithName(nextName(name, 1));
 			}
@@ -104,7 +115,9 @@ public abstract class AbstractVariable implements Variable {
 	
 	/** Определяет имя переменной, когда мы пытаемся получить ещё не использованное имя. */
 	protected String nextName(String baseName, int index) {
-		return baseName + index;
+		return Character.isDigit(baseName.charAt(baseName.length() - 1)) ?
+				baseName + '_' + index :
+				baseName + index;
 	}
 	
 	
@@ -128,7 +141,7 @@ public abstract class AbstractVariable implements Variable {
 	@Override
 	public void reduceType() {
 		if(!typeFixed) {
-			type = castAssignedOperations(probableType != null && type.isSubtypeOf(probableType) ? probableType : type.reduced());
+			type = castAssignedOperations(probableType != null && type.canCastToNarrowest(probableType) ? probableType : type.reduced());
 		}
 	}
 	
@@ -171,17 +184,20 @@ public abstract class AbstractVariable implements Variable {
 	
 	@Override
 	public void castTypeToNarrowest(Type newType) {
-		type = castAssignedOperations(type, newType, CastingKind.NARROWEST);
+		if(newType != type)
+			type = castAssignedOperations(type, newType, CastingKind.NARROWEST);
 	}
 	
 	@Override
 	public void castTypeToWidest(Type newType) {
-		type = castAssignedOperations(type, newType, CastingKind.WIDEST);
+		if(newType != type)
+			type = castAssignedOperations(type, newType, CastingKind.WIDEST);
 	}
 	
 	@Override
 	public void castTypeTo(Type newType, CastingKind kind) {
-		type = castAssignedOperations(type, newType, kind);
+		if(newType != type)
+			type = castAssignedOperations(type, newType, kind);
 	}
 	
 	

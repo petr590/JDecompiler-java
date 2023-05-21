@@ -44,4 +44,8 @@ public class EmptyEnumExample {
 		
 		static class Inner {}
 	}
+	
+	public enum ExampleEnum8 {
+		A, B
+	}
 }

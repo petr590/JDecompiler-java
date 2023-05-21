@@ -80,7 +80,7 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	public default boolean canOmit() {
 		return false;
 	}
-
+	
 	
 	/**
 	 * Отмечает операцию как удалённую, после чего она
@@ -152,7 +152,7 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	public Type getReturnTypeAsNarrowest(Type type);
 	
 	public Type getReturnTypeAsWidest(Type type);
-
+	
 	public Type getReturnTypeAs(Type type, CastingKind kind);
 	
 	public void castReturnTypeToNarrowest(Type type);
@@ -165,7 +165,14 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	public Type getReturnTypeAsGeneralNarrowest(Operation other, GeneralCastingKind kind);
 	
 	
-	/** Сведение типа */
+	/** Выведение типа. Первый проход выполняется при создании операций, т.е. собственно при декомпиляции.
+	 * На втором проходе вызывается этот метод.
+	 * @return {@literal true}, если тип сведён, иначе {@literal false} */
+	public default boolean deduceType() {
+		return false;
+	}
+	
+	/** Сведение типа операции */
 	public default void reduceType() {}
 	
 	/** Делает приведение типа для таких выражений, как {@literal null} или лямбда,
@@ -237,7 +244,7 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	 * Гарантирует, что операция является объектом {@code this}.
 	 */
 	public default boolean isThisObject() {
-		return this instanceof ALoadOperation aload && aload.getIndex() == 0;
+		return this instanceof ALoadOperation aload && aload.getSlot() == 0;
 	}
 	
 	/**
@@ -265,7 +272,7 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	
 	
 	/**
-	 * Проверяет, что операция является цепью вызовом {@code StringBuilder#append(...)}
+	 * Проверяет, что операция является цепью вызовов {@code StringBuilder#append(...)}
 	 * или {@code new StringBuilder(...)}. Если это так, добавляет операнд в список операндов.
 	 * @return Список операндов, если цепь вызовов полностью распознана, иначе {@literal null}
 	 */

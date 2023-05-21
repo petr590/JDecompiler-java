@@ -22,4 +22,9 @@ public abstract class GenericExample<T> extends SuperGenericExample<T>
 	public static <U extends Object & CharSequence & Serializable> U foo(List<? extends U> eu, List<? super U> su, U... u) {
 		return eu.get(0);
 	}
+	
+	
+	public static abstract class StringGenericExample extends GenericExample<String> {
+		private static final long serialVersionUID = 1L;
+	}
 }

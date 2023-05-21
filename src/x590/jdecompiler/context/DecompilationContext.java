@@ -117,7 +117,7 @@ public final class DecompilationContext extends DecompilationAndStringifyContext
 			startScopes(index);
 			
 			
-			Logger.debugf("%d: operation stack: [%s]", index, stack.stream().map(operation -> operation.getClass().getSimpleName() + " " + operation.getReturnType().getName()).collect(Collectors.joining(", ")));
+//			Logger.debugf("%d: operation stack: [%s]", index, stack.stream().map(operation -> operation.getClass().getSimpleName() + " " + operation.getReturnType().getName()).collect(Collectors.joining(", ")));
 //			Logger.debugf("%d: scope stack: [%s]", index, StreamSupport.stream(this.getCurrentScopes().spliterator(), false).map(Scope::toString).collect(Collectors.joining(", ")));
 			
 //			Logger.debugf("%d: locals: [%s]", index,
@@ -140,9 +140,10 @@ public final class DecompilationContext extends DecompilationAndStringifyContext
 			catchEntries.removeIf(entry -> entry.getStartPos() == currentPos && addScope(entry.createScope(this)));
 			
 			
-			transitionInstructions.getOrDefault(index, PreDecompilationContext.DEFAULT_TRANSITION_INSTRUCTIONS_LIST)
+			transitionInstructions
+					.getOrDefault(index + 1, PreDecompilationContext.DEFAULT_TRANSITION_INSTRUCTIONS_LIST)
 					.forEach(transitionInstruction -> {
-						Operation operation = transitionInstruction.toOperationAtTargetPos(this);
+						Operation operation = transitionInstruction.toOperationBeforeTargetIndex(this);
 						
 						if(operation != null) {
 							operations.add(operation);
@@ -194,6 +195,12 @@ public final class DecompilationContext extends DecompilationAndStringifyContext
 				}
 			}
 			
+			
+			if(hasBreak(index)) {
+				expressionIndex = index;
+			}
+			
+			
 			this.index++;
 		}
 		
@@ -210,6 +217,9 @@ public final class DecompilationContext extends DecompilationAndStringifyContext
 		});
 		
 		deleteRemovedOperations();
+		
+		// Вызывать deduceType пока он возвращает true хотя бы для одной операции
+		while(operations.stream().anyMatch(Operation::deduceType));
 		
 		operations.forEach(Operation::reduceType);
 		getMethodScope().reduceVariablesTypes();

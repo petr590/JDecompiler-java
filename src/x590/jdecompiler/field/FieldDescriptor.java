@@ -16,8 +16,11 @@ import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.reference.RealReferenceType;
+import x590.jdecompiler.type.reference.ReferenceType;
+import x590.jdecompiler.type.reference.generic.GenericDeclarationType;
+import x590.util.annotation.Immutable;
 
-public final class FieldDescriptor extends Descriptor implements Importable {
+public final class FieldDescriptor extends Descriptor<FieldDescriptor> implements Importable {
 	
 	private static final Map<RealReferenceType, Map<String, Map<Type, FieldDescriptor>>> INSTANCES = new HashMap<>();
 	
@@ -67,6 +70,11 @@ public final class FieldDescriptor extends Descriptor implements Importable {
 		return type;
 	}
 	
+	@Override
+	public Type getReturnType() {
+		return type;
+	}
+	
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
@@ -89,6 +97,12 @@ public final class FieldDescriptor extends Descriptor implements Importable {
 		return this == other || this.equals(other.type, other.getDeclaringClass(), other.getName());
 	}
 	
+	public boolean equalsIgnoreClass(FieldDescriptor other) {
+		return this == other ||
+				type.equals(other.type) &&
+				getName().equals(other.getName());
+	}
+	
 	public boolean equals(Type type, RealReferenceType declaringClass, String name) {
 		return this.type.equals(type) && getDeclaringClass().equals(declaringClass) && getName().equals(name);
 	}
@@ -101,5 +115,12 @@ public final class FieldDescriptor extends Descriptor implements Importable {
 	@Override
 	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
 		out.print(getName()).print(getType(), classinfo);
+	}
+	
+	
+	@Override
+	public FieldDescriptor replaceAllTypes(@Immutable Map<GenericDeclarationType, ReferenceType> replaceTable) {
+		Type type = this.type.replaceAllTypes(replaceTable);
+		return type == this.type ? this : of(type, getDeclaringClass(), getName());
 	}
 }

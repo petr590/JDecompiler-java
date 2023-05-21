@@ -24,11 +24,9 @@ import x590.jdecompiler.type.TypeSize;
 import x590.jdecompiler.type.primitive.PrimitiveType;
 import x590.jdecompiler.type.reference.ArrayType;
 import x590.jdecompiler.variable.NamedVariable;
-import x590.jdecompiler.variable.UnnamedVariable;
 import x590.jdecompiler.variable.Variable;
 import x590.jdecompiler.variable.VariableWrapper;
 import x590.util.annotation.Nullable;
-import x590.util.function.ObjIntFunction;
 import x590.util.lazyloading.ObjectSupplierLazyLoading;
 
 public class MethodScope extends Scope {
@@ -51,13 +49,14 @@ public class MethodScope extends Scope {
 		}
 		
 		
-		LocalVariableTableAttribute localVariableTable = codeAttribute.getAttributes().getNullable(AttributeType.LOCAL_VARIABLE_TABLE);
+		LocalVariableTableAttribute localVariableTable =
+				codeAttribute.getAttributes().getOrDefaultEmpty(AttributeType.LOCAL_VARIABLE_TABLE);
 		
 		
 		final var emptyVar = VariableWrapper.empty();
 		
 		// public static void main(String[] args)
-		if(localVariableTable == null &&
+		if(localVariableTable.isEmpty() &&
 				modifiers.allOf(ACC_PUBLIC | ACC_STATIC) &&
 				genericDescriptor.equalsIgnoreClass(PrimitiveType.VOID, "main", ArrayType.STRING_ARRAY)) {
 			
@@ -67,13 +66,8 @@ public class MethodScope extends Scope {
 			
 			int codeLength = codeAttribute.getCode().length;
 			
-			ObjIntFunction<Type, Variable> variableCreator = localVariableTable != null ?
-					(argType, index) -> Variable.valueOf(localVariableTable.findEntry(index, codeLength), this, argType, true) :
-					(argType, index) -> new UnnamedVariable(this, argType, true);
-			
-			
 			for(Type argType : genericDescriptor.getArguments()) {
-				addVariable(variableCreator.apply(argType, i).defined());
+				addVariable(Variable.valueOf(localVariableTable.findEntry(i, codeLength), this, argType, true).defined());
 				
 				if(argType.getSize() == TypeSize.LONG) {
 					addVariable(emptyVar);

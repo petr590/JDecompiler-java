@@ -5,6 +5,9 @@ import java.util.Objects;
 import x590.jdecompiler.type.CastingKind;
 import x590.jdecompiler.type.Type;
 
+/**
+ * Операция с определённым возвращаемым значением, которое может меняться
+ */
 public abstract class ReturnableOperation extends AbstractOperation {
 	
 	protected Type returnType;
@@ -21,6 +24,24 @@ public abstract class ReturnableOperation extends AbstractOperation {
 	@Override
 	protected void onCastReturnType(Type newType, CastingKind casting) {
 		this.returnType = Objects.requireNonNull(newType);
+	}
+	
+	
+	@Override
+	public final boolean deduceType() {
+		var returnType = this.returnType;
+		Type deducedType = getDeducedType(returnType);
+		
+		if(returnType != deducedType) {
+			this.returnType = deducedType;
+			return true;
+		}
+		
+		return false;
+	}
+	
+	protected Type getDeducedType(Type returnType) {
+		return returnType;
 	}
 	
 	@Override

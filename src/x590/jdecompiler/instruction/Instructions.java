@@ -9,11 +9,15 @@ import static x590.jdecompiler.type.primitive.PrimitiveType.*;
 import x590.jdecompiler.instruction.array.ArrayLengthInstruction;
 import x590.jdecompiler.instruction.arrayload.*;
 import x590.jdecompiler.instruction.arraystore.*;
+import x590.jdecompiler.instruction.cast.CastInstruction;
 import x590.jdecompiler.instruction.cmp.*;
 import x590.jdecompiler.instruction.constant.*;
 import x590.jdecompiler.instruction.dup.*;
 import x590.jdecompiler.instruction.load.*;
 import x590.jdecompiler.instruction.operator.*;
+import x590.jdecompiler.instruction.other.AThrowInstruction;
+import x590.jdecompiler.instruction.other.PopInstruction;
+import x590.jdecompiler.instruction.other.SwapInstruction;
 import x590.jdecompiler.instruction.returning.*;
 import x590.jdecompiler.instruction.store.*;
 import x590.jdecompiler.operationinstruction.constant.AConstNullOperationInstruction;
@@ -23,23 +27,23 @@ public class Instructions {
 	public static final Instruction
 			ACONST_NULL = AConstNullOperationInstruction.INSTANCE,
 			
-			ICONST_M1 = new IPushInstruction(-1),
-			ICONST_0  = new IPushInstruction(0),
-			ICONST_1  = new IPushInstruction(1),
-			ICONST_2  = new IPushInstruction(2),
-			ICONST_3  = new IPushInstruction(3),
-			ICONST_4  = new IPushInstruction(4),
-			ICONST_5  = new IPushInstruction(5),
+			ICONST_M1 = new IConstInstruction(-1),
+			ICONST_0  = new IConstInstruction(0),
+			ICONST_1  = new IConstInstruction(1),
+			ICONST_2  = new IConstInstruction(2),
+			ICONST_3  = new IConstInstruction(3),
+			ICONST_4  = new IConstInstruction(4),
+			ICONST_5  = new IConstInstruction(5),
 			
-			LCONST_0  = new LPushInstruction(0),
-			LCONST_1  = new LPushInstruction(1),
+			LCONST_0  = new LConstInstruction(0),
+			LCONST_1  = new LConstInstruction(1),
 			
-			FCONST_0  = new FPushInstruction(0),
-			FCONST_1  = new FPushInstruction(1),
-			FCONST_2  = new FPushInstruction(2),
+			FCONST_0  = new FConstInstruction(0),
+			FCONST_1  = new FConstInstruction(1),
+			FCONST_2  = new FConstInstruction(2),
 			
-			DCONST_0  = new DPushInstruction(0),
-			DCONST_1  = new DPushInstruction(1),
+			DCONST_0  = new DConstInstruction(0),
+			DCONST_1  = new DConstInstruction(1),
 			
 			
 			ILOAD_0 = new ILoadInstruction(0),
@@ -124,42 +128,42 @@ public class Instructions {
 			SWAP    = new SwapInstruction(),
 			
 			
-			IADD = new AddOperatorInstruction(BYTE_SHORT_INT_CHAR),
+			IADD = new AddOperatorInstruction(INT),
 			LADD = new AddOperatorInstruction(LONG),
 			FADD = new AddOperatorInstruction(FLOAT),
 			DADD = new AddOperatorInstruction(DOUBLE),
-			ISUB = new SubOperatorInstruction(BYTE_SHORT_INT_CHAR),
+			ISUB = new SubOperatorInstruction(INT),
 			LSUB = new SubOperatorInstruction(LONG),
 			FSUB = new SubOperatorInstruction(FLOAT),
 			DSUB = new SubOperatorInstruction(DOUBLE),
-			IMUL = new MulOperatorInstruction(BYTE_SHORT_INT_CHAR),
+			IMUL = new MulOperatorInstruction(INT),
 			LMUL = new MulOperatorInstruction(LONG),
 			FMUL = new MulOperatorInstruction(FLOAT),
 			DMUL = new MulOperatorInstruction(DOUBLE),
-			IDIV = new DivOperatorInstruction(BYTE_SHORT_INT_CHAR),
+			IDIV = new DivOperatorInstruction(INT),
 			LDIV = new DivOperatorInstruction(LONG),
 			FDIV = new DivOperatorInstruction(FLOAT),
 			DDIV = new DivOperatorInstruction(DOUBLE),
-			IREM = new RemOperatorInstruction(BYTE_SHORT_INT_CHAR),
+			IREM = new RemOperatorInstruction(INT),
 			LREM = new RemOperatorInstruction(LONG),
 			FREM = new RemOperatorInstruction(FLOAT),
 			DREM = new RemOperatorInstruction(DOUBLE),
-			INEG = new NegOperatorInstruction(BYTE_SHORT_INT_CHAR),
+			INEG = new NegOperatorInstruction(INT),
 			LNEG = new NegOperatorInstruction(LONG),
 			FNEG = new NegOperatorInstruction(FLOAT),
 			DNEG = new NegOperatorInstruction(DOUBLE),
 			
-			ISHL  = new ShiftLeftOperatorInstruction(BYTE_SHORT_INT_CHAR),
+			ISHL  = new ShiftLeftOperatorInstruction(INT),
 			LSHL  = new ShiftLeftOperatorInstruction(LONG),
-			ISHR  = new ShiftRightOperatorInstruction(BYTE_SHORT_INT_CHAR),
+			ISHR  = new ShiftRightOperatorInstruction(INT),
 			LSHR  = new ShiftRightOperatorInstruction(LONG),
-			IUSHR = new UShiftRightOperatorInstruction(BYTE_SHORT_INT_CHAR),
+			IUSHR = new UShiftRightOperatorInstruction(INT),
 			LUSHR = new UShiftRightOperatorInstruction(LONG),
-			IAND  = new AndOperatorInstruction(BYTE_SHORT_INT_CHAR_BOOLEAN),
+			IAND  = new AndOperatorInstruction(INT_BOOLEAN),
 			LAND  = new AndOperatorInstruction(LONG),
-			IOR   = new OrOperatorInstruction(BYTE_SHORT_INT_CHAR_BOOLEAN),
+			IOR   = new OrOperatorInstruction(INT_BOOLEAN),
 			LOR   = new OrOperatorInstruction(LONG),
-			IXOR  = new XorOperatorInstruction(BYTE_SHORT_INT_CHAR_BOOLEAN),
+			IXOR  = new XorOperatorInstruction(INT_BOOLEAN),
 			LXOR  = new XorOperatorInstruction(LONG),
 			
 			

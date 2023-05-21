@@ -25,7 +25,7 @@ public final class Utf8Constant extends Constant implements ICachedConstant<Stri
 		return value;
 	}
 	
-	private static String decodeUtf8(ExtendedDataInputStream in) {
+	protected static String decodeUtf8(ExtendedDataInputStream in) {
 		int length = in.readUnsignedShort();
 		StringBuilder result = new StringBuilder();
 		

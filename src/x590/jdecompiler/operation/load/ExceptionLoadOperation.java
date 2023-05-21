@@ -6,9 +6,9 @@ import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.PossibleExceptionStoreOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.ReturnableOperation;
+import x590.jdecompiler.operation.variable.PossibleExceptionStoreOperation;
 import x590.jdecompiler.type.reference.ClassType;
 import x590.jdecompiler.variable.Variable;
 import x590.util.annotation.Immutable;
@@ -33,7 +33,7 @@ public class ExceptionLoadOperation extends ReturnableOperation {
 	}
 	
 	@Override
-	public @Nullable String getPossibleVariableName() {
+	public String getPossibleVariableName() {
 		return "ex";
 	}
 	

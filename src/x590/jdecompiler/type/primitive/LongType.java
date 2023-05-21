@@ -23,7 +23,7 @@ public final class LongType extends PrimitiveType {
 	}
 	
 	@Override
-	public boolean isImplicitSubtypeOf(Type other) {
+	public boolean canImplicitCastToNarrowest(Type other) {
 		return this == other || other == PrimitiveType.FLOAT || other == PrimitiveType.DOUBLE;
 	}
 }

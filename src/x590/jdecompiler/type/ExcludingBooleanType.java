@@ -4,35 +4,40 @@ import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.type.primitive.PrimitiveType;
 
+/** Что угодно, кроме {@literal boolean}. Дискриминация как она есть :/ */
 public final class ExcludingBooleanType extends Type {
 	
 	public static final ExcludingBooleanType INSTANCE = new ExcludingBooleanType();
 	
+	
+	private static final String NAME = "ExcludingBooleanType";
+	
 	private ExcludingBooleanType() {}
+	
 	
 	@Override
 	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
-		out.write("ExcludingBooleanType");
+		out.write(NAME);
 	}
 	
 	@Override
 	public String toString() {
-		return "ExcludingBooleanType";
+		return NAME;
 	}
 	
 	@Override
 	public String getEncodedName() {
-		return "ExcludingBooleanType";
+		return NAME;
 	}
 	
 	@Override
 	public String getName() {
-		return "ExcludingBooleanType";
+		return NAME;
 	}
 	
 	@Override
 	public String getNameForVariable() {
-		return "n";
+		return PrimitiveType.INT.getNameForVariable();
 	}
 	
 	@Override
@@ -41,7 +46,7 @@ public final class ExcludingBooleanType extends Type {
 	}
 	
 	@Override
-	protected boolean canCastToNarrowest(Type other) {
+	public boolean isDefinitelySubtypeOf(Type other) {
 		return other != PrimitiveType.BOOLEAN;
 	}
 	

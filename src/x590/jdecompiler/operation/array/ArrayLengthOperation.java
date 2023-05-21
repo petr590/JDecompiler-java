@@ -22,6 +22,12 @@ public final class ArrayLengthOperation extends AbstractOperation implements Int
 	}
 	
 	@Override
+	public String getPossibleVariableName() {
+		String arrayName = array.getPossibleVariableName();
+		return arrayName == null ? "length" : arrayName + "Length";
+	}
+	
+	@Override
 	public boolean requiresLocalContext() {
 		return array.requiresLocalContext();
 	}

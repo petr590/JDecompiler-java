@@ -12,19 +12,16 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import static x590.jdecompiler.type.primitive.PrimitiveType.*;
 
-public class PrimitiveTypeTest {
+public final class PrimitiveTypeTest {
 	
-	private static final UncertainIntegralType
-			UNCERTAIN_BYTE = UncertainIntegralType.getInstance(1, 1),
-			BYTE_SHORT     = UncertainIntegralType.getInstance(1, 2),
-			UNCERTAIN_INT  = UncertainIntegralType.getInstance(4, 4);
+	protected static final Type BYTE_SHORT = UncertainIntegralType.getInstance(1, 2);
 	
 	@Test
 	public void testUncertainIntegralType() {
 		Type type = BYTE_SHORT_INT_CHAR_BOOLEAN;
 		
 		assertEquals(BOOLEAN,             type.castToNarrowest(BOOLEAN));
-		assertEquals(UNCERTAIN_BYTE,      type.castToNarrowest(BYTE));
+		assertEquals(BYTE,                type.castToNarrowest(BYTE));
 		assertEquals(BYTE_SHORT,          type.castToNarrowest(SHORT));
 		assertEquals(CHAR,                type.castToNarrowest(CHAR));
 		assertEquals(BYTE_SHORT_INT_CHAR, type.castToNarrowest(INT));
@@ -33,9 +30,10 @@ public class PrimitiveTypeTest {
 		assertEquals(BYTE_SHORT_INT, type.castToWidest(BYTE));
 		assertEquals(SHORT_INT,      type.castToWidest(SHORT));
 		assertEquals(INT_CHAR,       type.castToWidest(CHAR));
-		assertEquals(UNCERTAIN_INT,  type.castToWidest(INT));
+		assertEquals(INT,            type.castToWidest(INT));
 		
 		assertEquals(SHORT, SHORT.castToWidest(BYTE));
+		assertEquals(BYTE, BYTE_BOOLEAN.castToWidest(BYTE));
 	}
 	
 	@Test

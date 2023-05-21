@@ -15,7 +15,8 @@ public final class CompareWithZeroOperation extends CompareUnaryOperation {
 	}
 	
 	private boolean isBooleanType() {
-		return getCompareType().isEqualsCompareType() && operand.getReturnType().isSubtypeOf(PrimitiveType.BOOLEAN);
+		return getCompareType().isEqualsCompareType() &&
+				operand.getReturnType().canCastToNarrowest(PrimitiveType.BOOLEAN);
 	}
 	
 	@Override

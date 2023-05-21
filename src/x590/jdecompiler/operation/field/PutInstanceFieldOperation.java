@@ -31,7 +31,7 @@ public final class PutInstanceFieldOperation extends PutFieldOperation {
 		if(!canOmit && context.getDescriptor().isConstructor() &&
 				context.currentScope() == context.getMethodScope() && !getValue().requiresLocalContext()) {
 			
-			if(context.getClassinfo().getField(descriptor).setInstanceInitializer(getValue(), context))
+			if(context.getClassinfo().getField(getDescriptor()).setInstanceInitializer(getValue(), context))
 				this.remove();
 		}
 		

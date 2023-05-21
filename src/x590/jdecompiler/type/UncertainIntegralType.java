@@ -1,11 +1,11 @@
 package x590.jdecompiler.type;
 
+import static x590.jdecompiler.type.primitive.PrimitiveType.*;
+
 import x590.jdecompiler.io.ExtendedOutputStream;
 import x590.jdecompiler.type.primitive.IntegralType;
 import x590.jdecompiler.type.primitive.PrimitiveType;
 import x590.jdecompiler.util.WhitespaceStringBuilder;
-
-import static x590.jdecompiler.type.primitive.PrimitiveType.CHAR_CAPACITY;
 
 import x590.jdecompiler.clazz.ClassInfo;
 
@@ -19,7 +19,9 @@ public final class UncertainIntegralType extends Type {
 	
 	private static final UncertainIntegralType[] INSTANCES = new UncertainIntegralType[64];
 	
-	public static final int INCLUDE_BOOLEAN = 0x1, INCLUDE_CHAR = 0x2;
+	public static final int
+			INCLUDE_BOOLEAN = 0x1,
+			INCLUDE_CHAR = 0x2;
 	
 	
 	private final int minCapacity, maxCapacity;
@@ -49,13 +51,13 @@ public final class UncertainIntegralType extends Type {
 	
 	private static PrimitiveType primitiveTypeByCapacity(int capacity, boolean includeChar) {
 		if(includeChar && capacity == CHAR_CAPACITY) {
-			return PrimitiveType.CHAR;
+			return CHAR;
 		}
 		
 		switch(capacity) {
-			case 1: return PrimitiveType.BYTE;
-			case 2: return PrimitiveType.SHORT;
-			case 4: return PrimitiveType.INT;
+			case 1: return BYTE;
+			case 2: return SHORT;
+			case 4: return INT;
 			default:
 				throw new IllegalArgumentException("Cannot find " + (includeChar ? "unsigned" : "signed") +
 						" integral type for capacity " + capacity);
@@ -77,17 +79,23 @@ public final class UncertainIntegralType extends Type {
 	}
 
 	
-	private static UncertainIntegralType getInstanceNoexcept(int minCapacity, int maxCapacity, boolean includeBoolean, boolean includeChar) {
+	private static Type getInstanceNoexcept(int minCapacity, int maxCapacity, boolean includeBoolean, boolean includeChar) {
 		return getInstanceNoexcept(minCapacity, maxCapacity, (includeBoolean ? INCLUDE_BOOLEAN : 0) | (includeChar ? INCLUDE_CHAR: 0));
 	}
 	
-	private static UncertainIntegralType getInstanceNoexcept(int minCapacity, int maxCapacity, int flags) {
+	private static Type getInstanceNoexcept(int minCapacity, int maxCapacity, int flags) {
 		
 		if(minCapacity < 1 || minCapacity > 4)
 			throw new IllegalArgumentException("minCapacity = " + minCapacity);
 		
 		if(maxCapacity < 1 || maxCapacity > 4)
 			throw new IllegalArgumentException("maxCapacity = " + maxCapacity);
+		
+		if((flags & ~(INCLUDE_BOOLEAN | INCLUDE_CHAR)) != 0)
+			throw new IllegalArgumentException("flags = 0b" + Integer.toBinaryString(flags));
+		
+		if(minCapacity == maxCapacity && flags == 0)
+			return primitiveTypeByCapacity(minCapacity, false);
 		
 		if(minCapacity > maxCapacity)
 			return null;
@@ -103,21 +111,32 @@ public final class UncertainIntegralType extends Type {
 	}
 	
 	
-	public static UncertainIntegralType getInstance(int minCapacity, int maxCapacity) {
+	public static Type getInstance(int minCapacity, int maxCapacity) {
 		return getInstance(minCapacity, maxCapacity, false, false);
 	}
 	
-	public static UncertainIntegralType getInstance(int minCapacity, int maxCapacity, boolean includeBoolean, boolean includeChar) {
+	public static Type getInstance(int minCapacity, int maxCapacity, boolean includeBoolean, boolean includeChar) {
 		return getInstance(minCapacity, maxCapacity, (includeBoolean ? INCLUDE_BOOLEAN : 0) | (includeChar ? INCLUDE_CHAR: 0));
 	}
 	
-	public static UncertainIntegralType getInstance(int minCapacity, int maxCapacity, int flags) {
+	/** @return Экземпляр {@link UncertainIntegralType}. Если возможно, он сокращается до примитива.
+	 * @throws IllegalArgumentException при неправильных входных данных */
+	public static Type getInstance(int minCapacity, int maxCapacity, int flags) {
 		var type = getInstanceNoexcept(minCapacity, maxCapacity, flags);
 		
 		if(type != null)
 			return type;
 		
 		throw new IllegalArgumentException("minCapacity = " + minCapacity + ", maxCapacity = " + maxCapacity + ", flags = " + flags);
+	}
+	
+	
+	public static int includeBooleanIf(boolean includeBoolean) {
+		return includeBoolean ? INCLUDE_BOOLEAN : 0;
+	}
+	
+	public static int includeCharIf(boolean includeChar) {
+		return includeChar ? INCLUDE_CHAR : 0;
 	}
 	
 	
@@ -130,13 +149,13 @@ public final class UncertainIntegralType extends Type {
 	public String toString() {
 		WhitespaceStringBuilder typesStr = new WhitespaceStringBuilder();
 		
-		if(minCapacity <= 1 && maxCapacity >= 1)
+		if(minCapacity <= BYTE_CAPACITY && maxCapacity >= BYTE_CAPACITY)
 			typesStr.append("byte");
 		
-		if(minCapacity <= 2 && maxCapacity >= 2)
+		if(minCapacity <= SHORT_CAPACITY && maxCapacity >= SHORT_CAPACITY)
 			typesStr.append("short");
 		
-		if(minCapacity <= 4 && maxCapacity >= 4)
+		if(minCapacity <= INT_CAPACITY && maxCapacity >= INT_CAPACITY)
 			typesStr.append("int");
 		
 		if(includeChar)
@@ -145,7 +164,7 @@ public final class UncertainIntegralType extends Type {
 		if(includeBoolean)
 			typesStr.append("boolean");
 		
-		return "(" + typesStr + ")";
+		return "(" + typesStr.toString() + ")";
 	}
 	
 	@Override
@@ -168,13 +187,30 @@ public final class UncertainIntegralType extends Type {
 		return TypeSize.WORD;
 	}
 	
+	
 	@Override
-	protected boolean canCastToNarrowest(Type other) {
-		if(this == other || (other == PrimitiveType.BOOLEAN && includeBoolean) || other == highPrimitiveType) {
+	protected Type castImpl(Type other, CastingKind kind) {
+		return castImpl0(this, other, kind.toBoolean());
+	}
+	
+	@Override
+	protected Type reversedCastImpl(Type other, CastingKind kind) {
+		return reversedCastImpl0(this, other, kind.toBoolean());
+	}
+	
+	@Override
+	public boolean canImplicitCastToNarrowest(Type other) {
+		return reduced().canImplicitCastToNarrowest(other);
+	}
+	
+	
+	@Override
+	protected boolean canCastToNarrowestImpl(Type other) {
+		if(this == other || (other == BOOLEAN && includeBoolean) || other == highPrimitiveType) {
 			return true;
 		}
 		
-		if(other == PrimitiveType.CHAR) {
+		if(other == CHAR) {
 			return includeChar || maxCapacity > CHAR_CAPACITY;
 		}
 		
@@ -194,10 +230,10 @@ public final class UncertainIntegralType extends Type {
 		
 		if(other.isPrimitive()) {
 			
-			if(other == PrimitiveType.BOOLEAN)
+			if(other == BOOLEAN)
 				return type.includeBoolean ? other : null;
 			
-			if(other == PrimitiveType.CHAR)
+			if(other == CHAR)
 				return widest && type.maxCapacity > CHAR_CAPACITY ?
 						getInstanceNoexcept(CHAR_CAPACITY * 2, type.maxCapacity, false, type.includeChar) :  
 						type.includeChar ? other : null;
@@ -237,10 +273,10 @@ public final class UncertainIntegralType extends Type {
 		
 		if(other.isPrimitive()) {
 			
-			if(other == PrimitiveType.BOOLEAN)
+			if(other == BOOLEAN)
 				return type.includeBoolean ? other : null;
 			
-			if(other == PrimitiveType.CHAR)
+			if(other == CHAR)
 				return type.includeChar || !widest && type.maxCapacity > CHAR_CAPACITY ? other : null;
 			
 			if(other instanceof IntegralType integralType) {
@@ -256,25 +292,9 @@ public final class UncertainIntegralType extends Type {
 	}
 	
 	
-	@Override
-	protected Type castImpl(Type other, CastingKind kind) {
-		return castImpl0(this, other, kind.toBoolean());
-	}
-	
-	@Override
-	protected Type reversedCastImpl(Type other, CastingKind kind) {
-		return reversedCastImpl0(this, other, kind.toBoolean());
-	}
-	
-	@Override
-	public boolean isImplicitSubtypeOf(Type other) {
-		return reduced().isImplicitSubtypeOf(other);
-	}
-	
-	
 	/** Возвращает верхнюю границу типа или boolean, если установлен флаг {@link #includeBoolean()} */
 	@Override
 	public BasicType reduced() {
-		return includeBoolean ? PrimitiveType.BOOLEAN : highPrimitiveType;
+		return includeBoolean ? BOOLEAN : highPrimitiveType;
 	}
 }

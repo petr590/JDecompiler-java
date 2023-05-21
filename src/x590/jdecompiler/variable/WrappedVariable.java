@@ -48,6 +48,11 @@ public class WrappedVariable implements VariableWrapper {
 	}
 	
 	@Override
+	public @Nullable String getPossibleName() {
+		return variable.getPossibleName();
+	}
+	
+	@Override
 	public @Nullable String getName() {
 		return variable.getName();
 	}

@@ -23,7 +23,7 @@ public final class FloatType extends PrimitiveType {
 	}
 	
 	@Override
-	public boolean isImplicitSubtypeOf(Type other) {
+	public boolean canImplicitCastToNarrowest(Type other) {
 		return this == other || other == PrimitiveType.DOUBLE;
 	}
 }

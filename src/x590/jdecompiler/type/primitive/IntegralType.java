@@ -24,20 +24,20 @@ public abstract class IntegralType extends PrimitiveType {
 	
 	
 	@Override
-	protected boolean canCastToNarrowest(Type other) {
+	protected boolean canCastToNarrowestImpl(Type other) {
 		return this == other ||
 				other instanceof IntegralType integralType && integralType.getCapacity() >= this.getCapacity();
 	}
 	
 	@Override
-	protected boolean canCastToWidest(Type other) {
+	protected boolean canCastToWidestImpl(Type other) {
 		return this == other ||
 				other instanceof IntegralType integralType && integralType.getCapacity() <= this.getCapacity() ||
 				other == CHAR && this.getCapacity() > CHAR_CAPACITY;
 	}
 	
 	@Override
-	public boolean isImplicitSubtypeOf(Type other) {
-		return isSubtypeOf(other) || other.isLongOrFloatOrDouble();
+	public boolean canImplicitCastToNarrowest(Type other) {
+		return canCastToNarrowest(other) || other.isLongOrFloatOrDouble();
 	}
 }

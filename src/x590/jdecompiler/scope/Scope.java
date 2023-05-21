@@ -19,8 +19,8 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.operation.AbstractOperation;
 import x590.jdecompiler.operation.Operation;
-import x590.jdecompiler.operation.VariableDefineOperation;
 import x590.jdecompiler.operation.store.StoreOperation;
+import x590.jdecompiler.operation.variable.VariableDefineOperation;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.primitive.PrimitiveType;
 import x590.jdecompiler.variable.EmptyableVariable;
@@ -51,7 +51,7 @@ public abstract class Scope extends AbstractOperation {
 	private final List<EmptyableVariableWrapper> locals;
 
 	// key: index, value: index in code
-	/* private */ public final Int2IntMap indexTable;
+	private final Int2IntMap indexTable;
 	
 	private @Nullable String label;
 	private int labelNumber;
@@ -193,7 +193,7 @@ public abstract class Scope extends AbstractOperation {
 	}
 	
 	private static Predicate<EmptyableVariable> varNameEquals(String name) {
-		return var -> var.hasName() && var.getName().equals(name);
+		return var -> var.isNonEmpty() && name.equals(var.nonEmpty().getName());
 	}
 	
 	public EmptyableVariable getVariableWithName(String name) {

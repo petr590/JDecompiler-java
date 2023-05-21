@@ -27,18 +27,18 @@ public final class GetStaticFieldOperation extends GetFieldOperation {
 	
 	public GetStaticFieldOperation(DecompilationContext context, int index) {
 		super(context, index);
-		this.isPrimitiveClass = isPrimitiveClass(descriptor);
+		this.isPrimitiveClass = isPrimitiveClass(getDescriptor());
 	}
 	
 	public GetStaticFieldOperation(DecompilationContext context, FieldrefConstant fieldref) {
 		super(context, fieldref);
-		this.isPrimitiveClass = isPrimitiveClass(descriptor);
+		this.isPrimitiveClass = isPrimitiveClass(getDescriptor());
 	}
 	
 	
 	@Override
 	public @Nullable Int2ObjectMap<String> getEnumTable(DecompilationContext context) {
-		return OperationUtils.initEnumTable(context, descriptor, enumTable, this::setEnumTable);
+		return OperationUtils.initEnumTable(context, getDescriptor(), enumTable, this::setEnumTable);
 	}
 	
 	@Override
@@ -50,18 +50,18 @@ public final class GetStaticFieldOperation extends GetFieldOperation {
 	@Override
 	public void addImports(ClassInfo classinfo) {
 		if(!isPrimitiveClass)
-			classinfo.addImport(descriptor.getDeclaringClass());
+			classinfo.addImport(getDescriptor().getDeclaringClass());
 	}
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		
 		if(isPrimitiveClass) {
-			out.print(((WrapperClassType)descriptor.getDeclaringClass()).getPrimitiveType(), context.getClassinfo()).print(".class");
+			out.print(((WrapperClassType)getDescriptor().getDeclaringClass()).getPrimitiveType(), context.getClassinfo()).print(".class");
 			
 		} else {
 			if(!canOmitClass(context)) {
-				out.print(descriptor.getDeclaringClass(), context.getClassinfo()).print('.');
+				out.print(getDescriptor().getDeclaringClass(), context.getClassinfo()).print('.');
 			}
 			
 			super.writeName(out, context);

@@ -4,13 +4,13 @@ import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.PossibleExceptionStoreOperation;
-import x590.jdecompiler.operation.IncrementableOperation;
 import x590.jdecompiler.operation.Operation;
-import x590.jdecompiler.operation.OperationWithVariable;
 import x590.jdecompiler.operation.Priority;
-import x590.jdecompiler.operation.VariableDefinitionOperation;
+import x590.jdecompiler.operation.increment.IncrementableOperation;
 import x590.jdecompiler.operation.load.LoadOperation;
+import x590.jdecompiler.operation.variable.OperationWithVariable;
+import x590.jdecompiler.operation.variable.PossibleExceptionStoreOperation;
+import x590.jdecompiler.operation.variable.VariableDefinitionOperation;
 import x590.jdecompiler.type.CastingKind;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.variable.Variable;
@@ -47,6 +47,17 @@ public abstract class StoreOperation extends OperationWithVariable
 		this.incData = init(context, value, variable.getType());
 	}
 	
+	@Override
+	protected Type getDeducedType(Type returnType) {
+		variable.castTypeToWidest(value.getReturnType());
+		value.castReturnTypeToNarrowest(variable.getType());
+		
+		var preIncLoadOperation = incData.getPreIncLoadOperation();
+		
+		return preIncLoadOperation != null ?
+				preIncLoadOperation.getReturnType() :
+				returnType;
+	}
 	
 	@Override
 	public @Nullable Variable getStoringVariable() {
@@ -125,6 +136,7 @@ public abstract class StoreOperation extends OperationWithVariable
 	
 	@Override
 	public void onCastReturnType(Type newType, CastingKind kind) {
+		super.onCastReturnType(newType, kind);
 		variable.castTypeTo(newType, kind);
 	}
 	

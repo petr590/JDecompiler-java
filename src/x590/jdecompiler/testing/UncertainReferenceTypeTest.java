@@ -2,7 +2,10 @@ package x590.jdecompiler.testing;
 
 import x590.jdecompiler.type.CastingKind;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.Types;
 import x590.jdecompiler.type.UncertainReferenceType;
+import x590.jdecompiler.type.primitive.PrimitiveType;
+import x590.jdecompiler.type.reference.ArrayType;
 import x590.jdecompiler.type.reference.ClassType;
 import x590.jdecompiler.type.reference.ReferenceType;
 import x590.jdecompiler.type.reference.generic.AnyGenericType;
@@ -64,7 +67,7 @@ public class UncertainReferenceTypeTest {
 	public void testWithGenericTypes() {
 		
 		ReferenceType parent = ClassType.fromClass(Number.class);
-		ReferenceType child = new DefiniteGenericType("TT;", "T", parent, List.of());
+		ReferenceType child = DefiniteGenericType.of("T", parent, List.of());
 		ReferenceType other = ClassType.INTEGER;
 		
 		Type type = UncertainReferenceType.getInstance(parent, child, CastingKind.NARROWEST);
@@ -87,5 +90,26 @@ public class UncertainReferenceTypeTest {
 		Type type = UncertainReferenceType.getInstance(ClassType.OBJECT, strList, CastingKind.NARROWEST);
 		
 		assertEquals(strList, type.castToNarrowestNoexcept(anyList));
+	}
+	
+	@Test
+	public void testWithArrayTypes() {
+		
+		Type type1 = UncertainReferenceType.getInstance(ClassType.OBJECT, ArrayType.INT_ARRAY, CastingKind.NARROWEST);
+		Type type2 = UncertainReferenceType.getInstance(ArrayType.ANY_ARRAY, ArrayType.INT_ARRAY, CastingKind.NARROWEST);
+		
+		assertTrue(PrimitiveType.INT.isDefinitelySubtypeOf(Types.ANY_TYPE));
+		
+		assertNotNull(type2);
+		assertEquals(type2, type1.castToNarrowestNoexcept(ArrayType.ANY_ARRAY));
+		assertEquals(type2, type1.castToNarrowest(ArrayType.ANY_ARRAY));
+		
+		ReferenceType byteArray = ArrayType.BYTE_ARRAY;
+		Type uncertainByteArray = UncertainReferenceType.getInstance(byteArray);
+		Type uncertainByteOrBooleanArray = UncertainReferenceType.getInstance(ArrayType.BYTE_OR_BOOLEAN_ARRAY);
+		
+		assertEquals(byteArray, byteArray.castToNarrowestNoexcept(uncertainByteOrBooleanArray));
+		assertEquals(uncertainByteArray, uncertainByteOrBooleanArray.castToNarrowestNoexcept(byteArray));
+		assertEquals(uncertainByteArray, uncertainByteOrBooleanArray.castToWidestNoexcept(byteArray));
 	}
 }

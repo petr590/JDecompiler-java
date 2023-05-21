@@ -50,8 +50,8 @@ public class AttributeType<A extends Attribute> implements AttributeReader<A> {
 	public static final EmptyableAttributeType<ParameterAnnotationsAttribute> RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS = create(Location.METHOD, AttributeNames.RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS, ParameterAnnotationsAttribute::new, ParameterAnnotationsAttribute.emptyInvisible());
 	
 	// Code
-	public static final AttributeType<LocalVariableTableAttribute>     LOCAL_VARIABLE_TABLE      = create(Location.CODE_ATTRIBUTE, AttributeNames.LOCAL_VARIABLE_TABLE,      LocalVariableTableAttribute::new);
-//	public static final AttributeType<LocalVariableTypeTableAttribute> LOCAL_VARIABLE_TYPE_TABLE = create(Location.CODE_ATTRIBUTE, AttributeNames.LOCAL_VARIABLE_TYPE_TABLE, LocalVariableTypeTableAttribute::new);
+	public static final EmptyableAttributeType<LocalVariableTableAttribute> LOCAL_VARIABLE_TABLE      = create(Location.CODE_ATTRIBUTE, AttributeNames.LOCAL_VARIABLE_TABLE,      LocalVariableTableAttribute::new, LocalVariableTableAttribute.emptyTable());
+	public static final EmptyableAttributeType<LocalVariableTableAttribute> LOCAL_VARIABLE_TYPE_TABLE = create(Location.CODE_ATTRIBUTE, AttributeNames.LOCAL_VARIABLE_TYPE_TABLE, LocalVariableTableAttribute::new, LocalVariableTableAttribute.emptyTypeTable());
 	
 	// Class, field, method
 	public static final AttributeType<SyntheticAttribute>  SYNTHETIC  = create(CLASS_FIELD_OR_METHOD_LOCATION, AttributeNames.SYNTHETIC,  AttributeReader.convert(SyntheticAttribute::get));

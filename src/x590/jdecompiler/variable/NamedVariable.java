@@ -32,7 +32,14 @@ public class NamedVariable extends AbstractVariable {
 	}
 	
 	@Override
-	public void addPossibleName(@Nullable String name) {}
+	public String getPossibleName() {
+		return name;
+	}
+	
+	@Override
+	public void addPossibleName(@Nullable String name) {
+		// Do nothing
+	}
 	
 	
 	@Override

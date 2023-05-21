@@ -28,12 +28,13 @@ public final class CharType extends PrimitiveType {
 	}
 	
 	@Override
-	protected boolean canCastToNarrowest(Type other) {
-		return this == other || other instanceof IntegralType integralType && integralType.getCapacity() > CHAR_CAPACITY;
+	public boolean canCastToNarrowestImpl(Type other) {
+		return this == other ||
+				other instanceof IntegralType integralType && integralType.getCapacity() > CHAR_CAPACITY;
 	}
 	
 	@Override
-	public boolean isImplicitSubtypeOf(Type other) {
+	public boolean canImplicitCastToNarrowest(Type other) {
 		return canCastToNarrowest(other) || other.isLongOrFloatOrDouble();
 	}
 }

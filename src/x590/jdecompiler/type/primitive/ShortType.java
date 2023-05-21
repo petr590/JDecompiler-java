@@ -18,11 +18,11 @@ public final class ShortType extends IntegralType {
 	
 	@Override
 	public int getCapacity() {
-		return 2;
+		return SHORT_CAPACITY;
 	}
 	
 	@Override
 	public Type toUncertainIntegralType() {
-		return PrimitiveType.SHORT_INT;
+		return SHORT_INT;
 	}
 }

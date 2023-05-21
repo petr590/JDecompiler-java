@@ -13,11 +13,13 @@ public final class GetInstanceFieldOperation extends GetFieldOperation {
 	public GetInstanceFieldOperation(DecompilationContext context, int index) {
 		super(context, index);
 		this.object = popObject(context);
+		initGenericDescriptor(context, object);
 	}
 	
 	public GetInstanceFieldOperation(DecompilationContext context, FieldrefConstant fieldref) {
 		super(context, fieldref);
 		this.object = popObject(context);
+		initGenericDescriptor(context, object);
 	}
 	
 	public Operation getObject() {

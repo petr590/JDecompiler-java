@@ -4,8 +4,8 @@ import x590.jdecompiler.constpool.FieldrefConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
-import x590.jdecompiler.operation.IncrementableOperation;
 import x590.jdecompiler.operation.Operation;
+import x590.jdecompiler.operation.increment.IncrementableOperation;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.primitive.PrimitiveType;
 
@@ -16,8 +16,8 @@ public abstract class PutFieldOperation extends FieldOperation implements Increm
 	private IncrementData incData;
 	
 	private Operation getValue(DecompilationContext context) {
-		Operation value = context.popAsNarrowest(descriptor.getType());
-		value.addPossibleVariableName(descriptor.getName());
+		Operation value = context.popAsNarrowest(getDescriptor().getType());
+		value.addPossibleVariableName(getDescriptor().getName());
 		value.allowImplicitCast();
 		return value;
 	}
@@ -38,13 +38,14 @@ public abstract class PutFieldOperation extends FieldOperation implements Increm
 	
 	// Мы должны вызвать этот код только после popObject, поэтому он вызывается в дочернем инициализаторе
 	protected void initIncData(DecompilationContext context) {
-		this.incData = IncrementableOperation.super.init(context, value, descriptor.getType());
+		this.incData = IncrementableOperation.super.init(context, value, getDescriptor().getType());
 	}
 	
 	
 	@Override
 	public boolean isLoadOperation(Operation operation) {
-		return operation instanceof GetFieldOperation getFieldOperation && getFieldOperation.getDescriptor().equals(descriptor);
+		return operation instanceof GetFieldOperation getFieldOperation &&
+				getFieldOperation.getDescriptor().equals(getDescriptor());
 	}
 	
 	@Override

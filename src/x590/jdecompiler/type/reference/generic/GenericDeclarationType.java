@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import x590.jdecompiler.clazz.ClassInfo;
@@ -23,6 +24,8 @@ public final class GenericDeclarationType extends ReferenceType {
 	
 	private final String encodedName, simpleEncodedName, name;
 	private final @Immutable List<ReferenceType> types;
+	private final @Nullable ReferenceType superType;
+	private final @Immutable List<ReferenceType> interfaces;
 	
 	private static String parseName(ExtendedStringInputStream in, StringBuilder encodedNameBuilder) {
 		StringBuilder nameBuilder = new StringBuilder();
@@ -60,24 +63,46 @@ public final class GenericDeclarationType extends ReferenceType {
 		return Collections.unmodifiableList(types);
 	}
 	
-	public GenericDeclarationType(ExtendedStringInputStream in) {
+	
+	private @Nullable ReferenceType superTypeFromTypes(@Immutable List<ReferenceType> types) {
+		return types.isEmpty() ? null : types.get(0);
+	}
+	
+	private List<ReferenceType> interfacesFromTypes(@Immutable List<ReferenceType> types) {
+		return types.isEmpty() ? Collections.emptyList() : types.subList(1, types.size());
+	}
+	
+	
+	private GenericDeclarationType(ExtendedStringInputStream in) {
 		StringBuilder encodedNameBuilder = new StringBuilder();
 		
 		this.name = parseName(in, encodedNameBuilder);
 		this.types = parseTypes(in, encodedNameBuilder);
+		this.superType = superTypeFromTypes(types);
+		this.interfaces = interfacesFromTypes(types);
 		
 		this.simpleEncodedName = 'T' + name + ';';
 		this.encodedName = encodedNameBuilder.toString();
 	}
 	
-	public GenericDeclarationType(String name, @Immutable List<ReferenceType> types) {
+	private GenericDeclarationType(String name, @Immutable List<ReferenceType> types) {
 		this.name = name;
 		this.types = types;
+		this.superType = superTypeFromTypes(types);
+		this.interfaces = interfacesFromTypes(types);
 
 		this.simpleEncodedName = 'T' + name + ';';
 		this.encodedName = name + ':' + types.stream().map(Type::getEncodedName).collect(Collectors.joining("::"));
 	}
 	
+	
+	public static GenericDeclarationType read(ExtendedStringInputStream in) {
+		return new GenericDeclarationType(in);
+	}
+	
+	public static GenericDeclarationType of(String name, @Immutable List<ReferenceType> types) {
+		return new GenericDeclarationType(name, types);
+	}
 	
 	public static GenericDeclarationType fromTypeVariable(TypeVariable<?> reflectType, IClassInfo classinfo) {
 		return new GenericDeclarationType(reflectType.getTypeName(),
@@ -88,25 +113,19 @@ public final class GenericDeclarationType extends ReferenceType {
 	
 	@Override
 	public @Nullable ReferenceType getSuperType() {
-		return null;
+		return superType;
 	}
 	
 	@Override
 	public @Immutable List<? extends ReferenceType> getInterfaces() {
-		return types;
-	}
-	
-	
-	@Override
-	public ReferenceType toDefiniteGeneric(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
-		return DefiniteGenericType.fromDeclaration(this);
+		return interfaces;
 	}
 	
 	
 	@Override
 	public String toString() {
-		return types.size() == 1 && types.get(0).equals(ClassType.OBJECT) ? name : name + " extends " +
-				types.stream().map(Type::toString).collect(Collectors.joining(" & "));
+		return "decl(" + (types.size() == 1 && types.get(0).equals(ClassType.OBJECT) ? name : name + " extends " +
+				types.stream().map(Type::toString).collect(Collectors.joining(" & "))) + ')';
 	}
 	
 	@Override
@@ -144,7 +163,26 @@ public final class GenericDeclarationType extends ReferenceType {
 	}
 	
 	@Override
-	protected boolean canCastToNarrowest(Type other) {
+	protected boolean canCastToNarrowestImpl(Type other) {
 		return other.isReferenceType();
 	}
+	
+	
+	@Override
+	public ReferenceType replaceUndefiniteGenericsToDefinite(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
+		return DefiniteGenericType.fromDeclaration(this);
+	}
+	
+	@Override
+	public ReferenceType replaceAllTypes(@Immutable Map<GenericDeclarationType, ReferenceType> replaceTable) {
+		return replaceTable.getOrDefault(this, this);
+	}
+	
+	
+//	@Override
+//	public @Nullable GenericParameters<? extends ReferenceType> narrowGenericParameters(
+//			ReferenceType prevType, GenericParameters<? extends ReferenceType> parameters) {
+//		
+//		// TODO
+//	}
 }

@@ -31,21 +31,25 @@ module jdecompiler {
 	exports x590.jdecompiler.instruction;
 	exports x590.jdecompiler.instruction.load;
 	exports x590.jdecompiler.instruction.store;
+	exports x590.jdecompiler.instruction.cast;
 	exports x590.jdecompiler.instruction.constant;
 	exports x590.jdecompiler.instruction.field;
 	exports x590.jdecompiler.instruction.invoke;
 	exports x590.jdecompiler.instruction.operator;
-	exports x590.jdecompiler.instruction.dup;
 	exports x590.jdecompiler.instruction.array;
 	exports x590.jdecompiler.instruction.arrayload;
 	exports x590.jdecompiler.instruction.arraystore;
-	exports x590.jdecompiler.instruction.returning;
-	exports x590.jdecompiler.instruction.scope;
 	exports x590.jdecompiler.instruction.cmp;
+	exports x590.jdecompiler.instruction.scope;
+	exports x590.jdecompiler.instruction.returning;
+	exports x590.jdecompiler.instruction.dup;
+	exports x590.jdecompiler.instruction.other;
 	
 	exports x590.jdecompiler.operation;
 	exports x590.jdecompiler.operation.load;
 	exports x590.jdecompiler.operation.store;
+	exports x590.jdecompiler.operation.cast;
+	exports x590.jdecompiler.operation.increment;
 	exports x590.jdecompiler.operation.constant;
 	exports x590.jdecompiler.operation.field;
 	exports x590.jdecompiler.operation.invoke;
@@ -53,9 +57,12 @@ module jdecompiler {
 	exports x590.jdecompiler.operation.array;
 	exports x590.jdecompiler.operation.arrayload;
 	exports x590.jdecompiler.operation.arraystore;
+	exports x590.jdecompiler.operation.variable;
 	exports x590.jdecompiler.operation.cmp;
 	exports x590.jdecompiler.operation.condition;
+	exports x590.jdecompiler.operation.execstream;
 	exports x590.jdecompiler.operation.returning;
+	exports x590.jdecompiler.operation.other;
 	exports x590.jdecompiler.scope;
 	
 	exports x590.jdecompiler.io;

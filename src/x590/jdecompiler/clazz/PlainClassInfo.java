@@ -21,21 +21,32 @@ import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
 public final class PlainClassInfo implements IClassInfo {
-	
+
+	private final ConstantPool pool;
 	private final ClassModifiers modifiers;
 	private final RealReferenceType thisType;
-	private final @Nullable ClassType superType;
-	private final @Nullable @Immutable List<? extends ClassType> interfaces;
+	private Optional<ClassType> superType;
+	private Optional<@Immutable List<? extends ClassType>> interfaces;
 	private GenericParameters<GenericDeclarationType> signatureParameters = GenericParameters.empty();
 	private final @Immutable List<? extends FieldInfo> fieldInfos;
 	private final @Immutable List<? extends MethodInfo> methodInfos;
 	private final @Immutable List<? extends Annotation> annotations;
 	
 	private PlainClassInfo(RealReferenceType thisType, Class<?> clazz, ConstantPool pool) {
+		this.pool = pool;
 		this.modifiers = ClassModifiers.of(clazz.getModifiers());
 		this.thisType = thisType;
-		this.superType = thisType.getSuperType();
-		this.interfaces = thisType.getInterfaces();
+		this.superType = Optional.ofNullable(thisType.getSuperType());
+		this.interfaces = Optional.ofNullable(thisType.getInterfaces());
+		
+		// Если superType или interfaces - Optional.empty(), это значит, что этот код был вызван при
+		// инициализации thisType, и мы должны обновить superType или interfaces при завершении инициализации
+		
+		if(superType.isEmpty())
+			thisType.afterInit((superType, interfaces) -> this.superType = Optional.ofNullable(superType));
+		
+		if(interfaces.isEmpty())
+			thisType.afterInit((superType, interfaces) -> this.interfaces = Optional.ofNullable(interfaces));
 		
 		this.signatureParameters = GenericParameters.of(
 				Arrays.stream(clazz.getTypeParameters())
@@ -57,9 +68,14 @@ public final class PlainClassInfo implements IClassInfo {
 				.map(annotation -> Annotation.fromReflectAnnotation(pool, annotation)).toList();
 	}
 	
-	static @Nullable PlainClassInfo fromClassType(RealReferenceType thisType, ConstantPool pool) {
+	static @Nullable Optional<PlainClassInfo> fromClassType(RealReferenceType thisType, ConstantPool pool) {
 		Class<?> clazz = thisType.getClassInstance();
-		return clazz != null ? new PlainClassInfo(thisType, clazz, pool) : null;
+		return Optional.ofNullable(clazz != null ? new PlainClassInfo(thisType, clazz, pool) : null);
+	}
+	
+	@Override
+	public ConstantPool getConstPool() {
+		return pool;
 	}
 	
 	@Override
@@ -73,12 +89,12 @@ public final class PlainClassInfo implements IClassInfo {
 	}
 	
 	@Override
-	public @Nullable ClassType getSuperType() {
+	public Optional<ClassType> getOptionalSuperType() {
 		return superType;
 	}
 	
 	@Override
-	public @Nullable @Immutable List<? extends ClassType> getInterfaces() {
+	public Optional<@Immutable List<? extends ClassType>> getOptionalInterfaces() {
 		return interfaces;
 	}
 	
@@ -99,17 +115,24 @@ public final class PlainClassInfo implements IClassInfo {
 	
 	@Override
 	public Optional<? extends FieldInfo> findFieldInfo(FieldDescriptor descriptor) {
-		return fieldInfos.stream().filter(fieldInfo -> fieldInfo.getDescriptor().equals(descriptor)).findAny();
+		return fieldInfos.stream().filter(fieldInfo -> fieldInfo.getDescriptor().equalsIgnoreClass(descriptor)).findAny();
 	}
 	
 	@Override
 	public Optional<? extends MethodInfo> findMethodInfo(MethodDescriptor descriptor) {
-		return methodInfos.stream().filter(methodInfo -> methodInfo.getDescriptor().equals(descriptor)).findAny();
+		return methodInfos.stream().filter(methodInfo -> methodInfo.getDescriptor().equalsIgnoreClass(descriptor)).findAny();
 	}
 	
 	
 	@Override
 	public Optional<? extends Annotation> findAnnotation(ClassType type) {
 		return annotations.stream().filter(annotation -> annotation.getType().equals(type)).findAny();
+	}
+	
+	@Override
+	public String toString() {
+		return "PlainClassInfo [ " +
+				JavaClass.toString(modifiers, thisType, superType.orElse(null), getInterfacesOrEmpty())
+		+ " ]";
 	}
 }

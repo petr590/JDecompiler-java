@@ -1,6 +1,9 @@
 package x590.jdecompiler.type;
 
-public enum CastingKind {
+/**
+ * Вид преобразования
+ */
+public enum CastingKind implements ICastingKind {
 	/** Преобразование к наиболее узкому типу */
 	NARROWEST(true),
 	
@@ -8,10 +11,17 @@ public enum CastingKind {
 	WIDEST(false);
 	
 	private final boolean isNarrowest, isWidest;
+	private final String lowerCaseName;
 	
 	private CastingKind(boolean isNarrowest) {
 		this.isNarrowest = isNarrowest;
 		this.isWidest = !isNarrowest;
+		this.lowerCaseName = name().toLowerCase();
+	}
+	
+	@Override
+	public String lowerCaseName() {
+		return lowerCaseName;
 	}
 	
 	public boolean toBoolean() {

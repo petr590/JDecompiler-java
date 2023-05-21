@@ -17,6 +17,6 @@ public final class IntType extends IntegralType {
 	
 	@Override
 	public int getCapacity() {
-		return 4;
+		return INT_CAPACITY;
 	}
 }

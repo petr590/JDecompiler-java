@@ -1,10 +1,16 @@
 package x590.jdecompiler.clazz;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
+import x590.jdecompiler.Descriptor;
+import x590.jdecompiler.MemberInfo;
 import x590.jdecompiler.attribute.annotation.Annotation;
+import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.field.FieldDescriptor;
 import x590.jdecompiler.field.FieldInfo;
 import x590.jdecompiler.method.MethodDescriptor;
@@ -25,20 +31,35 @@ import x590.util.annotation.Nullable;
  */
 public interface IClassInfo {
 	
+	public default Optional<IClassInfo> findIClassInfo(@Nullable RealReferenceType type) {
+		return ClassInfo.findIClassInfo(type, getConstPool());
+	}
+	
+	public default Optional<IClassInfo> findIClassInfo(Optional<? extends RealReferenceType> optionalType) {
+		return optionalType.map(this::findIClassInfo).flatMap(Function.identity());
+	}
+	
+	
+	public ConstantPool getConstPool();
+	
 	public ClassModifiers getModifiers();
 	
 	public RealReferenceType getThisType();
 	
-	public @Nullable ClassType getSuperType();
+	public Optional<ClassType> getOptionalSuperType();
 	
-	public @Nullable @Immutable List<? extends ClassType> getInterfaces();
+	public Optional<@Immutable List<? extends ClassType>> getOptionalInterfaces();
+	
+	public default @Immutable List<? extends ClassType> getInterfacesOrEmpty() {
+		return getOptionalInterfaces().orElseGet(Collections::emptyList);
+	}
 	
 	public GenericParameters<GenericDeclarationType> getSignatureParameters();
 	
 	
 	public default boolean isRecord() {
-		ClassType superType = getSuperType();
-		return superType != null && superType.equals(ClassType.RECORD);
+		var optionalSuperType = getOptionalSuperType();
+		return optionalSuperType.isPresent() && optionalSuperType.get().equalsIgnoreSignature(ClassType.RECORD);
 	}
 	
 	
@@ -55,9 +76,49 @@ public interface IClassInfo {
 	public boolean hasMethodByDescriptor(Predicate<MethodDescriptor> predicate);
 	
 	
+	/** @return Optional с найденным FieldInfo или {@code Optional.empty()}, если FieldInfo не найден
+	 * @apiNote Сравнивать дескрипторы нужно через {@link MethodDescriptor#equalsIgnoreClass(MethodDescriptor)}
+	 * для корректной работы метода {@link #findMethodInfoInThisAndSuperClasses(MethodDescriptor)} */
 	public Optional<? extends FieldInfo> findFieldInfo(FieldDescriptor descriptor);
 	
+	/** @return Optional с найденным MethodInfo или {@code Optional.empty()}, если MethodInfo не найден
+	 * @apiNote Сравнивать дескрипторы нужно через {@link MethodDescriptor#equalsIgnoreClass(MethodDescriptor)}
+	 * для корректной работы метода {@link #findMethodInfoInThisAndSuperClasses(FieldDescriptor)} */
 	public Optional<? extends MethodInfo> findMethodInfo(MethodDescriptor descriptor);
+	
+	
+	public default Optional<? extends FieldInfo> findFieldInfoInThisAndSuperClasses(FieldDescriptor descriptor) {
+		return findMemberInfoInThisAndSuperClasses(descriptor, IClassInfo::findFieldInfo);
+	}
+	
+	public default Optional<? extends MethodInfo> findMethodInfoInThisAndSuperClasses(MethodDescriptor descriptor) {
+		return findMemberInfoInThisAndSuperClasses(descriptor, IClassInfo::findMethodInfo);
+	}
+	
+	
+	private <D extends Descriptor<D>, M extends MemberInfo<D, ?>> Optional<M>
+			findMemberInfoInThisAndSuperClasses(D descriptor, BiFunction<IClassInfo, D, Optional<M>> finder) {
+		
+		var foundMethodInfo = finder.apply(this, descriptor);
+		
+		Function<ClassType, Optional<M>> typeFinder = type -> findInType(type, descriptor, finder);
+		
+		return foundMethodInfo.isPresent() ?
+				foundMethodInfo :
+				getOptionalSuperType().map(typeFinder)
+					.orElseGet(() ->
+							getInterfacesOrEmpty().stream()
+									.map(typeFinder).findAny().orElse(null)
+					);
+	}
+
+	private <D extends Descriptor<D>, M extends MemberInfo<D, ?>> Optional<M>
+			findInType(RealReferenceType type, D descriptor, BiFunction<IClassInfo, D, Optional<M>> finder) {
+		
+		return findIClassInfo(type)
+				.map(classinfo -> classinfo.findMemberInfoInThisAndSuperClasses(descriptor, finder))
+				.flatMap(Function.identity());
+	}
 	
 	
 	public Optional<? extends Annotation> findAnnotation(ClassType type);
@@ -68,7 +129,7 @@ public interface IClassInfo {
 	}
 	
 	public default ReferenceType findOrCreateGenericType(String name) {
-		return findGenericType(name).map(type -> type.toDefiniteGeneric(this, GenericParameters.empty()))
+		return findGenericType(name).map(type -> type.replaceUndefiniteGenericsToDefinite(this, GenericParameters.empty()))
 				.orElseGet(() -> SignatureParameterType.of(name));
 	}
 }

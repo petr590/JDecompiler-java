@@ -7,8 +7,8 @@ import x590.jdecompiler.constpool.IntegerConstant;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
-import x590.jdecompiler.operation.BreakOperation;
 import x590.jdecompiler.operation.Operation;
+import x590.jdecompiler.operation.execstream.BreakOperation;
 import x590.util.annotation.Nullable;
 
 public class CaseScope extends Scope {

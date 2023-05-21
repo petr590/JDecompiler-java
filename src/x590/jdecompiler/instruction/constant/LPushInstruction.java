@@ -1,5 +1,6 @@
 package x590.jdecompiler.instruction.constant;
 
+import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.instruction.Instruction;
 import x590.jdecompiler.operation.Operation;
@@ -16,6 +17,6 @@ public class LPushInstruction implements Instruction {
 
 	@Override
 	public @Nullable Operation toOperation(DecompilationContext context) {
-		return new LConstOperation(context.getClassinfo().getConstPool().findOrCreateConstant(value));
+		return new LConstOperation(ConstantPool.findOrCreateConstant(value));
 	}
 }

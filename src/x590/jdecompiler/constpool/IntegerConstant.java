@@ -1,5 +1,7 @@
 package x590.jdecompiler.constpool;
 
+import static x590.jdecompiler.type.primitive.PrimitiveType.*;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,13 +28,14 @@ public final class IntegerConstant extends ConstableValueConstant<Integer> {
 	
 	private static Type getTypeFor(int value) {
 		if((value & 0x1) == value)
-			return PrimitiveType.BYTE_SHORT_INT_CHAR_BOOLEAN;
+			return BYTE_SHORT_INT_CHAR_BOOLEAN;
 		
 		int minCapacity =
-				(byte)value == value ? 1 :
-				(short)value == value ? 2 : 4;
+				(byte)value == value ? BYTE_CAPACITY :
+				(short)value == value ? SHORT_CAPACITY: INT_CAPACITY;
 		
-		return UncertainIntegralType.getInstance(minCapacity, 4, false, (char)value == value);
+		return UncertainIntegralType.getInstance(minCapacity, INT_CAPACITY,
+				UncertainIntegralType.includeCharIf((char)value == value));
 	}
 	
 	protected IntegerConstant(ExtendedDataInputStream in) {
@@ -80,7 +83,7 @@ public final class IntegerConstant extends ConstableValueConstant<Integer> {
 	
 	@Override
 	protected Type getWidestType() {
-		return PrimitiveType.INT;
+		return INT;
 	}
 	
 	@Override
@@ -133,10 +136,10 @@ public final class IntegerConstant extends ConstableValueConstant<Integer> {
 			!writeConstantIfEquals(out, classinfo, ownerConstant, Integer.MIN_VALUE, MIN_VALUE_DESCRIPTOR)
 		) {
 			out.write(
-					type.isSubtypeOf(PrimitiveType.BOOLEAN) ? StringUtil.toLiteral(value != 0) :
-					type.isSubtypeOf(PrimitiveType.BYTE) ? StringUtil.toLiteral((byte)value) :
-					type.isSubtypeOf(PrimitiveType.CHAR) ? StringUtil.toLiteral((char)value) :
-					type.isSubtypeOf(PrimitiveType.SHORT) ? StringUtil.toLiteral((short)value) :
+					type.canCastToNarrowest(BOOLEAN) ? StringUtil.toLiteral(value != 0) :
+					type.canCastToNarrowest(BYTE)  ?  StringUtil.toLiteral((byte)value) :
+					type.canCastToNarrowest(CHAR)  ?  StringUtil.toLiteral((char)value) :
+					type.canCastToNarrowest(SHORT) ? StringUtil.toLiteral((short)value) :
 						StringUtil.toLiteral(value)
 			);
 		}

@@ -45,6 +45,7 @@ import x590.jdecompiler.modifiers.ClassModifiers;
 import x590.jdecompiler.operation.invoke.InvokespecialOperation;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.reference.ClassType;
+import x590.jdecompiler.type.reference.RealReferenceType;
 import x590.jdecompiler.util.WhitespaceStringBuilder;
 import x590.jdecompiler.util.IWhitespaceStringBuilder;
 import x590.util.LoopUtil;
@@ -394,7 +395,14 @@ public final class JavaClass extends JavaClassElement {
 	
 	@Override
 	public String toString() {
-		return modifiers.toSimpleString() + " " + thisType + " extends " + superType.getName() +
+		return toString(modifiers, thisType, superType, interfaces);
+	}
+	
+	
+	public static String toString(ClassModifiers modifiers, RealReferenceType thisType,
+			RealReferenceType superType, List<? extends RealReferenceType> interfaces) {
+		
+		return modifiers.toSimpleString() + ' ' + thisType + " extends " + (superType == null ? "null" : superType.getName()) +
 				(interfaces.isEmpty() ? "" :
 					interfaces.stream().map(Type::getName).collect(Collectors.joining(", ", " implements ", "")));
 	}
@@ -520,7 +528,10 @@ public final class JavaClass extends JavaClassElement {
 		out.printIndent().print(modifiersToString(classinfo), classinfo).print(thisType.getSimpleName());
 		
 		if(signature.isPresent()) {
-			out.printIfNotNull(signature.get().getParameters(), classinfo);
+			var parameters = signature.get().getParameters();
+			
+			if(!parameters.isEmpty())
+				out.print(parameters, classinfo);
 		}
 		
 		if(isRecord()) {

@@ -23,7 +23,7 @@ public abstract class LoadOperation extends AbstractOperation {
 	}
 	
 	
-	public int getIndex() {
+	public int getSlot() {
 		return slot;
 	}
 	
@@ -54,8 +54,8 @@ public abstract class LoadOperation extends AbstractOperation {
 	}
 	
 	@Override
-	public void onCastReturnType(Type newType, CastingKind casting) {
-		variable.castTypeTo(newType, casting);
+	public void onCastReturnType(Type newType, CastingKind kind) {
+		variable.castTypeTo(newType, kind);
 	}
 	
 	@Override
@@ -65,7 +65,7 @@ public abstract class LoadOperation extends AbstractOperation {
 	
 	@Override
 	public @Nullable String getPossibleVariableName() {
-		String name = variable.getName();
+		String name = variable.getPossibleName();
 		return "this".equals(name) ? null : name;
 	}
 	

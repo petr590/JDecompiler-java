@@ -14,6 +14,7 @@ public class OmitExample {
 		return true;
 	}
 	
+	// this должен быть опущен для всех вызовов, кроме equals
 	@SuppressWarnings("unused")
 	public void foo() {
 		if(this.isEmpty() && !this.equals(null)) {

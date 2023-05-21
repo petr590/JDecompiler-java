@@ -1,5 +1,7 @@
 package x590.jdecompiler.variable;
 
+import java.util.Optional;
+
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import x590.jdecompiler.attribute.LocalVariableTableAttribute.LocalVariableEntry;
 import x590.jdecompiler.operation.Operation;
@@ -19,6 +21,15 @@ public interface Variable extends EmptyableVariable {
 	public default Variable nonEmpty() {
 		return this;
 	}
+	
+	/** Проверяет, определено ли имя переменной */
+	public boolean hasName();
+	
+	/** Возвращает имя переменной или {@literal null}, если имя ещё не определено */
+	public @Nullable String getName();
+	
+	/** Возвращает вероятное имя переменной или {@literal null}, если нет ни одного */
+	public @Nullable String getPossibleName();
 	
 	/** Устанавливает имя переменной */
 	public void setName(String name);
@@ -82,9 +93,9 @@ public interface Variable extends EmptyableVariable {
 	}
 	
 	
-	public static AbstractVariable valueOf(@Nullable LocalVariableEntry entry, Scope enclosingScope, Type type, boolean typeFixed) {
-		return entry == null ?
+	public static AbstractVariable valueOf(Optional<LocalVariableEntry> optionalEntry, Scope enclosingScope, Type type, boolean typeFixed) {
+		return optionalEntry.isEmpty() ?
 				new UnnamedVariable(enclosingScope, type, typeFixed) :
-				new NamedVariable(entry.name, enclosingScope, type, typeFixed);
+				new NamedVariable(optionalEntry.get().getName(), enclosingScope, type, typeFixed);
 	}
 }

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import x590.jdecompiler.Importable;
@@ -21,13 +22,13 @@ import x590.jdecompiler.type.reference.ArrayType;
 import x590.jdecompiler.type.reference.ClassType;
 import x590.jdecompiler.type.reference.RealReferenceType;
 import x590.jdecompiler.type.reference.ReferenceType;
-import x590.jdecompiler.type.reference.SuperGenericType;
 import x590.jdecompiler.type.reference.WrapperClassType;
 import x590.jdecompiler.type.reference.generic.AnyGenericType;
 import x590.jdecompiler.type.reference.generic.ExtendingGenericType;
 import x590.jdecompiler.type.reference.generic.GenericDeclarationType;
 import x590.jdecompiler.type.reference.generic.GenericParameters;
 import x590.jdecompiler.type.reference.generic.SignatureParameterType;
+import x590.jdecompiler.type.reference.generic.SuperGenericType;
 import x590.jdecompiler.writable.BiStringifyWritable;
 import x590.jdecompiler.writable.SameDisassemblingStringifyWritable;
 import x590.util.annotation.Immutable;
@@ -87,7 +88,8 @@ public abstract class Type implements
 	}
 	
 	/** Имя для переменной. Например, все переменные типа int называются "n".
-	 * Если таких переменных больше одной, то к названиям добавляется номер. */
+	 * Если таких переменных больше одной, то к названиям добавляется номер.
+	 * @return Имя переменной (без номера) */
 	public abstract String getNameForVariable();
 	
 	
@@ -167,81 +169,85 @@ public abstract class Type implements
 	
 	/** Размер типа на стеке */
 	public abstract TypeSize getSize();
+
 	
-	
-	public final boolean isSubtypeOf(Type other) {
-		return this.castToNarrowestNoexcept(other) != null;
+	/** @return {@literal true}, если {@literal this} является подтипом {@code other},
+	 * {@literal false} в противном случае или если это нельзя точно определить */
+	public boolean isDefinitelySubtypeOf(Type other) {
+		return canCastToNarrowest(other);
 	}
+	
+	
+	/** @return {@literal true}, если возможно преобразовать {@literal this} в {@code other} */
+	public final boolean canCastToNarrowest(Type other) {
+		if(canCastToNarrowestImpl(other))
+			return true;
+		
+		return other.canReversedCastToNarrowestImpl(this);
+	}
+	
+	/** Для оптимизации (чтобы не создавать новые экземпляры типов при простой проверке) */
+	protected boolean canCastToNarrowestImpl(Type other) {
+		return this.castImpl(other, CastingKind.NARROWEST) != null;
+	}
+	
+	/** Для оптимизации (чтобы не создавать новые экземпляры типов при простой проверке) */
+	protected boolean canReversedCastToNarrowestImpl(Type other) {
+		return this.reversedCastImpl(other, CastingKind.NARROWEST) != null;
+	}
+	
 	
 	/** @return {@literal true} если мы можем неявно преобразовать {@code this} в {@code other}. Например,
 	 * {@literal int} -> {@literal long}. На уровне байткода мы не можем сделать такое преобразование неявно. */
-	public boolean isImplicitSubtypeOf(Type other) {
-		return isSubtypeOf(other);
+	public boolean canImplicitCastToNarrowest(Type other) {
+		return canCastToNarrowest(other);
 	}
 	
-	
-	protected abstract boolean canCastToNarrowest(Type other);
-	
-	
-	/** Реализация метода преобразования к наиболее узкому типу.
-	 * @return результат преобразования или {@literal null}, если преобразование невозможно */
-	@Deprecated(forRemoval = true)
-	protected Type castToNarrowestImpl(Type other) {
-		return castImpl(other, CastingKind.NARROWEST);
-	}
-	
-	/** Реализация метода преобразования к наиболее широкому типу.
-	 * @return результат преобразования или {@literal null}, если преобразование невозможно */
-	@Deprecated(forRemoval = true)
-	protected Type castToWidestImpl(Type other) {
-		return castImpl(other, CastingKind.WIDEST);
-	}
 	
 	/** Реализация метода преобразования.
-	 * @return результат преобразования или {@literal null}, если преобразование невозможно */
-	protected abstract Type castImpl(Type other, CastingKind kind);
+	 * @return Результат преобразования или {@literal null}, если преобразование невозможно
+	 * @param other - тип, к которому преобразуется {@literal this}
+	 * @param kind - вид преобразования */
+	protected abstract @Nullable Type castImpl(Type other, CastingKind kind);
 	
-	/** Реализация метода преобразования к наиболее узкому типу.
-	 * Вызывается, если метод {@link #castToNarrowestImpl(Type)} вернул {@literal null}.
-	 * @return результат преобразования или {@literal null}, если преобразование невозможно.
-	 * Реализация по умолчанию возвращает {@literal null} */
-	@Deprecated(forRemoval = true)
-	protected Type reversedCastToNarrowestImpl(Type other) {
-		return reversedCastImpl(other, CastingKind.NARROWEST);
-	}
-	
-	/** Реализация метода преобразования к наиболее широкому типу.
-	 * Вызывается, если метод {@link #castToWidestImpl(Type)} вернул {@literal null}.
-	 * @return результат преобразования или {@literal null}, если преобразование невозможно.
-	 * Реализация по умолчанию возвращает {@literal null} */
-	@Deprecated(forRemoval = true)
-	protected Type reversedCastToWidestImpl(Type other) {
-		return reversedCastImpl(other, CastingKind.WIDEST);
-	}
 	
 	/** Реализация метода преобразования к наиболее узкому типу.
 	 * Вызывается, если метод {@link #castImpl(Type, CastingKind)} вернул {@literal null}.
-	 * @return результат преобразования или {@literal null}, если преобразование невозможно.
+	 * @return Результат преобразования или {@literal null}, если преобразование невозможно.
 	 * Реализация по умолчанию возвращает {@literal null} */
-	protected Type reversedCastImpl(Type other, CastingKind kind) {
+	protected @Nullable Type reversedCastImpl(Type other, CastingKind kind) {
 		return null;
 	}
 	
 	
-	/** Преобразует тип к наиболее узкому типу.
-	 * @return результат преобразования или {@literal null}, если преобразование невозможно */
-	public final @Nullable Type castToNarrowestNoexcept(Type other) {
-		return castNoexcept(other, CastingKind.NARROWEST);
+	/** Преобразует {@literal this} к {@code other}
+	 * @return Результат преобразования
+	 * @throws IncopatibleTypesException, если преобразование невозможно */
+	public final Type castTo(Type other, CastingKind kind) {
+		Type type = castNoexcept(other, kind);
+		
+		if(type != null) return type;
+		
+		throw new IncopatibleTypesException(this, other, kind);
 	}
 	
-	
-	/** Преобразует тип к наиболее широкому типу.
-	 * @return результат преобразования или {@literal null}, если преобразование невозможно */
-	public final @Nullable Type castToWidestNoexcept(Type other) {
-		return castNoexcept(other, CastingKind.WIDEST);
+	/** Преобразует тип к наиболее узкому типу (когда мы используем значение как значение какого-то типа)
+	 * @return Результат преобразования
+	 * @throws IncopatibleTypesException, если преобразование невозможно */
+	public final Type castToNarrowest(Type other) {
+		return castTo(other, CastingKind.NARROWEST);
 	}
 	
+	/** Преобразует тип к наиболее широкому типу (используется при присвоении значения переменной)
+	 * @return Результат преобразования
+	 * @throws IncopatibleTypesException, если преобразование невозможно */
+	public final Type castToWidest(Type other) {
+		return castTo(other, CastingKind.WIDEST);
+	}
+
 	
+	/** Преобразует {@literal this} к {@code other}
+	 * @return Результат преобразования или {@literal null}, если преобразование невозможно */
 	public final @Nullable Type castNoexcept(Type other, CastingKind kind) {
 		Type type = castImpl(other, kind);
 		
@@ -250,33 +256,21 @@ public abstract class Type implements
 		return other.reversedCastImpl(this, kind);
 	}
 	
-	
-	/** Преобразует тип к наиболее узкому типу (когда мы используем значение как значение какого-то типа)
-	 * @return результат преобразования
-	 * @throws IncopatibleTypesException, если преобразование невозможно */
-	public final Type castToNarrowest(Type other) {
-		return castTo(other, CastingKind.NARROWEST);
+	/** Преобразует тип к наиболее узкому типу.
+	 * @return Результат преобразования или {@literal null}, если преобразование невозможно */
+	public final @Nullable Type castToNarrowestNoexcept(Type other) {
+		return castNoexcept(other, CastingKind.NARROWEST);
 	}
 	
-	/** Преобразует тип к наиболее широкому типу (используется при присвоении значения переменной)
-	 * @return результат преобразования
-	 * @throws IncopatibleTypesException, если преобразование невозможно */
-	public final Type castToWidest(Type other) {
-		return castTo(other, CastingKind.WIDEST);
-	}
-	
-	
-	public final Type castTo(Type other, CastingKind kind) {
-		Type type = castNoexcept(other, kind);
-		
-		if(type != null) return type;
-		
-		throw new IncopatibleTypesException(this, other);
+	/** Преобразует тип к наиболее широкому типу.
+	 * @return Результат преобразования или {@literal null}, если преобразование невозможно */
+	public final @Nullable Type castToWidestNoexcept(Type other) {
+		return castNoexcept(other, CastingKind.WIDEST);
 	}
 	
 	
 	/** Преобразует тип к общему типу (используется, например, в тернарном операторе)
-	 * @return результат преобразования
+	 * @return Результат преобразования
 	 * @throws IncopatibleTypesException, если преобразование невозможно */
 	public final Type castToGeneral(Type other, GeneralCastingKind kind) {
 		Type type = this.castToGeneralNoexcept(other, kind);
@@ -284,12 +278,12 @@ public abstract class Type implements
 		if(type != null)
 			return type;
 		
-		throw new IncopatibleTypesException(this, other);
+		throw new IncopatibleTypesException(this, other, kind);
 	}
 	
 	
 	/** Преобразует тип к общему типу. Может мыть переопределён в подклассах
-	 * @return результат преобразования или {@literal null}, если преобразование невозможно */
+	 * @return Результат преобразования или {@literal null}, если преобразование невозможно */
 	public @Nullable Type castToGeneralNoexcept(Type other, GeneralCastingKind kind) {
 		Type type = this.castToWidestNoexcept(other);
 		
@@ -301,20 +295,29 @@ public abstract class Type implements
 	
 	
 	/** Преобразует тип к общему типу.
-	 * @return результат преобразования или {@literal null}, если преобразование невозможно */
+	 * @return Результат преобразования или {@literal null}, если преобразование невозможно */
 	public @Nullable Type implicitCastToGeneralNoexcept(Type other, GeneralCastingKind kind) {
 		Type type = castToGeneralNoexcept(other, kind);
 		
 		if(type != null)
 			return type;
 		
-		if(this.isImplicitSubtypeOf(other))
+		if(this.canImplicitCastToNarrowest(other))
 			return other;
 		
-		if(other.isImplicitSubtypeOf(this))
+		if(other.canImplicitCastToNarrowest(this))
 			return this;
 		
 		return null;
+	}
+	
+	
+	/** @return статус неявного преобразование к типу.
+	 * (для компилятора, т.е. мы можем конвертировать int в long в коде, но не можем сделать это на уровне байткода).
+	 * Чем меньше статус, тем выше приоритет. Если статус больше или равен {@link CastStatus.NONE}, значит преобразование невозможно */
+	public int implicitCastStatus(Type other) {
+		return this.equals(other) ? CastStatus.SAME :
+				this.canImplicitCastToNarrowest(other) ? CastStatus.EXTEND : CastStatus.NONE;
 	}
 	
 	
@@ -324,7 +327,13 @@ public abstract class Type implements
 	
 	/** Заменяет все неопределённые generic параметры на определённые
 	 * и возвращает получившийся тип */
-	public Type toDefiniteGeneric(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
+	public Type replaceUndefiniteGenericsToDefinite(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
+		return this;
+	}
+	
+	/** Заменяет все generic параметры: каждый ключ заменяется на значение
+	 * и возвращает получившийся тип */
+	public Type replaceAllTypes(@Immutable Map<GenericDeclarationType, ReferenceType> replaceTable) {
 		return this;
 	}
 	
@@ -361,14 +370,6 @@ public abstract class Type implements
 	/** Сравнивает типы без учёта сигнатуры */
 	public boolean equalsIgnoreSignature(Type other) {
 		return this.equals(other);
-	}
-	
-	
-	/** @return статус неявного преобразование к типу.
-	 * (для компилятора, т.е. мы можем конвертировать int в long в коде, но не можем сделать это на уровне байткода).
-	 * Чем меньше статус, тем выше приоритет. Если статус больше или равен {@link CastStatus.NONE}, значит преобразование невозможно */
-	public int implicitCastStatus(Type other) {
-		return this == other ? CastStatus.SAME : this.canCastToNarrowest(other) ? CastStatus.EXTEND : CastStatus.NONE;
 	}
 	
 	
@@ -519,6 +520,6 @@ public abstract class Type implements
 	}
 	
 	public static GenericParameters<GenericDeclarationType> parseEmptyableGenericParameters(ExtendedStringInputStream in) {
-		return GenericParameters.readEmptyable(in, GenericDeclarationType::new);
+		return GenericParameters.readEmptyable(in, GenericDeclarationType::read);
 	}
 }

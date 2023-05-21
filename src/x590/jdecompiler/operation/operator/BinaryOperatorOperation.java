@@ -27,9 +27,9 @@ public abstract class BinaryOperatorOperation extends OperatorOperation {
 		var operand2 = this.operand2 = processOperand2(context.popAsNarrowest(type));
 		var operand1 = this.operand1 = processOperand1(context.popAsNarrowest(type));
 		
-		returnType = operand2.getReturnTypeAsGeneralNarrowest(operand1, GeneralCastingKind.BINARY_OPERATOR);
+		returnType = operand1.getReturnTypeAsGeneralNarrowest(operand2, GeneralCastingKind.BINARY_OPERATOR);
 		
-		Type implicitGeneralType = operand2.getImplicitType().implicitCastToGeneralNoexcept(operand1.getImplicitType(), GeneralCastingKind.BINARY_OPERATOR);
+		Type implicitGeneralType = operand1.getImplicitType().implicitCastToGeneralNoexcept(operand2.getImplicitType(), GeneralCastingKind.BINARY_OPERATOR);
 		
 		if(implicitGeneralType != null && implicitGeneralType.equals(returnType)) {
 			operand2.allowImplicitCast();
@@ -49,6 +49,12 @@ public abstract class BinaryOperatorOperation extends OperatorOperation {
 	
 	public Operation operand2() {
 		return operand2;
+	}
+	
+	
+	@Override
+	protected Type getDeducedType(Type returnType) {
+		return operand1.getReturnTypeAsGeneralNarrowest(operand2, GeneralCastingKind.BINARY_OPERATOR);
 	}
 	
 	

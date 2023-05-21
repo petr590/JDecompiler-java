@@ -19,7 +19,7 @@ public abstract class ReturnOperation extends AbstractOperation implements VoidO
 	
 	
 	public ReturnOperation(Type requiredType, DecompilationContext context) {
-		this(methodReturnType -> methodReturnType.isSubtypeOf(requiredType), context);
+		this(methodReturnType -> methodReturnType.canCastToNarrowest(requiredType), context);
 	}
 	
 	public ReturnOperation(Predicate<Type> predicate, DecompilationContext context) {
@@ -58,7 +58,7 @@ public abstract class ReturnOperation extends AbstractOperation implements VoidO
 	
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
-		out.print("return ").print(operand, context);
+		out.printsp("return").print(operand, context);
 	}
 	
 	@Override

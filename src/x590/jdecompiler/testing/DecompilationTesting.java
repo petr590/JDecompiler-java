@@ -13,13 +13,18 @@ import java.util.stream.Stream;
 import org.junit.Test;
 
 import x590.jdecompiler.example.ExampleTesting;
+import x590.util.Logger;
 
 public class DecompilationTesting {
 	
 	@Test
 	public void testAllExamples() {
+		var classes = findAllClassesAsStreamInPackage(ExampleTesting.class.getPackageName()).toArray(Class[]::new);
+		
+		Logger.debug((Object[])classes);
+		
 		ExampleTesting.runDecompilerForExampleClasses(
-				findAllClassesAsStreamInPackage(ExampleTesting.class.getPackageName()).toArray(Class[]::new)
+				classes
 		);
 	}
 	

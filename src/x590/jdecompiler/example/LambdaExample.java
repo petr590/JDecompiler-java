@@ -96,7 +96,9 @@ public class LambdaExample {
 		return LambdaExample::getString;
 	}
 	
-	private static final synchronized native String getString();
+	private static String getString() {
+		return "";
+	}
 	
 	public static String toString(Class<?> clazz) {
 		return clazz.getCanonicalName();

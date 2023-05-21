@@ -146,6 +146,12 @@ public class UnnamedVariable extends AbstractVariable {
 		return null;
 	}
 	
+	
+	@Override
+	public String getPossibleName() {
+		return names.isEmpty() ? null : names.iterator().next();
+	}
+	
 	@Override
 	public void addPossibleName(@Nullable String name) {
 		if(name != null)

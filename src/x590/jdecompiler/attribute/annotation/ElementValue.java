@@ -37,36 +37,36 @@ public abstract class ElementValue implements StringifyWritable<ClassInfo>, Impo
 			this.value = value;
 		}
 		
-		private ConstElementValue(ConstantPool pool, byte value) {
-			this(PrimitiveType.BYTE, pool.findOrCreateConstant(value));
+		private ConstElementValue(byte value) {
+			this(PrimitiveType.BYTE, ConstantPool.findOrCreateConstant(value));
 		}
 		
-		private ConstElementValue(ConstantPool pool, short value) {
-			this(PrimitiveType.SHORT, pool.findOrCreateConstant(value));
+		private ConstElementValue(short value) {
+			this(PrimitiveType.SHORT, ConstantPool.findOrCreateConstant(value));
 		}
 		
-		private ConstElementValue(ConstantPool pool, char value) {
-			this(PrimitiveType.CHAR, pool.findOrCreateConstant(value));
+		private ConstElementValue(char value) {
+			this(PrimitiveType.CHAR, ConstantPool.findOrCreateConstant(value));
 		}
 		
-		private ConstElementValue(ConstantPool pool, int value) {
-			this(PrimitiveType.INT, pool.findOrCreateConstant(value));
+		private ConstElementValue(int value) {
+			this(PrimitiveType.INT, ConstantPool.findOrCreateConstant(value));
 		}
 		
-		private ConstElementValue(ConstantPool pool, long value) {
-			this(PrimitiveType.LONG, pool.findOrCreateConstant(value));
+		private ConstElementValue(long value) {
+			this(PrimitiveType.LONG, ConstantPool.findOrCreateConstant(value));
 		}
 		
-		private ConstElementValue(ConstantPool pool, float value) {
-			this(PrimitiveType.FLOAT, pool.findOrCreateConstant(value));
+		private ConstElementValue(float value) {
+			this(PrimitiveType.FLOAT, ConstantPool.findOrCreateConstant(value));
 		}
 		
-		private ConstElementValue(ConstantPool pool, double value) {
-			this(PrimitiveType.DOUBLE, pool.findOrCreateConstant(value));
+		private ConstElementValue(double value) {
+			this(PrimitiveType.DOUBLE, ConstantPool.findOrCreateConstant(value));
 		}
 		
-		private ConstElementValue(ConstantPool pool, boolean value) {
-			this(PrimitiveType.BOOLEAN, pool.findOrCreateConstant(value));
+		private ConstElementValue(boolean value) {
+			this(PrimitiveType.BOOLEAN, ConstantPool.findOrCreateConstant(value));
 		}
 		
 		public ConstValueConstant getConstant() {
@@ -332,18 +332,18 @@ public abstract class ElementValue implements StringifyWritable<ClassInfo>, Impo
 		}
 	}
 	
-	protected static ElementValue fromUnknownValue(ConstantPool pool, Object value) {
+	protected static ElementValue fromUnknownValue(Object value) {
 		
 		if(value instanceof Constable) {
 			
-			if(value instanceof Byte num) return new ConstElementValue(pool, num);
-			if(value instanceof Short num) return new ConstElementValue(pool, num);
-			if(value instanceof Integer num) return new ConstElementValue(pool, num);
-			if(value instanceof Character chr) return new ConstElementValue(pool, chr);
-			if(value instanceof Long num) return new ConstElementValue(pool, num);
-			if(value instanceof Float num) return new ConstElementValue(pool, num);
-			if(value instanceof Double num) return new ConstElementValue(pool, num);
-			if(value instanceof Boolean bool) return new ConstElementValue(pool, bool);
+			if(value instanceof Byte num) return new ConstElementValue(num);
+			if(value instanceof Short num) return new ConstElementValue(num);
+			if(value instanceof Integer num) return new ConstElementValue(num);
+			if(value instanceof Character chr) return new ConstElementValue(chr);
+			if(value instanceof Long num) return new ConstElementValue(num);
+			if(value instanceof Float num) return new ConstElementValue(num);
+			if(value instanceof Double num) return new ConstElementValue(num);
+			if(value instanceof Boolean bool) return new ConstElementValue(bool);
 			
 			if(value instanceof String str)
 				return new StringElementValue(str);
@@ -357,36 +357,36 @@ public abstract class ElementValue implements StringifyWritable<ClassInfo>, Impo
 		} else {
 			
 			if(value instanceof java.lang.annotation.Annotation annotation)
-				return new AnnotationElementValue(Annotation.fromReflectAnnotation(pool, annotation));
+				return new AnnotationElementValue(Annotation.fromReflectAnnotation(annotation));
 			
 			if(value.getClass().isArray()) {
 				
 				if(value instanceof Object[] array)
-					return new ArrayElementValue(arrayToElementValues(array.length, i -> fromUnknownValue(pool, array[i])));
+					return new ArrayElementValue(arrayToElementValues(array.length, i -> fromUnknownValue(array[i])));
 				
 				if(value instanceof byte[] array)
-					return new ArrayElementValue(arrayToElementValues(array.length, i -> new ConstElementValue(pool, array[i])));
+					return new ArrayElementValue(arrayToElementValues(array.length, i -> new ConstElementValue(array[i])));
 				
 				if(value instanceof short[] array)
-					return new ArrayElementValue(arrayToElementValues(array.length, i -> new ConstElementValue(pool, array[i])));
+					return new ArrayElementValue(arrayToElementValues(array.length, i -> new ConstElementValue(array[i])));
 				
 				if(value instanceof char[] array)
-					return new ArrayElementValue(arrayToElementValues(array.length, i -> new ConstElementValue(pool, array[i])));
+					return new ArrayElementValue(arrayToElementValues(array.length, i -> new ConstElementValue(array[i])));
 				
 				if(value instanceof int[] array)
-					return new ArrayElementValue(arrayToElementValues(array.length, i -> new ConstElementValue(pool, array[i])));
+					return new ArrayElementValue(arrayToElementValues(array.length, i -> new ConstElementValue(array[i])));
 				
 				if(value instanceof long[] array)
-					return new ArrayElementValue(arrayToElementValues(array.length, i -> new ConstElementValue(pool, array[i])));
+					return new ArrayElementValue(arrayToElementValues(array.length, i -> new ConstElementValue(array[i])));
 				
 				if(value instanceof float[] array)
-					return new ArrayElementValue(arrayToElementValues(array.length, i -> new ConstElementValue(pool, array[i])));
+					return new ArrayElementValue(arrayToElementValues(array.length, i -> new ConstElementValue(array[i])));
 				
 				if(value instanceof double[] array)
-					return new ArrayElementValue(arrayToElementValues(array.length, i -> new ConstElementValue(pool, array[i])));
+					return new ArrayElementValue(arrayToElementValues(array.length, i -> new ConstElementValue(array[i])));
 				
 				if(value instanceof boolean[] array)
-					return new ArrayElementValue(arrayToElementValues(array.length, i -> new ConstElementValue(pool, array[i])));
+					return new ArrayElementValue(arrayToElementValues(array.length, i -> new ConstElementValue(array[i])));
 			}
 		}
 		

@@ -1,9 +1,9 @@
 package x590.jdecompiler.operation.operator;
 
 import x590.jdecompiler.context.DecompilationContext;
-import x590.jdecompiler.operation.CastOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.Priority;
+import x590.jdecompiler.operation.cast.CastOperation;
 import x590.jdecompiler.type.CastingKind;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.primitive.PrimitiveType;

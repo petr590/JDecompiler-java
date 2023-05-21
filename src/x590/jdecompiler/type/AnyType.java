@@ -39,19 +39,32 @@ public final class AnyType extends Type {
 	
 	@Override
 	public TypeSize getSize() {
-		return TypeSize.WORD; // ???
+		return TypeSize.WORD;
+	}
+
+	
+	@Override
+	public boolean isDefinitelySubtypeOf(Type other) {
+		return this == other;
 	}
 	
 	
 	@Override
-	protected boolean canCastToNarrowest(Type other) {
+	protected boolean canCastToNarrowestImpl(Type other) {
 		return true;
 	}
 	
 	@Override
+	protected boolean canReversedCastToNarrowestImpl(Type other) {
+		return true;
+	}
+	
+	
+	@Override
 	protected Type castImpl(Type other, CastingKind kind) {
-		return kind.isNarrowest() ? other :
-				other instanceof PrimitiveType primitiveType ? primitiveType.toUncertainIntegralType() : other;
+		return kind.isWidest() && other instanceof PrimitiveType primitiveType ?
+				primitiveType.toUncertainIntegralType() :
+				other;
 	}
 	
 	@Override

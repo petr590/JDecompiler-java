@@ -12,10 +12,10 @@ import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.method.JavaMethod;
 import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.operation.AbstractOperation;
-import x590.jdecompiler.operation.CastOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.OperationUtils;
 import x590.jdecompiler.operation.Priority;
+import x590.jdecompiler.operation.cast.CastOperation;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.Types;
 import x590.jdecompiler.type.reference.ReferenceType;
@@ -62,7 +62,7 @@ public class LambdaOperation extends AbstractOperation {
 	
 	@Override
 	public Operation castIfNecessary(ReferenceType clazz) {
-		return new CastOperation(Types.ANY_OBJECT_TYPE, clazz, false, this);
+		return CastOperation.of(Types.ANY_OBJECT_TYPE, clazz, false, this);
 	}
 	
 	

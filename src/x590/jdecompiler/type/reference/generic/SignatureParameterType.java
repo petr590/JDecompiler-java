@@ -10,6 +10,7 @@ import x590.jdecompiler.io.ExtendedStringInputStream;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.reference.ReferenceType;
 import x590.jdecompiler.util.StringUtil;
+import x590.util.annotation.Immutable;
 
 /** Описывает дженерик. Хранит только его имя */
 public final class SignatureParameterType extends IndefiniteGenericType {
@@ -65,7 +66,7 @@ public final class SignatureParameterType extends IndefiniteGenericType {
 	}
 	
 	@Override
-	protected boolean canCastToNarrowest(Type other) {
+	protected boolean canCastToNarrowestImpl(Type other) {
 		return this.equals(other);
 	}
 	
@@ -75,9 +76,18 @@ public final class SignatureParameterType extends IndefiniteGenericType {
 	}
 	
 	@Override
-	public ReferenceType toDefiniteGeneric(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
-		return DefiniteGenericType.fromNullableDeclaration(
+	public ReferenceType replaceUndefiniteGenericsToDefinite(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
+		ReferenceType definiteGenericType = DefiniteGenericType.fromNullableDeclaration(
 				parameters.findOrGetGenericType(name, () -> classinfo.findGenericType(name).orElse(null))
 		);
+		
+		return definiteGenericType != null ? definiteGenericType : this;
+	}
+	
+	@Override
+	public ReferenceType replaceAllTypes(@Immutable Map<GenericDeclarationType, ReferenceType> replaceTable) {
+		return replaceTable.entrySet().stream()
+				.filter(entry -> entry.getKey().getName().equals(name))
+				.findAny().map(Map.Entry::getValue).orElse(this);
 	}
 }

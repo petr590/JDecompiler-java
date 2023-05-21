@@ -30,8 +30,9 @@ public abstract class ConstableValueConstant<T extends Constable>
 	
 	
 	private @Nullable JavaField findConstant(Type type, ClassType classType, BiFunction<Type, ClassInfo, JavaField> nextFinder) {
-		ClassInfo innerClassinfo = ClassInfo.findClassInfo(classType);
-		return innerClassinfo != null ? findConstant(type, innerClassinfo, nextFinder) : null;
+		return ClassInfo.findClassInfo(classType)
+				.map(innerClassinfo -> findConstant(type, innerClassinfo, nextFinder))
+				.orElse(null);
 	}
 	
 	private @Nullable JavaField findConstant(Type type, ClassInfo classinfo, BiFunction<Type, ClassInfo, JavaField> nextFinder) {

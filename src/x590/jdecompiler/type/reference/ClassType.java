@@ -27,6 +27,7 @@ import x590.jdecompiler.type.primitive.PrimitiveType;
 import x590.jdecompiler.type.reference.generic.GenericDeclarationType;
 import x590.jdecompiler.type.reference.generic.GenericParameters;
 import x590.jdecompiler.util.StringUtil;
+import x590.util.Pair;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 
@@ -187,7 +188,19 @@ public class ClassType extends RealReferenceType {
 				classEncodedName -> new ClassType(classEncodedName, clazz, signature));
 	}
 	
-	public static Type fromParameterizedType(ParameterizedType parameterizedType, IClassInfo classinfo) {
+	public static ClassType fromReflectType(java.lang.reflect.Type reflectType, IClassInfo classinfo) {
+		if(reflectType instanceof Class<?> clazz) {
+			return ClassType.fromClass(clazz);
+		}
+		
+		if(reflectType instanceof ParameterizedType parameterizedType) {
+			return ClassType.fromParameterizedType(parameterizedType, classinfo);
+		}
+		
+		throw new IllegalArgumentException("Cannot instantiate ClassType from java.lang.reflect.Type " + reflectType);
+	}
+	
+	public static ClassType fromParameterizedType(ParameterizedType parameterizedType, IClassInfo classinfo) {
 		return fromClassWithSignature((Class<?>)parameterizedType.getRawType(),
 				Arrays.stream(parameterizedType.getActualTypeArguments())
 					.map(parameter -> ReferenceType.fromReflectType(parameter, classinfo)).toList());
@@ -672,29 +685,37 @@ public class ClassType extends RealReferenceType {
 	
 	
 	@Override
-	protected void tryLoadSuperTypes() {
+	protected Pair<ClassType, List<ClassType>> tryLoadSuperTypes() {
 		Class<?> thisClass = getClassInstance();
 		
 		if(thisClass != null) {
-			initSuperType(thisClass);
+			return initSuperTypes(thisClass);
 		}
+		
+		return Pair.empty();
 	}
 	
 	
-	private void initSuperType(Class<?> thisClass) {
+	private Pair<ClassType, List<ClassType>> initSuperTypes(Class<?> thisClass) {
+		
+		// Must be nonnull
+		IClassInfo classinfo = ClassInfo.findIClassInfo(this, null).get();
+		
+		ClassType superType;
 		
 		if(thisClass.isInterface()) {
-			setSuperType(OBJECT);
+			superType = OBJECT;
 			
 		} else {
-			Class<?> superClass = thisClass.getSuperclass();
+			java.lang.reflect.Type genericSuperclass = thisClass.getGenericSuperclass();
 			
-			if(superClass != null) {
-				setSuperType(fromClass(superClass));
-			}
+			superType = genericSuperclass != null ?
+					ClassType.fromReflectType(genericSuperclass, classinfo) :
+					null;
 		}
 		
-		setInterfaces(Arrays.stream(thisClass.getInterfaces()).map(ClassType::fromClass).toList());
+		return Pair.of(superType, Arrays.stream(thisClass.getGenericInterfaces())
+				.map(interfaceType -> ClassType.fromReflectType(interfaceType, classinfo)).toList());
 	}
 	
 	
@@ -715,36 +736,45 @@ public class ClassType extends RealReferenceType {
 	}
 	
 	@Override
-	protected boolean canCastToNarrowest(Type other) {
+	protected boolean canCastToNarrowestImpl(Type other) {
 		return other instanceof ReferenceType referenceType && this.mayBeSubclassOf(referenceType);
 	}
 	
 	
 	@Override
-	public ReferenceType toDefiniteGeneric(IClassInfo classinfo, GenericParameters<GenericDeclarationType> methodParameters) {
+	public ReferenceType replaceUndefiniteGenericsToDefinite(IClassInfo classinfo, GenericParameters<GenericDeclarationType> methodParameters) {
+		return replaceParameters(parameter -> parameter.replaceUndefiniteGenericsToDefinite(classinfo, methodParameters));
+	}
+	
+	@Override
+	public ReferenceType replaceAllTypes(@Immutable Map<GenericDeclarationType, ReferenceType> replaceTable) {
+		return replaceParameters(parameter -> parameter.replaceAllTypes(replaceTable));
+	}
+	
+	private ReferenceType replaceParameters(Function<? super ReferenceType, ? extends ReferenceType> replacer) {
 		final var signature = this.signature;
 		
 		if(signature.isEmpty())
 			return this;
 		
 		var parameters = signature.getTypes();
-		List<ReferenceType> definiteGenericParameters = null;
+		List<ReferenceType> replacedGenericParameters = null;
 		
 		for(int i = 0, size = parameters.size(); i < size; i++) {
 			ReferenceType parameter = parameters.get(i);
 			
-			var definiteGenericParameter = parameter.toDefiniteGeneric(classinfo, methodParameters);
+			var definiteGenericParameter = replacer.apply(parameter);
 			
 			if(definiteGenericParameter != parameter) {
-				if(definiteGenericParameters == null) {
-					definiteGenericParameters = new ArrayList<>(parameters);
+				if(replacedGenericParameters == null) {
+					replacedGenericParameters = new ArrayList<>(parameters);
 				}
 				
-				definiteGenericParameters.set(i, definiteGenericParameter);
+				replacedGenericParameters.set(i, definiteGenericParameter);
 			}
 		}
 		
-		return definiteGenericParameters == null ? this : ClassType.of(rawType, GenericParameters.of(definiteGenericParameters));
+		return replacedGenericParameters == null ? this : ClassType.of(rawType, GenericParameters.of(replacedGenericParameters));
 	}
 	
 	

@@ -1,7 +1,7 @@
 package x590.jdecompiler.instruction.dup;
 
 import x590.jdecompiler.context.DecompilationContext;
-import x590.jdecompiler.operation.Dup;
+import x590.jdecompiler.operation.other.Dup;
 
 public class Dup2X2Instruction extends AbstractDupInstruction {
 	

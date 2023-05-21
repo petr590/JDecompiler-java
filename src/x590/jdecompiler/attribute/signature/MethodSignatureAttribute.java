@@ -110,10 +110,10 @@ public final class MethodSignatureAttribute extends SignatureAttribute {
 	}
 	
 	public MethodDescriptor createGenericDescriptor(ClassInfo classinfo, MethodDescriptor descriptor) {
-		return MethodDescriptor.of(returnType.toDefiniteGeneric(classinfo, parameters), descriptor.getDeclaringClass(), descriptor.getName(),
+		return MethodDescriptor.of(returnType.replaceUndefiniteGenericsToDefinite(classinfo, parameters), descriptor.getDeclaringClass(), descriptor.getName(),
 				Stream.concat(
 					descriptor.getArguments().stream().limit(descriptor.getArgumentsCount() - arguments.size()),
-					arguments.stream().map(arg -> arg.toDefiniteGeneric(classinfo, parameters))
+					arguments.stream().map(arg -> arg.replaceUndefiniteGenericsToDefinite(classinfo, parameters))
 				).toList());
 	}
 	

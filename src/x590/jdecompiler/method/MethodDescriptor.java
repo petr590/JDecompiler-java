@@ -38,11 +38,12 @@ import x590.jdecompiler.type.reference.ArrayType;
 import x590.jdecompiler.type.reference.ClassType;
 import x590.jdecompiler.type.reference.RealReferenceType;
 import x590.jdecompiler.type.reference.ReferenceType;
+import x590.jdecompiler.type.reference.generic.GenericDeclarationType;
 import x590.util.IntHolder;
 import x590.util.LoopUtil;
 import x590.util.annotation.Immutable;
 
-public final class MethodDescriptor extends Descriptor implements Importable {
+public final class MethodDescriptor extends Descriptor<MethodDescriptor> implements Importable {
 	
 	public static final int
 			IMPLICIT_ENUM_ARGUMENTS = 2,
@@ -90,6 +91,7 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 		return arguments.size();
 	}
 	
+	@Override
 	public Type getReturnType() {
 		return returnType;
 	}
@@ -463,5 +465,16 @@ public final class MethodDescriptor extends Descriptor implements Importable {
 	@Override
 	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
 		
+	}
+	
+	
+	@Override
+	public MethodDescriptor replaceAllTypes(@Immutable Map<GenericDeclarationType, ReferenceType> replaceTable) {
+		Type returnType = this.returnType.replaceAllTypes(replaceTable);
+		var arguments = this.arguments.stream().map(arg -> arg.replaceAllTypes(replaceTable)).toList();
+		
+		return returnType == this.returnType && arguments.equals(this.arguments) ?
+				this :
+				of(returnType, getDeclaringClass(), getName(), arguments);
 	}
 }

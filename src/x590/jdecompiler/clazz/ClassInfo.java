@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -40,6 +41,7 @@ import x590.jdecompiler.type.reference.generic.GenericParameters;
 import x590.util.BooleanHolder;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
+import x590.util.function.Functions;
 
 /**
  * Представляет собой объект, который хранит основную информацию о классе, а так же все импорты.
@@ -47,7 +49,7 @@ import x590.util.annotation.Nullable;
  */
 public final class ClassInfo implements IClassInfo {
 	
-	private static final Map<ReferenceType, IClassInfo> INSTANCES = new HashMap<>();
+	private static final Map<ReferenceType, Optional<IClassInfo>> INSTANCES = new HashMap<>();
 	
 	private final JavaClass clazz;
 	
@@ -55,8 +57,9 @@ public final class ClassInfo implements IClassInfo {
 	private final ConstantPool pool;
 	private ClassModifiers modifiers;
 	
-	private final ClassType thisType, superType;
-	private final @Immutable List<ClassType> interfaces;
+	private final ClassType thisType;
+	private final Optional<ClassType> optionalSuperType;
+	private final Optional<@Immutable List<? extends ClassType>> optionalInterfaces;
 	
 	private @Nullable Attributes attributes;
 	
@@ -74,32 +77,28 @@ public final class ClassInfo implements IClassInfo {
 		this.pool = pool;
 		this.modifiers = modifiers;
 		this.thisType = thisType;
-		this.superType = superType;
-		this.interfaces = interfaces;
+		this.optionalSuperType = Optional.of(superType);
+		this.optionalInterfaces = Optional.of(interfaces);
 		imports.put(thisType, Integer.MAX_VALUE / 2);
 		
-		INSTANCES.put(thisType, this);
+		INSTANCES.put(thisType, Optional.of(this));
 	}
 	
-	public static @Nullable ClassInfo findClassInfo(@Nullable ReferenceType type) {
-		return INSTANCES.get(type) instanceof ClassInfo classinfo ? classinfo : null;
+	public static @Nullable Optional<ClassInfo> findClassInfo(@Nullable ReferenceType type) {
+		return INSTANCES.get(type).filter(iclassinfo -> iclassinfo instanceof ClassInfo).map(Functions::uncheckedCast);
 	}
 	
-	public static @Nullable IClassInfo findIClassInfo(@Nullable RealReferenceType type, ConstantPool pool) {
+	public static @Nullable Optional<IClassInfo> findIClassInfo(@Nullable RealReferenceType type, ConstantPool pool) {
 		if(type == null) {
-			return null;
+			return Optional.empty();
 		}
 		
 		if(INSTANCES.containsKey(type))
 			return INSTANCES.get(type);
 		
-		PlainClassInfo foundClassinfo = PlainClassInfo.fromClassType(type, pool);
+		var foundClassinfo = PlainClassInfo.fromClassType(type, pool).<IClassInfo>map(Function.identity());
 		INSTANCES.put(type, foundClassinfo);
 		return foundClassinfo;
-	}
-	
-	public @Nullable IClassInfo findIClassInfo(@Nullable RealReferenceType type) {
-		return findIClassInfo(type, pool);
 	}
 	
 	
@@ -107,6 +106,7 @@ public final class ClassInfo implements IClassInfo {
 		return version;
 	}
 	
+	@Override
 	public ConstantPool getConstPool() {
 		return pool;
 	}
@@ -126,14 +126,22 @@ public final class ClassInfo implements IClassInfo {
 		return thisType;
 	}
 	
-	@Override
 	public ClassType getSuperType() {
-		return superType;
+		return optionalSuperType.get();
+	}
+	
+	public @Immutable List<? extends ClassType> getInterfaces() {
+		return optionalInterfaces.get();
 	}
 	
 	@Override
-	public @Immutable List<ClassType> getInterfaces() {
-		return interfaces;
+	public Optional<ClassType> getOptionalSuperType() {
+		return optionalSuperType;
+	}
+	
+	@Override
+	public Optional<@Immutable List<? extends ClassType>> getOptionalInterfaces() {
+		return optionalInterfaces;
 	}
 	
 	public Attributes getAttributes() {
@@ -284,11 +292,16 @@ public final class ClassInfo implements IClassInfo {
 	
 	
 	public Optional<JavaField> findField(FieldDescriptor descriptor) {
-		return clazz.getFields().stream().filter(field -> field.getDescriptor().equals(descriptor)).findAny();
+		return findField(field -> field.getDescriptor().equalsIgnoreClass(descriptor));
 	}
 	
 	public Optional<JavaMethod> findMethod(MethodDescriptor descriptor) {
-		return findMethod(method -> method.getDescriptor().equals(descriptor));
+		return findMethod(method -> method.getDescriptor().equalsIgnoreClass(descriptor));
+	}
+	
+	
+	public Optional<JavaField> findField(Predicate<JavaField> predicate) {
+		return clazz.getFields().stream().filter(predicate).findAny();
 	}
 	
 	public Optional<JavaMethod> findMethod(Predicate<JavaMethod> predicate) {
@@ -375,7 +388,7 @@ public final class ClassInfo implements IClassInfo {
 	}
 	
 	
-	public boolean canOmitClass(Descriptor descriptor) {
+	public boolean canOmitClass(Descriptor<?> descriptor) {
 		return JDecompiler.getConfig().canOmitThisAndClass() &&
 				enteredClasses.contains(descriptor.getDeclaringClass());
 	}
@@ -389,5 +402,11 @@ public final class ClassInfo implements IClassInfo {
 		
 		Optional<JavaMethod> staticInitializer = clazz.getMethods().stream().filter(method -> method.getDescriptor().isStaticInitializer()).findAny();
 		return staticInitializerStringifyContext = staticInitializer.isPresent() ? staticInitializer.get().getStringifyContext() : null;
+	}
+	
+	
+	@Override
+	public String toString() {
+		return "ClassInfo [ " + clazz.toString() + " ]";
 	}
 }

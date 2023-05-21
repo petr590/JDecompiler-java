@@ -166,12 +166,6 @@ public final class UncertainReferenceType extends Type implements IArrayType {
 	
 	
 	@Override
-	protected boolean canCastToNarrowest(Type other) {
-		return castImpl(other, CastingKind.NARROWEST) != null;
-	}
-	
-	
-	@Override
 	protected Type castImpl(Type other, CastingKind kind) {
 		if(this.equals(other))
 			return this;

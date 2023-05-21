@@ -18,11 +18,11 @@ public final class ByteType extends IntegralType {
 	
 	@Override
 	public int getCapacity() {
-		return 1;
+		return BYTE_CAPACITY;
 	}
 	
 	@Override
 	public Type toUncertainIntegralType() {
-		return PrimitiveType.BYTE_SHORT_INT_CHAR;
+		return BYTE_SHORT_INT_CHAR;
 	}
 }

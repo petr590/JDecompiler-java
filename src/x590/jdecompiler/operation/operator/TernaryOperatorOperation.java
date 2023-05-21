@@ -17,13 +17,20 @@ public final class TernaryOperatorOperation extends ReturnableOperation {
 	private final ConditionOperation condition;
 	private final Operation operand1, operand2;
 	
+	private static Type getGeneralType(Operation operand1, Operation operand2) {
+		return operand1.getReturnTypeAsGeneralNarrowest(operand2, GeneralCastingKind.TERNARY_OPERATOR);
+	}
+	
 	public TernaryOperatorOperation(ConditionOperation condition, Operation operand1, Operation operand2) {
-		super(PrimitiveType.VOID);
+		super(getGeneralType(operand1, operand2));
 		this.condition = condition;
 		this.operand1 = operand1;
 		this.operand2 = operand2;
-		
-		returnType = operand1.getReturnTypeAsGeneralNarrowest(operand2, GeneralCastingKind.TERNARY_OPERATOR);
+	}
+	
+	@Override
+	protected Type getDeducedType(Type returnType) {
+		return getGeneralType(operand1, operand2);
 	}
 	
 	@Override
@@ -38,7 +45,7 @@ public final class TernaryOperatorOperation extends ReturnableOperation {
 	}
 	
 	private boolean isBooleanCondition() {
-		return returnType.isSubtypeOf(PrimitiveType.BOOLEAN) &&
+		return returnType.canCastToNarrowest(PrimitiveType.BOOLEAN) &&
 				operand1 instanceof IConstOperation iconst1 &&
 				operand2 instanceof IConstOperation iconst2 &&
 				(iconst1.getValue() == 1 && iconst2.getValue() == 0 ||

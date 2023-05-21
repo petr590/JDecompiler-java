@@ -3,10 +3,12 @@ package x590.jdecompiler.operation.field;
 import java.util.Optional;
 
 import x590.jdecompiler.clazz.ClassInfo;
+import x590.jdecompiler.clazz.IClassInfo;
 import x590.jdecompiler.constpool.FieldrefConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.field.FieldDescriptor;
+import x590.jdecompiler.field.FieldInfo;
 import x590.jdecompiler.field.JavaField;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.main.JDecompiler;
@@ -23,10 +25,16 @@ public abstract class FieldOperation extends OperationWithDescriptor<FieldDescri
 		this(context, context.pool.<FieldrefConstant>get(index));
 	}
 	
+	public FieldOperation(DecompilationContext context, FieldrefConstant fieldref) {
+		super(FieldDescriptor.from(fieldref));
+		
+		this.canOmit = canOmit(context.getClassinfo());
+	}
+	
 	private boolean canOmit(ClassInfo classinfo) {
 		
-		if(!JDecompiler.getConfig().showSynthetic() && descriptor.getDeclaringClass().equals(classinfo.getThisType())) {
-			Optional<JavaField> field = classinfo.findField(descriptor);
+		if(!JDecompiler.getConfig().showSynthetic() && getDescriptor().getDeclaringClass().equals(classinfo.getThisType())) {
+			Optional<JavaField> field = classinfo.findField(getDescriptor());
 			
 			if(field.isPresent()) {
 				return field.get().getModifiers().isSynthetic();
@@ -36,12 +44,6 @@ public abstract class FieldOperation extends OperationWithDescriptor<FieldDescri
 		return false;
 	}
 	
-	public FieldOperation(DecompilationContext context, FieldrefConstant fieldref) {
-		super(FieldDescriptor.from(fieldref));
-		
-		this.canOmit = canOmit(context.getClassinfo());
-	}
-	
 	private boolean isEnclosingThis(DecompilationContext context, Operation object) {
 		
 		if(!JDecompiler.getConfig().showSynthetic()) {
@@ -49,11 +51,11 @@ public abstract class FieldOperation extends OperationWithDescriptor<FieldDescri
 			
 			if( 	thisType.isNested() &&
 					object.isThisObject(context.getMethodModifiers()) &&
-					descriptor.getName().matches("this\\$\\d+") &&
-					descriptor.getType() instanceof ClassType fieldType &&
+					getDescriptor().getName().matches("this\\$\\d+") &&
+					getDescriptor().getType() instanceof ClassType fieldType &&
 					thisType.isNestmateOf(fieldType)) {
 					
-				var field = context.getClassinfo().findField(descriptor);
+				var field = context.getClassinfo().findField(getDescriptor());
 				
 				if(field.isPresent() && field.get().getModifiers().isSynthetic()) {
 					return true;
@@ -65,7 +67,7 @@ public abstract class FieldOperation extends OperationWithDescriptor<FieldDescri
 	}
 	
 	protected Operation popObject(DecompilationContext context) {
-		Operation object = context.popAsNarrowest(descriptor.getDeclaringClass()).castIfNecessary(descriptor.getDeclaringClass());
+		Operation object = context.popAsNarrowest(getDescriptor().getDeclaringClass()).castIfNecessary(getDescriptor().getDeclaringClass());
 		
 		this.isEnclosingThis = isEnclosingThis(context, object);
 		
@@ -73,16 +75,22 @@ public abstract class FieldOperation extends OperationWithDescriptor<FieldDescri
 	}
 	
 	@Override
+	protected Optional<? extends FieldInfo> findMemberInfo(IClassInfo classinfo, FieldDescriptor descriptor) {
+		return classinfo.findFieldInfoInThisAndSuperClasses(descriptor);
+	}
+	
+	
+	@Override
 	protected boolean canOmitClass(StringifyContext context) {
 		return  super.canOmitClass(context) &&
-				!context.getMethodScope().hasVariableWithName(descriptor.getName());
+				!context.getMethodScope().hasVariableWithName(getDescriptor().getName());
 	}
 	
 	@Override
 	protected boolean canOmitObject(StringifyContext context, Operation object) {
 		return  isEnclosingThis ||
 				super.canOmitObject(context, object) &&
-				!context.getMethodScope().hasVariableWithName(descriptor.getName());
+				!context.getMethodScope().hasVariableWithName(getDescriptor().getName());
 	}
 	
 	@Override
@@ -92,9 +100,9 @@ public abstract class FieldOperation extends OperationWithDescriptor<FieldDescri
 	
 	public void writeName(StringifyOutputStream out, StringifyContext context) {
 		if(isEnclosingThis) {
-			out.print(descriptor.getType(), context.getClassinfo()).write(".this");
+			out.print(getDescriptor().getType(), context.getClassinfo()).write(".this");
 		} else {
-			out.write(descriptor.getName());
+			out.write(getDescriptor().getName());
 		}
 	}
 }

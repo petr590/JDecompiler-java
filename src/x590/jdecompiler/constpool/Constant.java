@@ -32,13 +32,13 @@ public abstract class Constant implements JavaSerializable {
 	protected static Constant readConstant(ExtendedDataInputStream in) {
 		int tag = in.readUnsignedByte();
 		return switch(tag) {
-			case TAG_UTF8                -> new Utf8Constant(in);
-			case TAG_INTEGER             -> new IntegerConstant(in);
-			case TAG_FLOAT               -> new FloatConstant(in);
-			case TAG_LONG                -> new LongConstant(in);
-			case TAG_DOUBLE              -> new DoubleConstant(in);
+			case TAG_UTF8                -> ConstantPool.findOrCreateUtf8Constant(Utf8Constant.decodeUtf8(in));
+			case TAG_INTEGER             -> ConstantPool.findOrCreateConstant(in.readInt());
+			case TAG_FLOAT               -> ConstantPool.findOrCreateConstant(in.readFloat());
+			case TAG_LONG                -> ConstantPool.findOrCreateConstant(in.readLong());
+			case TAG_DOUBLE              -> ConstantPool.findOrCreateConstant(in.readDouble());
 			case TAG_CLASS               -> new ClassConstant(in);
-			case TAG_STRING              -> new StringConstant(in);
+			case TAG_STRING              -> ConstantPool.findOrCreateConstant(Utf8Constant.decodeUtf8(in));
 			case TAG_FIELDREF            -> new FieldrefConstant(in);
 			case TAG_METHODREF           -> new MethodrefConstant(in);
 			case TAG_INTERFACE_METHODREF -> new InterfaceMethodrefConstant(in);

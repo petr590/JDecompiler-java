@@ -7,7 +7,7 @@ import x590.jdecompiler.type.reference.ReferenceType;
 public abstract class GenericType extends ReferenceType {
 	
 	@Override
-	protected boolean canCastToNarrowest(Type other) {
+	protected boolean canCastToNarrowestImpl(Type other) {
 		return other.isReferenceType();
 	}
 	
@@ -15,4 +15,12 @@ public abstract class GenericType extends ReferenceType {
 	public boolean isGenericType() {
 		return true;
 	}
+	
+	
+//	@Override
+//	public @Nullable GenericParameters<? extends ReferenceType> narrowGenericParameters(
+//			ReferenceType prevType, GenericParameters<? extends ReferenceType> parameters) {
+//		
+//		// TODO
+//	}
 }

@@ -8,10 +8,10 @@ import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
-import x590.jdecompiler.operation.VariableDefinitionOperation;
-import x590.jdecompiler.operation.IIncOperation;
 import x590.jdecompiler.operation.condition.ConditionOperation;
+import x590.jdecompiler.operation.increment.IIncOperation;
 import x590.jdecompiler.operation.store.StoreOperation;
+import x590.jdecompiler.operation.variable.VariableDefinitionOperation;
 
 public class LoopScope extends ConditionalScope {
 	
@@ -29,12 +29,18 @@ public class LoopScope extends ConditionalScope {
 		this.isPreCondition = isPreCondition;
 	}
 	
-	public LoopScope(DecompilationContext context, Scope superScope, int startIndex, int endIndex, ConditionOperation condition) {
-		super(context, startIndex, endIndex, condition);
-		init(startIndex, endIndex, superScope);
+	public LoopScope(DecompilationContext context, int startIndex, int endIndex, ConditionOperation condition, int conditionStartIndex) {
+		super(context, startIndex, endIndex, condition, conditionStartIndex);
+	}
+	
+	@Deprecated
+	public LoopScope(DecompilationContext context, Scope superScope, int startIndex, int endIndex, ConditionOperation condition, int conditionStartIndex) {
+		super(context, startIndex, endIndex, condition, conditionStartIndex);
+		init(conditionStartIndex, endIndex, superScope);
 	}
 	
 	
+	@Deprecated
 	private void init(int startIndex, int endIndex, Scope superScope) {
 		
 		// Мы определяем цикл уже в конце, поэтому мы должны
@@ -91,7 +97,9 @@ public class LoopScope extends ConditionalScope {
 		List<Operation> operations = superScope().getOperations();
 		VariableDefinitionOperation prevOperation = null;
 		
-		for(var iter = operations.listIterator(operations.indexOf(this));
+		int thisIndex = operations.indexOf(this);
+		
+		for(var iter = operations.listIterator(thisIndex != -1 ? thisIndex : operations.size() - 1);
 				iter.hasPrevious() && iter.previous() instanceof VariableDefinitionOperation operation;) {
 			
 			boolean variableDefinition = operation.isVariableDefinition();

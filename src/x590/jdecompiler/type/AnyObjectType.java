@@ -55,9 +55,15 @@ public final class AnyObjectType extends Type {
 		return TypeSize.WORD;
 	}
 	
+	
 	@Override
-	protected boolean canCastToNarrowest(Type other) {
-		return this == other || other.isReferenceType();
+	public boolean isDefinitelySubtypeOf(Type other) {
+		return this == other || other == Types.ANY_TYPE;
+	}
+	
+	@Override
+	protected boolean canCastToNarrowestImpl(Type other) {
+		return other.isAnyReferenceType();
 	}
 	
 	@Override
@@ -65,12 +71,12 @@ public final class AnyObjectType extends Type {
 		if(this == other)
 			return this;
 		
-		if(other.isReferenceType())
+		if(other instanceof ReferenceType referenceType)
 			return kind.isNarrowest() ?
-					UncertainReferenceType.getInstance((ReferenceType)other) :
-					UncertainReferenceType.getInstance(ClassType.OBJECT, (ReferenceType)other, kind);
+					UncertainReferenceType.getInstance(referenceType) :
+					UncertainReferenceType.getInstance(ClassType.OBJECT, referenceType, kind);
 		
-		if(other.isUncertainReferenceType())
+		if(other.isAnyReferenceType())
 			return other;
 		
 		return null;

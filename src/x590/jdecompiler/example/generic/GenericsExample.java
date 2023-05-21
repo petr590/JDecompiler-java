@@ -12,25 +12,49 @@ public class GenericsExample {
 		ExampleTesting.runDecompiler(GenericsExample.class);
 	}
 	
-	public static <T extends Number> T foo(T t1) {
+	public static <T extends Number> T varTypeChecking(T t1) {
 		T t2 = t1;
 		return t2;
 	}
 	
-	public static List<?> bar(List<Number> list) {
-		var list2 = list;
+	public static List<?> varTypeChecking(List<Number> list) {
+		List<Number> list2 = list;
 		return list2;
 	}
 	
-	public static Number baz(List<Number> list) {
+	public static Number genericMethodChecking(List<Number> list) {
 		Number num = list.get(0);
 		return num;
 	}
 	
-	public static <T> T bak(List<T> list) {
+	public static <T> T genericMethodChecking2(List<T> list) {
 		T t = list.get(0);
 		return t;
 	}
+	
+	public static <T> T genericMethodChecking(Class3<T> c) {
+		T t = c.get();
+		return t;
+	}
+	
+//	public static String genericFieldChecking(Class1<String> c) {
+//		String s = c.a;
+//		return s;
+//	}
+	
+	
+	public static class Class1<A> {
+		public A a;
+		
+		public A get() {
+			return a;
+		}
+	}
+	
+	public static class Class2<B> extends Class1<B> {}
+	
+	public static class Class3<C> extends Class2<C> {}
+	
 	
 	public class InnerClass<T> {
 		

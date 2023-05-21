@@ -1,5 +1,6 @@
 package x590.jdecompiler.exception;
 
+import x590.jdecompiler.type.ICastingKind;
 import x590.jdecompiler.type.Type;
 
 public class IncopatibleTypesException extends DecompilationException {
@@ -22,7 +23,7 @@ public class IncopatibleTypesException extends DecompilationException {
 		super(message, cause);
 	}
 	
-	public IncopatibleTypesException(Type type1, Type type2) {
-		super("Incopatible types: " + type1.toString() + " and " + type2.toString());
+	public IncopatibleTypesException(Type type1, Type type2, ICastingKind kind) {
+		super("Incopatible types in " + kind.lowerCaseName() + " conversation: " + type1.toString() + " and " + type2.toString());
 	}
 }

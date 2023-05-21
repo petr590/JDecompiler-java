@@ -2,7 +2,9 @@ package x590.jdecompiler.type.reference.generic;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -18,7 +20,8 @@ import x590.jdecompiler.type.reference.ReferenceType;
 import x590.jdecompiler.writable.SameDisassemblingStringifyWritable;
 import x590.util.annotation.Immutable;
 
-public final class GenericParameters<T extends ReferenceType> implements SameDisassemblingStringifyWritable<ClassInfo>, Importable {
+public final class GenericParameters<T extends ReferenceType>
+		implements SameDisassemblingStringifyWritable<ClassInfo>, Importable, Iterable<T> {
 	
 	private static final GenericParameters<?> EMPTY = new GenericParameters<>(Collections.emptyList());
 	private final @Immutable List<T> types;
@@ -101,23 +104,56 @@ public final class GenericParameters<T extends ReferenceType> implements SameDis
 		out.print('<').printAllObjects(types, classinfo, ", ").print('>');
 	}
 	
-	@Override
-	public String toString() {
-		return types.stream().map(Type::toString).collect(Collectors.joining(", ", "<", ">"));
-	}
-	
 	public StringBuilder writeToStringBuilder(StringBuilder stringBuilder) {
 		stringBuilder.append('<');
 		
 		for(var parameter : types)
 			stringBuilder.append(parameter.getEncodedName());
 			
-		stringBuilder.append('>');
-		
-		return stringBuilder;
+		return stringBuilder.append('>');
 	}
 	
 	public String getEncodedNameFor(String classEncodedName) {
 		return writeToStringBuilder(new StringBuilder(classEncodedName)).toString();
+	}
+	
+	public static GenericParameters<? extends ReferenceType> replaceAllTypes(GenericParameters<? extends ReferenceType> parameters, Map<GenericDeclarationType, ReferenceType> replaceTable) {
+		var replacedTypes = parameters.types.stream().map(type -> type.replaceAllTypes(replaceTable)).toList();
+		return replacedTypes == parameters.types ? parameters : of(replacedTypes);
+	}
+	
+	
+	@Override
+	public Iterator<T> iterator() {
+		return types.iterator();
+	}
+	
+	public T get(int index) {
+		return types.get(index);
+	}
+	
+	public int size() {
+		return types.size();
+	}
+	
+	
+	@Override
+	public String toString() {
+		return types.stream().map(Type::toString).collect(Collectors.joining(", ", "<", ">"));
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public boolean equals(Object other) {
+		return other instanceof GenericParameters<?> && this.equals((GenericParameters<T>)other);
+	}
+	
+	public boolean equals(GenericParameters<T> other) {
+		return types.equals(other.types);
+	}
+	
+	@Override
+	public int hashCode() {
+		return types.hashCode();
 	}
 }

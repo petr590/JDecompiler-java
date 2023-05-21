@@ -2,8 +2,8 @@ package x590.jdecompiler.example.features;
 
 import x590.jdecompiler.example.Example;
 import x590.jdecompiler.example.ExampleTesting;
-import x590.jdecompiler.example.SuperclassExample;
 import x590.jdecompiler.example.extending.SuperinterfaceExample;
+import x590.jdecompiler.example.inheritance.SuperclassExample;
 
 @Example
 public class SuperclassOmittingExample extends SuperclassExample implements SuperinterfaceExample {

@@ -7,29 +7,26 @@ import x590.jdecompiler.attribute.CodeAttribute.ExceptionTable.TryEntry;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.DisassemblerContext;
 import x590.jdecompiler.context.PreDecompilationContext;
-import x590.jdecompiler.operation.BreakOperation;
-import x590.jdecompiler.operation.ContinueOperation;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.condition.BooleanConstOperation;
+import x590.jdecompiler.operation.execstream.BreakOperation;
+import x590.jdecompiler.operation.execstream.ContinueOperation;
 import x590.jdecompiler.scope.CatchScope;
 import x590.jdecompiler.scope.ElseScope;
 import x590.jdecompiler.scope.EmptyInfiniteLoopScope;
 import x590.jdecompiler.scope.IfScope;
 import x590.jdecompiler.scope.LoopScope;
 import x590.jdecompiler.scope.Scope;
+import x590.util.Logger;
 import x590.util.annotation.Nullable;
 
 public class GotoInstruction extends TransitionInstruction {
-	
-	private int
-			fromIndex = NONE_INDEX,
-			targetIndex = NONE_INDEX;
 	
 	private Role role;
 	
 	public enum Role {
 		UNKNOWN, ELSE, CATCH_OVERJUMP,
-		EMPTY_INFINITE_LOOP, INFINITE_LOOP, WHILE_LOOP_PROLOGUE,
+		EMPTY_INFINITE_LOOP, INFINITE_LOOP, LOOP_PROLOGUE,
 		BREAK, CONTINUE
 	}
 	
@@ -52,10 +49,7 @@ public class GotoInstruction extends TransitionInstruction {
 	@SuppressWarnings("incomplete-switch")
 	public void preDecompilation(PreDecompilationContext context) {
 		
-		assert context.currentPos() == fromPos;
-		
-		this.fromIndex = context.posToIndex(fromPos);
-		this.targetIndex = context.posToIndex(targetPos);
+		super.preDecompilation(context);
 		
 		switch(role) {
 			case UNKNOWN -> {
@@ -97,7 +91,7 @@ public class GotoInstruction extends TransitionInstruction {
 	
 	
 	@Override
-	public @Nullable Operation toOperationAtTargetPos(DecompilationContext context) {
+	public @Nullable Operation toOperationBeforeTargetIndex(DecompilationContext context) {
 		if(role == Role.INFINITE_LOOP)
 			return new LoopScope(context, targetIndex, fromIndex + 1, BooleanConstOperation.TRUE, true);
 		
@@ -169,7 +163,7 @@ public class GotoInstruction extends TransitionInstruction {
 			
 			case EMPTY_INFINITE_LOOP -> new EmptyInfiniteLoopScope(context);
 			
-			case CATCH_OVERJUMP, WHILE_LOOP_PROLOGUE, INFINITE_LOOP, BREAK -> null;
+			case CATCH_OVERJUMP, LOOP_PROLOGUE, INFINITE_LOOP, BREAK -> null;
 		};
 		
 		// Old code
@@ -280,19 +274,25 @@ public class GotoInstruction extends TransitionInstruction {
 	@Override
 	public void postDecompilation(DecompilationContext context) {
 		if(role == Role.UNKNOWN) {
-			int currentIndexP1 = context.currentIndex() + 1;
+			int currentIndex = context.currentIndex();
 			int targetIndexM1 = targetIndex - 1;
 			
+			Logger.debug(currentIndex, targetIndexM1);
+			
 			Optional<LoopScope> foundScope = context.getOperations().stream()
+					.peek(System.out::println)
 					.filter(
 						operation -> !operation.isRemoved() && operation instanceof LoopScope scope &&
-								scope.startIndex() == currentIndexP1 && scope.conditionStartIndex() == targetIndexM1
+								scope.startIndex() == currentIndex && scope.conditionStartIndex() == targetIndexM1
 					
-					).map(operation -> (LoopScope)operation).findAny();
+					).map(operation -> (LoopScope)operation)
+					.findAny();
 			
+			
+			Logger.debug("Found " + foundScope);
 			
 			if(foundScope.isPresent()) {
-				role = Role.WHILE_LOOP_PROLOGUE;
+				role = Role.LOOP_PROLOGUE;
 				foundScope.get().makePreCondition();
 			} else {
 				context.warning("The `goto " + targetIndex + "` instruction is not recognized");

@@ -14,7 +14,7 @@ public abstract class NoSuchClassMemberException extends DecompilationException 
 		super(message);
 	}
 	
-	public NoSuchClassMemberException(Descriptor descriptor) {
+	public NoSuchClassMemberException(Descriptor<?> descriptor) {
 		super(descriptor.toString());
 	}
 }

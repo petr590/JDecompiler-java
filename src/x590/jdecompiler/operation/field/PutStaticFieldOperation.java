@@ -15,13 +15,13 @@ public final class PutStaticFieldOperation extends PutFieldOperation {
 	
 	public PutStaticFieldOperation(DecompilationContext context, int index) {
 		super(context, index);
-		this.enumTable = OperationUtils.getEnumTable(context, descriptor);
+		this.enumTable = OperationUtils.getEnumTable(context, getDescriptor());
 		init(context);
 	}
 	
 	public PutStaticFieldOperation(DecompilationContext context, FieldrefConstant fieldref) {
 		super(context, fieldref);
-		this.enumTable = OperationUtils.getEnumTable(context, descriptor);
+		this.enumTable = OperationUtils.getEnumTable(context, getDescriptor());
 		init(context);
 	}
 	
@@ -36,19 +36,21 @@ public final class PutStaticFieldOperation extends PutFieldOperation {
 		if(!canOmit && context.getDescriptor().isStaticInitializer() &&
 				context.currentScope() == context.getMethodScope() && !getValue().requiresLocalContext()) {
 			
-			if(context.getClassinfo().getField(descriptor).setStaticInitializer(getValue(), context))
+			if(context.getClassinfo().getField(getDescriptor()).setStaticInitializer(getValue(), context))
 				this.remove();
 		}
 		
 		super.initIncData(context);
 		
 		getValue().setEnumTable(enumTable);
+		
+		initGenericDescriptor(context, null);
 	}
 	
 	@Override
 	public void writeName(StringifyOutputStream out, StringifyContext context) {
 		if(!canOmitClass(context)) {
-			out.print(descriptor.getDeclaringClass(), context.getClassinfo()).print('.');
+			out.print(getDescriptor().getDeclaringClass(), context.getClassinfo()).print('.');
 		}
 		
 		super.writeName(out, context);
@@ -56,6 +58,6 @@ public final class PutStaticFieldOperation extends PutFieldOperation {
 	
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		classinfo.addImport(descriptor.getDeclaringClass());
+		classinfo.addImport(getDescriptor().getDeclaringClass());
 	}
 }

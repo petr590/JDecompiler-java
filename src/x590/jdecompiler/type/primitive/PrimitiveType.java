@@ -28,18 +28,22 @@ public abstract class PrimitiveType extends BasicType {
 			VOID    = VoidType.INSTANCE;
 	
 	
-	public static final UncertainIntegralType
-			BYTE_SHORT_INT_CHAR_BOOLEAN = UncertainIntegralType.getInstance(1, 4, INCLUDE_BOOLEAN | INCLUDE_CHAR),
-			BYTE_SHORT_INT_CHAR         = UncertainIntegralType.getInstance(1, 4, INCLUDE_CHAR),
-			BYTE_SHORT_INT              = UncertainIntegralType.getInstance(1, 4),
-			SHORT_INT_CHAR              = UncertainIntegralType.getInstance(2, 4, INCLUDE_CHAR),
-			INT_CHAR                    = UncertainIntegralType.getInstance(4, 4, INCLUDE_CHAR),
-			SHORT_INT                   = UncertainIntegralType.getInstance(2, 4),
-			BYTE_BOOLEAN                = UncertainIntegralType.getInstance(1, 1, INCLUDE_BOOLEAN),
-			INT_BOOLEAN                 = UncertainIntegralType.getInstance(4, 4, INCLUDE_BOOLEAN);
+	public static final int
+			BYTE_CAPACITY  = 1,
+			SHORT_CAPACITY = 2,
+			CHAR_CAPACITY  = 2,
+			INT_CAPACITY   = 4;
 	
 	
-	public static final int CHAR_CAPACITY = 2;
+	public static final Type
+			BYTE_SHORT_INT_CHAR_BOOLEAN = UncertainIntegralType.getInstance(BYTE_CAPACITY,  INT_CAPACITY, INCLUDE_CHAR | INCLUDE_BOOLEAN),
+			BYTE_SHORT_INT_CHAR         = UncertainIntegralType.getInstance(BYTE_CAPACITY,  INT_CAPACITY, INCLUDE_CHAR),
+			BYTE_SHORT_INT              = UncertainIntegralType.getInstance(BYTE_CAPACITY,  INT_CAPACITY),
+			SHORT_INT_CHAR              = UncertainIntegralType.getInstance(SHORT_CAPACITY, INT_CAPACITY, INCLUDE_CHAR),
+			INT_CHAR                    = UncertainIntegralType.getInstance(INT_CAPACITY,   INT_CAPACITY, INCLUDE_CHAR),
+			SHORT_INT                   = UncertainIntegralType.getInstance(SHORT_CAPACITY, INT_CAPACITY),
+			BYTE_BOOLEAN                = UncertainIntegralType.getInstance(BYTE_CAPACITY,  BYTE_CAPACITY, INCLUDE_BOOLEAN),
+			INT_BOOLEAN                 = UncertainIntegralType.getInstance(INT_CAPACITY,   INT_CAPACITY,  INCLUDE_BOOLEAN);
 	
 	
 	private final String encodedName, name, nameForVariable;
@@ -76,22 +80,22 @@ public abstract class PrimitiveType extends BasicType {
 	}
 	
 	@Override
-	protected boolean canCastToNarrowest(Type other) {
+	protected boolean canCastToNarrowestImpl(Type other) {
 		return this == other;
 	}
 	
-	protected boolean canCastToWidest(Type other) {
+	protected boolean canCastToWidestImpl(Type other) {
 		return this == other;
 	}
 	
 	@Override
-	protected Type castToNarrowestImpl(Type other) {
-		return this.canCastToNarrowest(other) ? this : null;
+	protected final Type castToNarrowestImpl(Type other) {
+		return this.canCastToNarrowestImpl(other) ? this : null;
 	}
 	
 	@Override
-	protected Type castToWidestImpl(Type other) {
-		return this.canCastToWidest(other) ? this : null;
+	protected final Type castToWidestImpl(Type other) {
+		return this.canCastToWidestImpl(other) ? this : null;
 	}
 	
 	@Override
