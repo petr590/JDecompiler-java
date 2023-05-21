@@ -322,6 +322,16 @@ public final class ArrayType extends RealReferenceType implements IArrayType {
 	}
 	
 	@Override
+	protected boolean canCastToWidestImpl(Type other) {
+		if(other instanceof ArrayType arrayType) {
+			return nestingLevel == arrayType.nestingLevel && memberType.canCastToWidest(arrayType.memberType)
+					|| elementType.canCastToWidest(arrayType.elementType);
+		}
+		
+		return false;
+	}
+	
+	@Override
 	protected Type castImpl(Type other, CastingKind kind) {
 		if(other.equalsIgnoreSignature(ARRAY_SUPER_TYPE) ||
 				ARRAY_INTERFACES.stream().anyMatch(other::equalsIgnoreSignature)) {

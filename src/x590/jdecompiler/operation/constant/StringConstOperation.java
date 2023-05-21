@@ -1,5 +1,6 @@
 package x590.jdecompiler.operation.constant;
 
+import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.constpool.StringConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
@@ -14,7 +15,7 @@ public final class StringConstOperation extends ConstOperation<StringConstant> {
 	}
 	
 	public StringConstOperation(DecompilationContext context, String value) {
-		this(context.getClassinfo().getConstPool().findOrCreateConstant(value));
+		this(ConstantPool.findOrCreateConstant(value));
 	}
 	
 	@Override

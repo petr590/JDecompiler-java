@@ -1,14 +1,20 @@
 package x590.jdecompiler.constpool;
 
-import java.lang.constant.Constable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import it.unimi.dsi.fastutil.doubles.Double2ObjectArrayMap;
+import it.unimi.dsi.fastutil.doubles.Double2ObjectMap;
+import it.unimi.dsi.fastutil.floats.Float2ObjectArrayMap;
+import it.unimi.dsi.fastutil.floats.Float2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import x590.jdecompiler.JavaSerializable;
 import x590.jdecompiler.exception.NoSuchConstantException;
 import x590.jdecompiler.io.ExtendedDataInputStream;
@@ -17,7 +23,13 @@ import x590.util.annotation.Nullable;
 
 public final class ConstantPool implements JavaSerializable {
 	
-	private static final Map<Constable, ICachedConstant<?>> CONSTANTS = new HashMap<>();
+	private static final Int2ObjectMap<IntegerConstant> INTEGER_CONSTANTS = new Int2ObjectArrayMap<>();
+	private static final Long2ObjectMap<LongConstant> LONG_CONSTANTS = new Long2ObjectArrayMap<>();
+	private static final Float2ObjectMap<FloatConstant> FLOAT_CONSTANTS = new Float2ObjectArrayMap<>();
+	private static final Double2ObjectMap<DoubleConstant> DOUBLE_CONSTANTS = new Double2ObjectArrayMap<>();
+	
+	private static final Map<String, Utf8Constant> UTF8_CONSTANTS = new HashMap<>();
+	private static final Map<String, StringConstant> STRING_CONSTANTS = new HashMap<>();
 	
 	private final List<Constant> data;
 	
@@ -41,10 +53,6 @@ public final class ConstantPool implements JavaSerializable {
 		for(Constant constant : data) {
 			if(constant != null) {
 				constant.init(this);
-				
-				if(constant instanceof ICachedConstant<?> cachedConstant) {
-					CONSTANTS.putIfAbsent(cachedConstant.getValueAsObject(), cachedConstant);
-				}
 			}
 		}
 	}
@@ -157,36 +165,31 @@ public final class ConstantPool implements JavaSerializable {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
-	private static <T extends Constable, C extends ICachedConstant<T>> C findOrCreateConstant(T value, Function<? super T, C> creator) {
-		return ((Map<T, C>)CONSTANTS).computeIfAbsent(value, creator);
-	}
-	
 	public static IntegerConstant findOrCreateConstant(int value) {
-		return findOrCreateConstant(value, IntegerConstant::new);
+		return INTEGER_CONSTANTS.computeIfAbsent(value, IntegerConstant::new);
 	}
 	
 	public static LongConstant findOrCreateConstant(long value) {
-		return findOrCreateConstant(value, LongConstant::new);
+		return LONG_CONSTANTS.computeIfAbsent(value, LongConstant::new);
 	}
 	
 	public static FloatConstant findOrCreateConstant(float value) {
-		return findOrCreateConstant(value, FloatConstant::new);
+		return FLOAT_CONSTANTS.computeIfAbsent(value, FloatConstant::new);
 	}
 	
 	public static DoubleConstant findOrCreateConstant(double value) {
-		return findOrCreateConstant(value, DoubleConstant::new);
+		return DOUBLE_CONSTANTS.computeIfAbsent(value, DoubleConstant::new);
 	}
 	
 	public static IntegerConstant findOrCreateConstant(boolean value) {
 		return findOrCreateConstant(value ? 1 : 0);
 	}
 	
-	public static StringConstant findOrCreateConstant(String value) {
-		return findOrCreateConstant(value, string -> new StringConstant(findOrCreateUtf8Constant(string)));
+	public static Utf8Constant findOrCreateUtf8Constant(String value) {
+		return UTF8_CONSTANTS.computeIfAbsent(value, Utf8Constant::new);
 	}
 	
-	public static Utf8Constant findOrCreateUtf8Constant(String value) {
-		return findOrCreateConstant(value, Utf8Constant::new);
+	public static StringConstant findOrCreateConstant(String value) {
+		return STRING_CONSTANTS.computeIfAbsent(value, string -> new StringConstant(findOrCreateUtf8Constant(string)));
 	}
 }

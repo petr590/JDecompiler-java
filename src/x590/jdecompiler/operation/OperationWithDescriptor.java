@@ -30,13 +30,13 @@ public abstract class OperationWithDescriptor<D extends Descriptor<D>> extends A
 	 * Метод должен вызываться для всех подклассов в конструкторе после инициализации объекта.
 	 * В него передаётся объект или {@literal null} для вызовов статических методов. */
 	protected void initGenericDescriptor(DecompilationContext context, @Nullable Operation object) {
-		var iclassinfo = ClassInfo.findIClassInfo(descriptor.getDeclaringClass(), context.pool);
+		var iclassinfo = ClassInfo.findIClassInfo(descriptor.getDeclaringClass());
 		
 		if(iclassinfo.isPresent()) {
 			var foundMethodInfo = findMemberInfo(iclassinfo.get(), descriptor);
 			
 			if(foundMethodInfo.isPresent()) {
-				setGenericDescriptor(foundMethodInfo.get().getGenericDescriptor(object, context.pool));
+				setGenericDescriptor(foundMethodInfo.get().getGenericDescriptor(object));
 			}
 		}
 	}

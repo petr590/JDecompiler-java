@@ -18,6 +18,7 @@ public class ReferenceTypeTest {
 	@Test
 	public void test() {
 		
+		ClassType object = ClassType.OBJECT;
 		ClassType string = ClassType.STRING;
 		ClassType integer = ClassType.INTEGER;
 		
@@ -28,6 +29,8 @@ public class ReferenceTypeTest {
 		assertNull(string.castToNarrowestNoexcept(integer));
 		assertNull(string.castToNarrowestNoexcept(block));
 		assertNull(block.castToNarrowestNoexcept(string));
+		
+		assertEquals(object, object.castToWidest(string));
 	}
 	
 	@Test

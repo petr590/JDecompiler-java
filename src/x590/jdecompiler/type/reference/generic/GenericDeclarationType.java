@@ -167,6 +167,11 @@ public final class GenericDeclarationType extends ReferenceType {
 		return other.isReferenceType();
 	}
 	
+	@Override
+	protected boolean canCastToWidestImpl(Type other) {
+		return other.isReferenceType();
+	}
+	
 	
 	@Override
 	public ReferenceType replaceUndefiniteGenericsToDefinite(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {

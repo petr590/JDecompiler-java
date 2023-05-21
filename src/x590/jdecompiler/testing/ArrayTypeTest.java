@@ -27,5 +27,7 @@ public final class ArrayTypeTest {
 		assertEquals(BOOLEAN_ARRAY, BYTE_OR_BOOLEAN_ARRAY.castToNarrowestNoexcept(BOOLEAN_ARRAY));
 		assertEquals(BYTE_ARRAY,    BYTE_ARRAY.castToNarrowestNoexcept(BYTE_OR_BOOLEAN_ARRAY));
 		assertEquals(BOOLEAN_ARRAY, BOOLEAN_ARRAY.castToNarrowestNoexcept(BYTE_OR_BOOLEAN_ARRAY));
+		
+		assertEquals(OBJECT_ARRAY, OBJECT_ARRAY.castToWidestNoexcept(STRING_ARRAY));
 	}
 }

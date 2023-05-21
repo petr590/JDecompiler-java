@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.clazz.IClassInfo;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.field.FieldDescriptor;
@@ -82,7 +83,7 @@ public final class OperationUtils {
 	
 	
 	public static @Nullable Int2ObjectMap<String> getEnumTable(DecompilationContext context, FieldDescriptor descriptor) {
-		var fieldClassinfo = context.getClassinfo().findIClassInfo(descriptor.getDeclaringClass());
+		var fieldClassinfo = ClassInfo.findIClassInfo(descriptor.getDeclaringClass());
 		
 		return fieldClassinfo.isPresent() ?
 				fieldClassinfo.get().findFieldInfo(descriptor).map(FieldInfo::getEnumTable).orElse(null) :
@@ -90,7 +91,7 @@ public final class OperationUtils {
 	}
 	
 	public static @Nullable Int2ObjectMap<String> getEnumTable(DecompilationContext context, MethodDescriptor descriptor) {
-		var methodClassinfo = context.getClassinfo().findIClassInfo(descriptor.getDeclaringClass());
+		var methodClassinfo = ClassInfo.findIClassInfo(descriptor.getDeclaringClass());
 		
 		return methodClassinfo.isPresent() ?
 				methodClassinfo.get().findMethodInfo(descriptor).map(MethodInfo::getEnumTable).orElse(null) :

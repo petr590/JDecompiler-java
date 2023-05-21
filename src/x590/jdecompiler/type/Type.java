@@ -186,6 +186,15 @@ public abstract class Type implements
 		return other.canReversedCastToNarrowestImpl(this);
 	}
 	
+	/** @return {@literal true}, если возможно преобразовать {@literal this} в {@code other} */
+	public final boolean canCastToWidest(Type other) {
+		if(canCastToWidestImpl(other))
+			return true;
+		
+		return other.canReversedCastToWidestImpl(this);
+	}
+	
+	
 	/** Для оптимизации (чтобы не создавать новые экземпляры типов при простой проверке) */
 	protected boolean canCastToNarrowestImpl(Type other) {
 		return this.castImpl(other, CastingKind.NARROWEST) != null;
@@ -194,6 +203,16 @@ public abstract class Type implements
 	/** Для оптимизации (чтобы не создавать новые экземпляры типов при простой проверке) */
 	protected boolean canReversedCastToNarrowestImpl(Type other) {
 		return this.reversedCastImpl(other, CastingKind.NARROWEST) != null;
+	}
+	
+	/** Для оптимизации (чтобы не создавать новые экземпляры типов при простой проверке) */
+	protected boolean canCastToWidestImpl(Type other) {
+		return this.castImpl(other, CastingKind.WIDEST) != null;
+	}
+	
+	/** Для оптимизации (чтобы не создавать новые экземпляры типов при простой проверке) */
+	protected boolean canReversedCastToWidestImpl(Type other) {
+		return this.reversedCastImpl(other, CastingKind.WIDEST) != null;
 	}
 	
 	

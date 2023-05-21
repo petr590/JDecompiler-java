@@ -94,7 +94,7 @@ public final class Annotation implements StringifyWritable<ClassInfo>, Importabl
 						
 						if(repeatedAnnotations.stream().skip(1).allMatch(value -> value.getAnnotation().getType().equals(firstType))) {
 							
-							var foundClassinfo = ClassInfo.findIClassInfo(repeatedAnnotations.get(0).getAnnotation().getType(), pool);
+							var foundClassinfo = ClassInfo.findIClassInfo(repeatedAnnotations.get(0).getAnnotation().getType());
 							
 							if(foundClassinfo.isPresent()) {
 								var foundRepeatableAnnotation = foundClassinfo.get().findAnnotation(REPEATABLE);

@@ -84,11 +84,11 @@ public final class ClassInfo implements IClassInfo {
 		INSTANCES.put(thisType, Optional.of(this));
 	}
 	
-	public static @Nullable Optional<ClassInfo> findClassInfo(@Nullable ReferenceType type) {
+	public static Optional<ClassInfo> findClassInfo(@Nullable ReferenceType type) {
 		return INSTANCES.get(type).filter(iclassinfo -> iclassinfo instanceof ClassInfo).map(Functions::uncheckedCast);
 	}
 	
-	public static @Nullable Optional<IClassInfo> findIClassInfo(@Nullable RealReferenceType type, ConstantPool pool) {
+	public static Optional<IClassInfo> findIClassInfo(@Nullable RealReferenceType type) {
 		if(type == null) {
 			return Optional.empty();
 		}
@@ -96,9 +96,13 @@ public final class ClassInfo implements IClassInfo {
 		if(INSTANCES.containsKey(type))
 			return INSTANCES.get(type);
 		
-		var foundClassinfo = PlainClassInfo.fromClassType(type, pool).<IClassInfo>map(Function.identity());
+		var foundClassinfo = PlainClassInfo.fromClassType(type).<IClassInfo>map(Function.identity());
 		INSTANCES.put(type, foundClassinfo);
 		return foundClassinfo;
+	}
+	
+	public static Optional<IClassInfo> findIClassInfo(Optional<? extends RealReferenceType> optionalType) {
+		return findIClassInfo(optionalType.orElse(null));
 	}
 	
 	
@@ -106,7 +110,6 @@ public final class ClassInfo implements IClassInfo {
 		return version;
 	}
 	
-	@Override
 	public ConstantPool getConstPool() {
 		return pool;
 	}

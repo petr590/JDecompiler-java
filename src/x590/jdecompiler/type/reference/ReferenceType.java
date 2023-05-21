@@ -9,7 +9,6 @@ import java.util.Map;
 
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.clazz.IClassInfo;
-import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.type.BasicType;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.TypeSize;
@@ -128,8 +127,14 @@ public abstract class ReferenceType extends BasicType {
 	
 	@Override
 	protected Type castToWidestImpl(Type other) {
-		return this.canCastToNarrowestImpl(other) ? other : null;
+		return this.canCastToWidestImpl(other) ? this : null;
 	}
+	
+	@Override
+	protected abstract boolean canCastToNarrowestImpl(Type other);
+
+	@Override
+	protected abstract boolean canCastToWidestImpl(Type other);
 	
 	@Override
 	public ReferenceType replaceUndefiniteGenericsToDefinite(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
@@ -159,11 +164,11 @@ public abstract class ReferenceType extends BasicType {
 	
 	
 	public static @Nullable GenericParameters<? extends ReferenceType> narrowGenericParameters(
-			ReferenceType type, GenericParameters<? extends ReferenceType> rootParameters, ConstantPool pool) {
+			ReferenceType type, GenericParameters<? extends ReferenceType> rootParameters) {
 		
 		if(type instanceof ClassType classType) {
 			
-			var foundClassinfo = ClassInfo.findIClassInfo(classType.getRawType(), pool);
+			var foundClassinfo = ClassInfo.findIClassInfo(classType.getRawType());
 			
 			if(foundClassinfo.isPresent()) {
 				var parameters = foundClassinfo.get().getSignatureParameters();

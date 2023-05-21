@@ -22,8 +22,8 @@ public final class Element implements StringifyWritable<ClassInfo>, Importable {
 		this.value = value;
 	}
 	
-	public static Element fromUnknownValue(ConstantPool pool, String name, Object value) {
-		return new Element(name, ElementValue.fromUnknownValue(pool, value));
+	public static Element fromUnknownValue(String name, Object value) {
+		return new Element(name, ElementValue.fromUnknownValue(value));
 	}
 	
 	

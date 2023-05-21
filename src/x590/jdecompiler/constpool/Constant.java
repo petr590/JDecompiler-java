@@ -38,7 +38,7 @@ public abstract class Constant implements JavaSerializable {
 			case TAG_LONG                -> ConstantPool.findOrCreateConstant(in.readLong());
 			case TAG_DOUBLE              -> ConstantPool.findOrCreateConstant(in.readDouble());
 			case TAG_CLASS               -> new ClassConstant(in);
-			case TAG_STRING              -> ConstantPool.findOrCreateConstant(Utf8Constant.decodeUtf8(in));
+			case TAG_STRING              -> new StringConstant(in);
 			case TAG_FIELDREF            -> new FieldrefConstant(in);
 			case TAG_METHODREF           -> new MethodrefConstant(in);
 			case TAG_INTERFACE_METHODREF -> new InterfaceMethodrefConstant(in);
@@ -58,7 +58,7 @@ public abstract class Constant implements JavaSerializable {
 		// По умолчанию ничего не делает
 	}
 	
-	/** LongConstant и DoubleConstant, они исторически занимают две позиции в пуле */
+	/** LongConstant и DoubleConstant исторически занимают две позиции в пуле */
 	protected boolean holdsTwo() {
 		return false;
 	}

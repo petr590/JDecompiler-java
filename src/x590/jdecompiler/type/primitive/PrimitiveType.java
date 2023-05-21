@@ -84,6 +84,7 @@ public abstract class PrimitiveType extends BasicType {
 		return this == other;
 	}
 	
+	@Override
 	protected boolean canCastToWidestImpl(Type other) {
 		return this == other;
 	}

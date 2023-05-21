@@ -8,7 +8,6 @@ import java.util.Objects;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import x590.jdecompiler.clazz.ClassInfo;
-import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.field.FieldInfo;
 import x590.jdecompiler.method.MethodInfo;
 import x590.jdecompiler.modifiers.ClassEntryModifiers;
@@ -46,17 +45,17 @@ public abstract class MemberInfo<D extends Descriptor<D>, M extends ClassEntryMo
 	
 	/** @return Конкретный generic дескриптор для переданного объекта,
 	 * или generic дескриптор по умолчанию, если объект равен {@literal null}. */
-	public D getGenericDescriptor(@Nullable Operation object, ConstantPool pool) {
+	public D getGenericDescriptor(@Nullable Operation object) {
 		if(object == null)
 			return genericDescriptor;
 		
 		Type type = object.getReturnType();
 		
 		if(type instanceof ReferenceType referenceType) {
-			return getDefiniteGenericDescriptor(referenceType, pool);
+			return getDefiniteGenericDescriptor(referenceType);
 			
 		} else if(type instanceof UncertainReferenceType uncertainReferenceType) {
-			return getDefiniteGenericDescriptor(uncertainReferenceType.getNarrowestType(), pool);
+			return getDefiniteGenericDescriptor(uncertainReferenceType.getNarrowestType());
 			
 		} else {
 			return genericDescriptor;
@@ -64,21 +63,21 @@ public abstract class MemberInfo<D extends Descriptor<D>, M extends ClassEntryMo
 	}
 	
 	
-	private D getDefiniteGenericDescriptor(ReferenceType operationType, ConstantPool pool) {
+	private D getDefiniteGenericDescriptor(ReferenceType operationType) {
 		
 		// Список типов в порядке от самого широкого к самому узкому
 		List<ReferenceType> supertypes = new ArrayList<>();
 		
 		if(findSuperClasses(operationType, descriptor.getDeclaringClass(), supertypes)) {
 			
-			var foundClassinfo = ClassInfo.findIClassInfo(genericDescriptor.getDeclaringClass(), pool);
+			var foundClassinfo = ClassInfo.findIClassInfo(genericDescriptor.getDeclaringClass());
 			
 			if(foundClassinfo.isPresent()) {
 				GenericParameters<GenericDeclarationType> srcParameters = foundClassinfo.get().getSignatureParameters();
 				GenericParameters<? extends ReferenceType> parameters = srcParameters;
 				
 				for(ReferenceType currType : supertypes) {
-					parameters = ReferenceType.narrowGenericParameters(currType, parameters, pool);
+					parameters = ReferenceType.narrowGenericParameters(currType, parameters);
 				}
 				
 				final int size = parameters.size();

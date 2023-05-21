@@ -1,8 +1,10 @@
 package x590.jdecompiler.testing;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,19 +15,23 @@ import java.util.stream.Stream;
 import org.junit.Test;
 
 import x590.jdecompiler.example.ExampleTesting;
-import x590.util.Logger;
 
 public class DecompilationTesting {
 	
 	@Test
 	public void testAllExamples() {
-		var classes = findAllClassesAsStreamInPackage(ExampleTesting.class.getPackageName()).toArray(Class[]::new);
-		
-		Logger.debug((Object[])classes);
-		
-		ExampleTesting.runDecompilerForExampleClasses(
-				classes
-		);
+		try(var out = new PrintStream("/tmp/decompilation-testing.log")) {
+			
+			System.setOut(out);
+			System.setErr(out);
+			
+			ExampleTesting.runDecompilerForExampleClasses(
+					findAllClassesAsStreamInPackage(ExampleTesting.class.getPackageName()).toArray(Class[]::new)
+			);
+			
+		} catch(FileNotFoundException ex) {
+			ex.printStackTrace();
+		}
 	}
 	
 	

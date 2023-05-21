@@ -114,7 +114,6 @@ public final class DecompilationContext extends DecompilationAndStringifyContext
 			updateStackState();
 			
 			finalizeScopes(index);
-			startScopes(index);
 			
 			
 //			Logger.debugf("%d: operation stack: [%s]", index, stack.stream().map(operation -> operation.getClass().getSimpleName() + " " + operation.getReturnType().getName()).collect(Collectors.joining(", ")));
@@ -141,7 +140,7 @@ public final class DecompilationContext extends DecompilationAndStringifyContext
 			
 			
 			transitionInstructions
-					.getOrDefault(index + 1, PreDecompilationContext.DEFAULT_TRANSITION_INSTRUCTIONS_LIST)
+					.getOrDefault(index, PreDecompilationContext.DEFAULT_TRANSITION_INSTRUCTIONS_LIST)
 					.forEach(transitionInstruction -> {
 						Operation operation = transitionInstruction.toOperationBeforeTargetIndex(this);
 						
@@ -154,6 +153,9 @@ public final class DecompilationContext extends DecompilationAndStringifyContext
 							}
 						}
 					});
+			
+			
+			startScopes(index);
 			
 			
 			Operation operation;
@@ -288,7 +290,8 @@ public final class DecompilationContext extends DecompilationAndStringifyContext
 			
 		} else if(index > scope.startIndex()) {
 			
-			assert scope.superScope() == currentScope : scope + " must have parent scope " + currentScope + ", got " + scope.superScope();
+			assert scope.superScope() == currentScope :
+				"At index " + index + ": " + scope + " must have parent scope " + currentScope + ", not " + scope.superScope();
 			
 			Logger.logf("%d: %s started", index, scope);
 			
@@ -302,7 +305,7 @@ public final class DecompilationContext extends DecompilationAndStringifyContext
 			
 			return true;
 		}
-
+		
 		return false;
 	}
 	

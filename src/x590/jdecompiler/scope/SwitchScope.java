@@ -11,6 +11,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntComparators;
 import it.unimi.dsi.fastutil.ints.IntList;
 import x590.jdecompiler.clazz.Version;
+import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.constpool.IntegerConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
@@ -49,13 +50,11 @@ public class SwitchScope extends Scope {
 		this.indexTable = new Int2ObjectOpenHashMap<>(offsetTable.size());
 		
 		
-		var pool = context.pool;
-		
 		for(var entry : offsetTable.int2IntEntrySet()) {
 			indexTable.computeIfAbsent(
 						context.posToIndex(entry.getIntValue() + context.currentPos()),
 						key -> new ArrayList<>()
-				).add(pool.findOrCreateConstant(entry.getIntKey()));
+				).add(ConstantPool.findOrCreateConstant(entry.getIntKey()));
 		}
 		
 		

@@ -319,12 +319,12 @@ public final class JavaMethod extends JavaClassElement {
 	public void resolveOverrideAnnotation(ClassInfo classinfo) {
 		
 		if(!classinfo.getThisType().equals(ClassType.OBJECT)) {
-			this.hasOverrideAnnotation = hasOverrideAnnotationInSuperClass(classinfo, classinfo);
+			this.hasOverrideAnnotation = hasOverrideAnnotationInSuperClass(classinfo);
 		}
 	}
 	
 	
-	private boolean hasOverrideAnnotationInClass(ClassInfo selfClassinfo, Optional<IClassInfo> optionalClassinfo) {
+	private boolean hasOverrideAnnotationInClass(Optional<IClassInfo> optionalClassinfo) {
 		if(optionalClassinfo.isEmpty()) {
 			return false;
 		}
@@ -333,13 +333,13 @@ public final class JavaMethod extends JavaClassElement {
 			return true;
 		}
 		
-		return hasOverrideAnnotationInSuperClass(selfClassinfo, optionalClassinfo.get());
+		return hasOverrideAnnotationInSuperClass(optionalClassinfo.get());
 	}
 	
-	private boolean hasOverrideAnnotationInSuperClass(ClassInfo selfClassinfo, IClassInfo classinfo) {
-		return hasOverrideAnnotationInClass(selfClassinfo, selfClassinfo.findIClassInfo(classinfo.getOptionalSuperType())) ||
+	private boolean hasOverrideAnnotationInSuperClass(IClassInfo classinfo) {
+		return hasOverrideAnnotationInClass(ClassInfo.findIClassInfo(classinfo.getOptionalSuperType())) ||
 				classinfo.getInterfacesOrEmpty().stream()
-					.anyMatch(superInterface -> hasOverrideAnnotationInClass(selfClassinfo, selfClassinfo.findIClassInfo(superInterface)));
+					.anyMatch(superInterface -> hasOverrideAnnotationInClass(ClassInfo.findIClassInfo(superInterface)));
 	}
 	
 	

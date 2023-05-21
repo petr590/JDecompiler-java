@@ -10,7 +10,6 @@ import java.util.function.Predicate;
 import x590.jdecompiler.Descriptor;
 import x590.jdecompiler.MemberInfo;
 import x590.jdecompiler.attribute.annotation.Annotation;
-import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.field.FieldDescriptor;
 import x590.jdecompiler.field.FieldInfo;
 import x590.jdecompiler.method.MethodDescriptor;
@@ -23,7 +22,6 @@ import x590.jdecompiler.type.reference.generic.GenericDeclarationType;
 import x590.jdecompiler.type.reference.generic.GenericParameters;
 import x590.jdecompiler.type.reference.generic.SignatureParameterType;
 import x590.util.annotation.Immutable;
-import x590.util.annotation.Nullable;
 
 /**
  * Интерфейс ClassInfo. Позволяет создавать экземпляры IClassInfo
@@ -31,16 +29,6 @@ import x590.util.annotation.Nullable;
  */
 public interface IClassInfo {
 	
-	public default Optional<IClassInfo> findIClassInfo(@Nullable RealReferenceType type) {
-		return ClassInfo.findIClassInfo(type, getConstPool());
-	}
-	
-	public default Optional<IClassInfo> findIClassInfo(Optional<? extends RealReferenceType> optionalType) {
-		return optionalType.map(this::findIClassInfo).flatMap(Function.identity());
-	}
-	
-	
-	public ConstantPool getConstPool();
 	
 	public ClassModifiers getModifiers();
 	
@@ -115,7 +103,7 @@ public interface IClassInfo {
 	private <D extends Descriptor<D>, M extends MemberInfo<D, ?>> Optional<M>
 			findInType(RealReferenceType type, D descriptor, BiFunction<IClassInfo, D, Optional<M>> finder) {
 		
-		return findIClassInfo(type)
+		return ClassInfo.findIClassInfo(type)
 				.map(classinfo -> classinfo.findMemberInfoInThisAndSuperClasses(descriptor, finder))
 				.flatMap(Function.identity());
 	}

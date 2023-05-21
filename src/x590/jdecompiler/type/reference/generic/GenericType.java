@@ -12,6 +12,11 @@ public abstract class GenericType extends ReferenceType {
 	}
 	
 	@Override
+	protected boolean canCastToWidestImpl(Type other) {
+		return other.isReferenceType();
+	}
+	
+	@Override
 	public boolean isGenericType() {
 		return true;
 	}

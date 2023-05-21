@@ -699,7 +699,7 @@ public class ClassType extends RealReferenceType {
 	private Pair<ClassType, List<ClassType>> initSuperTypes(Class<?> thisClass) {
 		
 		// Must be nonnull
-		IClassInfo classinfo = ClassInfo.findIClassInfo(this, null).get();
+		IClassInfo classinfo = ClassInfo.findIClassInfo(this).get();
 		
 		ClassType superType;
 		
@@ -738,6 +738,11 @@ public class ClassType extends RealReferenceType {
 	@Override
 	protected boolean canCastToNarrowestImpl(Type other) {
 		return other instanceof ReferenceType referenceType && this.mayBeSubclassOf(referenceType);
+	}
+	
+	@Override
+	protected boolean canCastToWidestImpl(Type other) {
+		return other instanceof ReferenceType referenceType && referenceType.mayBeSubclassOf(this);
 	}
 	
 	

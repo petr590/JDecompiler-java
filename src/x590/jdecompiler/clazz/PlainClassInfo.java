@@ -7,7 +7,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import x590.jdecompiler.attribute.annotation.Annotation;
-import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.field.FieldDescriptor;
 import x590.jdecompiler.field.FieldInfo;
 import x590.jdecompiler.method.MethodDescriptor;
@@ -22,7 +21,6 @@ import x590.util.annotation.Nullable;
 
 public final class PlainClassInfo implements IClassInfo {
 
-	private final ConstantPool pool;
 	private final ClassModifiers modifiers;
 	private final RealReferenceType thisType;
 	private Optional<ClassType> superType;
@@ -32,8 +30,7 @@ public final class PlainClassInfo implements IClassInfo {
 	private final @Immutable List<? extends MethodInfo> methodInfos;
 	private final @Immutable List<? extends Annotation> annotations;
 	
-	private PlainClassInfo(RealReferenceType thisType, Class<?> clazz, ConstantPool pool) {
-		this.pool = pool;
+	private PlainClassInfo(RealReferenceType thisType, Class<?> clazz) {
 		this.modifiers = ClassModifiers.of(clazz.getModifiers());
 		this.thisType = thisType;
 		this.superType = Optional.ofNullable(thisType.getSuperType());
@@ -65,17 +62,12 @@ public final class PlainClassInfo implements IClassInfo {
 			).toList();
 		
 		this.annotations = Arrays.stream(clazz.getDeclaredAnnotations())
-				.map(annotation -> Annotation.fromReflectAnnotation(pool, annotation)).toList();
+				.map(annotation -> Annotation.fromReflectAnnotation(annotation)).toList();
 	}
 	
-	static @Nullable Optional<PlainClassInfo> fromClassType(RealReferenceType thisType, ConstantPool pool) {
+	static @Nullable Optional<PlainClassInfo> fromClassType(RealReferenceType thisType) {
 		Class<?> clazz = thisType.getClassInstance();
-		return Optional.ofNullable(clazz != null ? new PlainClassInfo(thisType, clazz, pool) : null);
-	}
-	
-	@Override
-	public ConstantPool getConstPool() {
-		return pool;
+		return Optional.ofNullable(clazz != null ? new PlainClassInfo(thisType, clazz) : null);
 	}
 	
 	@Override

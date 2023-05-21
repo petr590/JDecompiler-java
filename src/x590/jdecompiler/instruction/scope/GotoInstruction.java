@@ -17,7 +17,6 @@ import x590.jdecompiler.scope.EmptyInfiniteLoopScope;
 import x590.jdecompiler.scope.IfScope;
 import x590.jdecompiler.scope.LoopScope;
 import x590.jdecompiler.scope.Scope;
-import x590.util.Logger;
 import x590.util.annotation.Nullable;
 
 public class GotoInstruction extends TransitionInstruction {
@@ -76,14 +75,14 @@ public class GotoInstruction extends TransitionInstruction {
 					
 					List<GotoInstruction> otherGotos = context.getGotoInstructionsPointedTo(targetIndex);
 					
-					if(!otherGotos.isEmpty()) {
-						otherGotos.forEach(gotoInstruction -> gotoInstruction.role = Role.CONTINUE);
-					}
-					
 					assert !otherGotos.contains(this);
 					assert otherGotos.stream()
 							.mapToInt(gotoInstruction -> gotoInstruction.fromIndex)
 							.max().orElse(NONE_INDEX) < fromIndex;
+					
+					if(!otherGotos.isEmpty()) {
+						otherGotos.forEach(gotoInstruction -> gotoInstruction.role = Role.CONTINUE);
+					}
 				}
 			}
 		}
@@ -93,7 +92,7 @@ public class GotoInstruction extends TransitionInstruction {
 	@Override
 	public @Nullable Operation toOperationBeforeTargetIndex(DecompilationContext context) {
 		if(role == Role.INFINITE_LOOP)
-			return new LoopScope(context, targetIndex, fromIndex + 1, BooleanConstOperation.TRUE, true);
+			return new LoopScope(context, targetIndex - 1, fromIndex + 1, BooleanConstOperation.TRUE, true);
 		
 		return null;
 	}
@@ -277,10 +276,7 @@ public class GotoInstruction extends TransitionInstruction {
 			int currentIndex = context.currentIndex();
 			int targetIndexM1 = targetIndex - 1;
 			
-			Logger.debug(currentIndex, targetIndexM1);
-			
 			Optional<LoopScope> foundScope = context.getOperations().stream()
-					.peek(System.out::println)
 					.filter(
 						operation -> !operation.isRemoved() && operation instanceof LoopScope scope &&
 								scope.startIndex() == currentIndex && scope.conditionStartIndex() == targetIndexM1
@@ -288,8 +284,6 @@ public class GotoInstruction extends TransitionInstruction {
 					).map(operation -> (LoopScope)operation)
 					.findAny();
 			
-			
-			Logger.debug("Found " + foundScope);
 			
 			if(foundScope.isPresent()) {
 				role = Role.LOOP_PROLOGUE;

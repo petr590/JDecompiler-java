@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.clazz.IClassInfo;
 import x590.jdecompiler.constpool.MethodrefConstant;
 import x590.jdecompiler.context.DecompilationContext;
@@ -81,7 +82,7 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 		this.arguments = popArguments(context);
 		
 		
-		var otherClassinfo = context.getClassinfo().findIClassInfo(descriptor.getDeclaringClass());
+		var otherClassinfo = ClassInfo.findIClassInfo(descriptor.getDeclaringClass());
 		
 		if(otherClassinfo.isPresent()) {
 			
