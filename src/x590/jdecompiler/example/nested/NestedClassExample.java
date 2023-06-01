@@ -7,10 +7,18 @@ import x590.jdecompiler.example.Example;
 import x590.jdecompiler.example.ExampleTesting;
 
 @Example
+@SuppressWarnings("unused")
 public class NestedClassExample {
 	
 	public static void main(String[] args) {
-		ExampleTesting.runDecompiler(NestedClassExample.class);
+		ExampleTesting.runDecompiler(
+				NestedClassExample.class,
+				NonstaticInner.class,
+				NonstaticInnerChild.class,
+				StaticInner.class,
+				InnerEnum.class,
+				InnerInterface.class
+		);
 	}
 	
 	public class NonstaticInner {

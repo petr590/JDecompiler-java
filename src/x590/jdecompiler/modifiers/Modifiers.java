@@ -68,14 +68,15 @@ public abstract class Modifiers {
 		return (value & modifiers) != 0;
 	}
 	
-	public boolean isNotAll(int modifier) {
+	public boolean notAllOf(int modifier) {
 		return (value & modifier) != modifier;
 	}
 	
-	public boolean isNotAny(int modifier) {
+	public boolean noneOf(int modifier) {
 		return (value & modifier) == 0;
 	}
-	
+
+
 	public int and(int modifier) {
 		return value & modifier;
 	}

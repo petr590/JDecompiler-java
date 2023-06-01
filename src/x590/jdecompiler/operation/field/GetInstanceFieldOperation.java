@@ -3,6 +3,7 @@ package x590.jdecompiler.operation.field;
 import x590.jdecompiler.constpool.FieldrefConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.field.FieldDescriptor;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 
@@ -13,13 +14,19 @@ public final class GetInstanceFieldOperation extends GetFieldOperation {
 	public GetInstanceFieldOperation(DecompilationContext context, int index) {
 		super(context, index);
 		this.object = popObject(context);
-		initGenericDescriptor(context, object);
+		initGenericDescriptor(object);
 	}
 	
 	public GetInstanceFieldOperation(DecompilationContext context, FieldrefConstant fieldref) {
 		super(context, fieldref);
 		this.object = popObject(context);
-		initGenericDescriptor(context, object);
+		initGenericDescriptor(object);
+	}
+
+	public GetInstanceFieldOperation(DecompilationContext context, FieldDescriptor descriptor) {
+		super(context, descriptor);
+		this.object = popObject(context);
+		initGenericDescriptor(object);
 	}
 	
 	public Operation getObject() {

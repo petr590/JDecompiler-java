@@ -152,4 +152,16 @@ public final class PrimitiveTypeTest {
 		assertEquals(expected, narrowest.getWrapperType().implicitCastToGeneralNoexcept(widest, GeneralCastingKind.BINARY_OPERATOR));
 		assertEquals(expected, widest.getWrapperType().implicitCastToGeneralNoexcept(narrowest, GeneralCastingKind.BINARY_OPERATOR));
 	}
+
+	@Test
+	public void testNames() {
+		testNamesFor(INT, "int", "I");
+		testNamesFor(LONG, "long", "J");
+	}
+
+	private void testNamesFor(PrimitiveType type, String name, String encodedName) {
+		assertEquals(name, type.getName());
+		assertEquals(encodedName, type.getEncodedName());
+		assertEquals(encodedName, type.getBinaryName());
+	}
 }

@@ -2,18 +2,24 @@ package x590.jdecompiler.type.reference;
 
 import static x590.jdecompiler.modifiers.Modifiers.*;
 
+import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.clazz.IClassInfo;
 import x590.jdecompiler.type.BasicType;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.TypeSize;
+import x590.jdecompiler.type.reference.generic.DefiniteGenericType;
 import x590.jdecompiler.type.reference.generic.GenericDeclarationType;
 import x590.jdecompiler.type.reference.generic.GenericParameters;
+import x590.jdecompiler.type.reference.generic.IndefiniteGenericType;
 import x590.util.Logger;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
@@ -22,6 +28,7 @@ import x590.util.annotation.Nullable;
  * Описывает любой ссылочный тип - класс, массив, дженерик
  */
 public abstract class ReferenceType extends BasicType {
+	
 	
 	@Override
 	public final boolean isAnyReferenceType() {
@@ -64,6 +71,17 @@ public abstract class ReferenceType extends BasicType {
 	 * или {@literal null}, если интерфейсы неизвестны */
 	public @Nullable @Immutable List<? extends ReferenceType> getGenericInterfaces() {
 		return getInterfaces();
+	}
+	
+	
+	/** @return Поток, который содержит супертип (если определён) и суперинтерфейсы (если определены) */
+	public Stream<? extends ReferenceType> getSuperTypesAsStream() {
+		var superTypeStream = Stream.ofNullable(getSuperType());
+		var interfaces = getInterfaces();
+		
+		return interfaces == null ?
+				superTypeStream :
+				Stream.concat(superTypeStream, interfaces.stream());
 	}
 	
 	
@@ -150,16 +168,32 @@ public abstract class ReferenceType extends BasicType {
 //			ReferenceType prevType, GenericParameters<? extends ReferenceType> parameters);
 	
 	
-	public static ReferenceType fromReflectType(java.lang.reflect.Type reflectType, IClassInfo classinfo) {
+	/**
+	 * @param reflectType - тип, для которого будет создаваться ReferenceType. Не должен быть примитивом.
+	 */
+	public static ReferenceType fromReflectType(java.lang.reflect.Type reflectType) {
+		
 		if(reflectType instanceof Class<?> clazz) {
-			return ClassType.fromClass(clazz);
+			return clazz.isArray() ? ArrayType.fromClass(clazz) : ClassType.fromClass(clazz);
 		}
 		
 		if(reflectType instanceof ParameterizedType parameterizedType) {
-			return ClassType.fromParameterizedType(parameterizedType, classinfo);
+			return ClassType.fromParameterizedType(parameterizedType);
 		}
 		
-		return classinfo.findOrCreateGenericType(reflectType.getTypeName());
+		if(reflectType instanceof TypeVariable<?> typeVariable) {
+			return DefiniteGenericType.fromTypeVariable(typeVariable);
+		}
+		
+		if(reflectType instanceof WildcardType wildcardType) {
+			return IndefiniteGenericType.fromWildcardType(wildcardType);
+		}
+		
+		if(reflectType instanceof GenericArrayType genericArrayType) {
+			return ArrayType.forType(fromReflectType(genericArrayType.getGenericComponentType()));
+		}
+		
+		throw new IllegalArgumentException("reflectType: " + reflectType);
 	}
 	
 	
@@ -183,7 +217,7 @@ public abstract class ReferenceType extends BasicType {
 						replaceTable.put(parameters.get(i), signature.get(i));
 					}
 					
-					return GenericParameters.replaceAllTypes(rootParameters, replaceTable);
+					return rootParameters.replaceAllTypes(replaceTable);
 					
 				} else if(!parameters.isEmpty() && !signature.isEmpty()) {
 					Logger.warning("Signature of " + classType + " is not matches with parameters " + parameters);

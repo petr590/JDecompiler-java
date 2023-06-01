@@ -47,11 +47,10 @@ public abstract class RealReferenceType extends ReferenceType {
 		return interfaces.equals(genericInterfaces) ? genericInterfaces : interfaces;
 	}
 	
-	
-	@Override
-	public abstract String getBinaryName();
-	
 	public abstract String getClassEncodedName();
+
+	@Override
+	public abstract @Nullable String getBinaryName();
 	
 	
 	public @Nullable Class<?> getClassInstance() {
@@ -62,11 +61,13 @@ public abstract class RealReferenceType extends ReferenceType {
 		triedLoadClass = true;
 		
 		String name = getBinaryName();
-		
-		try {
-			classInstance = Class.forName(name);
-		} catch(ClassNotFoundException ex) {
-			Logger.warningFormatted("Class \"%s\" not found among java classes", name);
+
+		if(name != null) {
+			try {
+				classInstance = Class.forName(name);
+			} catch (ClassNotFoundException ex) {
+				Logger.warningFormatted("Class \"%s\" not found among java classes", name);
+			}
 		}
 		
 		return classInstance;

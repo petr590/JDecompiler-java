@@ -10,6 +10,9 @@ public class ConstantPoolTest {
 	
 	@Test
 	public void test() {
-		assertSame(ConstantPool.findOrCreateConstant("ABC").getUtf8Constant(), ConstantPool.findOrCreateUtf8Constant("ABC"));
+		assertSame(
+				ConstantPool.findOrCreateConstant("ABC").getUtf8Constant(),
+				ConstantPool.findOrCreateUtf8Constant("ABC")
+		);
 	}
 }

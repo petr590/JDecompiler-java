@@ -7,7 +7,6 @@ import java.util.Map;
 import x590.jdecompiler.Descriptor;
 import x590.jdecompiler.Importable;
 import x590.jdecompiler.clazz.ClassInfo;
-import x590.jdecompiler.clazz.IClassInfo;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.constpool.FieldrefConstant;
 import x590.jdecompiler.constpool.NameAndTypeConstant;
@@ -61,8 +60,8 @@ public final class FieldDescriptor extends Descriptor<FieldDescriptor> implement
 		return new FieldDescriptor(Type.fromClass(field.getType()), declaringClass, field.getName());
 	}
 	
-	public static FieldDescriptor fromReflectFieldGeneric(RealReferenceType declaringClass, Field field, IClassInfo classinfo) {
-		return new FieldDescriptor(Type.fromReflectType(field.getGenericType(), classinfo), declaringClass, field.getName());
+	public static FieldDescriptor fromReflectFieldGeneric(RealReferenceType declaringClass, Field field) {
+		return new FieldDescriptor(Type.fromReflectType(field.getGenericType()), declaringClass, field.getName());
 	}
 	
 	

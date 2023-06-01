@@ -19,14 +19,14 @@ public abstract class InvokeNonstaticOperation extends InvokeOperation {
 	public InvokeNonstaticOperation(DecompilationContext context, MethodDescriptor descriptor) {
 		super(context, descriptor);
 		this.object = context.popAsNarrowest(descriptor.getDeclaringClass()).castIfNecessary(descriptor.getDeclaringClass());
-		super.initGenericDescriptor(context, object);
+		super.initGenericDescriptor(object);
 	}
 	
 	/** Только для случаев, когда у метода нет аргументов или когда объект не на стеке */
 	public InvokeNonstaticOperation(DecompilationContext context, MethodDescriptor descriptor, Operation object) {
 		super(context, descriptor);
 		this.object = object = object.castIfNecessary(descriptor.getDeclaringClass());
-		super.initGenericDescriptor(context, object);
+		super.initGenericDescriptor(object);
 	}
 	
 	

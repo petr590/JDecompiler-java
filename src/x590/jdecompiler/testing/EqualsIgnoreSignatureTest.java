@@ -18,7 +18,7 @@ public class EqualsIgnoreSignatureTest {
 		assertTrue(CollectionUtil.collectionsEquals(
 				List.of(
 						ClassType.fromDescriptor("Ljava/util/Map<Ljava/lang/Class<+Ljava/lang/annotation/Annotation;>;Ljava/lang/annotation/Annotation;>;"),
-						ClassType.fromDescriptor("Ljava/util/Map<Ljava/lang/Class<+Ljava/lang/annotation/Annotation;>;Ljava/lang/annotation/Annotation;>;"),
+						ClassType.fromDescriptor("Ljava/util/Map<Ljava/lang/Class<-Ljava/lang/annotation/Annotation;>;Ljava/lang/String;>;"),
 						PrimitiveType.INT
 				),
 				List.of(

@@ -8,7 +8,6 @@ import java.util.Objects;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import x590.jdecompiler.MemberInfo;
-import x590.jdecompiler.clazz.IClassInfo;
 import x590.jdecompiler.modifiers.FieldModifiers;
 import x590.jdecompiler.type.reference.ArrayType;
 import x590.jdecompiler.type.reference.RealReferenceType;
@@ -35,10 +34,10 @@ public final class FieldInfo extends MemberInfo<FieldDescriptor, FieldModifiers>
 	}
 	
 	
-	public static FieldInfo fromReflectField(RealReferenceType declaringClass, Field field, IClassInfo classinfo) {
+	public static FieldInfo fromReflectField(RealReferenceType declaringClass, Field field) {
 		return new FieldInfo(
 				FieldDescriptor.fromReflectField(declaringClass, field),
-				FieldDescriptor.fromReflectFieldGeneric(declaringClass, field, classinfo),
+				FieldDescriptor.fromReflectFieldGeneric(declaringClass, field),
 				FieldModifiers.of(field.getModifiers())
 		);
 	}

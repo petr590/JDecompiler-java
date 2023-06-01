@@ -12,7 +12,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import x590.jdecompiler.clazz.JavaClass;
-import x590.jdecompiler.example.Example.DecompilationSource;
+import x590.jdecompiler.FileSource;
 import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.exception.DisassemblingException;
 import x590.jdecompiler.io.StringifyOutputStream;
@@ -25,8 +25,13 @@ import x590.util.Logger;
 public class ExampleTesting {
 	
 	public static final String
-			DEFAULT_DIR = "bin",
-			VANILLA_DIR = "vbin";
+			// IntelliJ IDEA
+			DEFAULT_DIR = "out/production/jdecompiler",
+			VANILLA_DIR = "out/vanilla-example/jdecompiler";
+
+			// Eclipse IDE
+//			DEFAULT_DIR = "bin",
+//			VANILLA_DIR = "vbin";
 	
 	private static final String[] EMPTY_ARGS = {};
 
@@ -81,8 +86,8 @@ public class ExampleTesting {
 			
 			if(exampleAnnotation != null) {
 				
-				if(exampleAnnotation.source() == DecompilationSource.JDK) {
-					skipped++;
+				if(exampleAnnotation.source() == FileSource.JDK) {
+					skipped += 1;
 					Logger.debug("Class " + clazz.getName() + " provides JDK example");
 					continue;
 //					args.add("-jdk");
@@ -130,48 +135,57 @@ public class ExampleTesting {
 	}
 	
 	public static void runDecompilerForJdk(Class<?>[] classes, String... otherArgs) {
-		JDecompiler.init(PerformingType.DECOMPILE, Config.newBuilder().withArguments(otherArgs).build());
+//		JDecompiler.init(PerformingType.DECOMPILE, Config.newBuilder().withArguments(otherArgs).build());
+//		JDecompiler.setDebug(true);
+//
+//		List<JavaClass> javaClasses = new ArrayList<>(classes.length);
+//
+//		for(Class<?> clazz : classes) {
+//			URL resource = clazz.getResource(getClassSimpleName(clazz) + ".class");
+//
+//			if(resource != null) {
+//
+//				try(InputStream in = resource.openStream()) {
+//					javaClasses.add(JavaClass.read(in));
+//
+//				} catch(IOException | DisassemblingException | DecompilationException ex) {
+//					ex.printStackTrace();
+//				}
+//
+//			} else {
+//				System.err.println("Cannot find resource for class " + clazz.getName());
+//			}
+//		}
+//
+//		var out = new StringifyOutputStream(System.out);
+//
+//		for(JavaClass javaClass : javaClasses) {
+//			javaClass.decompile();
+//		}
+//
+//		for(JavaClass javaClass : javaClasses) {
+//			javaClass.afterDecompilation();
+//			javaClass.resolveImports();
+//
+//			if(javaClass.canStringify()) {
+//				out.printsp("Stringifying").println(javaClass.getThisType().getName());
+//				javaClass.writeTo(out);
+//			} else {
+//				out.printsp("Cannot stringify").println(javaClass.getThisType().getName());
+//			}
+//		}
+//
+//		out.flush();
 		
-		List<JavaClass> javaClasses = new ArrayList<>(classes.length);
-		
-		for(Class<?> clazz : classes) {
-			URL resource = clazz.getResource(getClassSimpleName(clazz) + ".class");
-			
-			if(resource != null) {
-				
-				try(InputStream in = resource.openStream()) {
-					javaClasses.add(JavaClass.read(in));
-					
-				} catch(IOException | DisassemblingException | DecompilationException ex) {
-					ex.printStackTrace();
-				}
-				
-			} else {
-				System.err.println("Cannot find resource for class " + clazz.getName());
-			}
-		}
-		
-		var out = new StringifyOutputStream(System.out);
-		
-		for(JavaClass javaClass : javaClasses) {
-			javaClass.decompile();
-			javaClass.resolveImports();
-			
-			if(javaClass.canStringify())
-				javaClass.writeTo(out);
-		}
-		
-		out.flush();
-		
-//		runDecompiler(
-//				Stream.concat(
-//					Stream.of("-jdk"),
-//					Stream.concat(
-//					Arrays.stream(classes).map(Class::getName),
-//					Arrays.stream(otherArgs)
-//				)
-//			).toArray(String[]::new)
-//		);
+		runDecompiler(
+				Stream.concat(
+					Stream.of("-jdk"),
+					Stream.concat(
+						Arrays.stream(classes).map(Class::getName),
+						Arrays.stream(otherArgs)
+					)
+				).toArray(String[]::new)
+		);
 	}
 	
 	
@@ -203,7 +217,7 @@ public class ExampleTesting {
 	}
 	
 	public static void runDecompiler(String dir, Class<?> clazz) {
-		runDecompiler(new String[] { getClassPath(dir, clazz) });
+		runDecompiler(getClassPath(dir, clazz));
 	}
 	
 	// class0 нужен для избежания неоднозначности при вызове перегруженного метода

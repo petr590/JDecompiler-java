@@ -1,8 +1,10 @@
 package x590.jdecompiler.operation.store;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.Priority;
@@ -19,30 +21,30 @@ import x590.util.annotation.Nullable;
 public abstract class StoreOperation extends OperationWithVariable
 		implements IncrementableOperation, VariableDefinitionOperation, PossibleExceptionStoreOperation {
 	
-	private final int index;
-	private final Operation value;
+	private final int slot;
+	private Operation value;
 	
-	private final IncrementData incData;
+	private IncrementData incData;
 	private boolean isVarDefinition, isTypeHidden;
 	
 	
-	public StoreOperation(Type requiredType, DecompilationContext context, int index) {
+	public StoreOperation(Type requiredType, DecompilationContext context, int slot) {
 		
-		this.index = index;
-		var value = this.value = context.pop();
+		this.slot = slot;
+		var value = this.value = context.popAsNarrowest(requiredType);
 		
 		value.allowImplicitCast();
 		
 		var variable = this.variable = removeIfExceptionLoadOperation(context, value) ?
-				context.currentScope().defineNewVariable(index, value.getReturnType(), context.currentIndex()) :
-				context.currentScope().getVariableOrDefine(index, context.currentIndex(), requiredType);
+				context.currentScope().defineNewVariable(slot, value.getReturnType(), context.currentIndex()) :
+				context.currentScope().getVariableOrDefine(slot, context.currentIndex(), requiredType);
 		
 		variable.addPossibleName(value.getPossibleVariableName());
 		
-		variable.castTypeToWidest(value.getReturnTypeAsNarrowest(requiredType));
+		variable.castTypeToWidest(value.getReturnType());
 		variable.addAssignedOperation(value);
 		
-		value.castReturnTypeToNarrowest(variable.getType());
+		this.value = value = value.useAsNarrowest(variable.getType());
 		
 		this.incData = init(context, value, variable.getType());
 	}
@@ -50,7 +52,7 @@ public abstract class StoreOperation extends OperationWithVariable
 	@Override
 	protected Type getDeducedType(Type returnType) {
 		variable.castTypeToWidest(value.getReturnType());
-		value.castReturnTypeToNarrowest(variable.getType());
+		value = value.useAsNarrowest(variable.getType());
 		
 		var preIncLoadOperation = incData.getPreIncLoadOperation();
 		
@@ -64,8 +66,8 @@ public abstract class StoreOperation extends OperationWithVariable
 		return null;
 	}
 	
-	public int getIndex() {
-		return index;
+	public int getSlot() {
+		return slot;
 	}
 	
 	public Operation getValue() {
@@ -95,6 +97,16 @@ public abstract class StoreOperation extends OperationWithVariable
 	@Override
 	public void setProbableType(Type probableType) {
 		variable.setProbableType(probableType);
+	}
+
+	@Override
+	public IncrementData getIncData() {
+		return incData;
+	}
+
+	@Override
+	public void setIncData(IncrementData incData) {
+		this.incData = incData;
 	}
 	
 	
@@ -143,6 +155,11 @@ public abstract class StoreOperation extends OperationWithVariable
 	@Override
 	public void addPossibleVariableName(String name) {
 		variable.addPossibleName(name);
+	}
+
+	@Override
+	public Operation inline(Int2ObjectMap<Operation> varTable) {
+		throw new DecompilationException("Store operation must not appear in the inlining method");
 	}
 	
 	@Override

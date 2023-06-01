@@ -1,5 +1,6 @@
 package x590.jdecompiler.type.reference;
 
+import java.util.Objects;
 import java.util.function.BiFunction;
 
 import x590.jdecompiler.type.GeneralCastingKind;
@@ -24,30 +25,26 @@ public final class WrapperClassType extends ClassType {
 	private @Nullable Type castToGeneralImpl(Type other, GeneralCastingKind kind,
 			TriFunction<Type, Type, GeneralCastingKind, Type> func,
 			BiFunction<Type, GeneralCastingKind, Type> defaultFunc) {
-		
-		
-		switch(kind) {
-			case EQUALS_COMPARASION -> {
-				return this == other ? this : null;
-			}
-			
-			default -> {
-				if(this == other) {
-					return kind == GeneralCastingKind.TERNARY_OPERATOR ?
-							this : func.apply(primitiveType, primitiveType, kind);
-				}
-				
-				if(other instanceof WrapperClassType otherWrapper) {
-					return func.apply(primitiveType, otherWrapper.primitiveType, kind);
-				}
-				
-				if(other instanceof PrimitiveType otherPrimitive) {
-					return func.apply(primitiveType, otherPrimitive, kind);
-				}
-				
-				return defaultFunc.apply(primitiveType, kind);
-			}
+
+
+		if(kind == GeneralCastingKind.EQUALS_COMPARASION) {
+			return this == other ? this : null;
 		}
+
+		if(this == other) {
+			return kind == GeneralCastingKind.TERNARY_OPERATOR ?
+					this : func.apply(primitiveType, primitiveType, kind);
+		}
+
+		if(other instanceof WrapperClassType otherWrapper) {
+			return func.apply(primitiveType, otherWrapper.primitiveType, kind);
+		}
+
+		if(other instanceof PrimitiveType otherPrimitive) {
+			return func.apply(primitiveType, otherPrimitive, kind);
+		}
+
+		return defaultFunc.apply(primitiveType, kind);
 	}
 	
 	@Override

@@ -24,6 +24,8 @@ public class IncopatibleTypesException extends DecompilationException {
 	}
 	
 	public IncopatibleTypesException(Type type1, Type type2, ICastingKind kind) {
-		super("Incopatible types in " + kind.lowerCaseName() + " conversation: " + type1.toString() + " and " + type2.toString());
+		super("Incopatible types in " + kind.lowerCaseName() + " conversation: " +
+				type1.toString() + " (" + type1.getClass().getSimpleName() + ") and " +
+				type2.toString() + " (" + type2.getClass().getSimpleName() + ')');
 	}
 }

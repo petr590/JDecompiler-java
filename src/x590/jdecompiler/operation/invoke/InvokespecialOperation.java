@@ -136,8 +136,14 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 		
 		return null;
 	}
-	
-	
+
+	@Override
+	public void afterDecompilation(DecompilationContext context) {
+		if(nestedClass != null && nestedClass.isAnonymous()) {
+			nestedClass.afterDecompilation();
+		}
+	}
+
 	@Override
 	public void addImports(ClassInfo classino) {
 		if(nestedClass != null && nestedClass.isAnonymous()) {

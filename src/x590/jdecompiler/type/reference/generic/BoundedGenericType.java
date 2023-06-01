@@ -11,10 +11,14 @@ public abstract class BoundedGenericType extends IndefiniteGenericType {
 	private final ReferenceType type;
 	private final String encodedName, name;
 	
-	public BoundedGenericType(ExtendedStringInputStream in) {
-		this.type = parseSignatureParameter(in);
+	public BoundedGenericType(ReferenceType type) {
+		this.type = type;
 		this.name = encodedBound() + type.getName();
 		this.encodedName = "? " + bound() + type.getEncodedName();
+	}
+	
+	public BoundedGenericType(ExtendedStringInputStream in) {
+		this(parseSignatureParameter(in));
 	}
 	
 	public ReferenceType getType() {

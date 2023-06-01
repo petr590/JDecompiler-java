@@ -69,7 +69,7 @@ public final class GenericDeclarationType extends ReferenceType {
 	}
 	
 	private List<ReferenceType> interfacesFromTypes(@Immutable List<ReferenceType> types) {
-		return types.isEmpty() ? Collections.emptyList() : types.subList(1, types.size());
+		return types.size() <= 1 ? Collections.emptyList() : types.subList(1, types.size());
 	}
 	
 	
@@ -104,10 +104,10 @@ public final class GenericDeclarationType extends ReferenceType {
 		return new GenericDeclarationType(name, types);
 	}
 	
-	public static GenericDeclarationType fromTypeVariable(TypeVariable<?> reflectType, IClassInfo classinfo) {
+	public static GenericDeclarationType fromTypeVariable(TypeVariable<?> reflectType) {
 		return new GenericDeclarationType(reflectType.getTypeName(),
 				Arrays.stream(reflectType.getBounds())
-					.map(bound -> ReferenceType.fromReflectType(reflectType, classinfo)).toList());
+					.map(ReferenceType::fromReflectType).toList());
 	}
 	
 	

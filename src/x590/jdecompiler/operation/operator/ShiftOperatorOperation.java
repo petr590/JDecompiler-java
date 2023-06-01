@@ -31,6 +31,6 @@ public abstract class ShiftOperatorOperation extends BinaryOperatorOperation {
 	@Override
 	public void onCastReturnType(Type newType, CastingKind kind) {
 		superOnCastReturnType(newType, kind);
-		operand1().castReturnTypeTo(newType, kind);
+		operand1(operand1().useAs(newType, kind));
 	}
 }

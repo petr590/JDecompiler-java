@@ -38,7 +38,7 @@ public final class GetStaticFieldOperation extends GetFieldOperation {
 	
 	@Override
 	public @Nullable Int2ObjectMap<String> getEnumTable(DecompilationContext context) {
-		return OperationUtils.initEnumTable(context, getDescriptor(), enumTable, this::setEnumTable);
+		return OperationUtils.initEnumTable(getDescriptor(), enumTable, this::setEnumTable);
 	}
 	
 	@Override

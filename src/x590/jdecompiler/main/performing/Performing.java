@@ -13,28 +13,39 @@ import x590.util.annotation.Nullable;
  */
 public interface Performing<S extends OutputStream> {
 	
-	/** Читает класс из указанного файла */
-	public @Nullable JavaClass read(String file) throws IOException, UncheckedIOException;
+	/** Читает класс из указанного файла. Должен вызываться до {@link #setup()} */
+	@Nullable JavaClass read(String filename) throws IOException, UncheckedIOException;
 	
 	/** Читает класс из указанного файла. При возникновении исключений
 	 * IOException или UncheckedIOException выводит их в консоль и возвращает {@literal null} */
-	public default @Nullable JavaClass readSafe(String file) {
+	default @Nullable JavaClass readSafe(String filename) {
 		try {
-			return read(file);
+			return read(filename);
 		} catch(IOException | UncheckedIOException ex) {
 			ex.printStackTrace();
 			return null;
 		}
 	}
+
+	/** Устанавливает выходной поток, если необходимо.
+	 * Должен вызываться до {@link #perform(JavaClass)} и после {@link #read(String)} или {@link #readSafe(String)} */
+	void setup() throws IOException, UncheckedIOException;
 	
-	public void setup() throws IOException, UncheckedIOException;
-	
-	public S getOutputStream();
-	
-	public void perform(JavaClass clazz);
-	
-	/** Записывает класс в поток */
-	public void write(JavaClass clazz) throws IOException, UncheckedIOException;
-	
-	public void close() throws IOException, UncheckedIOException;
+	S getOutputStream();
+
+	/** Осуществляет действие (например, декомпиляцию).
+	 * Должен вызываться после {@link #setup()} и до {@link #afterPerforming(JavaClass)} */
+	void perform(JavaClass clazz);
+
+	/** Выполняет что-то после основного действия.
+	 * Должен вызываться после {@link #perform(JavaClass)} и до {@link #write(JavaClass)} */
+	void afterPerforming(JavaClass clazz);
+
+	/** Записывает класс в поток.
+	 * Должен вызываться после {@link #afterPerforming(JavaClass)} и до {@link #close()} */
+	void write(JavaClass clazz) throws IOException, UncheckedIOException;
+
+	/** Закрывает выходной поток.
+	 * Должен вызываться после {@link #write(JavaClass)} */
+	void close() throws IOException, UncheckedIOException;
 }

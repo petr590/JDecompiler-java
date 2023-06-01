@@ -32,6 +32,10 @@ public class ExceptionLoadOperation extends ReturnableOperation {
 		});
 	}
 	
+	public @Nullable Variable getVariable() {
+		return exceptionVariable;
+	}
+	
 	@Override
 	public String getPossibleVariableName() {
 		return "ex";

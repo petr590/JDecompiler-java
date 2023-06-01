@@ -6,11 +6,20 @@ import x590.jdecompiler.operation.Operation;
 
 public abstract class BinaryConditionOperation extends ConditionOperation {
 	
-	public final ConditionOperation operand1, operand2;
+	private final ConditionOperation operand1;
+	private final ConditionOperation operand2;
 	
 	public BinaryConditionOperation(ConditionOperation operand1, ConditionOperation operand2) {
 		this.operand1 = operand1;
 		this.operand2 = operand2;
+	}
+	
+	public ConditionOperation operand1() {
+		return operand1;
+	}
+	
+	public ConditionOperation operand2() {
+		return operand2;
 	}
 	
 	@Override

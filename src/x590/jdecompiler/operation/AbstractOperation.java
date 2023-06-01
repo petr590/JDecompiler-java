@@ -1,11 +1,16 @@
 package x590.jdecompiler.operation;
 
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.exception.IncopatibleTypesException;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.operation.cast.CastOperation;
 import x590.jdecompiler.scope.Scope;
 import x590.jdecompiler.type.CastingKind;
 import x590.jdecompiler.type.GeneralCastingKind;
 import x590.jdecompiler.type.Type;
+import x590.jdecompiler.type.reference.ArrayType;
+import x590.jdecompiler.type.reference.ClassType;
+import x590.jdecompiler.type.reference.generic.GenericType;
 
 public abstract class AbstractOperation implements Operation {
 	
@@ -54,35 +59,10 @@ public abstract class AbstractOperation implements Operation {
 	protected void setImplicitCast(boolean implicitCast) {}
 	
 	@Override
-	public final Type getReturnTypeAsNarrowest(Type type) {
-		return getReturnTypeAs(type, CastingKind.NARROWEST);
-	}
-	
-	@Override
-	public final Type getReturnTypeAsWidest(Type type) {
-		return getReturnTypeAs(type, CastingKind.WIDEST);
-	}
-	
-	@Override
-	public final Type getReturnTypeAs(Type type, CastingKind casting) {
-		Type newType = getReturnType().castTo(type, casting);
-		onCastReturnType(newType, casting);
+	public final Type getReturnTypeAs(Type type, CastingKind kind) {
+		Type newType = getReturnType().castTo(type, kind);
+		onCastReturnType(newType, kind);
 		return newType;
-	}
-	
-	@Override
-	public final void castReturnTypeToNarrowest(Type type) {
-		castReturnTypeTo(type, CastingKind.NARROWEST);
-	}
-	
-	@Override
-	public final void castReturnTypeToWidest(Type type) {
-		castReturnTypeTo(type, CastingKind.WIDEST);
-	}
-	
-	@Override
-	public final void castReturnTypeTo(Type type, CastingKind casting) {
-		onCastReturnType(getReturnType().castTo(type, casting), casting);
 	}
 	
 	
@@ -94,8 +74,62 @@ public abstract class AbstractOperation implements Operation {
 		return generalType;
 	}
 	
+	@Override
+	public final void castReturnTypeTo(Type type, CastingKind kind) {
+		onCastReturnType(getReturnType().castTo(type, kind), kind);
+	}
 	
-	protected void onCastReturnType(Type type, CastingKind casting) {}
+	@Override
+	public Operation useAs(Type type, CastingKind kind) {
+		final Type operationType = getReturnType();
+		final Type castedType = operationType.castNoexcept(type, kind);
+		
+		if(castedType != null) {
+			onCastReturnType(castedType, kind);
+			return this;
+		}
+		
+		if(canCastOperationType(operationType, type, kind)) {
+			return CastOperation.of(operationType, type, false, this);
+		}
+		
+		throw new IncopatibleTypesException(operationType, type, kind);
+	}
+	
+	private boolean canCastOperationType(Type type1, Type type2, CastingKind kind) {
+		
+		if(type1.isAnyReferenceType() && type2.isReferenceType()) {
+			
+			if(type2 instanceof GenericType genericType) {
+				return genericType.getSuperTypesAsStream().anyMatch(superType -> type1.canCastTo(superType, kind));
+				
+			} else if(type2 instanceof ClassType classType) {
+				return type1.canCastTo(classType.getRawType(), kind);
+				
+			} else if(type1 instanceof ArrayType arrayType1 &&
+					type2 instanceof ArrayType arrayType2) {
+				
+				int minNestLevel = ArrayType.minNestingLevel(arrayType1, arrayType2);
+				
+				return canCastOperationType(
+						arrayType1.getNestedElementType(minNestLevel),
+						arrayType2.getNestedElementType(minNestLevel),
+						kind
+				);
+			}
+		}
+		
+		return false;
+	}
+	
+	
+//	@Override
+//	public Operation useAsGeneral(Operation other, CastingKind kind) {
+//		// TODO
+//	}
+	
+	
+	protected void onCastReturnType(Type newType, CastingKind kind) {}
 	
 	/** Гарантирует, что операция является scope-ом */
 	@Override
@@ -122,5 +156,15 @@ public abstract class AbstractOperation implements Operation {
 	@Override
 	public String toString() {
 		return getClass().getSimpleName();
+	}
+
+
+	@Override
+	public Operation clone() {
+		try {
+			return (Operation) super.clone();
+		} catch (CloneNotSupportedException ex) {
+			throw new RuntimeException(ex);
+		}
 	}
 }

@@ -1,5 +1,6 @@
 package x590.jdecompiler.operation.increment;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.io.StringifyOutputStream;
@@ -11,19 +12,35 @@ import x590.jdecompiler.operation.operator.XorOperatorOperation;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.primitive.PrimitiveType;
 import x590.jdecompiler.type.reference.ClassType;
+import x590.util.annotation.Nullable;
 
 public interface IncrementableOperation extends Operation {
 	
 	/** Так как интерфейс не может содержать полей,
 	 * и множественное наследование не поддерживается в Java,
 	 * все поля будут в этом классе. */
-	public static class IncrementData {
-		private Operation operatorOperand;
-		private CastOperation castOperation;
-		private Operation preIncLoadOperation;
+	class IncrementData {
+
+		private @Nullable Operation operatorOperand;
+		private @Nullable CastOperation castOperation;
+		private @Nullable Operation preIncLoadOperation;
 		private boolean shortInc;
 		private String operator;
-		private Operation stringLoadOperation;
+		private @Nullable Operation stringLoadOperation;
+
+		private IncrementData() {}
+
+		public IncrementData(@Nullable Operation operatorOperand, @Nullable CastOperation castOperation,
+							 @Nullable Operation preIncLoadOperation, boolean shortInc,
+							 String operator, @Nullable Operation stringLoadOperation) {
+
+			this.operatorOperand = operatorOperand;
+			this.castOperation = castOperation;
+			this.preIncLoadOperation = preIncLoadOperation;
+			this.shortInc = shortInc;
+			this.operator = operator;
+			this.stringLoadOperation = stringLoadOperation;
+		}
 
 		public Operation getOperatorOperand() {
 			return operatorOperand;
@@ -52,20 +69,40 @@ public interface IncrementableOperation extends Operation {
 		public Operation getStringLoadOperation() {
 			return stringLoadOperation;
 		}
+
+		public IncrementData inline(Int2ObjectMap<Operation> varTable) {
+			var operatorOperand     = this.operatorOperand     == null ? null : this.operatorOperand.inline(varTable);
+			var castOperation       = this.castOperation       == null ? null : this.castOperation.inline(varTable);
+			var preIncLoadOperation = this.preIncLoadOperation == null ? null : this.preIncLoadOperation.inline(varTable);
+			var stringLoadOperation = this.stringLoadOperation == null ? null : this.stringLoadOperation.inline(varTable);
+
+			return
+					this.operatorOperand     == operatorOperand &&
+					this.castOperation       == castOperation &&
+					this.preIncLoadOperation == preIncLoadOperation &&
+					this.stringLoadOperation == stringLoadOperation ?
+							this :
+							new IncrementData(operatorOperand, (CastOperation) castOperation,
+									preIncLoadOperation, shortInc, operator, stringLoadOperation);
+		}
 	}
 	
-	public static boolean canUseShortOperatorFor(Type type) {
+	static boolean canUseShortOperatorFor(Type type) {
 		return type.isPrimitive() || type.isWrapperClassType();
 	}
 	
-	public boolean isLoadOperation(Operation operation);
+	boolean isLoadOperation(Operation operation);
 	
-	public void setReturnType(Type returnType);
+	void setReturnType(Type returnType);
 	
-	public default void setProbableType(Type probableType) {}
+	default void setProbableType(Type probableType) {}
+
+	IncrementData getIncData();
+
+	void setIncData(IncrementData incData);
 	
 	
-	public default IncrementData init(DecompilationContext context, Operation value, Type type) {
+	default IncrementData init(DecompilationContext context, Operation value, Type type) {
 		
 		Type returnType = PrimitiveType.VOID;
 		
@@ -164,7 +201,7 @@ public interface IncrementableOperation extends Operation {
 	}
 	
 	
-	public default void writeTo(StringifyOutputStream out, StringifyContext context, Type type, IncrementData data) {
+	default void writeTo(StringifyOutputStream out, StringifyContext context, Type type, IncrementData data) {
 		String operator = data.operator;
 		
 		if(operator != null && data.shortInc && data.isPreInc()) {
@@ -174,9 +211,9 @@ public interface IncrementableOperation extends Operation {
 		}
 		
 		writeName(out, context);
-		
-		Operation stringLoadOperation = data.stringLoadOperation;
+
 		Operation castOperation = data.castOperation;
+		Operation stringLoadOperation = data.stringLoadOperation;
 		
 		if(operator != null &&
 			(castOperation == null || type == PrimitiveType.VOID || type.canCastToNarrowest(castOperation.getReturnType())) &&
@@ -198,6 +235,18 @@ public interface IncrementableOperation extends Operation {
 		}
 	}
 	
-	public void writeName(StringifyOutputStream out, StringifyContext context);
-	public void writeValue(StringifyOutputStream out, StringifyContext context);
+	void writeName(StringifyOutputStream out, StringifyContext context);
+	void writeValue(StringifyOutputStream out, StringifyContext context);
+
+
+	@Override
+	default Operation inline(Int2ObjectMap<Operation> varTable) {
+		var inlined = (IncrementableOperation) Operation.super.inline(varTable);
+
+		if(inlined != this) {
+			inlined.setIncData(getIncData().inline(varTable));
+		}
+
+		return inlined;
+	}
 }

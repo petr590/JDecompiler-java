@@ -9,8 +9,7 @@ import x590.jdecompiler.type.Types;
 public final class CompareWithNullOperation extends CompareUnaryOperation {
 	
 	public CompareWithNullOperation(Operation operand, EqualsCompareType compareType) {
-		super(operand, compareType);
-		operand.castReturnTypeToNarrowest(Types.ANY_OBJECT_TYPE);
+		super(operand.useAsNarrowest(Types.ANY_OBJECT_TYPE), compareType);
 	}
 	
 	@Override

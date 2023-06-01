@@ -26,12 +26,13 @@ import x590.jdecompiler.type.reference.ArrayType;
 import x590.jdecompiler.variable.NamedVariable;
 import x590.jdecompiler.variable.Variable;
 import x590.jdecompiler.variable.VariableWrapper;
+import x590.util.Logger;
 import x590.util.annotation.Nullable;
 import x590.util.lazyloading.ObjectSupplierLazyLoading;
 
 public class MethodScope extends Scope {
 	
-	private static final ObjectSupplierLazyLoading<MethodScope> EMPTY_SCOPE = new ObjectSupplierLazyLoading<>(MethodScope::new);
+	private static final MethodScope EMPTY_SCOPE = new MethodScope();
 	private final ObjectSupplierLazyLoading<NewArrayOperation> lambdaNewArray = new ObjectSupplierLazyLoading<>(this::getLambdaNewArray);
 	
 	private MethodScope() {
@@ -44,7 +45,7 @@ public class MethodScope extends Scope {
 		int i = 0;
 		
 		if(modifiers.isNotStatic()) {
-			addVariable(new NamedVariable("this", this, classinfo.getThisType(), true).defined());
+			addVariable(new NamedVariable("this", this, classinfo.getGenericThisType(), true).defined());
 			i++;
 		}
 		
@@ -85,9 +86,13 @@ public class MethodScope extends Scope {
 	
 	
 	public static MethodScope of(ClassInfo classinfo, MethodDescriptor genericDescriptor, MethodModifiers modifiers, CodeAttribute codeAttribute, int endIndex, int maxLocals) {
-		return endIndex == 0 && maxLocals == 0 ? EMPTY_SCOPE.get() : new MethodScope(classinfo, genericDescriptor, modifiers, codeAttribute, endIndex, maxLocals);
+		return endIndex == 0 && maxLocals == 0 ? EMPTY_SCOPE : new MethodScope(classinfo, genericDescriptor, modifiers, codeAttribute, endIndex, maxLocals);
 	}
-	
+
+	public static MethodScope empty() {
+		return EMPTY_SCOPE;
+	}
+
 	/** Меняет область видимости на public */
 	@Override
 	public void reduceVariablesTypes() {

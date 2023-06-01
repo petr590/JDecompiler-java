@@ -5,15 +5,15 @@ import x590.jdecompiler.type.reference.ClassType;
 public class ClassTypeTableTest {
 	
 	public static void main(String[] args) throws ClassNotFoundException {
-		for(var entry : ClassType.classTypes().entrySet())
-			System.out.printf("%-40s %s\n", entry.getKey(), entry.getValue());
-		
-		System.out.println();
-		
-		for(var classType : ClassType.allClassTypes())
-			System.out.println(classType);
-		
-		System.out.println();
+//		for(var entry : ClassType.classTypes().entrySet())
+//			System.out.printf("%-40s %s\n", entry.getKey(), entry.getValue());
+//
+//		System.out.println();
+//
+//		for(var classType : ClassType.allClassTypes())
+//			System.out.println(classType);
+//
+//		System.out.println();
 		
 		
 		print(ClassType.fromDescriptor("x590/jdecompiler/test/ClassTypeTest$1"));

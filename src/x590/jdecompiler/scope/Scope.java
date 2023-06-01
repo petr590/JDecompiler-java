@@ -28,7 +28,7 @@ import x590.jdecompiler.variable.UnnamedVariable;
 import x590.jdecompiler.variable.Variable;
 import x590.jdecompiler.variable.VariableWrapper;
 import x590.jdecompiler.variable.EmptyableVariableWrapper;
-import x590.util.IntHolder;
+import x590.util.holder.IntHolder;
 import x590.util.LoopUtil;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
@@ -155,7 +155,7 @@ public abstract class Scope extends AbstractOperation {
 		if(var.isNonEmpty())
 			return var.nonEmpty();
 		
-		throw new VariableNotFoundException("Variable #" + slot + " not found in scope " + this.toString());
+		throw new VariableNotFoundException("Variable #" + slot + " not found in scope " + this);
 	}
 	
 	
@@ -193,7 +193,7 @@ public abstract class Scope extends AbstractOperation {
 	}
 	
 	private static Predicate<EmptyableVariable> varNameEquals(String name) {
-		return var -> var.isNonEmpty() && name.equals(var.nonEmpty().getName());
+		return var -> var.isNonEmpty() && name.equals(var.nonEmpty().getNullableName());
 	}
 	
 	public EmptyableVariable getVariableWithName(String name) {
@@ -228,7 +228,7 @@ public abstract class Scope extends AbstractOperation {
 						return;
 					}
 					
-					code.add(foundStore.isPresent() ? code.indexOf(foundStore.get()) : 0, new VariableDefineOperation(variable));
+					code.add(foundStore.map(code::indexOf).orElse(0), new VariableDefineOperation(variable));
 				}
 			});
 		
@@ -294,9 +294,9 @@ public abstract class Scope extends AbstractOperation {
 	}
 	
 	
-	private static final Comparator<Entry> keyComparator = (entry1, entry2) -> entry1.getIntKey() - entry2.getIntKey();
+	private static final Comparator<Entry> keyComparator = Comparator.comparingInt(Entry::getIntKey);
 	
-	/* protected */public int getCodeIndexByIndex(int index) {
+	protected int getCodeIndexByIndex(int index) {
 		return indexTable.int2IntEntrySet().stream()
 				.filter(entry -> entry.getIntKey() >= index)
 				.min(keyComparator)
@@ -307,29 +307,6 @@ public abstract class Scope extends AbstractOperation {
 								.map(Entry::getIntValue)
 								.orElse(-1) + 1
 				);
-		
-//		Old code
-//		int foundIndex = indexTable.getOrDefault(index, NONE_INDEX);
-//		
-//		if(foundIndex != NONE_INDEX)
-//			return foundIndex;
-//		
-//		final int srcIndex = index;
-//		final int maxIndex = indexTable.keySet().intStream().max().orElse(0);
-//		
-//		if(index == maxIndex + 1) {
-//			return indexTable.get(maxIndex) + 1;
-//		}
-//		
-//		while(foundIndex == NONE_INDEX && index < maxIndex) {
-//			foundIndex = indexTable.getOrDefault(++index, NONE_INDEX);
-//		}
-//		
-//		if(foundIndex != NONE_INDEX) {
-//			return foundIndex;
-//		}
-//		
-//		throw new DecompilationException(new NoSuchElementException(Integer.toString(srcIndex)));
 	}
 	
 	protected int getIndexByCodeIndex(int codeIndex) {

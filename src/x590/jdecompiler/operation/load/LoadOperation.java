@@ -9,6 +9,7 @@ import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.type.CastingKind;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.variable.Variable;
+import x590.util.Logger;
 import x590.util.annotation.Nullable;
 
 public abstract class LoadOperation extends AbstractOperation {
@@ -72,6 +73,11 @@ public abstract class LoadOperation extends AbstractOperation {
 	@Override
 	public boolean requiresLocalContext() {
 		return true;
+	}
+
+	@Override
+	public Operation inline(Int2ObjectMap<Operation> varTable) {
+		return varTable.get(slot);
 	}
 	
 	@Override

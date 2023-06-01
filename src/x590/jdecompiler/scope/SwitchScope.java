@@ -31,7 +31,7 @@ public class SwitchScope extends Scope {
 	private final Int2ObjectMap<List<IntegerConstant>> indexTable;
 	
 	/** Содержит индексы в обратном порядке */
-	private IntList indexes;
+	private final IntList indexes;
 	
 	private List<CaseScope> cases;
 	
@@ -77,6 +77,7 @@ public class SwitchScope extends Scope {
 		if(!expanded) {
 			if(newEndIndex <= superScope().endIndex()) {
 				setEndIndex(newEndIndex);
+				expanded = true;
 				return true;
 			}
 			
@@ -126,7 +127,7 @@ public class SwitchScope extends Scope {
 			addOperation(caseScope, caseScope.startIndex());
 		
 		
-		if(context.getClassinfo().getVersion().majorVersion >= Version.JAVA_12 &&
+		if(context.getClassinfo().getVersion().major() >= Version.JAVA_12 &&
 				cases.stream().allMatch(CaseScope::canUseNewSwitch)) {
 			
 			cases.forEach(CaseScope::useNewSwitch);

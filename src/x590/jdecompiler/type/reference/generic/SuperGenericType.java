@@ -8,6 +8,10 @@ import x590.util.annotation.Nullable;
 /** Дженерик, ограниченный снизу */
 public final class SuperGenericType extends BoundedGenericType {
 	
+	public SuperGenericType(ReferenceType type) {
+		super(type);
+	}
+	
 	public SuperGenericType(ExtendedStringInputStream in) {
 		super(in);
 	}

@@ -11,19 +11,22 @@ public class TryCatchExample {
 		ExampleTesting.runDecompiler(TryCatchExample.class);
 	}
 	
-	public void foo() {}
-	
-	@SuppressWarnings("finally")
-	public void emptyCatch() {
+//	@SuppressWarnings("finally")
+	public void testFinally() {
 		try {
-			System.out.println();
+			System.out.println("A");
 		} finally {
-			System.out.println();
-			return;
+			System.out.println("B");
 		}
 	}
 	
-	public void method1() {
+	public void testTryWithResources() {
+		try(var a = new AutoCloseable() { @Override public void close() {} }) {
+			System.out.println("A");
+		}
+	}
+	
+	public void testTryMultiCatch() {
 //		try {
 //			int x = 1;
 //		} catch(Throwable ex) {
@@ -43,5 +46,19 @@ public class TryCatchExample {
 		} catch(Exception ex) {
 			System.out.println(ex);
 		}
+	}
+	
+	public Object getObject() {
+		return null;
+	}
+	
+	public Object testTryWithReturn() {
+		try {
+			return getObject();
+		} catch(Exception ex) {
+			System.out.println();
+		}
+		
+		return null;
 	}
 }

@@ -4,11 +4,12 @@ import java.io.OutputStream;
 
 import x590.jdecompiler.clazz.JavaClass;
 import x590.jdecompiler.io.DisassemblingOutputStream;
+import x590.jdecompiler.main.Config;
 
 public class DisassemblingPerforming extends DecodingPerforming<DisassemblingOutputStream> {
 	
-	public DisassemblingPerforming(boolean separateOutputStream) {
-		super(separateOutputStream);
+	public DisassemblingPerforming(Config config) {
+		super(config);
 	}
 	
 	@Override
@@ -18,6 +19,9 @@ public class DisassemblingPerforming extends DecodingPerforming<DisassemblingOut
 	
 	@Override
 	public void perform(JavaClass clazz) {}
+
+	@Override
+	public void afterPerforming(JavaClass clazz) {}
 	
 	@Override
 	public void doWrite(JavaClass clazz) {

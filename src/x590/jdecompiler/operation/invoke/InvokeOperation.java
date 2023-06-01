@@ -22,6 +22,7 @@ import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.reference.ClassType;
 import x590.jdecompiler.type.reference.ReferenceType;
 import x590.jdecompiler.util.StringUtil;
+import x590.util.Logger;
 import x590.util.annotation.Nullable;
 
 public abstract class InvokeOperation extends OperationWithDescriptor<MethodDescriptor> {
@@ -33,8 +34,8 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 		
 		Deque<Operation> arguments = new ArrayDeque<>(argTypes.size());
 		
-		for(int i = argTypes.size(); i > 0; ) {
-			Type argType = argTypes.get(--i);
+		for(int i = argTypes.size(); --i >= 0; ) {
+			Type argType = argTypes.get(i);
 			Operation argument = context.popAsNarrowest(argType);
 			
 			if(argType instanceof ReferenceType referenceType && !argType.equals(ClassType.OBJECT)) {
@@ -48,9 +49,7 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 	}
 	
 	protected static MethodDescriptor getDescriptor(DecompilationContext context, int index) {
-		MethodDescriptor descriptor = context.pool.<MethodrefConstant>get(index).toDescriptor();
-		
-		return descriptor;
+		return context.pool.<MethodrefConstant>get(index).toDescriptor();
 	}
 	
 	public Deque<Operation> getArguments() {
@@ -80,17 +79,31 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 			throw new DecompilationException("Cannot invoke constructor by the " + getInstructionName() + "instruction");
 		
 		this.arguments = popArguments(context);
-		
-		
-		var otherClassinfo = ClassInfo.findIClassInfo(descriptor.getDeclaringClass());
-		
-		if(otherClassinfo.isPresent()) {
-			
-			var foundMethodInfo = otherClassinfo.get().findMethodInfo(descriptor);
-			
-			if(foundMethodInfo.isPresent()) {
-				OperationUtils.tryInlineVarargs(context, descriptor, arguments, otherClassinfo.get(), foundMethodInfo.get());
-			}
+
+
+		ClassInfo.findIClassInfo(descriptor.getDeclaringClass())
+				.ifPresent(iclassinfo -> iclassinfo.findMethodInfo(descriptor)
+						.ifPresent(methodInfo -> OperationUtils.tryInlineVarargs(context, descriptor, arguments, iclassinfo, methodInfo)));
+	}
+
+	// Метод clone() для массивов при компиляции возвращает массив (это работает и с generic-массивами),
+	// но на уровне байткода он возвращает Object, после этого делается приведение типа.
+	// Поэтому returnType в generic-дескрипторе должен быть фактическим типом объекта
+	@Override
+	protected void initGenericDescriptor(@Nullable Operation object) {
+		if(object == null) {
+			super.initGenericDescriptor(null);
+			return;
+		}
+
+		var descriptor = getDescriptor();
+		var declaringClass = descriptor.getDeclaringClass();
+
+		if(declaringClass.isArrayType() && descriptor.equalsIgnoreClass(ClassType.OBJECT, "clone")) {
+			setGenericDescriptor(MethodDescriptor.of(object.getReturnType(), declaringClass, "clone"));
+
+		} else {
+			super.initGenericDescriptor(object);
 		}
 	}
 	

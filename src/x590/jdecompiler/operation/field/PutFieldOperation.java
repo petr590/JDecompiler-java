@@ -3,6 +3,7 @@ package x590.jdecompiler.operation.field;
 import x590.jdecompiler.constpool.FieldrefConstant;
 import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
+import x590.jdecompiler.field.FieldDescriptor;
 import x590.jdecompiler.io.StringifyOutputStream;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.increment.IncrementableOperation;
@@ -26,9 +27,14 @@ public abstract class PutFieldOperation extends FieldOperation implements Increm
 		super(context, index);
 		this.value = getValue(context);
 	}
-	
+
 	public PutFieldOperation(DecompilationContext context, FieldrefConstant fieldref) {
 		super(context, fieldref);
+		this.value = getValue(context);
+	}
+
+	public PutFieldOperation(DecompilationContext context, FieldDescriptor descriptor) {
+		super(context, descriptor);
 		this.value = getValue(context);
 	}
 	
@@ -51,6 +57,16 @@ public abstract class PutFieldOperation extends FieldOperation implements Increm
 	@Override
 	public void setReturnType(Type returnType) {
 		this.returnType = returnType;
+	}
+
+	@Override
+	public IncrementData getIncData() {
+		return incData;
+	}
+
+	@Override
+	public void setIncData(IncrementData incData) {
+		this.incData = incData;
 	}
 	
 	

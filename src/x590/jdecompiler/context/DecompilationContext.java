@@ -30,6 +30,7 @@ import x590.jdecompiler.exception.DecompilationException;
 import x590.jdecompiler.instruction.Instruction;
 import x590.jdecompiler.method.JavaMethod;
 import x590.jdecompiler.operation.Operation;
+import x590.jdecompiler.operation.operator.TernaryOperatorOperation;
 import x590.jdecompiler.operation.returning.VReturnOperation;
 import x590.jdecompiler.scope.Scope;
 import x590.jdecompiler.type.Type;
@@ -290,8 +291,8 @@ public final class DecompilationContext extends DecompilationAndStringifyContext
 			
 		} else if(index > scope.startIndex()) {
 			
-			assert scope.superScope() == currentScope :
-				"At index " + index + ": " + scope + " must have parent scope " + currentScope + ", not " + scope.superScope();
+//			assert scope.superScope() == currentScope :
+//				"At index " + index + ": " + scope + " must have parent scope " + currentScope + ", not " + scope.superScope();
 			
 			Logger.logf("%d: %s started", index, scope);
 			

@@ -20,7 +20,7 @@ import x590.jdecompiler.type.reference.RealReferenceType;
 import x590.jdecompiler.type.reference.ReferenceType;
 import x590.jdecompiler.type.reference.generic.GenericDeclarationType;
 import x590.jdecompiler.type.reference.generic.GenericParameters;
-import x590.jdecompiler.type.reference.generic.SignatureParameterType;
+import x590.jdecompiler.type.reference.generic.NamedGenericType;
 import x590.util.annotation.Immutable;
 
 /**
@@ -30,56 +30,56 @@ import x590.util.annotation.Immutable;
 public interface IClassInfo {
 	
 	
-	public ClassModifiers getModifiers();
+	ClassModifiers getModifiers();
 	
-	public RealReferenceType getThisType();
+	RealReferenceType getThisType();
 	
-	public Optional<ClassType> getOptionalSuperType();
+	Optional<ClassType> getOptionalSuperType();
 	
-	public Optional<@Immutable List<? extends ClassType>> getOptionalInterfaces();
+	Optional<@Immutable List<? extends ClassType>> getOptionalInterfaces();
 	
-	public default @Immutable List<? extends ClassType> getInterfacesOrEmpty() {
+	default @Immutable List<? extends ClassType> getInterfacesOrEmpty() {
 		return getOptionalInterfaces().orElseGet(Collections::emptyList);
 	}
 	
-	public GenericParameters<GenericDeclarationType> getSignatureParameters();
+	GenericParameters<GenericDeclarationType> getSignatureParameters();
 	
 	
-	public default boolean isRecord() {
+	default boolean isRecord() {
 		var optionalSuperType = getOptionalSuperType();
 		return optionalSuperType.isPresent() && optionalSuperType.get().equalsIgnoreSignature(ClassType.RECORD);
 	}
 	
 	
-	public default boolean hasField(FieldDescriptor descriptor) {
+	default boolean hasField(FieldDescriptor descriptor) {
 		return hasFieldByDescriptor(descriptor::equals);
 	}
 	
-	public default boolean hasMethod(MethodDescriptor descriptor) {
+	default boolean hasMethod(MethodDescriptor descriptor) {
 		return hasMethodByDescriptor(descriptor::equals);
 	}
 	
-	public boolean hasFieldByDescriptor(Predicate<FieldDescriptor> predicate);
+	boolean hasFieldByDescriptor(Predicate<FieldDescriptor> predicate);
 	
-	public boolean hasMethodByDescriptor(Predicate<MethodDescriptor> predicate);
+	boolean hasMethodByDescriptor(Predicate<MethodDescriptor> predicate);
 	
 	
 	/** @return Optional с найденным FieldInfo или {@code Optional.empty()}, если FieldInfo не найден
-	 * @apiNote Сравнивать дескрипторы нужно через {@link MethodDescriptor#equalsIgnoreClass(MethodDescriptor)}
-	 * для корректной работы метода {@link #findMethodInfoInThisAndSuperClasses(MethodDescriptor)} */
-	public Optional<? extends FieldInfo> findFieldInfo(FieldDescriptor descriptor);
+	 * @apiNote Сравнивать дескрипторы нужно через {@link FieldDescriptor#equalsIgnoreClass(FieldDescriptor)}
+	 * для корректной работы метода {@link #findFieldInfoInThisAndSuperClasses(FieldDescriptor)} */
+	Optional<? extends FieldInfo> findFieldInfo(FieldDescriptor descriptor);
 	
 	/** @return Optional с найденным MethodInfo или {@code Optional.empty()}, если MethodInfo не найден
 	 * @apiNote Сравнивать дескрипторы нужно через {@link MethodDescriptor#equalsIgnoreClass(MethodDescriptor)}
-	 * для корректной работы метода {@link #findMethodInfoInThisAndSuperClasses(FieldDescriptor)} */
-	public Optional<? extends MethodInfo> findMethodInfo(MethodDescriptor descriptor);
+	 * для корректной работы метода {@link #findMethodInfoInThisAndSuperClasses(MethodDescriptor)} */
+	Optional<? extends MethodInfo> findMethodInfo(MethodDescriptor descriptor);
 	
 	
-	public default Optional<? extends FieldInfo> findFieldInfoInThisAndSuperClasses(FieldDescriptor descriptor) {
+	default Optional<? extends FieldInfo> findFieldInfoInThisAndSuperClasses(FieldDescriptor descriptor) {
 		return findMemberInfoInThisAndSuperClasses(descriptor, IClassInfo::findFieldInfo);
 	}
 	
-	public default Optional<? extends MethodInfo> findMethodInfoInThisAndSuperClasses(MethodDescriptor descriptor) {
+	default Optional<? extends MethodInfo> findMethodInfoInThisAndSuperClasses(MethodDescriptor descriptor) {
 		return findMemberInfoInThisAndSuperClasses(descriptor, IClassInfo::findMethodInfo);
 	}
 	
@@ -109,15 +109,15 @@ public interface IClassInfo {
 	}
 	
 	
-	public Optional<? extends Annotation> findAnnotation(ClassType type);
+	Optional<? extends Annotation> findAnnotation(ClassType type);
 	
 	
-	public default Optional<? extends GenericDeclarationType> findGenericType(String name) {
+	default Optional<? extends GenericDeclarationType> findGenericType(String name) {
 		return getSignatureParameters().findGenericType(name);
 	}
 	
-	public default ReferenceType findOrCreateGenericType(String name) {
+	default ReferenceType findOrCreateGenericType(String name) {
 		return findGenericType(name).map(type -> type.replaceUndefiniteGenericsToDefinite(this, GenericParameters.empty()))
-				.orElseGet(() -> SignatureParameterType.of(name));
+				.orElseGet(() -> NamedGenericType.of(name));
 	}
 }

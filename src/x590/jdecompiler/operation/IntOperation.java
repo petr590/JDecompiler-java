@@ -6,7 +6,7 @@ import x590.jdecompiler.type.primitive.PrimitiveType;
 public interface IntOperation extends Operation {
 	
 	@Override
-	public default Type getReturnType() {
+	default Type getReturnType() {
 		return PrimitiveType.INT;
 	}
 }

@@ -47,18 +47,18 @@ public final class PlainClassInfo implements IClassInfo {
 		
 		this.signatureParameters = GenericParameters.of(
 				Arrays.stream(clazz.getTypeParameters())
-					.map(parameter -> GenericDeclarationType.fromTypeVariable(parameter, this)).toList()
+					.map(GenericDeclarationType::fromTypeVariable).toList()
 		);
 		
 		this.fieldInfos =
 				Arrays.stream(clazz.getDeclaredFields())
-					.map(field -> FieldInfo.fromReflectField(thisType, field, this)).toList();
+					.map(field -> FieldInfo.fromReflectField(thisType, field)).toList();
 		
 		this.methodInfos = Stream.concat(
 				Arrays.stream(clazz.getDeclaredMethods())
-					.map(method -> MethodInfo.fromReflectMethod(thisType, method, this)),
+					.map(method -> MethodInfo.fromReflectMethod(thisType, method)),
 				Arrays.stream(clazz.getDeclaredConstructors())
-					.map(constructor -> MethodInfo.fromReflectConstructor(thisType, constructor, this))
+					.map(constructor -> MethodInfo.fromReflectConstructor(thisType, constructor))
 			).toList();
 		
 		this.annotations = Arrays.stream(clazz.getDeclaredAnnotations())

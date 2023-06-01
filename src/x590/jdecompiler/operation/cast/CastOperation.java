@@ -10,6 +10,7 @@ import x590.jdecompiler.operation.Priority;
 import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.Types;
 import x590.jdecompiler.type.reference.WrapperClassType;
+import x590.util.Logger;
 
 public class CastOperation extends AbstractOperation {
 	
@@ -36,7 +37,7 @@ public class CastOperation extends AbstractOperation {
 	
 	
 	public static Operation of(Type requiredType, Type castedType, boolean implicitCast, Operation operand) {
-		if(operand.getReturnType().equals(castedType)) {
+		if(operand.getReturnType().isDefinitelySubtypeOf(castedType)) {
 			return operand;
 		}
 		

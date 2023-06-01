@@ -22,7 +22,7 @@ public final class JavaEnumField extends JavaField {
 			throw new IllegalModifiersException("Cannot declare enum field in not enum class");
 		}
 		
-		if(modifiers.isNotAll(ACC_PUBLIC | ACC_STATIC | ACC_FINAL)) {
+		if(modifiers.notAllOf(ACC_PUBLIC | ACC_STATIC | ACC_FINAL)) {
 			throw new IllegalModifiersException("Enum field must be public static and final, got " + modifiers);
 		}
 	}

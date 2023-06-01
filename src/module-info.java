@@ -5,6 +5,9 @@ module jdecompiler {
 	requires transitive x590.argparser;
 	requires transitive it.unimi.dsi.fastutil;
 	requires junit;
+
+	opens x590.jdecompiler.test to junit;
+	opens x590.jdecompiler.testing to junit;
 	
 	exports x590.jdecompiler;
 	exports x590.jdecompiler.main;

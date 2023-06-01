@@ -116,10 +116,20 @@ public final class GenericParameters<T extends ReferenceType>
 	public String getEncodedNameFor(String classEncodedName) {
 		return writeToStringBuilder(new StringBuilder(classEncodedName)).toString();
 	}
+
+
+	public GenericParameters<ReferenceType> replaceUndefiniteGenericsToDefinite(ClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
+		return replaceTypes(type -> type.replaceUndefiniteGenericsToDefinite(classinfo, parameters));
+	}
 	
-	public static GenericParameters<? extends ReferenceType> replaceAllTypes(GenericParameters<? extends ReferenceType> parameters, Map<GenericDeclarationType, ReferenceType> replaceTable) {
-		var replacedTypes = parameters.types.stream().map(type -> type.replaceAllTypes(replaceTable)).toList();
-		return replacedTypes == parameters.types ? parameters : of(replacedTypes);
+	public GenericParameters<ReferenceType> replaceAllTypes(Map<GenericDeclarationType, ReferenceType> replaceTable) {
+		return replaceTypes(type -> type.replaceAllTypes(replaceTable));
+	}
+
+	@SuppressWarnings("unchecked")
+	private GenericParameters<ReferenceType> replaceTypes(Function<? super ReferenceType, ReferenceType> replacer) {
+		List<ReferenceType> replacedTypes = types.stream().map(replacer).toList();
+		return replacedTypes.equals(types) ? (GenericParameters<ReferenceType>) this : of(replacedTypes);
 	}
 	
 	

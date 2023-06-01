@@ -74,7 +74,7 @@ public final class AnyObjectType extends Type {
 		if(other instanceof ReferenceType referenceType)
 			return kind.isNarrowest() ?
 					UncertainReferenceType.getInstance(referenceType) :
-					UncertainReferenceType.getInstance(ClassType.OBJECT, referenceType, kind);
+					UncertainReferenceType.getInstance(ClassType.OBJECT, referenceType);
 		
 		if(other.isAnyReferenceType())
 			return other;

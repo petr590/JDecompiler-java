@@ -15,7 +15,7 @@ import x590.jdecompiler.type.primitive.PrimitiveType;
 public final class TernaryOperatorOperation extends ReturnableOperation {
 	
 	private final ConditionOperation condition;
-	private final Operation operand1, operand2;
+	private Operation operand1, operand2;
 	
 	private static Type getGeneralType(Operation operand1, Operation operand2) {
 		return operand1.getReturnTypeAsGeneralNarrowest(operand2, GeneralCastingKind.TERNARY_OPERATOR);
@@ -60,8 +60,8 @@ public final class TernaryOperatorOperation extends ReturnableOperation {
 	@Override
 	public void onCastReturnType(Type newType, CastingKind kind) {
 		super.onCastReturnType(newType, kind);
-		operand1.castReturnTypeTo(returnType, kind);
-		operand2.castReturnTypeTo(returnType, kind);
+		operand1 = operand1.useAs(returnType, kind);
+		operand2 = operand2.useAs(returnType, kind);
 	}
 	
 	@Override

@@ -7,8 +7,8 @@ import x590.argparser.ArgsNamespace;
 import x590.jdecompiler.main.performing.Performing;
 import x590.jdecompiler.main.Config.Builder;
 import x590.jdecompiler.main.performing.AbstractPerforming.PerformingType;
-import x590.util.ObjectHolder;
 import x590.util.annotation.Immutable;
+import x590.util.holder.ObjectHolder;
 
 public final class JDecompiler {
 	
@@ -93,6 +93,6 @@ public final class JDecompiler {
 	
 	
 	public Performing<?> getPerforming() {
-		return performingType.getPerforming(!config.writeToConsole());
+		return performingType.getPerforming(config);
 	}
 }

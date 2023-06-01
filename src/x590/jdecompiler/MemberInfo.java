@@ -68,8 +68,8 @@ public abstract class MemberInfo<D extends Descriptor<D>, M extends ClassEntryMo
 		// Список типов в порядке от самого широкого к самому узкому
 		List<ReferenceType> supertypes = new ArrayList<>();
 		
-		if(findSuperClasses(operationType, descriptor.getDeclaringClass(), supertypes)) {
-			
+		if(findSuperTypes(operationType, descriptor.getDeclaringClass(), supertypes)) {
+
 			var foundClassinfo = ClassInfo.findIClassInfo(genericDescriptor.getDeclaringClass());
 			
 			if(foundClassinfo.isPresent()) {
@@ -96,9 +96,13 @@ public abstract class MemberInfo<D extends Descriptor<D>, M extends ClassEntryMo
 		
 		return genericDescriptor;
 	}
-	
-	private boolean findSuperClasses(@Nullable ReferenceType currentType, ReferenceType targetType,
-			List<ReferenceType> superclasses) {
+
+	/** Ищет типы от {@code currentType} до {@code targetType} по иерархии и добавляет их
+	 *  в {@code superclasses} в порядке от самого широкого к самому узкому.
+	 * @return {@literal true}, если найдены супертипы от {@code currentType}
+	 *         до {@code targetType}, иначе {@literal false} */
+	private boolean findSuperTypes(@Nullable ReferenceType currentType, ReferenceType targetType,
+								   List<ReferenceType> superclasses) {
 		
 		if(currentType == null) {
 			return false;
@@ -109,7 +113,7 @@ public abstract class MemberInfo<D extends Descriptor<D>, M extends ClassEntryMo
 			return true;
 		}
 		
-		if(findSuperClasses(currentType.getGenericSuperType(), targetType, superclasses)) {
+		if(findSuperTypes(currentType.getGenericSuperType(), targetType, superclasses)) {
 			superclasses.add(currentType);
 			return true;
 		}
@@ -118,7 +122,7 @@ public abstract class MemberInfo<D extends Descriptor<D>, M extends ClassEntryMo
 		
 		if(interfaces != null) {
 			for(ReferenceType interfaceType : interfaces) {
-				if(findSuperClasses(interfaceType, targetType, superclasses)) {
+				if(findSuperTypes(interfaceType, targetType, superclasses)) {
 					superclasses.add(currentType);
 					return true;
 				}

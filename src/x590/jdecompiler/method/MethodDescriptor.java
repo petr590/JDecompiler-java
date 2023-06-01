@@ -19,7 +19,6 @@ import x590.jdecompiler.attribute.AttributeType;
 import x590.jdecompiler.attribute.Attributes;
 import x590.jdecompiler.attribute.annotation.ParameterAnnotationsAttribute;
 import x590.jdecompiler.clazz.ClassInfo;
-import x590.jdecompiler.clazz.IClassInfo;
 import x590.jdecompiler.constpool.ClassConstant;
 import x590.jdecompiler.constpool.ConstantPool;
 import x590.jdecompiler.constpool.NameAndTypeConstant;
@@ -39,9 +38,9 @@ import x590.jdecompiler.type.reference.ClassType;
 import x590.jdecompiler.type.reference.RealReferenceType;
 import x590.jdecompiler.type.reference.ReferenceType;
 import x590.jdecompiler.type.reference.generic.GenericDeclarationType;
-import x590.util.IntHolder;
 import x590.util.LoopUtil;
 import x590.util.annotation.Immutable;
+import x590.util.holder.IntHolder;
 
 public final class MethodDescriptor extends Descriptor<MethodDescriptor> implements Importable {
 	
@@ -53,7 +52,7 @@ public final class MethodDescriptor extends Descriptor<MethodDescriptor> impleme
 	
 	private final @Immutable List<Type> arguments;
 	private final Type returnType;
-	
+
 	private enum MethodKind {
 		CONSTRUCTOR, STATIC_INITIALIZER, PLAIN
 	}
@@ -89,6 +88,10 @@ public final class MethodDescriptor extends Descriptor<MethodDescriptor> impleme
 	
 	public int getArgumentsCount() {
 		return arguments.size();
+	}
+
+	public Type getArgument(int index) {
+		return arguments.get(index);
 	}
 	
 	@Override
@@ -179,7 +182,7 @@ public final class MethodDescriptor extends Descriptor<MethodDescriptor> impleme
 	
 	public static MethodDescriptor constructor(RealReferenceType declaringClass, @Immutable List<Type> arguments) {
 		return of(PrimitiveType.VOID, declaringClass, "<init>", arguments,
-				args -> new MethodDescriptor(PrimitiveType.VOID, declaringClass, "<init>", args));
+				args -> new MethodDescriptor(PrimitiveType.VOID, declaringClass, "<init>", MethodKind.CONSTRUCTOR, args));
 	}
 	
 	private MethodDescriptor(Type returnType, RealReferenceType declaringClass, String name, @Immutable List<Type> arguments) {
@@ -205,15 +208,15 @@ public final class MethodDescriptor extends Descriptor<MethodDescriptor> impleme
 		);
 	}
 	
-	public static MethodDescriptor fromReflectMethodGeneric(RealReferenceType thisType, Method method, IClassInfo classinfo) {
+	public static MethodDescriptor fromReflectMethodGeneric(RealReferenceType thisType, Method method) {
 		if(method.getName().equals("remove"))
 			System.out.print("");
 		
 		return of(
-				Type.fromReflectType(method.getGenericReturnType(), classinfo),
+				Type.fromReflectType(method.getGenericReturnType()),
 				thisType, method.getName(),
 				Arrays.stream(method.getGenericParameterTypes())
-					.map(parameter -> Type.fromReflectType(parameter, classinfo)).toList()
+					.map(Type::fromReflectType).toList()
 		);
 	}
 	
@@ -221,9 +224,9 @@ public final class MethodDescriptor extends Descriptor<MethodDescriptor> impleme
 		return constructor(thisType, Arrays.stream(constructor.getParameterTypes()).map(Type::fromClass).toList());
 	}
 	
-	public static MethodDescriptor fromReflectConstructorGeneric(RealReferenceType thisType, Constructor<?> constructor, IClassInfo classinfo) {
+	public static MethodDescriptor fromReflectConstructorGeneric(RealReferenceType thisType, Constructor<?> constructor) {
 		return constructor(thisType, Arrays.stream(constructor.getGenericParameterTypes())
-				.map(parameter -> Type.fromReflectType(parameter, classinfo)).toList());
+				.map(Type::fromReflectType).toList());
 	}
 	
 	

@@ -53,8 +53,8 @@ public class WrappedVariable implements VariableWrapper {
 	}
 	
 	@Override
-	public @Nullable String getName() {
-		return variable.getName();
+	public @Nullable String getNullableName() {
+		return variable.getNullableName();
 	}
 	
 	@Override

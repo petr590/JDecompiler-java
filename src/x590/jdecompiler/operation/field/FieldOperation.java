@@ -22,12 +22,16 @@ public abstract class FieldOperation extends OperationWithDescriptor<FieldDescri
 	private boolean isEnclosingThis;
 	
 	public FieldOperation(DecompilationContext context, int index) {
-		this(context, context.pool.<FieldrefConstant>get(index));
+		this(context, context.pool.get(index));
 	}
 	
 	public FieldOperation(DecompilationContext context, FieldrefConstant fieldref) {
 		super(FieldDescriptor.from(fieldref));
-		
+		this.canOmit = canOmit(context.getClassinfo());
+	}
+
+	public FieldOperation(DecompilationContext context, FieldDescriptor descriptor) {
+		super(descriptor);
 		this.canOmit = canOmit(context.getClassinfo());
 	}
 	
@@ -55,11 +59,8 @@ public abstract class FieldOperation extends OperationWithDescriptor<FieldDescri
 					getDescriptor().getType() instanceof ClassType fieldType &&
 					thisType.isNestmateOf(fieldType)) {
 					
-				var field = context.getClassinfo().findField(getDescriptor());
-				
-				if(field.isPresent() && field.get().getModifiers().isSynthetic()) {
-					return true;
-				}
+				var foundField = context.getClassinfo().findField(getDescriptor());
+				return foundField.isPresent() && foundField.get().getModifiers().isSynthetic();
 			}
 		}
 		
@@ -68,9 +69,7 @@ public abstract class FieldOperation extends OperationWithDescriptor<FieldDescri
 	
 	protected Operation popObject(DecompilationContext context) {
 		Operation object = context.popAsNarrowest(getDescriptor().getDeclaringClass()).castIfNecessary(getDescriptor().getDeclaringClass());
-		
 		this.isEnclosingThis = isEnclosingThis(context, object);
-		
 		return object;
 	}
 	

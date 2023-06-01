@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import x590.jdecompiler.type.UncertainReferenceType;
 import x590.jdecompiler.type.reference.ArrayType;
+import x590.util.Logger;
 
 public final class ArrayTypeTest {
 	
@@ -29,5 +30,15 @@ public final class ArrayTypeTest {
 		assertEquals(BOOLEAN_ARRAY, BOOLEAN_ARRAY.castToNarrowestNoexcept(BYTE_OR_BOOLEAN_ARRAY));
 		
 		assertEquals(OBJECT_ARRAY, OBJECT_ARRAY.castToWidestNoexcept(STRING_ARRAY));
+	}
+
+	@Test
+	public void testNames() {
+		assertEquals("[I", INT_ARRAY.getBinaryName());
+		assertEquals("[J", LONG_ARRAY.getBinaryName());
+
+		assertSame(int[].class, INT_ARRAY.getClassInstance());
+		assertSame(long[].class, LONG_ARRAY.getClassInstance());
+		Logger.debug(BYTE_OR_BOOLEAN_ARRAY.getClassInstance());
 	}
 }

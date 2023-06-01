@@ -6,7 +6,7 @@ import x590.jdecompiler.example.ExampleTesting;
 @Example
 public class SwitchEnumExample {
 	
-	private enum IConst {
+	protected enum IConst {
 		ICONST_M1,
 		ICONST_0,
 		ICONST_1,

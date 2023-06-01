@@ -7,18 +7,35 @@ import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.method.MethodDescriptor;
 import x590.jdecompiler.operation.Operation;
 import x590.jdecompiler.operation.cast.CastOperation;
+import x590.jdecompiler.type.Type;
 import x590.jdecompiler.type.primitive.PrimitiveType;
 import x590.jdecompiler.type.reference.ClassType;
+import x590.util.Logger;
 import x590.util.annotation.Nullable;
 
 public final class InvokevirtualOperation extends InvokeNonstaticOperation {
 	
+	private final Type returnType;
+	
 	public InvokevirtualOperation(DecompilationContext context, MethodDescriptor descriptor) {
 		super(context, descriptor);
+		this.returnType = getReturnType(getGenericDescriptor());
 	}
 	
 	public InvokevirtualOperation(DecompilationContext context, MethodDescriptor descriptor, Operation object) {
 		super(context, descriptor, object);
+		this.returnType = getReturnType(getGenericDescriptor());
+	}
+	
+	private Type getReturnType(MethodDescriptor descriptor) {
+		return descriptor.getDeclaringClass().isArrayType() &&
+				descriptor.equalsIgnoreClass(ClassType.OBJECT, "clone") ?
+						descriptor.getDeclaringClass() : descriptor.getReturnType();
+	}
+	
+	@Override
+	public Type getReturnType() {
+		return returnType;
 	}
 	
 	

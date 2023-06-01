@@ -106,7 +106,7 @@ public abstract class AbstractVariable implements Variable {
 	
 	
 	@Override
-	public @Nullable String getName() {
+	public @Nullable String getNullableName() {
 		return name;
 	}
 	

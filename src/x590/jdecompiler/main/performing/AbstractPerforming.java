@@ -4,10 +4,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
-import it.unimi.dsi.fastutil.booleans.Boolean2ObjectFunction;
+import x590.jdecompiler.FileSource;
 import x590.jdecompiler.clazz.JavaClass;
+import x590.jdecompiler.main.Config;
 
 public abstract class AbstractPerforming<S extends OutputStream> implements Performing<S> {
 	
@@ -15,9 +16,17 @@ public abstract class AbstractPerforming<S extends OutputStream> implements Perf
 	
 	/** Если {@literal true}, то выводится в System.out, иначе записывается в файлы */
 	protected final boolean separateOutputStream;
+
+	/** Если {@literal true}, то выводится в System.out, иначе записывается в файлы */
+	protected final FileSource fileSource;
 	
-	public AbstractPerforming(boolean separateOutputStream) {
+	public AbstractPerforming(Config config) {
+		this(config, !config.writeToConsole());
+	}
+
+	public AbstractPerforming(Config config, boolean separateOutputStream) {
 		this.separateOutputStream = separateOutputStream;
+		this.fileSource = config.getFileSource();
 	}
 	
 	@Override
@@ -56,23 +65,19 @@ public abstract class AbstractPerforming<S extends OutputStream> implements Perf
 	}
 	
 	
-	public static enum PerformingType {
+	public enum PerformingType {
 		DECOMPILE(DecompilingPerforming::new),
 		DISASSEMBLE(DisassemblingPerforming::new),
 		ASSEMBLE(AssemblingPerforming::new);
 		
-		private final Boolean2ObjectFunction<Performing<?>> performingGetter;
+		private final Function<Config, Performing<?>> performingGetter;
 		
-		private PerformingType(Boolean2ObjectFunction<Performing<?>> performingGetter) {
+		PerformingType(Function<Config, Performing<?>> performingGetter) {
 			this.performingGetter = performingGetter;
 		}
 		
-		private PerformingType(Supplier<Performing<?>> performingGetter) {
-			this.performingGetter = separateOutputStream -> performingGetter.get();
-		}
-		
-		public Performing<?> getPerforming(boolean separateOutputStream) {
-			return performingGetter.get(separateOutputStream);
+		public Performing<?> getPerforming(Config config) {
+			return performingGetter.apply(config);
 		}
 	}
 }

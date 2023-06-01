@@ -16,6 +16,10 @@ public final class AThrowOperation extends AbstractOperation implements VoidOper
 		this.throwable = context.popAsNarrowest(ClassType.THROWABLE);
 	}
 	
+	public Operation getOperand() {
+		return throwable;
+	}
+	
 	@Override
 	public boolean isTerminable() {
 		return true;

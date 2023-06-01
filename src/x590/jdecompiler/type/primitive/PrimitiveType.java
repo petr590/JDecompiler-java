@@ -68,6 +68,11 @@ public abstract class PrimitiveType extends BasicType {
 	public String getEncodedName() {
 		return encodedName;
 	}
+
+	@Override
+	public String getBinaryName() {
+		return encodedName;
+	}
 	
 	@Override
 	public String getName() {

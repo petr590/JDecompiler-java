@@ -75,15 +75,11 @@ public class OperationStack {
 	}
 	
 	public Operation popAsNarrowest(Type requiredType) {
-		Operation operation = pop();
-		operation.castReturnTypeToNarrowest(requiredType);
-		return operation;
+		return pop().useAsNarrowest(requiredType);
 	}
 	
 	public Operation popAsWidest(Type requiredType) {
-		Operation operation = pop();
-		operation.castReturnTypeToWidest(requiredType);
-		return operation;
+		return pop().useAsWidest(requiredType);
 	}
 	
 	public Operation popWithSize(TypeSize size) {
@@ -117,15 +113,11 @@ public class OperationStack {
 	}
 	
 	public Operation peekAsNarrowest(Type requiredType) {
-		Operation operation = peek();
-		operation.castReturnTypeToNarrowest(requiredType);
-		return operation;
+		return peek().useAsNarrowest(requiredType);
 	}
 	
 	public Operation peekAsWidest(Type requiredType) {
-		Operation operation = peek();
-		operation.castReturnTypeToWidest(requiredType);
-		return operation;
+		return peek().useAsWidest(requiredType);
 	}
 	
 	public Operation peekWithSize(TypeSize size) {

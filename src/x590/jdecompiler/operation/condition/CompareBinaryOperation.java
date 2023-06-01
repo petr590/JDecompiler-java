@@ -15,11 +15,12 @@ public final class CompareBinaryOperation extends CompareOperation {
 	// Обратный порядок операндов, так как со стека они снимаются именно в обратном порядке
 	private CompareBinaryOperation(Operation operand2, Operation operand1, CompareType compareType, Type requiredType) {
 		super(compareType);
+		
+		operand1 = operand1.useAsNarrowest(requiredType);
+		operand2 = operand2.useAsNarrowest(requiredType);
+		
 		this.operand1 = operand1;
 		this.operand2 = operand2;
-		
-		operand1.castReturnTypeToNarrowest(requiredType);
-		operand2.castReturnTypeToNarrowest(requiredType);
 		
 		if(!compareType.isEqualsCompareType()) {
 			operand1.allowImplicitCast();
@@ -29,8 +30,8 @@ public final class CompareBinaryOperation extends CompareOperation {
 		Type generalType = operand1.getReturnType().castToGeneral(operand2.getReturnType(),
 				compareType.isEqualsCompareType() ? GeneralCastingKind.EQUALS_COMPARASION : GeneralCastingKind.COMPARASION);
 		
-		operand1.castReturnTypeToNarrowest(generalType);
-		operand2.castReturnTypeToNarrowest(generalType);
+		operand1 = operand1.useAsNarrowest(generalType);
+		operand2 = operand2.useAsNarrowest(generalType);
 		
 		if(generalType.isLongOrFloatOrDouble()) {
 			boolean allowedImplCast1 = operand1.implicitCastAllowed(),

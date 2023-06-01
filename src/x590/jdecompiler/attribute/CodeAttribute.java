@@ -7,8 +7,8 @@ import java.util.List;
 import x590.jdecompiler.JavaSerializable;
 import x590.jdecompiler.attribute.Attributes.Location;
 import x590.jdecompiler.constpool.ConstantPool;
+import x590.jdecompiler.context.Context;
 import x590.jdecompiler.context.DecompilationContext;
-import x590.jdecompiler.context.PreDecompilationContext;
 import x590.jdecompiler.io.ExtendedDataInputStream;
 import x590.jdecompiler.io.ExtendedDataOutputStream;
 import x590.jdecompiler.scope.CatchScope;
@@ -141,15 +141,15 @@ public class CodeAttribute extends Attribute {
 				return endPos;
 			}
 			
-			public int getStartIndex(PreDecompilationContext context) {
+			public int getStartIndex(Context context) {
 				return context.posToIndex(startPos);
 			}
 			
-			public int getEndIndex(PreDecompilationContext context) {
+			public int getEndIndex(Context context) {
 				return context.posToIndex(endPos);
 			}
 			
-			public int getFactualEndIndex(PreDecompilationContext context) {
+			public int getFactualEndIndex(Context context) {
 				return getEndIndex(context) - (isFinally() ? 1 : 0);
 			}
 			
@@ -189,7 +189,7 @@ public class CodeAttribute extends Attribute {
 			}
 			
 			public Scope createScope(DecompilationContext context) {
-				return new TryScope(context, context.posToIndex(getEndPos()));
+				return new TryScope(context, getFactualEndIndex(context) + 1);
 			}
 			
 			@Override

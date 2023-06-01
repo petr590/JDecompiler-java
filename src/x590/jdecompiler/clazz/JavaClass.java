@@ -48,6 +48,7 @@ import x590.jdecompiler.type.reference.ClassType;
 import x590.jdecompiler.type.reference.RealReferenceType;
 import x590.jdecompiler.util.WhitespaceStringBuilder;
 import x590.jdecompiler.util.IWhitespaceStringBuilder;
+import x590.util.Logger;
 import x590.util.LoopUtil;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
@@ -157,7 +158,8 @@ public final class JavaClass extends JavaClassElement {
 		
 		this.attributes = Attributes.read(in, pool, Location.CLASS);
 		classinfo.setAttributes(attributes);
-		
+
+
 		if(thisType.isNested()) {
 			
 			InnerClassEntry innerClass = attributes.getOrDefaultEmpty(AttributeType.INNER_CLASSES).find(thisType);
@@ -182,8 +184,7 @@ public final class JavaClass extends JavaClassElement {
 		
 		
 		this.signature = Optional.ofNullable(attributes.getNullable(AttributeType.CLASS_SIGNATURE));
-		if(signature.isPresent())
-			signature.get().checkTypes(superType, interfaces);
+		signature.ifPresent(classSignatureAttr -> classSignatureAttr.checkTypes(superType, interfaces));
 		
 		this.visibleSuperType = getVisibleSuperType();
 		this.visibleInterfaces = getVisibleInterfaces();
@@ -198,6 +199,9 @@ public final class JavaClass extends JavaClassElement {
 		this.directory = directory;
 		
 		CLASSES.put(thisType, this);
+
+
+		methods.forEach(method -> method.beforeDecompilation(classinfo));
 	}
 	
 	public static JavaClass read(InputStream in) {
@@ -229,13 +233,13 @@ public final class JavaClass extends JavaClassElement {
 		}
 		
 		if(type.isNested() && JDecompiler.getConfig().canSearchNestedClasses()) {
-			return loadAnonymousClass(type);
+			return loadNestedClass(type);
 		}
 		
 		return null;
 	}
 	
-	private static final @Nullable JavaClass loadAnonymousClass(ClassType type) {
+	private static @Nullable JavaClass loadNestedClass(ClassType type) {
 		JavaClass enclosingClass = CLASSES.get(type.getTopLevelClass());
 		
 		if(enclosingClass != null && enclosingClass.directory != null) {
@@ -337,13 +341,12 @@ public final class JavaClass extends JavaClassElement {
 	
 	
 	private final DecompilationStageHolder stageHolder = new DecompilationStageHolder(DecompilationStage.DISASSEMBLED);
-	
-	
+
+
 	public void decompile() {
-		stageHolder.nextStage(DecompilationStage.DISASSEMBLED, DecompilationStage.DECOMPILED);
+		stageHolder.nextStage(this, DecompilationStage.DISASSEMBLED, DecompilationStage.DECOMPILED);
 		
-		methods.forEach(method -> method.decompile(classinfo, pool));
-		methods.forEach(JavaMethod::afterDecompilation);
+		methods.forEach(method -> method.decompile(classinfo));
 		
 		if(enumConstants != null)
 			enumConstants.forEach(enumConstant -> enumConstant.checkHasEnumInitializer(classinfo));
@@ -354,13 +357,22 @@ public final class JavaClass extends JavaClassElement {
 		if(innerClassesAttribute != null) {
 			innerClasses = innerClassesAttribute.getEntryStreamWithOuterType(thisType)
 					.map(entry -> find(entry.getInnerType()))
-					.filter(innerClass -> innerClass != null).toList();
+					.filter(Objects::nonNull).toList();
 			
 			innerClasses.forEach(JavaClass::decompile);
 			
 		} else {
 			innerClasses = Collections.emptyList();
 		}
+		
+		Logger.log(methods.stream().filter(JavaMethod::hasDecompilationException).count() +
+				" exceptions occurred during decompilation class " + thisType.getName());
+	}
+
+	public void afterDecompilation() {
+		stageHolder.nextStage(this, DecompilationStage.DECOMPILED, DecompilationStage.AFTER_DECOMPILATION);
+		methods.forEach(JavaMethod::afterDecompilation);
+		innerClasses.forEach(JavaClass::afterDecompilation);
 	}
 	
 	public void resolveImports() {
@@ -370,7 +382,7 @@ public final class JavaClass extends JavaClassElement {
 	
 	@Override
 	public void addImports(ClassInfo otherClassinfo) {
-		stageHolder.nextStage(DecompilationStage.DECOMPILED, DecompilationStage.IMPORTS_RESOLVED);
+		stageHolder.nextStage(this, DecompilationStage.AFTER_DECOMPILATION, DecompilationStage.IMPORTS_RESOLVED);
 		
 		final ClassInfo classinfo;
 		
@@ -448,7 +460,7 @@ public final class JavaClass extends JavaClassElement {
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 		
-		stageHolder.checkStage(DecompilationStage.IMPORTS_RESOLVED, DecompilationStage.WRITTEN);
+		stageHolder.checkStage(this, DecompilationStage.IMPORTS_RESOLVED, DecompilationStage.WRITTEN);
 		
 		if(JDecompiler.getConfig().printClassVersion())
 			out.print("/* Java version: ").print(version.toString()).println(" */");
@@ -525,7 +537,7 @@ public final class JavaClass extends JavaClassElement {
 	
 	private void writeHeader(StringifyOutputStream out, ClassInfo classinfo) {
 		
-		out.printIndent().print(modifiersToString(classinfo), classinfo).print(thisType.getSimpleName());
+		out.printIndent().print(modifiersToString(), classinfo).print(thisType.getSimpleName());
 		
 		if(signature.isPresent()) {
 			var parameters = signature.get().getParameters();
@@ -557,7 +569,7 @@ public final class JavaClass extends JavaClassElement {
 		return "class " + thisType.getName();
 	}
 	
-	private IWhitespaceStringBuilder modifiersToString(ClassInfo classinfo) {
+	private IWhitespaceStringBuilder modifiersToString() {
 		IWhitespaceStringBuilder str = new WhitespaceStringBuilder().printTrailingSpace();
 		
 		var modifiers = this.modifiers;
@@ -656,7 +668,7 @@ public final class JavaClass extends JavaClassElement {
 		
 		writeFields(stringableFields, out, classinfo);
 		writeMethods(stringableMethods, out, classinfo);
-		writeInnerClasses(stringableClasses, out, classinfo);
+		writeInnerClasses(stringableClasses, out);
 		
 		out.reduceIndent();
 		
@@ -708,14 +720,14 @@ public final class JavaClass extends JavaClassElement {
 		out.printEachUsingFunction(methods, method -> out.println().print(method, classinfo));
 	}
 	
-	private static void writeInnerClasses(List<JavaClass> innerClasses, StringifyOutputStream out, ClassInfo classinfo) {
+	private static void writeInnerClasses(List<JavaClass> innerClasses, StringifyOutputStream out) {
 		innerClasses.forEach(innerClass -> out.println().println().printUsingFunction(innerClass, JavaClass::writeAsInnerClass).println());
 	}
 	
 	
 	public void writeAsNewAnonymousObject(StringifyOutputStream out, StringifyContext context, InvokespecialOperation invokeOperation) {
 		
-		stageHolder.checkStage(DecompilationStage.IMPORTS_RESOLVED, DecompilationStage.WRITTEN);
+		stageHolder.checkStage(this, DecompilationStage.IMPORTS_RESOLVED, DecompilationStage.WRITTEN);
 		
 		if(visibleInterfaces.size() > 1 || visibleInterfaces.size() == 1 && !visibleSuperType.equals(ClassType.OBJECT)) {
 			throw new DecompilationException("Anonymous class cannot extend more than one class or implement more than one interface");
@@ -734,7 +746,7 @@ public final class JavaClass extends JavaClassElement {
 	
 	@Override
 	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
-		out .print(modifiersToString(classinfo), classinfo)
+		out .print(modifiersToString(), classinfo)
 			.print(thisType, classinfo)
 			.print(" extends ")
 			.print(superType, classinfo);

@@ -9,8 +9,7 @@ import x590.jdecompiler.type.primitive.PrimitiveType;
 public final class CompareWithZeroOperation extends CompareUnaryOperation {
 	
 	public CompareWithZeroOperation(Operation operand, CompareType compareType) {
-		super(operand, compareType);
-		operand.castReturnTypeToNarrowest(PrimitiveType.BYTE_SHORT_INT_CHAR_BOOLEAN);
+		super(operand.useAsNarrowest(PrimitiveType.BYTE_SHORT_INT_CHAR_BOOLEAN), compareType);
 		operand.allowImplicitCast();
 	}
 	

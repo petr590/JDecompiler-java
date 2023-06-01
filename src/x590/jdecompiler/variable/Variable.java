@@ -10,90 +10,103 @@ import x590.jdecompiler.type.CastingKind;
 import x590.jdecompiler.type.Type;
 import x590.util.annotation.Nullable;
 
+/**
+ * Переменная, которая точно не является пустой
+ */
 public interface Variable extends EmptyableVariable {
 	
 	@Override
-	public default boolean isEmpty() {
+	default boolean isEmpty() {
 		return false;
 	}
 	
 	@Override
-	public default Variable nonEmpty() {
+	default Variable nonEmpty() {
 		return this;
 	}
 	
 	/** Проверяет, определено ли имя переменной */
-	public boolean hasName();
+	boolean hasName();
 	
-	/** Возвращает имя переменной или {@literal null}, если имя ещё не определено */
-	public @Nullable String getName();
+	/** @return Имя переменной
+	 * @throws IllegalStateException Если имя ещё не определено */
+	default String getName() {
+		String name = getNullableName();
+		if(name != null)
+			return name;
+
+		throw new IllegalStateException("Name for variable " + this + " yet not assigned");
+	}
+
+	/** @return Имя переменной или {@literal null}, если имя ещё не определено */
+	@Nullable String getNullableName();
 	
-	/** Возвращает вероятное имя переменной или {@literal null}, если нет ни одного */
-	public @Nullable String getPossibleName();
+	/** @return Вероятное имя переменной или {@literal null}, если нет ни одного */
+	@Nullable String getPossibleName();
 	
 	/** Устанавливает имя переменной */
-	public void setName(String name);
+	void setName(String name);
 	
 	/** Добавляет переменной возможное имя, если оно не {@literal null} */
-	public void addPossibleName(@Nullable String name);
+	void addPossibleName(@Nullable String name);
 	
 	/** Делает переменную индексом */
-	public default void makeAnIndex() {}
+	default void makeAnIndex() {}
 	
 	
 	/** Была ли переменная объявлена */
-	public boolean isDefined();
+	boolean isDefined();
 	
-	/** Объявить переменную */
-	public void define();
+	/** Объявляет переменную */
+	void define();
 	
-	/** Объявить переменную и вернуть {@literal this} */
-	public default Variable defined() {
+	/** Объявляет переменную и возвращает её */
+	default Variable defined() {
 		define();
 		return this;
 	}
 	
 	
-	public Type getType();
+	Type getType();
 	
-	public void setProbableType(Type probableType);
+	void setProbableType(Type probableType);
 	
-	public void addAssignedOperation(Operation operation);
+	void addAssignedOperation(Operation operation);
 	
-	public void castTypeToNarrowest(Type newType);
+	void castTypeToNarrowest(Type newType);
 	
-	public void castTypeToWidest(Type newType);
+	void castTypeToWidest(Type newType);
 	
-	public void castTypeTo(Type newType, CastingKind kind);
-	
-	
-	public Scope getEnclosingScope();
-	
-	public void setEnclosingScope(Scope enclosingScope);
+	void castTypeTo(Type newType, CastingKind kind);
 	
 	
-	public @Nullable Int2ObjectMap<String> getEnumTable();
+	Scope getEnclosingScope();
 	
-	public void setEnumTable(@Nullable Int2ObjectMap<String> enumTable);
+	void setEnclosingScope(Scope enclosingScope);
+	
+	
+	@Nullable Int2ObjectMap<String> getEnumTable();
+	
+	void setEnumTable(@Nullable Int2ObjectMap<String> enumTable);
 	
 	
 	@Override
-	public default VariableWrapper wrapped() {
+	default VariableWrapper wrapped() {
 		return new WrappedVariable(this);
 	}
 	
 	@Override
-	public default Variable unwrapped() {
+	default Variable unwrapped() {
 		return this;
 	}
 	
 	
-	public static EmptyVariable empty() {
+	static EmptyVariable empty() {
 		return EmptyVariable.INSTANCE;
 	}
 	
 	
-	public static AbstractVariable valueOf(Optional<LocalVariableEntry> optionalEntry, Scope enclosingScope, Type type, boolean typeFixed) {
+	static AbstractVariable valueOf(Optional<LocalVariableEntry> optionalEntry, Scope enclosingScope, Type type, boolean typeFixed) {
 		return optionalEntry.isEmpty() ?
 				new UnnamedVariable(enclosingScope, type, typeFixed) :
 				new NamedVariable(optionalEntry.get().getName(), enclosingScope, type, typeFixed);

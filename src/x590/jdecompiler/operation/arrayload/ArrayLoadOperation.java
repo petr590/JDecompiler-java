@@ -13,14 +13,15 @@ import x590.jdecompiler.type.reference.IArrayType;
 
 public abstract class ArrayLoadOperation extends ReturnableOperation {
 	
-	private final Operation array, index;
+	private Operation array;
+	private final Operation index;
 	
 	public ArrayLoadOperation(ArrayType requiredType, DecompilationContext context) {
 		super(requiredType);
 		this.index = context.popAsNarrowest(PrimitiveType.INT);
-		this.array = context.pop();
+		this.array = context.popAsNarrowest(requiredType);
 		
-		this.returnType = ((IArrayType)array.getReturnTypeAsNarrowest(requiredType)).getElementType();
+		this.returnType = ((IArrayType)array.getReturnType()).getElementType();
 	}
 	
 	public Operation getArray() {
@@ -39,7 +40,7 @@ public abstract class ArrayLoadOperation extends ReturnableOperation {
 	@Override
 	protected void onCastReturnType(Type newType, CastingKind kind) {
 		super.onCastReturnType(newType, kind);
-		array.castReturnTypeTo(ArrayType.forType(newType), kind);
+		array = array.useAs(ArrayType.forType(newType), kind);
 	}
 	
 	@Override

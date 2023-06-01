@@ -45,13 +45,13 @@ public class StringUtil {
 		if(c < 0x10000)    return new String(new byte[] { (byte)((c >> 12 &  0xF) | 0xE0), (byte)((c >>  6 & 0x3F) | 0x80), (byte)((c >>  0 & 0x3F) | 0x80) }, UTF8_CHARSET);
 		// 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
 		if(c < 0x200000)   return new String(new byte[] { (byte)((c >> 18 &  0x7) | 0xF0), (byte)((c >> 12 & 0x3F) | 0x80), (byte)((c >>  6 & 0x3F) | 0x80),
-									(byte)((c >>  0 & 0x3F) | 0x80) }, UTF8_CHARSET);
+									(byte)((c & 0x3F) | 0x80) }, UTF8_CHARSET);
 		// 111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
 		if(c < 0x4000000)  return new String(new byte[] { (byte)((c >> 24 &  0x3) | 0xF8), (byte)((c >> 18 & 0x3F) | 0x80), (byte)((c >> 12 & 0x3F) | 0x80),
-									(byte)((c >>  6 & 0x3F) | 0x80), (byte)((c >>  0 & 0x3F) | 0x80) }, UTF8_CHARSET);
+									(byte)((c >> 6 & 0x3F) | 0x80), (byte)((c & 0x3F) | 0x80) }, UTF8_CHARSET);
 		// 1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
 		if(c < 0x80000000) return new String(new byte[] { (byte)((c >> 30 &  0x1) | 0xFC), (byte)((c >> 24 & 0x3F) | 0x80), (byte)((c >> 18 & 0x3F) | 0x80),
-									(byte)((c >> 12 & 0x3F) | 0x80), (byte)((c >>  6 & 0x3F) | 0x80), (byte)((c >>  0 & 0x3F) | 0x80) }, UTF8_CHARSET);
+									(byte)((c >> 12 & 0x3F) | 0x80), (byte)((c >>  6 & 0x3F) | 0x80), (byte)((c & 0x3F) | 0x80) }, UTF8_CHARSET);
 		
 		throw new IllegalArgumentException("Char code U+" + IntegerUtil.hex(c) + " is too large for encode");
 	}

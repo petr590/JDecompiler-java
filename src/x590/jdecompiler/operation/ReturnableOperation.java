@@ -32,7 +32,7 @@ public abstract class ReturnableOperation extends AbstractOperation {
 		var returnType = this.returnType;
 		Type deducedType = getDeducedType(returnType);
 		
-		if(returnType != deducedType) {
+		if(!returnType.equals(deducedType)) {
 			this.returnType = deducedType;
 			return true;
 		}

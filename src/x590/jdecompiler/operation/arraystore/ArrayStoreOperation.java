@@ -17,14 +17,15 @@ import x590.jdecompiler.type.reference.IArrayType;
 
 public abstract class ArrayStoreOperation extends ReturnableOperation implements IncrementableOperation {
 	
-	private final Operation array, index, value;
-	private final IncrementData incData;
+	private Operation array;
+	private final Operation index;
+	private Operation value;
+	private IncrementData incData;
 	
 	
 	private void castArrayType(Type arrayType) {
-		array.castReturnTypeToWidest(ArrayType.forType(
-				value.getReturnTypeAsNarrowest(((IArrayType)arrayType).getElementType())
-		));
+		value = value.useAsNarrowest(((IArrayType)array.getReturnType()).getElementType());
+		array = array.useAsWidest(ArrayType.forType(value.getReturnType()));
 	}
 	
 	
@@ -32,9 +33,9 @@ public abstract class ArrayStoreOperation extends ReturnableOperation implements
 		super(PrimitiveType.VOID);
 		this.value = context.pop();
 		this.index = context.popAsNarrowest(PrimitiveType.INT);
-		this.array = context.pop();
+		this.array = context.popAsNarrowest(requiredType);
 		
-		castArrayType(array.getReturnTypeAsNarrowest(requiredType));
+		castArrayType(array.getReturnType());
 		
 		if(array instanceof NewArrayOperation newArray &&
 			index instanceof IConstOperation iconst &&
@@ -62,7 +63,7 @@ public abstract class ArrayStoreOperation extends ReturnableOperation implements
 	@Override
 	protected void onCastReturnType(Type newType, CastingKind kind) {
 		super.onCastReturnType(newType, kind);
-		array.castReturnTypeTo(ArrayType.forType(newType), kind);
+		array = array.useAs(ArrayType.forType(newType), kind);
 	}
 	
 	@Override
@@ -79,6 +80,16 @@ public abstract class ArrayStoreOperation extends ReturnableOperation implements
 	@Override
 	public void setReturnType(Type returnType) {
 		this.returnType = returnType;
+	}
+
+	@Override
+	public IncrementData getIncData() {
+		return incData;
+	}
+
+	@Override
+	public void setIncData(IncrementData incData) {
+		this.incData = incData;
 	}
 	
 	

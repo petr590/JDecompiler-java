@@ -7,7 +7,6 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +36,7 @@ import static x590.jdecompiler.io.ExtendedStringInputStream.EOF_CHAR;
  * Описывает тип java класса, самого обычного класса
  */
 public class ClassType extends RealReferenceType {
-	
+
 	/**
 	 * Определяет, какой это класс: обычный, вложенный, анонимный, package-info, module-info
 	 */
@@ -89,9 +88,6 @@ public class ClassType extends RealReferenceType {
 	
 	private static final Map<String, ClassType> CLASS_TYPES = new HashMap<>();
 	
-	// Debug
-	private static final List<ClassType> ALL_CLASSES = new ArrayList<>();
-	
 	
 	public static final ClassType
 			OBJECT         = initFromClass(Object.class),
@@ -118,36 +114,33 @@ public class ClassType extends RealReferenceType {
 			DOUBLE    = initWrapperFromClass(Double.class, PrimitiveType.DOUBLE),
 			BOOLEAN   = initWrapperFromClass(Boolean.class, PrimitiveType.BOOLEAN),
 			VOID      = initWrapperFromClass(Void.class, PrimitiveType.VOID);
-	
-	
-	// Debug
-	public static @Immutable Map<String, ClassType> classTypes() {
-		return Collections.unmodifiableMap(CLASS_TYPES);
-	}
-	
-	// Debug
-	public static @Immutable List<ClassType> allClassTypes() {
-		return Collections.unmodifiableList(ALL_CLASSES);
-	}
-	
+
 	
 	private static ClassType initFromClass(Class<?> clazz) {
 		String classEncodedName = encodedNameForClass(clazz);
-		return addToMap(classEncodedName, clazz, new ClassType(classEncodedName, clazz));
+		return addToMap(classEncodedName, new ClassType(classEncodedName, clazz));
 	}
 	
 	private static WrapperClassType initWrapperFromClass(Class<?> clazz, PrimitiveType type) {
 		String classEncodedName = encodedNameForClass(clazz);
-		return addToMap(classEncodedName, clazz, new WrapperClassType(classEncodedName, clazz, type));
+		return addToMap(classEncodedName, new WrapperClassType(classEncodedName, clazz, type));
 	}
 	
-	private static <T extends ClassType> T addToMap(String classEncodedName, Class<?> clazz, T classType) {
+	private static <T extends ClassType> T addToMap(String classEncodedName, T classType) {
 		var prev = CLASS_TYPES.put(classEncodedName, classType);
 		assert prev == null;
 		
 		return classType;
 	}
+
 	
+	private static String encodedNameForCheckedClass(Class<?> clazz) {
+		if(clazz.isPrimitive() || clazz.isArray()) {
+			throw new IllegalArgumentException(clazz.toString());
+		}
+		
+		return encodedNameForClass(clazz);
+	}
 	
 	private static String encodedNameForClass(Class<?> clazz) {
 		String encodedName = clazz.descriptorString();
@@ -169,8 +162,9 @@ public class ClassType extends RealReferenceType {
 	}
 	
 	
+	/** @param clazz должен представлять реальный класс - не массив и не класс примитива */
 	public static ClassType fromClass(Class<?> clazz) {
-		return getOrCreateClassType(encodedNameForClass(clazz),
+		return getOrCreateClassType(encodedNameForCheckedClass(clazz),
 				classEncodedName -> new ClassType(classEncodedName, clazz));
 	}
 	
@@ -183,27 +177,29 @@ public class ClassType extends RealReferenceType {
 	}
 	
 	public static ClassType fromClassWithSignature(Class<?> clazz, GenericParameters<ReferenceType> signature) {
-		
-		return getOrCreateClassType(signature.getEncodedNameFor(encodedNameForClass(clazz)),
+		return getOrCreateClassType(signature.getEncodedNameFor(encodedNameForCheckedClass(clazz)),
 				classEncodedName -> new ClassType(classEncodedName, clazz, signature));
 	}
 	
-	public static ClassType fromReflectType(java.lang.reflect.Type reflectType, IClassInfo classinfo) {
+	
+	/** @param reflectType должен быть экземпляром Class или ParameterizedType */
+	public static ClassType fromReflectType(java.lang.reflect.Type reflectType) {
 		if(reflectType instanceof Class<?> clazz) {
-			return ClassType.fromClass(clazz);
+			return fromClass(clazz);
 		}
 		
 		if(reflectType instanceof ParameterizedType parameterizedType) {
-			return ClassType.fromParameterizedType(parameterizedType, classinfo);
+			return fromParameterizedType(parameterizedType);
 		}
 		
 		throw new IllegalArgumentException("Cannot instantiate ClassType from java.lang.reflect.Type " + reflectType);
 	}
 	
-	public static ClassType fromParameterizedType(ParameterizedType parameterizedType, IClassInfo classinfo) {
-		return fromClassWithSignature((Class<?>)parameterizedType.getRawType(),
-				Arrays.stream(parameterizedType.getActualTypeArguments())
-					.map(parameter -> ReferenceType.fromReflectType(parameter, classinfo)).toList());
+	public static ClassType fromParameterizedType(ParameterizedType parameterizedType) {
+		return fromClassWithSignature(
+				(Class<?>)parameterizedType.getRawType(),
+				Arrays.stream(parameterizedType.getActualTypeArguments()).map(ReferenceType::fromReflectType).toList()
+		);
 	}
 	
 	
@@ -214,7 +210,7 @@ public class ClassType extends RealReferenceType {
 	
 	/** Принимает строку без префикса 'L', т.е. в виде "java/lang/Object;" */
 	public static ClassType fromDescriptor(String classEncodedName) {
-		return getOrCreateClassType(classEncodedName, clazzEncodedName -> new ClassType(clazzEncodedName));
+		return getOrCreateClassType(classEncodedName, ClassType::new);
 	}
 	
 	/** Принимает строку с префиксом 'L', т.е. в виде "Ljava/lang/Object;" */
@@ -306,16 +302,16 @@ public class ClassType extends RealReferenceType {
 	private final ClassKind kind;
 	
 	
-	private static final Pattern
-			NAME_NUM_PATTERN = Pattern.compile("\\$(\\d+)");
+	private static final Pattern NAME_NUM_PATTERN = Pattern.compile("\\$(\\d+)");
 	
-
+	
 	ClassType(String classEncodedName, Class<?> clazz) {
 		this(classEncodedName, clazz, GenericParameters.empty());
 	}
 	
 	/** Создаёт экземпляр ClassType с указанным именем, экземпляром {@link java.lang.Class} и сигнатурой */
 	ClassType(String classEncodedName, Class<?> clazz, @Nullable @Immutable GenericParameters<ReferenceType> signature) {
+		
 		super(clazz);
 		
 		this.encodedName = 'L' + classEncodedName + ';';
@@ -534,8 +530,10 @@ public class ClassType extends RealReferenceType {
 		this.rawType = rawType == null ? this : rawType;
 		
 		in.unmark();
-		
-		ALL_CLASSES.add(this);
+	}
+
+	public ClassType withSignature(GenericParameters<ReferenceType> signature) {
+		return signature.isEmpty() ? rawType : of(rawType, signature);
 	}
 	
 	
@@ -617,7 +615,7 @@ public class ClassType extends RealReferenceType {
 		return enclosingClass;
 	}
 	
-	/** @return внешний класс верхнего уровня для вложенных классов,
+	/** @return Внешний класс верхнего уровня для вложенных классов,
 	 * для всех остальных классов - {@literal this} */
 	public ClassType getTopLevelClass() {
 		return enclosingClass == null ? this : enclosingClass.getTopLevelClass();
@@ -698,9 +696,6 @@ public class ClassType extends RealReferenceType {
 	
 	private Pair<ClassType, List<ClassType>> initSuperTypes(Class<?> thisClass) {
 		
-		// Must be nonnull
-		IClassInfo classinfo = ClassInfo.findIClassInfo(this).get();
-		
 		ClassType superType;
 		
 		if(thisClass.isInterface()) {
@@ -710,12 +705,12 @@ public class ClassType extends RealReferenceType {
 			java.lang.reflect.Type genericSuperclass = thisClass.getGenericSuperclass();
 			
 			superType = genericSuperclass != null ?
-					ClassType.fromReflectType(genericSuperclass, classinfo) :
+					ClassType.fromReflectType(genericSuperclass) :
 					null;
 		}
 		
 		return Pair.of(superType, Arrays.stream(thisClass.getGenericInterfaces())
-				.map(interfaceType -> ClassType.fromReflectType(interfaceType, classinfo)).toList());
+				.map(ClassType::fromReflectType).toList());
 	}
 	
 	

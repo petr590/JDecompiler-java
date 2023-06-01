@@ -6,7 +6,6 @@ import x590.jdecompiler.Descriptor;
 import x590.jdecompiler.MemberInfo;
 import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.clazz.IClassInfo;
-import x590.jdecompiler.context.DecompilationContext;
 import x590.jdecompiler.context.StringifyContext;
 import x590.jdecompiler.main.JDecompiler;
 import x590.util.annotation.Nullable;
@@ -29,16 +28,10 @@ public abstract class OperationWithDescriptor<D extends Descriptor<D>> extends A
 	/** Инициализация generic дескриптора
 	 * Метод должен вызываться для всех подклассов в конструкторе после инициализации объекта.
 	 * В него передаётся объект или {@literal null} для вызовов статических методов. */
-	protected void initGenericDescriptor(DecompilationContext context, @Nullable Operation object) {
-		var iclassinfo = ClassInfo.findIClassInfo(descriptor.getDeclaringClass());
-		
-		if(iclassinfo.isPresent()) {
-			var foundMethodInfo = findMemberInfo(iclassinfo.get(), descriptor);
-			
-			if(foundMethodInfo.isPresent()) {
-				setGenericDescriptor(foundMethodInfo.get().getGenericDescriptor(object));
-			}
-		}
+	protected void initGenericDescriptor(@Nullable Operation object) {
+		ClassInfo.findIClassInfo(descriptor.getDeclaringClass())
+				.flatMap(iclassinfo -> findMemberInfo(iclassinfo, descriptor))
+				.ifPresent(memberInfo -> setGenericDescriptor(memberInfo.getGenericDescriptor(object)));
 	}
 	
 	protected abstract Optional<? extends MemberInfo<D, ?>> findMemberInfo(IClassInfo classinfo, D descriptor);

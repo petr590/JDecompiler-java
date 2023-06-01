@@ -1,6 +1,5 @@
 package x590.jdecompiler.type;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,7 +26,7 @@ import x590.jdecompiler.type.reference.generic.AnyGenericType;
 import x590.jdecompiler.type.reference.generic.ExtendingGenericType;
 import x590.jdecompiler.type.reference.generic.GenericDeclarationType;
 import x590.jdecompiler.type.reference.generic.GenericParameters;
-import x590.jdecompiler.type.reference.generic.SignatureParameterType;
+import x590.jdecompiler.type.reference.generic.NamedGenericType;
 import x590.jdecompiler.type.reference.generic.SuperGenericType;
 import x590.jdecompiler.writable.BiStringifyWritable;
 import x590.jdecompiler.writable.SameDisassemblingStringifyWritable;
@@ -83,8 +82,8 @@ public abstract class Type implements
 	
 	/** @return Имя скомпилированного типа без сигнатуры.
 	 * Например, для типа "java/util/Map$Entry" вернёт "java.util.Map$Entry" */
-	public String getBinaryName() {
-		return getName();
+	public @Nullable String getBinaryName() {
+		return null;
 	}
 	
 	/** Имя для переменной. Например, все переменные типа int называются "n".
@@ -192,6 +191,12 @@ public abstract class Type implements
 			return true;
 		
 		return other.canReversedCastToWidestImpl(this);
+	}
+	
+	public final boolean canCastTo(Type rawType, CastingKind kind) {
+		return kind.isNarrowest() ?
+				canCastToNarrowest(rawType) :
+				canCastToWidest(rawType);
 	}
 	
 	
@@ -415,16 +420,12 @@ public abstract class Type implements
 	}
 	
 	
-	public static Type fromReflectType(java.lang.reflect.Type reflectType, IClassInfo classinfo) {
+	public static Type fromReflectType(java.lang.reflect.Type reflectType) {
 		if(reflectType instanceof Class<?> clazz) {
 			return fromClass(clazz);
 		}
 		
-		if(reflectType instanceof ParameterizedType parameterizedType) {
-			return ClassType.fromParameterizedType(parameterizedType, classinfo);
-		}
-		
-		return classinfo.findOrCreateGenericType(reflectType.getTypeName());
+		return ReferenceType.fromReflectType(reflectType);
 	}
 	
 	
@@ -446,7 +447,7 @@ public abstract class Type implements
 			case 'Z': in.incPos(); return PrimitiveType.BOOLEAN;
 			case 'L': return ClassType.read(in.next());
 			case '[': return ArrayType.read(in);
-			case 'T': return SignatureParameterType.read(in.next());
+			case 'T': return NamedGenericType.read(in.next());
 			default:
 				throw new InvalidTypeNameException(in, in.distanceToMark());
 		}
@@ -508,7 +509,7 @@ public abstract class Type implements
 		switch(in.get()) {
 			case 'L': return ClassType.read(in.next());
 			case '[': return ArrayType.read(in);
-			case 'T': return SignatureParameterType.read(in.next());
+			case 'T': return NamedGenericType.read(in.next());
 			default:
 				throw new InvalidTypeNameException(in, in.distanceToMark());
 		}

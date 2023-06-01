@@ -31,15 +31,6 @@ public class AnonymousClassExample {
 				foo();
 				return name;
 			}
-			
-//			@Override public String toString() {
-//				
-//				return new Inner() {
-//					@Override public String getName() {
-//						return name;
-//					}
-//				}.toString();
-//			}
 		};
 	}
 	

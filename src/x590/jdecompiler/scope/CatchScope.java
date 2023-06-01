@@ -25,9 +25,14 @@ public class CatchScope extends Scope {
 		this.hasNext = hasNext;
 	}
 	
+	public ExceptionLoadOperation getLoadOperation() {
+		return loadOperation;
+	}
+	
 	@Override
 	public void addOperation(Operation operation, int fromIndex) {
 		super.addOperation(operation, fromIndex);
+		
 		if(operation.isTerminable()) {
 			setEndIndex(fromIndex);
 		}

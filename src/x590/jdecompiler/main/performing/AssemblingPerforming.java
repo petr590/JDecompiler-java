@@ -7,15 +7,17 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import x590.jdecompiler.FileSource;
 import x590.jdecompiler.clazz.JavaClass;
 import x590.jdecompiler.exception.ParseException;
 import x590.jdecompiler.io.ExtendedDataOutputStream;
+import x590.jdecompiler.main.Config;
 import x590.util.annotation.Nullable;
 
 public class AssemblingPerforming extends AbstractPerforming<ExtendedDataOutputStream> {
-	
-	public AssemblingPerforming() {
-		super(true);
+
+	public AssemblingPerforming(Config config) {
+		super(config, true);
 	}
 	
 	@Override
@@ -42,6 +44,9 @@ public class AssemblingPerforming extends AbstractPerforming<ExtendedDataOutputS
 	
 	@Override
 	public void perform(JavaClass clazz) {}
+
+	@Override
+	public void afterPerforming(JavaClass clazz) {}
 	
 	@Override
 	public void doWrite(JavaClass clazz) {

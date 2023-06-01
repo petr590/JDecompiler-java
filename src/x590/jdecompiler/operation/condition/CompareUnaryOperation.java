@@ -10,4 +10,8 @@ public abstract class CompareUnaryOperation extends CompareOperation {
 		super(compareType);
 		this.operand = operand;
 	}
+	
+	public Operation operand() {
+		return operand;
+	}
 }

@@ -10,37 +10,14 @@ import x590.argparser.Flag;
 import x590.argparser.StandartArgParser;
 import x590.argparser.option.EnumOption;
 import x590.argparser.option.StringOption;
+import x590.jdecompiler.FileSource;
 import x590.jdecompiler.main.performing.AbstractPerforming.PerformingType;
-import x590.util.ObjectHolder;
+import x590.util.holder.ObjectHolder;
 
 public final class Config {
-	
+
 	public enum UsagePolicy {
 		ALWAYS, AUTO, NEVER;
-		
-		public boolean isAlways() {
-			return this == ALWAYS;
-		}
-		
-		public boolean isAuto() {
-			return this == AUTO;
-		}
-		
-		public boolean isNever() {
-			return this == NEVER;
-		}
-		
-		public boolean isNotAlways() {
-			return this != ALWAYS;
-		}
-		
-		public boolean isNotAuto() {
-			return this != AUTO;
-		}
-		
-		public boolean isNotNever() {
-			return this != NEVER;
-		}
 	}
 	
 	private boolean writeToConsole = JDecompiler.isDebug();
@@ -79,6 +56,8 @@ public final class Config {
 	private boolean decompileStringBuilderAsConcatenation = true;
 	
 	private boolean canSearchNestedClasses = true;
+
+	private FileSource fileSource = FileSource.FILESYSTEM;
 	
 	private static final Locale RU = new Locale("ru");
 	
@@ -198,6 +177,10 @@ public final class Config {
 				.add(new Flag("--no-search-nested-classes").onParse(not(builder::canSearchNestedClasses))
 						.help(    "Don't search for nested classes in the directory from which the outer class is loaded")
 						.help(RU, "Не искать вложенные классы в папке, из которой загружается внешний класс"))
+
+				.add(new Flag("-jdk", "--jdk").onParse(() -> builder.fileSource(FileSource.JDK))
+						.help(    "Search classes in JDK")
+						.help(RU, "Искать классы в JDK"))
 				
 				.parse(args);
 	}
@@ -304,6 +287,10 @@ public final class Config {
 	
 	public boolean canSearchNestedClasses() {
 		return canSearchNestedClasses;
+	}
+
+	public FileSource getFileSource() {
+		return fileSource;
 	}
 	
 	private Config() {}
@@ -473,6 +460,11 @@ public final class Config {
 		
 		public Builder canSearchNestedClasses(boolean canSearchNestedClasses) {
 			config.canSearchNestedClasses = canSearchNestedClasses;
+			return this;
+		}
+
+		public Builder fileSource(FileSource fileSource) {
+			config.fileSource = fileSource;
 			return this;
 		}
 	}

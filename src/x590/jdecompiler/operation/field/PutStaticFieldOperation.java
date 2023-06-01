@@ -15,13 +15,13 @@ public final class PutStaticFieldOperation extends PutFieldOperation {
 	
 	public PutStaticFieldOperation(DecompilationContext context, int index) {
 		super(context, index);
-		this.enumTable = OperationUtils.getEnumTable(context, getDescriptor());
+		this.enumTable = OperationUtils.getEnumTable(getDescriptor());
 		init(context);
 	}
 	
 	public PutStaticFieldOperation(DecompilationContext context, FieldrefConstant fieldref) {
 		super(context, fieldref);
-		this.enumTable = OperationUtils.getEnumTable(context, getDescriptor());
+		this.enumTable = OperationUtils.getEnumTable(getDescriptor());
 		init(context);
 	}
 	
@@ -44,7 +44,7 @@ public final class PutStaticFieldOperation extends PutFieldOperation {
 		
 		getValue().setEnumTable(enumTable);
 		
-		initGenericDescriptor(context, null);
+		initGenericDescriptor(null);
 	}
 	
 	@Override

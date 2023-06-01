@@ -40,33 +40,13 @@ public final class UncertainReferenceType extends Type implements IArrayType {
 		return new UncertainReferenceType(widestType);
 	}
 	
-	public static Type getInstance(ReferenceType widestType, @Nullable ReferenceType narrowestType, CastingKind kind) {
+	public static Type getInstance(ReferenceType widestType, @Nullable ReferenceType narrowestType) {
 		if(narrowestType != null) {
 			if(widestType.equalsIgnoreSignature(narrowestType))
 				return narrowestType;
 			
-			if(widestType.isDefinitelySubclassOf(narrowestType))
+			if(widestType.isDefinitelySubclassOf(narrowestType) && !narrowestType.isDefinitelySubclassOf(widestType))
 				return null;
-			
-			if(widestType instanceof ArrayType widestArray && narrowestType instanceof ArrayType narrowestArray) {
-				
-				Type widestMember, narrowestMember;
-				int nestingLevel = widestArray.getNestingLevel();
-				
-				if(nestingLevel == narrowestArray.getNestingLevel()) {
-					widestMember    = widestArray.getMemberType();
-					narrowestMember = narrowestArray.getMemberType();
-				} else {
-					widestMember    = widestArray.getElementType();
-					narrowestMember = narrowestArray.getElementType();
-					nestingLevel = 1;
-				}
-				
-				if(widestMember.isReferenceType() && narrowestMember.isReferenceType())
-					return ArrayType.forType(getInstance((ReferenceType)widestMember, (ReferenceType)narrowestMember, kind), nestingLevel);
-				
-				return ArrayType.forNullableType(widestMember.castNoexcept(narrowestMember, kind), nestingLevel);
-			}
 		}
 		
 		return new UncertainReferenceType(widestType, narrowestType);
@@ -174,8 +154,8 @@ public final class UncertainReferenceType extends Type implements IArrayType {
 			
 			if(referenceType.isDefinitelySubclassOf(widestType) && (narrowestType == null || narrowestType.isDefinitelySubclassOf(referenceType))) {
 				return kind.isNarrowest() ?
-						getInstance(referenceType, narrowestType, kind) :
-						getInstance(widestType, referenceType, kind);
+						getInstance(referenceType, narrowestType) :
+						getInstance(widestType, referenceType);
 			}
 			
 			if(kind.isNarrowest() ?
@@ -193,14 +173,14 @@ public final class UncertainReferenceType extends Type implements IArrayType {
 				ReferenceType widestType = chooseNarrowestFrom(this.widestType, uncertainType.widestType);
 				
 				if(widestType != null) {
-					return getInstance(widestType, this.narrowestType, kind);
+					return getInstance(widestType, this.narrowestType);
 				}
 				
 			} else {
 				ReferenceType narrowestType = chooseWidestFrom(this.narrowestType, uncertainType.narrowestType);
 				
 				if(narrowestType != null) {
-					return getInstance(this.widestType, narrowestType, kind);
+					return getInstance(this.widestType, narrowestType);
 				}
 			}
 		}

@@ -38,7 +38,7 @@ import x590.jdecompiler.type.reference.RealReferenceType;
 import x590.jdecompiler.type.reference.ReferenceType;
 import x590.jdecompiler.type.reference.generic.GenericDeclarationType;
 import x590.jdecompiler.type.reference.generic.GenericParameters;
-import x590.util.BooleanHolder;
+import x590.util.holder.BooleanHolder;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 import x590.util.function.Functions;
@@ -58,6 +58,8 @@ public final class ClassInfo implements IClassInfo {
 	private ClassModifiers modifiers;
 	
 	private final ClassType thisType;
+
+	private @Nullable ClassType genericThisType;
 	private final Optional<ClassType> optionalSuperType;
 	private final Optional<@Immutable List<? extends ClassType>> optionalInterfaces;
 	
@@ -85,7 +87,8 @@ public final class ClassInfo implements IClassInfo {
 	}
 	
 	public static Optional<ClassInfo> findClassInfo(@Nullable ReferenceType type) {
-		return INSTANCES.get(type).filter(iclassinfo -> iclassinfo instanceof ClassInfo).map(Functions::uncheckedCast);
+		return INSTANCES.getOrDefault(type, Optional.empty())
+				.filter(iclassinfo -> iclassinfo instanceof ClassInfo).map(Functions::uncheckedCast);
 	}
 	
 	public static Optional<IClassInfo> findIClassInfo(@Nullable RealReferenceType type) {
@@ -127,6 +130,17 @@ public final class ClassInfo implements IClassInfo {
 	@Override
 	public ClassType getThisType() {
 		return thisType;
+	}
+
+	public ClassType getGenericThisType() {
+		var genericThisType = this.genericThisType;
+
+		if(genericThisType != null) {
+			return genericThisType;
+		}
+		
+		var parameters = getSignatureParameters();
+		return this.genericThisType = thisType.withSignature(parameters.replaceUndefiniteGenericsToDefinite(this, parameters));
 	}
 	
 	public ClassType getSuperType() {
@@ -387,7 +401,7 @@ public final class ClassInfo implements IClassInfo {
 			names.addFirst(enclosingClass.getSimpleName());
 		}
 		
-		return names.stream().collect(Collectors.joining("."));
+		return String.join(".", names);
 	}
 	
 	
@@ -402,9 +416,11 @@ public final class ClassInfo implements IClassInfo {
 	public StringifyContext getStaticInitializerStringifyContext() {
 		if(staticInitializerStringifyContext != null)
 			return staticInitializerStringifyContext;
-		
-		Optional<JavaMethod> staticInitializer = clazz.getMethods().stream().filter(method -> method.getDescriptor().isStaticInitializer()).findAny();
-		return staticInitializerStringifyContext = staticInitializer.isPresent() ? staticInitializer.get().getStringifyContext() : null;
+
+		return staticInitializerStringifyContext =
+				clazz.getMethods().stream()
+						.filter(method -> method.getDescriptor().isStaticInitializer()).findAny()
+						.map(JavaMethod::getStringifyContext).orElse(null);
 	}
 	
 	

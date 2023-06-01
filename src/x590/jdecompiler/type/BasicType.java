@@ -1,9 +1,15 @@
 package x590.jdecompiler.type;
 
+import x590.util.annotation.Nullable;
+
 /**
  * Представляет Java тип (т.е. определённый тип, который существует в коде)
  */
 public abstract class BasicType extends Type {
+
+	public @Nullable String getBinaryName() {
+		return getEncodedName();
+	}
 	
 	@Override
 	protected Type castImpl(Type other, CastingKind kind) {

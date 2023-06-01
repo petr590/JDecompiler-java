@@ -21,6 +21,10 @@ public abstract class ClassEntryModifiers extends Modifiers {
 		return (value & ACC_PROTECTED) != 0;
 	}
 	
+	public boolean isPackageVisible() {
+		return (value & ACC_ACCESS_FLAGS) == 0;
+	}
+	
 	
 	public boolean isStatic() {
 		return (value & ACC_STATIC) != 0;
@@ -41,6 +45,10 @@ public abstract class ClassEntryModifiers extends Modifiers {
 	
 	public boolean isNotProtected() {
 		return (value & ACC_PROTECTED) == 0;
+	}
+	
+	public boolean isNotPackageVisible() {
+		return (value & ACC_ACCESS_FLAGS) != 0;
 	}
 	
 	

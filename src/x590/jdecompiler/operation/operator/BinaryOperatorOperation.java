@@ -10,7 +10,7 @@ import x590.jdecompiler.type.Type;
 
 public abstract class BinaryOperatorOperation extends OperatorOperation {
 	
-	private final Operation operand1, operand2;
+	private Operation operand1, operand2;
 	
 	/** Для того, чтобы можно было преобразовать операнд перед его присвоением */
 	protected Operation processOperand1(Operation operand1) {
@@ -51,6 +51,14 @@ public abstract class BinaryOperatorOperation extends OperatorOperation {
 		return operand2;
 	}
 	
+	protected void operand1(Operation operand1) {
+		this.operand1 = operand1;
+	}
+	
+	protected void operand2(Operation operand2) {
+		this.operand2 = operand2;
+	}
+	
 	
 	@Override
 	protected Type getDeducedType(Type returnType) {
@@ -68,8 +76,8 @@ public abstract class BinaryOperatorOperation extends OperatorOperation {
 	@Override
 	public void onCastReturnType(Type newType, CastingKind kind) {
 		super.onCastReturnType(newType, kind);
-		operand1.castReturnTypeTo(newType, kind);
-		operand2.castReturnTypeTo(newType, kind);
+		operand1 = operand1.useAs(newType, kind);
+		operand2 = operand2.useAs(newType, kind);
 	}
 	
 	protected void superOnCastReturnType(Type newType, CastingKind kind) {

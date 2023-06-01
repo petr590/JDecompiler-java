@@ -84,7 +84,7 @@ public class LambdaOperation extends AbstractOperation {
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		if(method != null) {
-			method.writeAsLambda(out, context.getClassinfo(), captured, capturedArguments);
+			method.writeAsLambda(out, captured, capturedArguments);
 			
 		} else {
 			if(!capturedArguments.isEmpty()) {

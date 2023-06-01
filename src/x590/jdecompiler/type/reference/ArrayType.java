@@ -178,8 +178,8 @@ public final class ArrayType extends RealReferenceType implements IArrayType {
 			braces,
 			encodedName,
 			classEncodedName,
-			name,
-			binaryName;
+			name;
+	private final @Nullable String binaryName;
 	
 	private @Nullable String nameForVariable;
 	
@@ -198,10 +198,12 @@ public final class ArrayType extends RealReferenceType implements IArrayType {
 		
 		this.name = memberType.getName() + braces;
 		
-		this.binaryName = encodedBraces +
+		this.binaryName =
 				(memberType instanceof ClassType classType ?
-						'L' + classType.getBinaryName() + ';' :
-						memberType.getBinaryName());
+						encodedBraces + 'L' + classType.getBinaryName() + ';' :
+						memberType.getBinaryName() == null ?
+								null :
+								encodedBraces + memberType.getBinaryName());
 		
 		this.encodedName = encodedBraces + memberType.getEncodedName();
 		
@@ -424,5 +426,10 @@ public final class ArrayType extends RealReferenceType implements IArrayType {
 				(nestingLevel == other.nestingLevel ?
 				memberType.equalsIgnoreSignature(other.memberType) :
 				elementType.equalsIgnoreSignature(other.elementType));
+	}
+	
+	
+	public static int minNestingLevel(ArrayType arrayType1, ArrayType arrayType2) {
+		return Math.min(arrayType1.nestingLevel, arrayType2.nestingLevel);
 	}
 }

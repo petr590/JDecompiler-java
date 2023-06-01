@@ -11,6 +11,7 @@ import x590.jdecompiler.clazz.ClassInfo;
 import x590.jdecompiler.field.FieldDescriptor;
 import x590.jdecompiler.field.JavaField;
 import x590.jdecompiler.io.StringifyOutputStream;
+import x590.jdecompiler.main.Config;
 import x590.jdecompiler.main.JDecompiler;
 import x590.jdecompiler.type.CastStatus;
 import x590.jdecompiler.type.Type;
@@ -118,7 +119,7 @@ public abstract class ConstableValueConstant<T extends Constable>
 	
 	
 	protected static boolean canUseConstants() {
-		return JDecompiler.getConfig().constantsUsagePolicy().isNotNever();
+		return JDecompiler.getConfig().constantsUsagePolicy() != Config.UsagePolicy.NEVER;
 	}
 	
 	protected boolean writeConstantIfEquals(StringifyOutputStream out, ClassInfo classinfo,
