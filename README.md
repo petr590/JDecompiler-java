@@ -1,7 +1,10 @@
 # JDecompiler-java
-This is a Java decompiler that I've been doing for over a year (intermittently).
+This is a Java decompiler that I've been doing since the beginning of 2022 (intermittently).
 Writing it in C++ turned out to be a mistake, so I moved it to Java.
 Maybe I'll finish it someday, but I need to add a more functionality.
+
+The project was archived on June 17, 2023 due to its renaming to Yava.
+Link to the renamed project: https://github.com/petr590/Yava
 
 ## Not implemented:
 - for(E e : arr)
